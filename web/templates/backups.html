@@ -1,0 +1,24 @@
+<script src="{{ url_for('static', filename='includes/jquery/js/jquery-3.4.1.js') }}"></script>
+<script src="{{ url_for('static', filename='includes/jquery/js/jquery.datatables.min.js') }}"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/dataTables.bootstrap.css') }}">
+<script src="{{ url_for('static', filename='includes/datatables/js/dataTables.bootstrap.js') }}"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
+<script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
+
+<html>
+    <head>
+    <title>JIMI - Backups</title>        
+    </head>
+    <body>
+        <a href="/admin/backup-system/" target="blank"><button class='btn btn-default'>Backup System</button></a>
+        <br><br>
+        <form enctype="multipart/form-data" action="/admin/restore-system/" method="POST">
+            <input type="file" name="file">
+            <input class='btn btn-default' type="submit" value="Restore System">
+        </form>
+    </body>
+</html>

@@ -1,0 +1,106 @@
+<script src="{{ url_for('static', filename='includes/jquery/js/jquery-3.4.1.js') }}"></script>
+<script src="{{ url_for('static', filename='includes/jquery/js/jquery.datatables.min.js') }}"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/dataTables.bootstrap.css') }}">
+<script src="{{ url_for('static', filename='includes/datatables/js/dataTables.bootstrap.js') }}"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
+<script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modelEditor.css') }}">
+
+
+<html>
+    <head>
+    <title>JIMI - My Account</title>   
+    </head>
+    <body>
+        <div class="alert-container alert alert-success hidden" role="alert">
+            <div class="alert">
+                <p id="alertMessage"></p>
+            </div>
+        </div>
+        <table id="table" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
+            <thead></thead>
+            <tbody></tbody>
+        </table>
+    </body>
+</html>
+
+<script>
+
+    function getAccount() {
+        $('#table').DataTable({
+            "paging" : false,
+            "order" : [[ 0, "asc" ]],
+            columns : [
+                { "data": "property", "name": "property", "title": "Property", "autoWidth": true, render: $.fn.dataTable.render.text() },
+                { 
+                    "data": "value", "name": "value", "title": "Value", "autoWidth": true, render: function (data, type, row) {
+                        // Possible XSS??
+                        return '<textarea type="text" class="form-control form-control-sm full-width" id="property_'+ data[0] +'">'+data[1]+'</textarea>';
+                    }
+                }
+            ],
+            columnDefs: [
+                {
+                    orderable: true
+                }
+            ]
+        });
+
+        var table = $('#table').DataTable();
+
+        $('.dataTables_length').addClass('bs-select');
+        $('.dataTables_filter input[type="search"]').css({'width':'200px'});
+
+        $.ajax({url:"/api/1.0/auth/myAccount/", type:"GET", success: function ( result ) {
+                for ( resultItem in result["results"][0] ) {
+                    if (typeof result["results"][0][resultItem] == "object") {
+                        table.row.add({ "property" : resultItem, "value" : [ resultItem, JSON.stringify(result["results"][0][resultItem]) ] }).draw();
+                    } else {
+                        table.row.add({ "property" : resultItem, "value" : [ resultItem, result["results"][0][resultItem] ] }).draw();
+                    }
+                }
+            }
+        })
+
+        $(window).bind('keydown', function(event) {
+            if (event.ctrlKey || event.metaKey) {
+                switch (String.fromCharCode(event.which).toLowerCase()) {
+                case 's':
+                    event.preventDefault();
+                    var jsonData = {}
+                    table.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
+                        var data = this.data();
+                        jsonData[data["value"][0]] = $("#property_"+data["value"][0]).val()
+                    } );
+                    $.ajax({url:"/api/1.0/auth/myAccount/", type:"POST", data: JSON.stringify({ data: jsonData }), contentType:"application/json", success: function ( result ) {
+                            alertNow("Object saved!");
+                        }
+                    });
+                    break;
+                }
+            }
+        })
+    }
+
+    function alertNow(message) {
+        var alert = $(".alert-container");
+        $("#alertMessage").text(message);
+        alert.toggleClass("hidden");
+        alert.slideDown();
+        window.setTimeout(function() {
+            alert.slideUp();
+            alert.toggleClass("hidden");
+            location.reload();
+        }, 750);
+    }
+
+    $(document).ready(function () {
+        var alert = $(".alert-container");
+        getAccount();
+    });
+</script>

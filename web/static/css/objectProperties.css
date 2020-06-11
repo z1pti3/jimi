@@ -1,0 +1,49 @@
+.propertiesPanel {
+	position: absolute;
+	z-index: 1;
+	border-style: solid;
+	border-width: 1.2px;
+	position: absolute !important;
+	background-color: #FAFAFA;
+	min-width: 500px;
+	min-height: 30%;
+	max-height: 80%;
+	max-width: 80%;
+	width: 300px;
+	overflow-y: hidden;
+	overflow-x: hidden;
+}
+
+.propertiesPanelsmall {
+	min-width: 250px;
+	min-height: 85px;
+}
+
+.propertiesPanel-body {
+	position: relative;
+	height: -webkit-calc(100% - 60px);
+	width: 100%;
+	overflow-y: scroll;
+	overflow-x: hidden;
+}
+
+.propertiesPanel-header {
+	height: 30px;
+	position: relative;
+	background-color: #F0F0F0;
+}
+
+.propertiesPanel-footer {
+	height: 30px;
+	position: relative;
+	background-color: #F0F0F0;
+}
+
+.inputFullWidth {
+	width: 100%;
+}
+
+.existingPropertiesPanel-SearchResults {
+	display: flex;
+	flex-wrap: wrap;
+}

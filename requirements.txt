@@ -1,0 +1,10 @@
+flask
+requests
+netaddr
+bson
+pymongo
+pycryptodome
+pyjwt
+croniter
+pyreadline
+cryptography

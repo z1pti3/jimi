@@ -1,0 +1,73 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta charset="utf-8" />
+		<title>JIMI - Login</title>
+		<script src="{{ url_for('static', filename='includes/jquery/js/jquery-3.4.1.js') }}"></script>
+		<script src="{{ url_for('static', filename='includes/jquery/js/jquery-ui-1.12.1.js') }}"></script>
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.theme.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.structure.css') }}">
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
+		<script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
+
+		<style type="text/css">
+			.login-form {
+				width: 340px;
+				margin: 50px auto;
+			}
+			.login-form form {
+				margin-bottom: 15px;
+				background: #f7f7f7;
+				box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+				padding: 30px;
+			}
+			.login-form h2 {
+				margin: 0 0 15px;
+			}
+			.form-control, .btn {
+				min-height: 38px;
+				border-radius: 2px;
+			}
+			.btn {        
+				font-size: 15px;
+				font-weight: bold;
+			}
+		</style>
+
+	</head>
+	<body>
+		<div class="login-form">
+			<form id="loginForm">
+				<h2 class="text-center">Log in</h2>       
+        		<div class="form-group">
+					<input id="username" type="text" class="form-control" placeholder="Username" required="required" autofocus>
+				</div>
+				<div class="form-group">
+					<input id="password" type="password" class="form-control" placeholder="Password" required="required">
+				</div>
+				<div class="form-group">
+					<input type="submit" class="btn btn-primary btn-block" value="Login"></input>
+				</div>
+			</form>
+		</div>
+	</body>
+</html>
+
+<script>
+	function getReturn() {
+		return window.location.href.match("return=(\/.*)")[1];
+	};
+
+	$('#loginForm').submit(function(e){
+		e.preventDefault();
+		$.ajax({url:"/api/1.0/auth/", type:"POST", data:JSON.stringify({username: $('#username').val(), password: $('#password').val() }), contentType:"application/json", success: function ( result ) {
+				window.location.replace(getReturn());
+			}
+		});
+	});
+</script>
+

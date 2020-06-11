@@ -1,0 +1,984 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		<script src="{{ url_for('static', filename='includes/jquery/js/jquery-3.4.1.js') }}"></script>
+		<script src="{{ url_for('static', filename='includes/jquery/js/jquery-ui-1.12.1.js') }}"></script>
+		<script src="{{ url_for('static', filename='includes/jquery/js/panzoom/panzoom.js') }}"></script>
+		<script src="{{ url_for('static', filename='includes/jquery/js/jquery.mousewheel/jquery.mousewheel.min.js') }}"></script>
+		<script src="{{ url_for('static', filename='includes/jquery/js/jquery.flowchart/jquery.flowchart.js') }}"></script>
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.theme.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.structure.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery.flowchart/jquery.flowchart.css') }}">
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
+		<script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/flow.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/modelEditor.css') }}">
+
+	</head>
+	<body>
+		<div class="ui-container">
+			<div class="alert-container alert alert-success hidden" role="alert">
+				<div class="alert">
+					<p id="alertMessage"></p>
+				</div>
+			</div>
+			<div class="ui-left">
+				<button class="newFlow">+</button>
+				<div class="flowchart-container" id="flowchart-container"></div>
+			</div>
+			<div class="ui-splitter">
+			</div>
+			<div class="ui-right">
+				<div class="controls" id="mDar-flowchart">
+					<div class="tabs" id="tabs">
+						<div class="tabs-container-top">
+							<div id="Properties" class="tabcontent">
+								Properties
+								<br>
+								<div class="properties">
+									<div class="properties_items hide">
+										<select id="objectType">
+										</select><br><br>
+										<div id="properties_items">
+
+										</div>
+										<button class="save_properties">Save</button>
+										<button class="debug_item">Debug</button><br><br>
+										<div class="force_trigger_container hide">
+											<hr>
+											<textarea id="events" rows="5" cols="50"></textarea><br>
+											<button class="force_trigger">Trigger</button>
+										</div>
+									</div>
+									<div class="links_properties hide">
+										<div id="links_properties">
+
+										</div>
+										<button class="save_links_properties">Save</button><br><br>
+									</div>
+								</div>
+								<div class="conductProperties">
+									<table>
+										<tr>
+											<td><label>Name:</label></td>
+											<td><input type="text" id="conductName" value="{{ conductName }}"></input></td>
+										</tr>
+										<tr>
+											<td><label>ACL:</label></td>
+											<td><input type="text" id="conductACL" value="{{ conductACL }}"></input></td>
+										</tr>
+										<tr>
+											{% if conductEnabled %}
+											<td><label>Enabled:</label><input type="checkbox" id="conductEnabled" checked></input></td>
+											{% else %}
+											<td><label>Enabled:</label><input type="checkbox" id="conductEnabled"></input></td>
+											{% endif %}
+										</tr>
+										<tr>
+											<td><button class="save">Save Conduct</button></td>
+											<td><button id="deleteConduct">Delete Conduct</button></td>
+										</tr>
+									</table>
+								</div>
+							</div>
+							<div id="Triggers" class="tabcontent">
+								<input type='text' id='triggerListFilter'>
+								<div id="triggerList">
+
+								</div>
+							</div>
+							<div id="Actions" class="tabcontent">
+								<input type='text' id='actionListFilter'>
+								<div id="actionList">
+
+								</div>
+							</div>
+						</div>
+						<div class="tabs-container-bottom">
+							<div class="tab">
+								<button class="tablinks" id="defaultOpen" onclick="openTab(event, 'Properties')">Properties</button>
+								<button class="tablinks" onclick="openTab(event, 'Triggers')">Triggers</button>
+								<button class="tablinks" onclick="openTab(event, 'Actions')">Actions</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
+
+<script>
+	$(".debug_item").click(function () {
+		var $flowchart = $('.flowchart-container');
+		var pathname = window.location.pathname;
+		var operatorId = $flowchart.flowchart('getSelectedOperatorId');
+		$.ajax({url: pathname+"debug/"+operatorId+"/", type:"GET", contentType:"application/json", success: function ( result ) {
+					$.ajax({url: "/api/1.0/debug/", type:"POST", data:JSON.stringify({ "filter" : result["_id"], "level" : 100}), contentType:"application/json", success: function ( result ) {
+						var win = window.open('/debug/'+result["debugID"]+"/", '_blank');
+						if (win) {
+							win.focus();
+						} else {
+							alert('Popups disabled!');
+						}
+					}
+				});
+			}
+		});
+	})
+</script>
+
+<script>
+	$(".force_trigger").click(function () {
+		var $flowchart = $('.flowchart-container');
+		var pathname = window.location.pathname;
+		var operatorId = $flowchart.flowchart('getSelectedOperatorId');
+		$.ajax({url: pathname+"forceTrigger/"+operatorId+"/", type:"POST", data:JSON.stringify({events: $('#events').val() }), contentType:"application/json" });
+	})
+</script>
+
+<script>
+	$(".newFlow").click(function () {
+		$.ajax({url:"", type:"POST", data:JSON.stringify({action: "new"}), contentType:"application/json", success: function ( result ) {
+				var $flowchart = $('.flowchart-container');
+				var $container = $flowchart.parent();
+
+				var flowID = result["flowID"];
+				var operatorId = flowID;
+
+				var pzmatrix = $flowchart.panzoom("getMatrix");
+				var currentScale = pzmatrix[0];
+				var dx = pzmatrix[4];
+				var dy = pzmatrix[5];
+				var pzoff = $flowchart.offset();
+				var x = ((($container.width() / 2) + -pzoff.left) / currentScale);
+				var y = ((($container.height() / 2) + -pzoff.top) / currentScale);
+				var operatorData = {
+					top: y,
+					left: x,
+					properties: {
+						title: flowID,
+						inputs: {},
+						outputs: {}
+					}
+				};
+				$flowchart.flowchart('createOperator', operatorId, operatorData);
+				$flowchart.flowchart('selectOperator', operatorId);
+			}
+		});
+	});
+</script>
+
+<script>
+	function loadProperties(operatorId) {
+		var $flowchart = $('.flowchart-container');
+		var pathname = window.location.pathname;
+		$.ajax({ url: pathname+"flowProperties/"+operatorId+"/", type:"GET", async: false, success: function ( result ) {
+				// Build form
+				$('#properties_items').empty();
+				var $table = $('<table width="100%">');
+				for (objectItem in result["formData"]) {
+					var $row = $('<tr>');
+					if (result["formData"][objectItem]["type"] == "input") {
+						// Updating object names on flowchart UI
+						if ( result["formData"][objectItem]["schemaitem"] == "name" ) {
+							$flowchart.flowchart('setOperatorTitle', operatorId, result["formData"][objectItem]["textbox"]);
+						}
+						var $cell = $('<td width="100px">');
+						$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"]}).text(result["formData"][objectItem]["schemaitem"]+":"));
+						$row.append($cell);
+						var $cell = $('<td>');
+						$cell.append($('<input class="inputFullWidth">').attr({type: 'text', value: result["formData"][objectItem]["textbox"], id: "properties_items"+result["formData"][objectItem]["schemaitem"]}));
+						$row.append($cell);
+					}
+					if (result["formData"][objectItem]["type"] == "checkbox") {
+						var $cell = $('<td width="100px">');
+						$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"]}).text(result["formData"][objectItem]["schemaitem"]+":"));
+						$row.append($cell);
+						var $cell = $('<td>');
+						if (result["formData"][objectItem]["checked"] == true) {
+							$cell.append($('<input>').attr({type: 'checkbox', id: "properties_items"+result["formData"][objectItem]["schemaitem"], checked: true}));
+						}
+						else {
+							$cell.append($('<input>').attr({type: 'checkbox', id: "properties_items"+result["formData"][objectItem]["schemaitem"]}));
+						}
+						$row.append($cell);
+					}
+					if (result["formData"][objectItem]["type"] == "json-input") {
+						var $cell = $('<td width="100px">');
+						$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"]}).text(result["formData"][objectItem]["schemaitem"]+":"));
+						$row.append($cell);
+						var $cell = $('<td>');
+						$cell.append($('<textarea class="inputFullWidth">').attr({type: 'text', id: "properties_items"+result["formData"][objectItem]["schemaitem"]}));
+							//value: JSON.stringify(result["formData"][objectItem]["textbox"])
+						$cell.find('#properties_items'+result["formData"][objectItem]["schemaitem"]).val(JSON.stringify(result["formData"][objectItem]["textbox"]));
+						$row.append($cell);
+						
+					}
+					$table.append($row);
+				}
+				// Apply table
+				$('#properties_items').append($table);
+			}
+		});
+	}
+
+	// Load properties form and populate with already existing settings if any?
+	$("#objectType").change(function() {
+		var pathname = window.location.pathname;
+		var $flowchart = $('.flowchart-container');
+		var operatorId = $flowchart.flowchart('getSelectedOperatorId')
+		loadProperties(operatorId);
+		//$('.save_properties').trigger('click');
+	});
+</script>
+
+<script>
+	// Save object properties
+	$('.save_properties').click(function () {
+		var $flowchart = $('.flowchart-container');
+		var pathname = window.location.pathname;
+		var operatorId = $flowchart.flowchart('getSelectedOperatorId')
+		$.ajax({ url: "/api/1.0/models/"+$('#objectType option:selected').text()+"/schema/", type : "GET", success: function( objectData ) {
+				var objectItem;
+				var objectJson = {};
+				// Returns the selected modeType as classID
+				objectJson["newClassID"] = $('#objectType option:selected').val()
+				// Populate form items
+				for (objectItem in objectData) {
+					if ($('#properties_items'+objectItem).length) {
+						// Text input boxes
+						if ($('#properties_items'+objectItem).attr('type') == "text") {
+							objectJson[objectItem] = $('#properties_items'+objectItem).val();
+						}
+						// Bool objects
+						if ($('#properties_items'+objectItem).attr('type') == "checkbox") {
+							objectJson[objectItem] = $('#properties_items'+objectItem).is(":checked");
+						}
+					}
+				}
+				// Posting data
+				$.ajax({ url: pathname+"flow/"+operatorId+"/", type:"POST", data:JSON.stringify(objectJson), contentType:"application/json", success: function ( result ) {
+						var operatorData = $flowchart.flowchart('getOperatorData',operatorId);
+						var removedLinks = [];
+						if  (!operatorData["properties"]["outputs"]["new_output"]) {
+							operatorData["properties"]["outputs"]["new_output"] = {};
+							operatorData["properties"]["outputs"]["new_output"]["label"] = "new_output";
+						}
+						// Checking flow type is action otherwise just add outputs
+						if (result["type"] == "action") {
+							if  (!operatorData["properties"]["inputs"]["new_input"]) {
+								operatorData["properties"]["inputs"]["new_input"] = {};
+								operatorData["properties"]["inputs"]["new_input"]["label"] = "new_input";
+							}
+						} else {
+							for (operatorLink in operatorData["properties"]["inputs"]) {
+								if (operatorLink != "new_input")
+								{
+									removedLinks.push(operatorLink);
+								}
+								delete operatorData["properties"]["inputs"][operatorLink];
+							}
+						}
+						$flowchart.flowchart('setOperatorData',operatorId,operatorData);
+
+						// Do we need to remove any links
+						if (removedLinks.length > 0) {
+							var flowData = $flowchart.flowchart('getData');
+							var removeLink;
+							for (removeLink in removedLinks) {
+								var link;
+								for (link in flowData["links"]) {
+									if (flowData["links"][link]["toConnector"] == removedLinks[removeLink]) {
+										delete flowData["links"][link];
+									}
+								}
+							}
+							$flowchart.flowchart('setData',flowData);
+						}
+
+						// Save entire flow
+						//$('.save').trigger('click');
+						// Ensure data is reloaded as if it has just been loaded
+						$('#objectType').trigger('change');
+						// Save entire flow
+						$('.save').trigger('click');
+						// Updating triggers and actions
+						updateTriggersTab();
+						updateActionsTab();
+					},
+					error: function ( result ) {
+						alert("Error: Save Failed");
+					}
+				});
+			}
+		});
+	});
+</script>
+<script>
+	$('.save_links_properties').click(function () {
+		var objectJson = {};
+		// Returns the selected modeType as classID
+		objectJson["logic"] = $('#links_properties'+'logic').val()
+		console.log(objectJson);
+		var $flowchart = $('.flowchart-container');
+		var pathname = window.location.pathname;
+		var operatorIds = $flowchart.flowchart('getSelectedLinkId').split(">");
+		console.log(JSON.stringify(objectJson));
+		$.ajax({ url: pathname+"flowlogic/"+operatorIds[0]+"/"+operatorIds[1]+"/", type:"POST", data:JSON.stringify(objectJson), contentType:"application/json", success: function( result ) {
+			console.log(result);
+		}});
+	});
+</script>
+	
+<script>
+	$(document).ready(function () {
+		var $flowchart = $('.flowchart-container');
+		var $container = $flowchart.parent();
+		var cx = $flowchart.width() / 2;
+		var cy = $flowchart.height() / 2;
+		
+		// Pan and Zoom Container
+		// And pass it to panzoom
+		$flowchart.panzoom({});
+		//var $panzoom = $('.flowchart-container').panzoom({});
+		//$flowchart.panzoom = $('.flowchart-container').panzoom({});
+		$flowchart.panzoom('pan', -cx + $container.width() / 2, -cy + $container.height() / 2);
+		//$('.mDar-flowchart').pan('pan', -cx + $container.width() / 2, -cy + $container.height() / 2);
+
+		// Panzoom zoom handling...
+		var zoomBy = 0.1;
+		var currentZoom = 1;
+		var minZoom = 0.25;
+		var maxZoom = 2;
+		$flowchart.panzoom.minScale = minZoom;
+		$container.on('mousewheel.focal', function( e ) {
+			if (e.shiftKey) {
+				var newZoom = 0 ;
+				if (e.deltaY == -1) {
+					newZoom = currentZoom - zoomBy;
+				};
+				if (e.deltaY == 1) {
+					newZoom = currentZoom + zoomBy;
+				};
+				if ((newZoom > minZoom) && (newZoom < maxZoom))
+				{
+					currentZoom = newZoom;
+				};
+				$flowchart.flowchart('setPositionRatio', currentZoom);
+				$flowchart.panzoom('zoom', currentZoom, {
+					animate: false,
+					focal: e
+				});
+			} else {
+				var $pzmatrix = $flowchart.panzoom('getMatrix');
+				$flowchart.panzoom('pan', +$pzmatrix[4], +$pzmatrix[5] + e.originalEvent.wheelDelta);
+			}
+		});
+		
+		// Apply the plugin on a standard, empty div...
+		$flowchart.flowchart({
+			onLinkUnselect: function(linkId) {
+				$(".links_properties").addClass("hide");
+				$('#links_properties').empty();
+				window.flowChanged = true;
+				return true;
+			},
+
+			onOperatorUnselect: function(operatorId) {
+				$(".force_trigger_container").addClass("hide");
+				$(".properties_items").addClass("hide");
+				$('#properties_items').empty();
+				var linksData = $flowchart.flowchart('getData')["links"];
+				for (linkData in linksData) {
+					$flowchart.flowchart("uncolorizeLink",linkData);
+				}
+				window.flowChanged = true;
+				return true;
+			},
+
+			onOperatorSelect: function(operatorId) {
+				var linksData = $flowchart.flowchart('getData')["links"];
+				for (linkData in linksData) {
+					if ( linksData[linkData]["fromOperator"] != operatorId && linksData[linkData]["toOperator"] != operatorId) {
+						$flowchart.flowchart("colorizeLink",linkData,"#b9b3e6");
+					} else {
+						$flowchart.flowchart("uncolorizeLink",linkData);
+					}
+				}
+
+				$(".properties_items").addClass("hide");
+				$(".conductProperties").addClass("hide");
+				$(".force_trigger_container").addClass("hide");
+				$('#properties_items').empty();
+				// Get current flow object and set select box value
+				var pathname = window.location.pathname;
+				$.ajax({ url: pathname+"flow/"+operatorId+"/", type : "GET", async: false, success: function( flowData ) {
+						$.ajax({ url: "/api/1.0/models/"+flowData["result"]["type"]+"/"+flowData["result"][flowData["result"]["type"]+"ID"]+"/", type : "GET", async: false, success: function( objectData ) {
+								$('#objectType').val(objectData["results"][0]["classID"]);
+								if ( $("#objectType").val() == objectData["results"][0]["classID"]) {
+									loadProperties(operatorId);
+									$(".properties_items").removeClass("hide");
+									if (flowData["result"]["type"] == "trigger") {
+										$(".force_trigger_container").removeClass("hide");
+									}
+								}
+							}
+						});
+					},
+					error: function( result ) {
+						$(".properties_items").removeClass("hide");
+					}
+				});
+				
+				return true;
+			},
+
+			onLinkSelect: function(linkId) {
+				$(".force_trigger_container").addClass("hide");
+				$(".links_properties").addClass("hide");
+				$(".conductProperties").addClass("hide");
+				$('#links_properties').empty();
+				var operatorIds = linkId.split(">");
+				var pathname = window.location.pathname;
+				$.ajax({ url: pathname+"flowlogic/"+operatorIds[0]+"/"+operatorIds[1]+"/", type : "GET", async: false, success: function( flowData ) {
+					var $table = $('<table width="100%">');
+					var $row = $('<tr>');
+					var $cell = $('<td width="100px">');
+					$cell.append($('<label>').attr({for: "logic"}).text("logic"+":"));
+					$row.append($cell);
+					var $cell = $('<td>');
+					$cell.append($('<textarea class="inputFullWidth">').attr({type: 'text', id: "links_properties"+"logic"}));
+					$cell.find('#links_properties'+'logic').val(JSON.stringify(flowData["result"]["logic"]));
+					$row.append($cell);
+					$table.append($row);
+					$('#links_properties').append($table);
+				}});
+				$(".links_properties").removeClass("hide");
+				
+				return true;
+			},
+
+			onLinkCreate: function(linkID,linkData) {
+				var data = $flowchart.flowchart('getData')
+
+				// Link is being moved i.e. is not a new link between new_output and new_input
+				if (( linkData["toConnector"] == "new_input" ) && ( linkData["fromConnector"] != "new_output" )) {
+					return false;
+				}
+
+				// Link already exists
+				if ( data["links"][linkID] ) {
+					return false;
+				}
+
+				// If to and from are the same operator
+				if (linkData["fromOperator"] == linkData["toOperator"]) {
+					return false;
+				}
+
+				// If a link already exists between these operators
+				var link;
+				for (link in data["links"]) {
+					if ((data["links"][link]["fromOperator"] == linkData["fromOperator"]) && (data["links"][link]["toOperator"] == linkData["toOperator"])) {
+						return false;
+					}
+				}
+
+				// How do we check for loops and prevent these? - it should not be possible to create a loop ( backend will protect this also with execution limits and timeouts )
+				// INSERT LOOP PREVENT CODE HERE!
+			
+				if ( linkData["toConnector"] == "new_input" ) {
+					data["operators"][linkData["fromOperator"]]["properties"]["outputs"][linkData["toOperator"]] = {};
+					data["operators"][linkData["fromOperator"]]["properties"]["outputs"][linkData["toOperator"]]["label"] = ">";
+					delete data["operators"][linkData["fromOperator"]]["properties"]["outputs"][linkData["fromConnector"]];
+					data["operators"][linkData["fromOperator"]]["properties"]["outputs"]["new_output"] = {};
+					data["operators"][linkData["fromOperator"]]["properties"]["outputs"]["new_output"]["label"] = "new_output";
+					//$flowchart.flowchart('setData', data );
+				};
+
+				if ( linkData["fromConnector"] == "new_output" ) {
+					data["operators"][linkData["toOperator"]]["properties"]["inputs"][linkData["fromOperator"]] = {};
+					data["operators"][linkData["toOperator"]]["properties"]["inputs"][linkData["fromOperator"]]["label"] = ">";
+					delete data["operators"][linkData["toOperator"]]["properties"]["inputs"][linkData["toConnector"]];
+					data["operators"][linkData["toOperator"]]["properties"]["inputs"]["new_input"] = {};
+					data["operators"][linkData["toOperator"]]["properties"]["inputs"]["new_input"]["label"] = "new_input";
+					//$flowchart.flowchart('setData', data );
+				};
+
+				if (( linkData["fromConnector"] == "new_output" ) && ( linkData["toConnector"] == "new_input" )) {
+					delete data["links"][linkID];
+					var newName = linkData["fromOperator"]+">"+linkData["toOperator"];
+					data["links"][newName] = {};
+					data["links"][newName]["toOperator"] = linkData["toOperator"];
+					data["links"][newName]["toConnector"] = linkData["fromOperator"];
+					data["links"][newName]["fromOperator"] = linkData["fromOperator"];
+					data["links"][newName]["fromConnector"] = linkData["toOperator"];
+					$flowchart.flowchart('setData', data );
+					return false;
+				};
+				
+				//data[linkData["operators"][linkData["toOperator"]]]
+				//$flowchart.flowchart('setData', data );
+				window.flowChanged = true;
+				return true;
+			},
+
+			onLinkDelete: function(linkID) {
+				var data = $flowchart.flowchart('getData');
+				var linkData = data["links"][linkID];
+				// Should really be using built in functions within flowchart to update date as this is causing a complete reload and java error
+				delete data["operators"][linkData["fromOperator"]]["properties"]["outputs"][linkData["fromConnector"]];
+				delete data["operators"][linkData["toOperator"]]["properties"]["inputs"][linkData["toConnector"]];
+				delete data["links"][linkID];
+				//$flowchart.flowchart('setOperatorData')(linkData["fromOperator"],data["operators"][linkData["fromOperator"]]);
+				//$flowchart.flowchart('setOperatorData')(linkData["toOperator"],data["operators"][linkData["toOperator"]]);
+				$flowchart.flowchart('setData', data );
+				return true;
+			},
+		});
+
+		
+
+		// Save conduct
+		$('.save').click(function () {
+			// Save conduct
+			var data = $flowchart.flowchart('getData');
+			console.log(data)
+			for (link in data["links"]){
+				console.log(link)
+			}
+			$.ajax({url:"", type:"POST", data:JSON.stringify({action: "save" ,flowData: data, conductName: $("#conductName").val(), conductACL: $('#conductACL').val(), conductEnabled: $("#conductEnabled").is(":checked")}), contentType:"application/json", success: function ( result ) {
+				$flowchart.flowchart('setData',result["flowData"]);
+			}});
+		});
+
+
+		// Pickup key up events
+        $(document).keyup(function (event) {
+            if (event.keyCode == 46 && document.activeElement.type != "text" && document.activeElement.type != "checkbox" && document.activeElement.type != "textarea") {
+				$flowchart.flowchart('deleteSelected');
+				window.flowChanged = true;
+			}
+		});
+
+		$(".ui-left").resizable({
+			handles: "e"
+		});
+
+		// Controls
+		$("#tabs").tabs({
+			collapsible: true
+		});
+
+		updateTriggersTab()
+		updateActionsTab()
+
+		// Sets data to that set by Web Server for current conduct
+		var data = {{ flowData|tojson }};
+		$flowchart.flowchart('setData', data );
+
+		$('#objectType').empty();
+		// Populate type select box with all model types
+		$.get( "/conduct/PropertyTypes/", function( data ) { 
+			$('#objectType').append(new Option("",""));
+			for (result in data["results"]) {
+				$('#objectType').append(new Option(data["results"][result]["name"], data["results"][result]["_id"]));
+			}
+		});
+	});  
+</script>
+
+<script>
+	function updateTriggersTab() {
+		var $flowchart = $('.flowchart-container');
+		var $container = $flowchart.parent();
+		$.ajax({url:"/api/1.0/models/trigger/all/", type:"GET", success: function ( result ) {
+			$('#triggerList').empty();
+			for ( resultItem in result["results"] ) {
+					var $div = $('<div class="draggable_operator ui-draggable ui-draggable-handle triggerListName">');
+					$div.attr("data-name",result["results"][resultItem]["name"])
+					$div.attr("data-id",result["results"][resultItem]["_id"])
+					$div.attr("id",result["results"][resultItem]["_id"])
+					var $row = $('<tr>');
+					var $cell = $('<td width="100px">');
+					var $b = $('<b>');
+					$b.text(result["results"][resultItem]["name"])
+					$cell.append($b)
+					$cell.append("</br>")
+					$cell.append($('<id>').text(result["results"][resultItem]["_id"]))
+					$cell.append("</br>")
+					$row.append($cell);
+					var $cell = $('<td width="10px">');
+					var $button = $('<button>').attr({id: result["results"][resultItem]["_id"]}).text("DEL");
+					$button.click(function () {
+						if (confirm("Are you sure you want to delete trigger\n"+this.id)) {
+							$.ajax({ url: "/api/1.0/models/trigger/"+this.id+"/", type : "DELETE", success: function( result ) {
+									updateTriggersTab();
+								},
+								error: function( result ) {
+									alert("Unable to delete");
+								}
+							});
+						}
+					});
+					$cell.append($button);
+					$row.append($cell);
+					$div.append($row)
+					$('#triggerList').append($div);
+					// Make draggableOperators
+					$div.draggable({
+						cursor: "move",
+						opacity: 0.7,
+						
+						helper: 'clone', 
+						appendTo: 'body',
+						zIndex: 1000,
+						
+						helper: function(e) {
+							var $this = $(this);
+							var data = {
+								properties: {
+									title: $this.attr("id"),
+									inputs: {},
+									outputs: {}
+								} 
+							};
+							return $flowchart.flowchart('getOperatorElement', data);
+						},
+						stop: function(e, ui) {
+							var $this = $(this);
+							var elOffset = ui.offset;
+							var containerOffset = $container.offset();
+							if (elOffset.left > containerOffset.left &&
+								elOffset.top > containerOffset.top && 
+								elOffset.left < containerOffset.left + $container.width() &&
+								elOffset.top < containerOffset.top + $container.height()) {
+
+								var flowchartOffset = $flowchart.offset();
+
+								var relativeLeft = elOffset.left - flowchartOffset.left;
+								var relativeTop = elOffset.top - flowchartOffset.top;
+
+								var positionRatio = $flowchart.flowchart('getPositionRatio');
+								relativeLeft /= positionRatio;
+								relativeTop /= positionRatio;
+								
+								// Get data via API call
+								$.ajax({url:"", type:"POST", data:JSON.stringify({action: "existing", type: "trigger", triggerID: $this.attr("id")}), contentType:"application/json", success: function ( result ) {
+										$.ajax({ url: "/api/1.0/models/trigger/"+$this.attr("id")+"/", type : "GET", success: function( objectData ) {
+												var data = {
+													properties: {
+														title: objectData["results"][0]["name"],
+														inputs: {},
+														outputs: {
+															new_output : {
+																label : "new_output"
+															}
+														}
+													}
+												}
+												data.left = relativeLeft;
+												data.top = relativeTop;
+												$flowchart.flowchart('createOperator', result["flowID"], data);
+											}
+										});
+									}
+								});
+							}
+						}
+					});
+				}
+			}
+		});
+	}
+	$(document).ready(function () {
+		$("#triggerListFilter").keyup(function(){
+			var search = $(this).val().toLowerCase();
+			triggerFilter(search);
+		});
+
+		function triggerFilter(e) {
+			var regex = new RegExp('\\b\\w*' + e + '\\w*\\b');
+			$('.triggerListName').hide().filter(function () {
+				var nr = regex.test($(this).data('name').toLowerCase());
+				var ir = regex.test($(this).data('id'));
+				if (ir || nr) {
+					return true;
+				}
+				return false;
+			}).show();
+		}
+    });
+
+	function updateActionsTab() {
+		var $flowchart = $('.flowchart-container');
+		var $container = $flowchart.parent();
+		$.ajax({url:"/api/1.0/models/action/all/", type:"GET", success: function ( result ) {
+			$('#actionList').empty();
+			for ( resultItem in result["results"] ) {
+					var $div = $('<div class="draggable_operator ui-draggable ui-draggable-handle actionListName">');
+					$div.attr("data-name",result["results"][resultItem]["name"])
+					$div.attr("data-id",result["results"][resultItem]["_id"])
+					$div.attr("id",result["results"][resultItem]["_id"])
+					var $row = $('<tr>');
+					var $cell = $('<td width="100px">');
+					var $b = $('<b>');
+					$b.text(result["results"][resultItem]["name"])
+					$cell.append($b)
+					$cell.append("</br>")
+					$cell.append($('<id>').text(result["results"][resultItem]["_id"]))
+					$cell.append("</br>")
+					$row.append($cell);
+					var $cell = $('<td width="10px">');
+					var $button = $('<button>').attr({id: result["results"][resultItem]["_id"]}).text("DEL");
+					$button.click(function () {
+						if (confirm("Are you sure you want to delete trigger\n"+this.id)) {
+							$.ajax({ url: "/api/1.0/models/action/"+this.id+"/", type : "DELETE", success: function( result ) {
+								updateActionsTab();
+								},
+								error: function( result ) {
+									alert("Unable to delete");
+								}
+							});
+						}
+					});
+					$cell.append($button);
+					$row.append($cell);
+					$div.append($row)
+					$('#actionList').append($div);
+					// Make draggableOperators
+					$div.draggable({
+						cursor: "move",
+						opacity: 0.7,
+						
+						helper: 'clone', 
+						appendTo: 'body',
+						zIndex: 1000,
+						
+						helper: function(e) {
+							var $this = $(this);
+							var data = {
+								properties: {
+									title: $this.attr("id"),
+									inputs: {},
+									outputs: {}
+								} 
+							};
+							return $flowchart.flowchart('getOperatorElement', data);
+						},
+						stop: function(e, ui) {
+							var $this = $(this);
+							var elOffset = ui.offset;
+							var containerOffset = $container.offset();
+							if (elOffset.left > containerOffset.left &&
+								elOffset.top > containerOffset.top && 
+								elOffset.left < containerOffset.left + $container.width() &&
+								elOffset.top < containerOffset.top + $container.height()) {
+
+								var flowchartOffset = $flowchart.offset();
+
+								var relativeLeft = elOffset.left - flowchartOffset.left;
+								var relativeTop = elOffset.top - flowchartOffset.top;
+
+								var positionRatio = $flowchart.flowchart('getPositionRatio');
+								relativeLeft /= positionRatio;
+								relativeTop /= positionRatio;
+								
+								// Get data via API call
+								$.ajax({url:"", type:"POST", data:JSON.stringify({action: "existing", type: "action", actionID: $this.attr("id")}), contentType:"application/json", success: function ( result ) {
+										$.ajax({ url: "/api/1.0/models/action/"+$this.attr("id")+"/", type : "GET", success: function( objectData ) {
+												var data = {
+													properties: {
+														title: objectData["results"][0]["name"],
+														inputs: {
+															new_input : {
+																label : "new_input"
+															}
+														},
+														outputs: {
+															new_output : {
+																label : "new_output"
+															}
+														}
+													}
+												}
+												data.left = relativeLeft;
+												data.top = relativeTop;
+												$flowchart.flowchart('createOperator', result["flowID"], data);
+											}
+										});
+									}
+								});
+							}
+						}
+					});
+				}
+			}
+		});
+	}
+	$(document).ready(function () {
+		$("#actionListFilter").keyup(function(){
+			var search = $(this).val().toLowerCase();
+			actionFilter(search);
+		});
+
+		function actionFilter(e) {
+			var regex = new RegExp('\\b\\w*' + e + '\\w*\\b');
+			$('.actionListName').hide().filter(function () {
+				var nr = regex.test($(this).data('name').toLowerCase());
+				var ir = regex.test($(this).data('id'));
+				if (ir || nr) {
+					return true;
+				}
+				return false;
+			}).show();
+		}
+    });
+</script>
+
+<script>
+	$("#deleteConduct").click(function () {
+		if (confirm("Are you sure you want to delete this conduct?")) {
+			$.ajax({ url: "/api/1.0/models/conduct/{{ conductID }}/", type : "DELETE", success: function( result ) {
+					parent.location.reload();
+				},
+				error: function( result ) {
+					alert("Unable to delete");
+				}
+			});
+		}
+	});
+
+	$(".flowchart-container").click(function () {
+		var $flowchart = $('.flowchart-container');
+		if ($flowchart.flowchart('getSelectedLinkId') == null && $flowchart.flowchart('getSelectedOperatorId') == null) {
+			$(".conductProperties").removeClass("hide");
+		}
+	});
+</script>
+
+<script>
+    function alertNow(message) {
+        var alert = $(".alert-container");
+        $("#alertMessage").text(message);
+        alert.toggleClass("hidden");
+        alert.slideDown();
+        window.setTimeout(function() {
+            alert.slideUp();
+            alert.toggleClass("hidden");
+        }, 1000);
+    }
+
+	var clipboard;
+	$(window).bind('keydown', function(event) {
+            if (event.ctrlKey || event.metaKey) {
+                switch (String.fromCharCode(event.which).toLowerCase()) {
+				case 's':
+					event.preventDefault();
+					$('.save').trigger('click');
+					alertNow("Conducted saved!");
+					break;
+                case 'x':
+					if (event.shiftKey) {
+						var $flowchart = $('.flowchart-container');
+						var operatorId = $flowchart.flowchart('getSelectedOperatorId');
+						if (operatorId == null){
+							alertNow("No object selected!");
+						}
+						else {
+							clipboard = operatorId;
+							alertNow("Object copied!");
+						}
+						break;
+					}
+				case 'v':
+					if (clipboard) {
+						$.ajax({url:"", type:"POST", data:JSON.stringify({action: "clone", operatorId: clipboard}), contentType:"application/json", success: function ( result ) {
+								var $flowchart = $('.flowchart-container');
+								var $container = $flowchart.parent();
+
+								var flowID = result["flowID"];
+								var operatorId = flowID;
+
+								var pzmatrix = $flowchart.panzoom("getMatrix");
+								var currentScale = pzmatrix[0];
+								var dx = pzmatrix[4];
+								var dy = pzmatrix[5];
+								var pzoff = $flowchart.offset();
+								var x = ((($container.width() / 2) + -pzoff.left) / currentScale);
+								var y = ((($container.height() / 2) + -pzoff.top) / currentScale);
+								var operatorData = {
+									top: y,
+									left: x,
+									properties: {
+										title: flowID,
+										inputs: {},
+										outputs: {}
+									}
+								};
+								$flowchart.flowchart('createOperator', operatorId, operatorData);
+								$flowchart.flowchart('selectOperator', operatorId);
+							}
+						});
+					}
+                }
+            }
+        })
+</script>
+
+<script>
+	function openTab(evt, tabName) {
+		var i, tabcontent, tablinks;
+		tabcontent = document.getElementsByClassName("tabcontent");
+		for (i = 0; i < tabcontent.length; i++) {
+		tabcontent[i].style.display = "none";
+		}
+		tablinks = document.getElementsByClassName("tablinks");
+		for (i = 0; i < tablinks.length; i++) {
+		tablinks[i].className = tablinks[i].className.replace(" active", "");
+		}
+		document.getElementById(tabName).style.display = "block";
+		evt.currentTarget.className += " active";
+	}
+
+	document.getElementById("defaultOpen").click()
+</script>
+
+<script>
+	function filterList(element) {
+		var value = $(element).val();
+		$("#fromList li").each(function () {
+			if ($(this).text().search(value) > -1) {
+				$(this).show();
+				$(this).prevAll('.header').first().show();
+			} else {
+				$(this).hide();
+			}
+		});
+	}
+</script>
+
+<script>
+		function filterList1(element) {
+			var value = $(element).val();
+			$("#fromList1 li").each(function () {
+				if ($(this).text().search(value) > -1) {
+					$(this).show();
+					$(this).prevAll('.header').first().show();
+				} else {
+					$(this).hide();
+				}
+			});
+		}
+</script>
+

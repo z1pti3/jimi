@@ -1,0 +1,64 @@
+<script src="{{ url_for('static', filename='includes/jquery/js/jquery-3.4.1.js') }}"></script>
+<script src="{{ url_for('static', filename='includes/jquery/js/jquery.datatables.min.js') }}"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/dataTables.bootstrap.css') }}">
+<script src="{{ url_for('static', filename='includes/datatables/js/dataTables.bootstrap.js') }}"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
+<script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
+
+<html>
+    <head>
+        <title>JIMI - Debug</title>    
+    </head>
+    <body>
+        <table id="orderTable" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
+            <thead>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </body>
+</html>
+
+<script>
+    $(document).ready(function () {
+        $('#orderTable').DataTable({
+            "paging" : false,
+            "order" : [[ 0, "asc" ]],
+            columns : [
+                { "data": "index", "name": "index", "title": "index", "width": 50, render: $.fn.dataTable.render.text() },
+                { "data": "name", "name": "name", "title": "Name", "autoWidth": true, render: $.fn.dataTable.render.text() },
+            ],
+            columnDefs: [
+                {
+                    orderable: true
+                }
+            ]
+        });
+        $('.dataTables_length').addClass('bs-select');
+        $('.dataTables_filter input[type="search"]').css({'width':'200px'});
+    });
+</script>
+
+<script>
+    var index = 0;
+    function debugPoll(){
+        var table = $('#orderTable').DataTable();
+        $.ajax({url:"/api/1.0/debug/{{ debugID }}/", type:"GET", timeout: 2000, success: function ( result ) {
+                result = JSON.parse(result)
+                for ( resultLine in result["result"] ) {
+                    console.log(result["result"][resultLine])
+                    table.row.add({ "index" : index, "name" : result["result"][resultLine] }).draw();
+                    index = index + 1;
+                }
+            }
+        });
+    }
+    $(document).ready(function () {
+        debugPoll();
+    });
+    setInterval(function(){ debugPoll(); }, 2500)
+</script>
