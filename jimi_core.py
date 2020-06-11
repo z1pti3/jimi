@@ -1,6 +1,6 @@
 # Setup and define API ( required before other modules )
 from core import api, settings
-apiSettings = settings.config["api"]
+apiSettings = settings.config["api"]["core"]
 api.createServer("jimi_core")
 
 # Core imports

@@ -20,6 +20,8 @@
 
 		<link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
 
+		<script src="{{ url_for('static', filename='includes/visjs/js/vis-network.min.js') }}"></script>
+
 		<script src="{{ url_for('static', filename='javascript/helpers.js') }}"></script>
 		<script src="{{ url_for('static', filename='javascript/flow.js') }}"></script>
 		<script src="{{ url_for('static', filename='javascript/objectProperties.js') }}"></script>
@@ -51,7 +53,7 @@
 					<li class="divider"></li>
 					<li><a tabindex="-1" onclick="deleteFlowObject()">Delete</a></li>
 				</ul>
-				<div class="flowchart"></div>
+				<div class="flowchart" id="flowchart"></div>
 			</div>
 		</div>
 	</body>

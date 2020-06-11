@@ -22,8 +22,7 @@ class _trigger(db._document):
     _dbCollection = db.db["triggers"]
 
     def __init__(self):
-        self.conductCache = None # Slow needs replaceing - dont forget there will be a lag once these are moved to global cache
-        self.modelCache = {} # Slow needs replaceing - dont forget there will be a lag once these are moved to global cache
+        cache.globalCache.newCache("conductCache")
 
     # Override parent new to include name var, parent class new run after class var update
     def new(self,name=""):
@@ -73,9 +72,7 @@ class _trigger(db._document):
             if self.log:
                 audit._audit().add("trigger","notify start",{ "triggerID" : self._id, "name" : self.name })
 
-            if not self.conductCache:
-                self.conductCache = conduct._conduct().getAsClass(query={"flow.triggerID" : self._id, "enabled" : True})
-            for loadedConduct in self.conductCache:
+            for loadedConduct in cache.globalCache.get("conductCache",self._id,getTriggerConducts):
                 maxDuration = 60
                 if type(self.maxDuration) is int and self.maxDuration > 0:
                     maxDuration = self.maxDuration
@@ -152,3 +149,6 @@ cpuSaver = settings.config["cpuSaver"]
 
 def getClassObject(classID,sessionData):
     return model._model().getAsClass(sessionData,id=classID)
+
+def getTriggerConducts(triggerID,sessionData):
+    return conduct._conduct().getAsClass(query={"flow.triggerID" : triggerID, "enabled" : True})

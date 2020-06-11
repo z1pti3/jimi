@@ -238,7 +238,7 @@ def reload():
             if type(moduleItem[1]) is types.ModuleType:
                 importlib.reload(moduleItem[1])
 
-apiURL = "http://{0}:{1}/{2}".format(settings.config["api"]["bind"],settings.config["api"]["port"],settings.config["api"]["base"])
+apiURL = "http://{0}:{1}/{2}".format(settings.config["api"]["core"]["bind"],settings.config["api"]["core"]["port"],settings.config["api"]["core"]["base"])
 def apiCall(methord,apiEndpoint,jsonData=None):
     url = "{0}/{1}".format(apiURL,apiEndpoint)
     if methord == "GET":

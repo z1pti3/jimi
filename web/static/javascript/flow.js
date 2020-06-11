@@ -7,6 +7,17 @@ var loadedFlows = {};
 var pauseFlowchartUpdate = false;
 var lastUpdatePollTime = 0;
 
+// visjs
+var nodes = [];
+var edges = [];
+var network = null;
+var nextId = 0;
+
+// jimi
+var flowObjects = {};
+var nodeObjects = {};
+var flowLinks = {};
+
 $(document).ready(function () {
 	setupFlowchart();
 	
@@ -74,39 +85,80 @@ function deleteSelected() {
 	}
 }
 
-function createLinkRAW(from,to,colour) {
-	var $flowchart = $('.flowchart');
-	var flowData = $flowchart.flowchart("getData");
-	var linkName = from + "->" + to;
-	if (!flowData["links"].hasOwnProperty(linkName)) {
-		var operatorData = $flowchart.flowchart("getOperatorData", from);
-		var linkOperatorData = $flowchart.flowchart("getOperatorData", to);
-		if ((!$.isEmptyObject(operatorData)) && (!$.isEmptyObject(linkOperatorData))) {
-			operatorData["properties"]["outputs"][linkName] = { "label" : ">" }
-			linkOperatorData["properties"]["inputs"][linkName] = { "label" : ">" }
-			var conductID = GetURLParameter("conductID")
-			$flowchart.flowchart("setOperatorData", from, operatorData);
-			$flowchart.flowchart("setOperatorData", to, linkOperatorData);
-			var linkData = {
-				fromOperator: from,
-				toOperator: to,
-				fromConnector : linkName,
-				toConnector : linkName,
-				color : colour
-			}
-			$flowchart.flowchart("createLink", linkName, linkData);
-			return true;
-		} else {
-			return false;
-		}
-	}
+function newNode(flowID, flowType, title, x, y) {
+	flowObjects[flowID] = { "title": title, "x": x, "y": y, "flowID": flowID, "flowType": flowType, "nodeID": nextId }
+	nodeObjects[nextId] = { "flowID": flowID, "nodeID": nextId }
+	nodes.add({ id: nextId,
+		label: title, 
+		x: x, 
+		y: y,
+		shape: "box"
+	 });
+	nextId++;
 }
 
-function updateLink(from,to,colour) {
-	var $flowchart = $('.flowchart');
-	$flowchart.flowchart("setLinkMainColor",from+"->"+to,colour)
-	//$flowchart.flowchart("redrawLinksLayer")
+function updateNode(flowID, title, x, y) {
+	flowObjects[flowID]["title"] = title
+	flowObjects[flowID]["x"] = x
+	flowObjects[flowID]["y"] = y
+	nodes.update({ id: flowObjects[flowID]["nodeID"],
+		label: title, 
+		x: x, 
+		y: y
+	 });
+}
+
+function deleteNode(flowID) {
+	nodes.delete({ id: flowObjects[flowID]["nodeID"] })
+	delete nodeObjects[flowObjects[flowID]["nodeID"]]
+	delete flowObjects[flowID]
+}
+
+function createLinkRAW(from,to,colour) {
+	var linkName = from + "->" + to;
+	flowLinks[linkName] = { "from": from, "to": to, "colour": colour }
+	edges.add({ 
+		from: flowObjects[from]["nodeID"], 
+		to: flowObjects[to]["nodeID"],
+		arrows: {
+			to: {
+			  enabled: true,
+			  type: "arrow"
+			}
+		},
+		smooth: {
+			enabled: true,
+			type: "cubicBezier",
+			roundness: 0.7
+		}
+	 });
+	nextId++;
+}
+
+function updateLink(from,to) {
+	var linkName = from + "->" + to;
+	flowLinks[linkName]["from"] = from
+	flowLinks[linkName]["to"] = to
+	edges.update([{ 
+		from: flowObjects[from]["nodeID"], 
+		to: flowObjects[to]["nodeID"],
+		arrows: {
+			to: {
+			  enabled: true,
+			  type: "arrow"
+			}
+		}
+	}]);
 	return true;
+}
+
+function deleteLink(from,to) {
+	var linkName = from + "->" + to;
+	edges.delete([{ 
+		from: flowObjects[from]["nodeID"],
+		to: flowObjects[to]["nodeID"]
+	}]);
+	delete flowLinks[linkName]
 }
 
 function createLink(from,to,colour,save) {
@@ -148,62 +200,34 @@ function saveNewLink(from,to) {
 }
 
 function updateFlowchart() {
-	var $flowchart = $('.flowchart');
+	//var $flowchart = $('.flowchart');
 	var conductID = GetURLParameter("conductID")
-	var flowData = $flowchart.flowchart("getData");
+	//var flowData = $flowchart.flowchart("getData");
 	//console.log(flowData)
-	var operators = Object.keys(flowData["operators"]);
-	var links = Object.keys(flowData["links"])
+	var operators = Object.keys(flowObjects)
+	var links = Object.keys(flowLinks)
 	var time = new Date().getTime() / 1000;
 	$.ajax({url:"/conductEditor/"+conductID+"/", type:"POST", timeout: 2000, data: JSON.stringify({ lastPollTime : lastUpdatePollTime, operators: operators, links: links }), contentType:"application/json", success: function ( responseData ) {
 			lastUpdatePollTime = time;
 			// Operator Updates
 			for (operator in responseData["operators"]["update"]) {
-				var operatorData = $flowchart.flowchart("getOperatorData", operator);
-				operatorData["left"] = responseData["operators"]["update"][operator]["x"]
-				operatorData["top"] = responseData["operators"]["update"][operator]["y"]
-				operatorData["properties"]["title"] = sanitize(responseData["operators"]["update"][operator]["title"])
-				if (operatorData["properties"]["title"] == "") {
-					operatorData["properties"]["title"] = sanitize(operator);
-				};
-				$flowchart.flowchart("setOperatorData", operator, operatorData);
-				if (!loadedFlows.hasOwnProperty(operator)) {
-					loadedFlows[operator] = { flowID: operator, flowType: responseData["operators"]["update"][operator]["flowType"], _id: responseData["operators"]["update"][operator]["_id"] }
-				}
+				obj = responseData["operators"]["update"][operator]
+				updateNode(obj["flowID"],obj["title"],obj["x"],obj["y"]);
 			}
 			// Operator Creates
 			for (operator in responseData["operators"]["create"]) {
-				var operatorData = {
-					top: responseData["operators"]["create"][operator]["y"],
-					left: responseData["operators"]["create"][operator]["x"],
-					properties: {
-						title: sanitize(responseData["operators"]["create"][operator]["title"]),
-
-						inputs: {},
-						outputs: {}
-					}
-				};
-				if (operatorData["properties"]["title"] == "") {
-					operatorData["properties"]["title"] = sanitize(operator);
-				};
-				if (responseData["operators"]["create"][operator]["flowType"] == "trigger") {
-					operatorData["properties"]["class"] = "flowchart-operator-trigger"
-				}
-				if (responseData["operators"]["create"][operator]["flowSubtype"] != ""){
-					operatorData["properties"]["class"] = "flowchart-operator-trigger-"+responseData["operators"]["create"][operator]["flowSubtype"]
-				}
-				$flowchart.flowchart('createOperator', operator, operatorData);
-				if (!loadedFlows.hasOwnProperty(operator)) {
-					loadedFlows[operator] = { flowID: operator, flowType: responseData["operators"]["create"][operator]["flowType"], _id: responseData["operators"]["create"][operator]["_id"] }
-				}
+				obj = responseData["operators"]["create"][operator]
+				newNode(obj["flowID"],obj["flowType"],obj["title"],obj["x"],obj["y"]);
 			}
 			// Operator Deletions
 			for (operator in responseData["operators"]["delete"]) {
-				$flowchart.flowchart("deleteOperator", operator);
+				obj = responseData["operators"]["delete"][operator]
+				deleteNode(obj["flowID"]);
 			}
 			// Link Creates
 			for (link in responseData["links"]["create"]) {
-				switch (responseData["links"]["create"][link]["logic"]){
+				obj = responseData["links"]["create"][link]
+				switch (obj["logic"]){
 					case true:
 						var colour = "blue"
 						break
@@ -213,33 +237,17 @@ function updateFlowchart() {
 					default:
 						var colour = "purple"
 				}
-				createLink(responseData["links"]["create"][link]["from"],responseData["links"]["create"][link]["to"],colour,false);
+				createLinkRAW(obj["from"],obj["to"],colour)
 			}
 			// Link Updates
 			for (link in responseData["links"]["update"]) {
-				switch (responseData["links"]["update"][link]["logic"]){
-					case true:
-						var colour = "blue"
-						break
-					case false:
-						var colour = "red"
-						break
-					default:
-						var colour = "purple"
-				}
-				updateLink(responseData["links"]["update"][link]["from"],responseData["links"]["update"][link]["to"],colour);
+				obj = responseData["links"]["update"][link]
+				updateLink(obj["from"],obj["to"])
 			}
 			// Link Deletions
 			for (link in responseData["links"]["delete"]) {
-				var from = flowData["links"][link]["fromOperator"]
-				var to = flowData["links"][link]["toOperator"]
-				var fromOperatorData = $flowchart.flowchart("getOperatorData", from);
-				var toOperatorData = $flowchart.flowchart("getOperatorData", to);
-				delete fromOperatorData["properties"]["outputs"][link];
-				delete toOperatorData["properties"]["inputs"][link];
-				$flowchart.flowchart("deleteLink", link);
-				$flowchart.flowchart("setOperatorData", from, fromOperatorData);
-				$flowchart.flowchart("setOperatorData", to, toOperatorData);
+				obj = responseData["links"]["delete"][link]
+				deleteLink(obj["from"],obj["to"])
 			}
 		},
 		error: function ( error ) {
@@ -337,91 +345,92 @@ function duplicateFlowObject() {
 }
 
 function setupFlowchart() {
-	var $flowchart = $('.flowchart');
-	var $container = $flowchart.parent();
-	var cx = $flowchart.width() / 2;
-	var cy = $flowchart.height() / 2;
-	var zoomBy = 0.1;
-	var currentZoom = 1;
-	var minZoom = 0.25;
-	var maxZoom = 2;
-	$flowchart.panzoom({ });
-	$flowchart.panzoom('pan', - cx + $container.width()/2, - cy + $container.height()/2);
-	$flowchart.panzoom.minScale = minZoom;
-	$container.on('mousewheel.focal', function( e ) {
-		// Checks if the mouse is over a propertiesPanel if so dont pan/zoom flow page
-		if ($('.propertiesPanel:hover').length < 1) {
-			if (e.shiftKey) {
-				var newZoom = 0 ;
-				if (e.deltaY == -1) {
-					newZoom = currentZoom - zoomBy;
-				};
-				if (e.deltaY == 1) {
-					newZoom = currentZoom + zoomBy;
-				};
-				if ((newZoom > minZoom) && (newZoom < maxZoom))
-				{
-					currentZoom = newZoom;
-				};
-				$flowchart.flowchart('setPositionRatio', currentZoom);
-				$flowchart.panzoom('zoom', currentZoom, {
-					animate: false,
-					focal: e
-				});
-			} else {
-				var $pzmatrix = $flowchart.panzoom('getMatrix');
-				$flowchart.panzoom('pan', +$pzmatrix[4], +$pzmatrix[5] + e.originalEvent.wheelDelta);
-			}
+	var container = document.getElementById("flowchart");
+	nodes = new vis.DataSet([]);
+	edges = new vis.DataSet([]);
+	var data = {
+		nodes: nodes,
+		edges: edges
+	};
+	var options = {
+		physics: {
+			enabled: false
+		},
+		layout : {
+			improvedLayout: false
+		},
+		interaction: {
+			multiselect: true
 		}
-	});
-	$flowchart.flowchart({
-		canUserEditLinks : false,
+	};
+	network = new vis.Network(container, data, options);
 
-		onOperatorMoved: function(operatorId, position) {
+	network.on("dragEnd", function(params) {
+		if (params["nodes"].length == 1) {
 			var conductID = GetURLParameter("conductID")
-			$.ajax({url:"/conductEditor/"+conductID+"/flow/"+operatorId+"/", type:"POST", data: JSON.stringify({action: "update", x : position["left"], y : position["top"] }), contentType:"application/json", success: function( responseData ) {
-					return true;
+			$.ajax({url:"/conductEditor/"+conductID+"/flow/"+nodeObjects[params["nodes"][0]]["flowID"]+"/", type:"POST", data: JSON.stringify({action: "update", x : params["pointer"]["canvas"]["x"], y : params["pointer"]["canvas"]["y"] }), contentType:"application/json", success: function( responseData ) {
+			
 				}
 			});
-			return false;
-		},
-
-		onOperatorMouseOver: function(operatorId) {
-			mouseOverOperator = operatorId;
-		},
-
-		onOperatorMouseOut: function(operatorId) {
-			if (mouseOverOperator == operatorId) {
-				mouseOverOperator = null;
-			}
-		},
-
-		onOperatorSelect: function(operatorId) {
-			// Create Link
-			if (cKeyState) {
-				var selectedOperatorId = $flowchart.flowchart('getSelectedOperatorId');
-				createLink(selectedOperatorId,operatorId,"blue",true);
-				return false;
-			}
-			if (($flowchart.flowchart('getSelectedOperatorId') == operatorId) || (eKeyState)) {
-				createPropertiesPanel(operatorId);
-				return false;
-			}
-			return true;
-		},
-
-		onLinkSelect: function(linkId) { 
-			if (eKeyState) {
-				var flowData = $flowchart.flowchart("getData");
-				var from = flowData["links"][linkId]["fromOperator"];
-				var to = flowData["links"][linkId]["toOperator"];
-				createLinkPropertiesPanel(from,to);
-				return false;
-			}
-			return true;
 		}
-
+		return false;
 	});
+
+	// 	onOperatorMoved: function(operatorId, position) {
+	// 		var conductID = GetURLParameter("conductID")
+	// 		$.ajax({url:"/conductEditor/"+conductID+"/flow/"+operatorId+"/", type:"POST", data: JSON.stringify({action: "update", x : position["left"], y : position["top"] }), contentType:"application/json", success: function( responseData ) {
+	// 				return true;
+	// 			}
+	// 		});
+	// 		return false;
+	// 	},
+
+	// 	onOperatorMouseOver: function(operatorId) {
+	// 		mouseOverOperator = operatorId;
+	// 	},
+
+	// 	onOperatorMouseOut: function(operatorId) {
+	// 		if (mouseOverOperator == operatorId) {
+	// 			mouseOverOperator = null;
+	// 		}
+	// 	},
+
+	// 	onOperatorSelect: function(operatorId) {
+	// 		// Create Link
+	// 		if (cKeyState) {
+	// 			var selectedOperatorId = $flowchart.flowchart('getSelectedOperatorId');
+	// 			createLink(selectedOperatorId,operatorId,"blue",true);
+	// 			return false;
+	// 		}
+	// 		if (($flowchart.flowchart('getSelectedOperatorId') == operatorId) || (eKeyState)) {
+	// 			createPropertiesPanel(operatorId);
+	// 			return false;
+	// 		}
+	// 		return true;
+	// 	},
+
+	network.on("doubleClick", function(params) {
+		if (params["nodes"].length == 1) {
+			if (cKeyState) {
+			
+			} else {
+				createPropertiesPanel(nodeObjects[params["nodes"][0]]["flowID"]);
+			}
+		}
+	});
+
+	// 	onLinkSelect: function(linkId) { 
+	// 		if (eKeyState) {
+	// 			var flowData = $flowchart.flowchart("getData");
+	// 			var from = flowData["links"][linkId]["fromOperator"];
+	// 			var to = flowData["links"][linkId]["toOperator"];
+	// 			createLinkPropertiesPanel(from,to);
+	// 			return false;
+	// 		}
+	// 		return true;
+	// 	}
+
+	// });
 	updateFlowchart();
 	autoupdate();
 }

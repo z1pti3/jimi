@@ -16,7 +16,9 @@ import subprocess
 import os
 
 # Setup and define API ( required before other modules )
-from core import api
+from core import api, settings
+apiSettings = settings.config["api"]["web"]
+
 api.createServer("jimi_web",template_folder=str(Path("web","templates")),static_folder=str(Path("web","static")))
 
 from core import model
@@ -776,7 +778,7 @@ def statusPage():
 		actionsContent.append(a)
 	return render_template("status.html", triggers=triggersContent, actions=actionsContent)
 
-api.startServer(debug=True, use_reloader=False, host="127.0.0.1", port=5002, threaded=True)
+api.startServer(debug=True, use_reloader=False, host=apiSettings["bind"], port=apiSettings["port"], threaded=True)
 
 while True:
 	time.sleep(1)

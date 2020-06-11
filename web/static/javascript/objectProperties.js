@@ -30,8 +30,8 @@ $(document).ready(function () {
 
 function savePropertiesPanel(flowID,panel) {
 	var conductID = GetURLParameter("conductID")
-	var modelType = loadedFlows[flowID]["flowType"]
-	var modelID = loadedFlows[flowID]["_id"]
+	var modelType = flowObjects[flowID]["flowType"]
+	var modelID = flowObjects[flowID]["flowID"]
 
 	var jsonData = {};
 	var newName = "";
@@ -75,10 +75,7 @@ function loadPropertiesPanel(flowID,panel) {
 	// Building properties form
 	var conductID = GetURLParameter("conductID")
 	panel.find(".propertiesPanel-body").empty();
-	var $flowchart = $('.flowchart');
-	var operatorData = $flowchart.flowchart("getOperatorData", flowID);
-	panel.find("#title").text(operatorData["properties"]["title"]);
-	var modelType = loadedFlows[flowID]["flowType"]
+	panel.find("#title").text(flowID);
 	$.ajax({ url: "/conduct/"+conductID+"/flowProperties/"+flowID+"/", type:"GET", success: function ( result ) {
 			var $table = $('<table width="100%">');
 			for (objectItem in result["formData"]) {
