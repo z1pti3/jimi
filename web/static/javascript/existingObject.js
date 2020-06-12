@@ -18,8 +18,6 @@ var existingObjectHTML = `
 var openExistingPanels = {}
 
 function loadExistingObjectPanel(panel) {
-	var $flowchart = $('.flowchart');
-	var $container = $flowchart.parent();
 	panel.find("#existingPropertiesPanel-SearchResults").empty();
 	$.ajax({url:"/api/1.0/models/action/all/", type:"GET", success: function ( result ) {
 			for ( resultItem in result["results"] ) {
@@ -39,47 +37,17 @@ function loadExistingObjectPanel(panel) {
 				$div.append($row)
 				panel.find("#existingPropertiesPanel-SearchResults").append($div);
 				// Make draggableOperators
-				$div.draggable({
-					cursor: "move",
-					opacity: 0.7,
-					
-					helper: 'clone', 
-					appendTo: 'body',
-					zIndex: 1000,
-					
-					helper: function(e) {
-						var $this = $(this);
-						var data = {
-							properties: {
-								title: $this.attr("id"),
-								inputs: {},
-								outputs: {}
-							} 
-						};
-						return $flowchart.flowchart('getOperatorElement', data);
-					},
-					stop: function(e, ui) {
-						var $this = $(this);
-						var elOffset = ui.offset;
-						var containerOffset = $container.offset();
-						if (elOffset.left > containerOffset.left &&
-							elOffset.top > containerOffset.top && 
-							elOffset.left < containerOffset.left + $container.width() &&
-							elOffset.top < containerOffset.top + $container.height()) {
-							var flowchartOffset = $flowchart.offset();
-							var relativeLeft = elOffset.left - flowchartOffset.left;
-							var relativeTop = elOffset.top - flowchartOffset.top;
-							var positionRatio = $flowchart.flowchart('getPositionRatio');
-							relativeLeft /= positionRatio;
-							relativeTop /= positionRatio;
-							var conductID = GetURLParameter("conductID")
-							$.ajax({url:"/conductEditor/"+conductID+"/flow/", type:"POST", data:JSON.stringify({action: "drop", flowType: "action", _id: $this.attr("id"), x: relativeLeft, y: relativeTop}), contentType:"application/json", success: function ( result ) {
-								// Drop sucessfull
-							}
-						});
+				$div.dblclick(function(e){
+					pos = network.getViewPosition()
+					var x = pos["x"]
+					var y = pos["y"]
+					var conductID = GetURLParameter("conductID")
+					var $this = $(this);
+					$.ajax({url:"/conductEditor/"+conductID+"/flow/", type:"POST", data:JSON.stringify({action: "drop", flowType: "action", _id: $this.attr("id"), x: x, y: y}), contentType:"application/json", success: function ( result ) {
+						// Drop sucessfull
 						}
-					}
-				});
+					});
+				})
 			}
 		}
 	});
@@ -101,47 +69,17 @@ function loadExistingObjectPanel(panel) {
 				$div.append($row)
 				panel.find("#existingPropertiesPanel-SearchResults").append($div);
 				// Make draggableOperators
-				$div.draggable({
-					cursor: "move",
-					opacity: 0.7,
-					
-					helper: 'clone', 
-					appendTo: 'body',
-					zIndex: 1000,
-					
-					helper: function(e) {
-						var $this = $(this);
-						var data = {
-							properties: {
-								title: $this.attr("id"),
-								inputs: {},
-								outputs: {}
-							} 
-						};
-						return $flowchart.flowchart('getOperatorElement', data);
-					},
-					stop: function(e, ui) {
-						var $this = $(this);
-						var elOffset = ui.offset;
-						var containerOffset = $container.offset();
-						if (elOffset.left > containerOffset.left &&
-							elOffset.top > containerOffset.top && 
-							elOffset.left < containerOffset.left + $container.width() &&
-							elOffset.top < containerOffset.top + $container.height()) {
-							var flowchartOffset = $flowchart.offset();
-							var relativeLeft = elOffset.left - flowchartOffset.left;
-							var relativeTop = elOffset.top - flowchartOffset.top;
-							var positionRatio = $flowchart.flowchart('getPositionRatio');
-							relativeLeft /= positionRatio;
-							relativeTop /= positionRatio;
-							var conductID = GetURLParameter("conductID")
-							$.ajax({url:"/conductEditor/"+conductID+"/flow/", type:"POST", data:JSON.stringify({action: "drop", flowType: "trigger", _id: $this.attr("id"), x: relativeLeft, y: relativeTop}), contentType:"application/json", success: function ( result ) {
-									// Drop sucessfull
-								}
-							});
+				$div.dblclick(function(e){
+					pos = network.getViewPosition()
+					var x = pos["x"]
+					var y = pos["y"]
+					var conductID = GetURLParameter("conductID")
+					var $this = $(this);
+					$.ajax({url:"/conductEditor/"+conductID+"/flow/", type:"POST", data:JSON.stringify({action: "drop", flowType: "trigger", _id: $this.attr("id"), x: x, y: y}), contentType:"application/json", success: function ( result ) {
+						// Drop sucessfull
 						}
-					}
-				});
+					});
+				})
 			}
 		}
 	});
