@@ -6,7 +6,6 @@ var dKeyState;
 var loadedFlows = {};
 var pauseFlowchartUpdate = false;
 var lastUpdatePollTime = 0;
-var selectedObject = null;
 
 // visjs
 var nodes = [];
@@ -18,6 +17,7 @@ var nextId = 0;
 var flowObjects = {};
 var nodeObjects = {};
 var flowLinks = {};
+var selectedObject = null;
 
 $(document).ready(function () {
 	setupFlowchart();
@@ -52,35 +52,26 @@ function autoupdate() {
 }
 
 function deleteSelected() {
-	var $flowchart = $('.flowchart');
-	var selectedOperatorId = $flowchart.flowchart('getSelectedOperatorId');
-	var selectedLinkId = $flowchart.flowchart('getSelectedLinkId');
-	if (selectedOperatorId) {
-		if (confirm("Are you sure you want to delete object '"+ selectedOperatorId +"'?")) {
+	nodes = network.getSelectedNodes()
+	if (nodes.length == 1) {
+		node = nodeObjects[nodes[0]]["flowID"]
+		if (confirm("Are you sure you want to delete object '"+ node +"'?")) {
 			var conductID = GetURLParameter("conductID");
-			$.ajax({url:"/conductEditor/"+conductID+"/flow/"+selectedOperatorId+"/", type:"DELETE", contentType:"application/json", success: function ( responseData ) {
-					$flowchart.flowchart('deleteOperator', selectedOperatorId);
+			$.ajax({url:"/conductEditor/"+conductID+"/flow/"+node+"/", type:"DELETE", contentType:"application/json", success: function ( responseData ) {
+					deleteNode(node)
 				}
 			});
 		}
 	}
 
-	if (selectedLinkId) {
+	links = network.getSelectedEdges()
+	if (links.length == 1) {
+		link = flowLinks[links[0]]
 		var conductID = GetURLParameter("conductID");
-		var flowData = $flowchart.flowchart("getData");
-		var to = flowData["links"][selectedLinkId]["toOperator"];
-		var from = flowData["links"][selectedLinkId]["fromOperator"];
+		var to = link["to"]
+		var from = link["from"]
 		$.ajax({url:"/conductEditor/"+conductID+"/flowLink/"+from+"/"+to+"/", type:"DELETE", contentType:"application/json", success: function ( responseData ) {
-				var flowData = $flowchart.flowchart("getData");	
-				var from = flowData["links"][selectedLinkId]["fromOperator"]
-				var to = flowData["links"][selectedLinkId]["toOperator"]
-				var fromOperatorData = $flowchart.flowchart("getOperatorData", from);
-				var toOperatorData = $flowchart.flowchart("getOperatorData", to);
-				delete fromOperatorData["properties"]["outputs"][selectedLinkId];
-				delete toOperatorData["properties"]["inputs"][selectedLinkId];
-				$flowchart.flowchart("deleteLink", selectedLinkId);
-				$flowchart.flowchart("setOperatorData", from, fromOperatorData);
-				$flowchart.flowchart("setOperatorData", to, toOperatorData);
+				deleteLink(from,to)
 			}
 		});
 	}
@@ -119,6 +110,7 @@ function createLinkRAW(from,to,colour) {
 	var linkName = from + "->" + to;
 	flowLinks[linkName] = { "from": from, "to": to, "colour": colour }
 	edges.add({ 
+		id: linkName,
 		from: flowObjects[from]["nodeID"], 
 		to: flowObjects[to]["nodeID"],
 		arrows: {
@@ -140,7 +132,8 @@ function updateLink(from,to) {
 	var linkName = from + "->" + to;
 	flowLinks[linkName]["from"] = from
 	flowLinks[linkName]["to"] = to
-	edges.update([{ 
+	edges.update({ 
+		id: linkName,
 		from: flowObjects[from]["nodeID"], 
 		to: flowObjects[to]["nodeID"],
 		arrows: {
@@ -149,16 +142,15 @@ function updateLink(from,to) {
 			  type: "arrow"
 			}
 		}
-	}]);
+	});
 	return true;
 }
 
 function deleteLink(from,to) {
 	var linkName = from + "->" + to;
-	edges.delete([{ 
-		from: flowObjects[from]["nodeID"],
-		to: flowObjects[to]["nodeID"]
-	}]);
+	edges.remove({ 
+		id: linkName
+	});
 	delete flowLinks[linkName]
 }
 
@@ -243,7 +235,7 @@ function updateFlowchart() {
 			// Link Updates
 			for (link in responseData["links"]["update"]) {
 				obj = responseData["links"]["update"][link]
-				//updateLink(obj["from"],obj["to"])
+				updateLink(obj["from"],obj["to"])
 			}
 			// Link Deletions
 			for (link in responseData["links"]["delete"]) {
@@ -412,12 +404,10 @@ function setupFlowchart() {
 
 	network.on("click", function(params) {
 		if (params["nodes"].length == 1) {
-			selectedObject = nodeObjects[params["nodes"][0]]["flowID"]
-			console.log(network.getSelectedNodes())
-			console.log(params)
-			if (!cKeyState) {
-				createPropertiesPanel(nodeObjects[params["nodes"][0]]["flowID"]);
+			if (cKeyState) {
+				createLink(selectedObject,nodeObjects[params["nodes"][0]]["flowID"],"blue",true);
 			}
+			selectedObject = nodeObjects[params["nodes"][0]]["flowID"]
 		} else {
 			selectedObject = null;
 		}
