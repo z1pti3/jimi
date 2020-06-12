@@ -70,23 +70,26 @@
 					if (e.ctrlKey) return;
 					
 					//open menu
-					var $menu = $(settings.menuSelector)
-						.data("invokedOn", $(e.target))
-						.show()
-						.css({
-							position: "absolute",
-							left: getMenuPosition(e.clientX, 'width', 'scrollLeft'),
-							top: getMenuPosition(e.clientY, 'height', 'scrollTop')
-						})
-						.off('click')
-						.on('click', 'a', function (e) {
-							$menu.hide();
-					
-							var $invokedOn = $menu.data("invokedOn");
-							var $selectedMenu = $(e.target);
-							
-							//settings.menuSelected.call(this, $invokedOn, $selectedMenu);
-						});
+					if (selectedObject)
+					{
+						var $menu = $(settings.menuSelector)
+							.data("invokedOn", $(e.target))
+							.show()
+							.css({
+								position: "absolute",
+								left: getMenuPosition(e.clientX, 'width', 'scrollLeft'),
+								top: getMenuPosition(e.clientY, 'height', 'scrollTop')
+							})
+							.off('click')
+							.on('click', 'a', function (e) {
+								$menu.hide();
+						
+								var $invokedOn = $menu.data("invokedOn");
+								var $selectedMenu = $(e.target);
+								
+								//settings.menuSelected.call(this, $invokedOn, $selectedMenu);
+							});
+					}
 					
 					return false;
 				});
