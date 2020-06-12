@@ -1,8 +1,6 @@
 // Globals
 var mouseOverOperator;
 var cKeyState
-var eKeyState;
-var dKeyState;
 var loadedFlows = {};
 var pauseFlowchartUpdate = false;
 var lastUpdatePollTime = 0;
@@ -28,12 +26,6 @@ $(document).ready(function () {
 			case 'c':
 				cKeyState = true;
 				break;
-			case 'e':
-				eKeyState = true;
-				break;
-			case 'd':
-				dKeyState = true;
-				break;
 		}
 	});
 	$(document).keyup(function( event ) {
@@ -42,8 +34,6 @@ $(document).ready(function () {
 			deleteSelected();
 		}
 		cKeyState = false;
-		eKeyState = false;
-		dKeyState = false;
 	});
 });
 
@@ -193,10 +183,7 @@ function saveNewLink(from,to) {
 }
 
 function updateFlowchart() {
-	//var $flowchart = $('.flowchart');
 	var conductID = GetURLParameter("conductID")
-	//var flowData = $flowchart.flowchart("getData");
-	//console.log(flowData)
 	var operators = Object.keys(flowObjects)
 	var links = Object.keys(flowLinks)
 	var time = new Date().getTime() / 1000;
@@ -359,39 +346,6 @@ function setupFlowchart() {
 		return false;
 	});
 
-	// 	onOperatorMoved: function(operatorId, position) {
-	// 		var conductID = GetURLParameter("conductID")
-	// 		$.ajax({url:"/conductEditor/"+conductID+"/flow/"+operatorId+"/", type:"POST", data: JSON.stringify({action: "update", x : position["left"], y : position["top"] }), contentType:"application/json", success: function( responseData ) {
-	// 				return true;
-	// 			}
-	// 		});
-	// 		return false;
-	// 	},
-
-	// 	onOperatorMouseOver: function(operatorId) {
-	// 		mouseOverOperator = operatorId;
-	// 	},
-
-	// 	onOperatorMouseOut: function(operatorId) {
-	// 		if (mouseOverOperator == operatorId) {
-	// 			mouseOverOperator = null;
-	// 		}
-	// 	},
-
-	// 	onOperatorSelect: function(operatorId) {
-	// 		// Create Link
-	// 		if (cKeyState) {
-	// 			var selectedOperatorId = $flowchart.flowchart('getSelectedOperatorId');
-	// 			createLink(selectedOperatorId,operatorId,"blue",true);
-	// 			return false;
-	// 		}
-	// 		if (($flowchart.flowchart('getSelectedOperatorId') == operatorId) || (eKeyState)) {
-	// 			createPropertiesPanel(operatorId);
-	// 			return false;
-	// 		}
-	// 		return true;
-	// 	},
-
 	network.on("click", function(params) {
 		if (params["nodes"].length == 1) {
 			if (cKeyState) {
@@ -417,18 +371,6 @@ function setupFlowchart() {
 		return true;
 	});
 
-	// 	onLinkSelect: function(linkId) { 
-	// 		if (eKeyState) {
-	// 			var flowData = $flowchart.flowchart("getData");
-	// 			var from = flowData["links"][linkId]["fromOperator"];
-	// 			var to = flowData["links"][linkId]["toOperator"];
-	// 			createLinkPropertiesPanel(from,to);
-	// 			return false;
-	// 		}
-	// 		return true;
-	// 	}
-
-	// });
 	updateFlowchart();
 	autoupdate();
 }
