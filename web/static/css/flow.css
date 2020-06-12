@@ -71,8 +71,6 @@ html, body {
 
 /*flowchart*/
 .flowchart-container {
-	width: 10000px;
-	height: 10000px;
 	padding: 0;
 	margin: 0;	
 	border-style: solid;

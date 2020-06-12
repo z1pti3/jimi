@@ -32,14 +32,10 @@ $(document).ready(function () {
 function saveNewObjectPanel(panel) {
 	classID = panel.find("#newObjectPanel-objectType").val();
 	if (classID != "") {
-		var $flowchart = $('.flowchart');
-		var $container = $flowchart.parent();
 		var conductID = GetURLParameter("conductID")
-		var pzmatrix = $flowchart.panzoom("getMatrix");
-		var currentScale = pzmatrix[0];
-		var pzoff = $flowchart.offset();
-		var x = ((($container.width() / 2) + -pzoff.left) / currentScale);
-		var y = ((($container.height() / 2) + -pzoff.top) / currentScale);
+		pos = network.getViewPosition()
+		var x = pos["x"]
+		var y = pos["y"]
 		$.ajax({url:"/conductEditor/"+conductID+"/flow/", type:"PUT", data:JSON.stringify({classID: classID, x: x, y: y}), contentType:"application/json", success: function ( responseData ) {
 				// Created new object
 			}
