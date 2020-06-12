@@ -418,6 +418,12 @@ function setupFlowchart() {
 		if (params["nodes"].length == 1) {
 			createPropertiesPanel(nodeObjects[params["nodes"][0]]["flowID"]);
 		}
+		if ((params["nodes"].length == 0) && (params["edges"].length == 1)) {
+			link = flowLinks[params["edges"][0]]
+			to = link["to"]
+			from = link["from"]
+			createLinkPropertiesPanel(from,to);
+		}
 		return true;
 	});
 
