@@ -343,8 +343,9 @@ function setupFlowchart() {
 	network.on("dragEnd", function(params) {
 		if (params["nodes"].length == 1) {
 			var conductID = GetURLParameter("conductID")
+			updateNode(nodeObjects[params["nodes"][0]]["flowID"],flowObjects[nodeObjects[params["nodes"][0]]["flowID"]]["title"],params["pointer"]["canvas"]["x"],params["pointer"]["canvas"]["y"])
 			$.ajax({url:"/conductEditor/"+conductID+"/flow/"+nodeObjects[params["nodes"][0]]["flowID"]+"/", type:"POST", data: JSON.stringify({action: "update", x : params["pointer"]["canvas"]["x"], y : params["pointer"]["canvas"]["y"] }), contentType:"application/json", success: function( responseData ) {
-			
+
 				}
 			});
 		}
