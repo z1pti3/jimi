@@ -6,6 +6,7 @@ var dKeyState;
 var loadedFlows = {};
 var pauseFlowchartUpdate = false;
 var lastUpdatePollTime = 0;
+var selectedObject = null;
 
 // visjs
 var nodes = [];
@@ -242,7 +243,7 @@ function updateFlowchart() {
 			// Link Updates
 			for (link in responseData["links"]["update"]) {
 				obj = responseData["links"]["update"][link]
-				updateLink(obj["from"],obj["to"])
+				//updateLink(obj["from"],obj["to"])
 			}
 			// Link Deletions
 			for (link in responseData["links"]["delete"]) {
@@ -360,7 +361,7 @@ function setupFlowchart() {
 			improvedLayout: false
 		},
 		interaction: {
-			multiselect: true
+			multiselect: false
 		}
 	};
 	network = new vis.Network(container, data, options);
@@ -409,14 +410,25 @@ function setupFlowchart() {
 	// 		return true;
 	// 	},
 
-	network.on("doubleClick", function(params) {
+	network.on("click", function(params) {
 		if (params["nodes"].length == 1) {
-			if (cKeyState) {
-			
-			} else {
+			selectedObject = nodeObjects[params["nodes"][0]]["flowID"]
+			console.log(network.getSelectedNodes())
+			console.log(params)
+			if (!cKeyState) {
 				createPropertiesPanel(nodeObjects[params["nodes"][0]]["flowID"]);
 			}
+		} else {
+			selectedObject = null;
 		}
+		return true;
+	});
+
+	network.on("doubleClick", function(params) {
+		if (params["nodes"].length == 1) {
+			createPropertiesPanel(nodeObjects[params["nodes"][0]]["flowID"]);
+		}
+		return true;
 	});
 
 	// 	onLinkSelect: function(linkId) { 
