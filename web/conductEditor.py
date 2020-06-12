@@ -270,26 +270,28 @@ def updateFlow(conductID,flowID):
         flow = flow[0]
         data = json.loads(api.request.data)
         if data["action"] == "update":
-            if "x" in data and "y" in data:
-                try:
-                    x = int(data["x"])
-                    y = int(data["y"])
-                except:
-                    return { }, 403
-            flowUI = webui._modelUI().getAsClass(api.g["sessionData"],query={ "flowID" : flow["flowID"], "conductID" : conductID })
-            if len(flowUI) == 1:
-                flowUI = flowUI[0]
+            access, accessIDs, adminBypass = db.ACLAccess(api.g["sessionData"],conductObj.acl,"write")
+            if access:
                 if "x" in data and "y" in data:
-                    flowUI.x = x
-                    flowUI.y = y
-                    flowUI.update(["x","y"])
-                elif "title" in data:
-                    flowUI.title = data["title"]
-                    flowUI.update(["title"])
-                return { }, 200
-            else:
-                webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],x,y)
-                return { }, 201
+                    try:
+                        x = int(data["x"])
+                        y = int(data["y"])
+                    except:
+                        return { }, 403
+                flowUI = webui._modelUI().getAsClass(api.g["sessionData"],query={ "flowID" : flow["flowID"], "conductID" : conductID })
+                if len(flowUI) == 1:
+                    flowUI = flowUI[0]
+                    if "x" in data and "y" in data:
+                        flowUI.x = x
+                        flowUI.y = y
+                        flowUI.update(["x","y"])
+                    elif "title" in data:
+                        flowUI.title = data["title"]
+                        flowUI.update(["title"])
+                    return { }, 200
+                else:
+                    webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],x,y)
+                    return { }, 201
         elif data["action"] == "copy":
             access, accessIDs, adminBypass = db.ACLAccess(api.g["sessionData"],conductObj.acl,"write")
             if access:
