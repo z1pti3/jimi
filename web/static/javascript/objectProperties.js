@@ -31,7 +31,7 @@ $(document).ready(function () {
 function savePropertiesPanel(flowID,panel) {
 	var conductID = GetURLParameter("conductID")
 	var modelType = flowObjects[flowID]["flowType"]
-	var modelID = flowObjects[flowID]["flowID"]
+	var modelID = flowObjects[flowID]["_id"]
 
 	var jsonData = {};
 	var newName = "";

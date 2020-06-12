@@ -77,8 +77,8 @@ function deleteSelected() {
 	}
 }
 
-function newNode(flowID, flowType, title, x, y) {
-	flowObjects[flowID] = { "title": title, "x": x, "y": y, "flowID": flowID, "flowType": flowType, "nodeID": nextId }
+function newNode(flowID, objectID, flowType, title, x, y) {
+	flowObjects[flowID] = { "title": title, "x": x, "y": y, "flowID": flowID, "flowType": flowType, "nodeID": nextId, "_id": objectID }
 	nodeObjects[nextId] = { "flowID": flowID, "nodeID": nextId }
 	nodes.add({ id: nextId,
 		label: title, 
@@ -210,7 +210,7 @@ function updateFlowchart() {
 			// Operator Creates
 			for (operator in responseData["operators"]["create"]) {
 				obj = responseData["operators"]["create"][operator]
-				newNode(obj["flowID"],obj["flowType"],obj["title"],obj["x"],obj["y"]);
+				newNode(obj["flowID"],obj["_id"],obj["flowType"],obj["title"],obj["x"],obj["y"]);
 			}
 			// Operator Deletions
 			for (operator in responseData["operators"]["delete"]) {
