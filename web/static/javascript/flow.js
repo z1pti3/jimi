@@ -335,19 +335,21 @@ function setupFlowchart() {
 			improvedLayout: false
 		},
 		interaction: {
-			multiselect: false
+			multiselect: true
 		}
 	};
 	network = new vis.Network(container, data, options);
 
 	network.on("dragEnd", function(params) {
-		if (params["nodes"].length == 1) {
+		if (params["nodes"].length > 0) {
+			pos = network.getPositions(params["nodes"]);
 			var conductID = GetURLParameter("conductID")
-			updateNode(nodeObjects[params["nodes"][0]]["flowID"],flowObjects[nodeObjects[params["nodes"][0]]["flowID"]]["title"],params["pointer"]["canvas"]["x"],params["pointer"]["canvas"]["y"])
-			$.ajax({url:"/conductEditor/"+conductID+"/flow/"+nodeObjects[params["nodes"][0]]["flowID"]+"/", type:"POST", data: JSON.stringify({action: "update", x : params["pointer"]["canvas"]["x"], y : params["pointer"]["canvas"]["y"] }), contentType:"application/json", success: function( responseData ) {
-
-				}
-			});
+			for (node in params["nodes"]) {
+				// Slow need to allow batch updates in future in the backend
+				$.ajax({url:"/conductEditor/"+conductID+"/flow/"+nodeObjects[params["nodes"][node]]["flowID"]+"/", type:"POST", data: JSON.stringify({action: "update", x : pos[params["nodes"][node]]["x"], y : pos[params["nodes"][node]]["y"] }), contentType:"application/json", success: function( responseData ) {
+					}
+				});
+			}
 		}
 		return false;
 	});
