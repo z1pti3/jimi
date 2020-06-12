@@ -182,7 +182,7 @@ function saveNewLink(from,to) {
 	});
 }
 
-function updateFlowchart() {
+function updateFlowchart(init) {
 	var conductID = GetURLParameter("conductID")
 	var operators = Object.keys(flowObjects)
 	var links = Object.keys(flowLinks)
@@ -228,6 +228,11 @@ function updateFlowchart() {
 			for (link in responseData["links"]["delete"]) {
 				obj = responseData["links"]["delete"][link]
 				deleteLink(obj["from"],obj["to"])
+			}
+
+			// fit
+			if (init) {
+				network.fit();
 			}
 		},
 		error: function ( error ) {
@@ -371,7 +376,7 @@ function setupFlowchart() {
 		return true;
 	});
 
-	updateFlowchart();
+	updateFlowchart(true);
 	autoupdate();
 }
 
