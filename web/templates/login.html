@@ -14,6 +14,9 @@
 		<link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
 		<script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
 
+		<script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/alert.css') }}">
+
 		<style type="text/css">
 			.login-form {
 				width: 340px;
@@ -42,7 +45,7 @@
 	<body>
 		<div class="login-form">
 			<form id="loginForm">
-				<h2 class="text-center">Log in</h2>       
+				<h2 class="text-center">Log in</h2>
         		<div class="form-group">
 					<input id="username" type="text" class="form-control" placeholder="Username" required="required" autofocus>
 				</div>
@@ -66,6 +69,10 @@
 		e.preventDefault();
 		$.ajax({url:"/api/1.0/auth/", type:"POST", data:JSON.stringify({username: $('#username').val(), password: $('#password').val() }), contentType:"application/json", success: function ( result ) {
 				window.location.replace(getReturn());
+			},
+			error: function ( result ) {
+				var panel = $("#loginForm");
+				dropdownAlert(panel,"error","Login Failure",1000);
 			}
 		});
 	});
