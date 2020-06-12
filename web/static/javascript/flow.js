@@ -52,9 +52,9 @@ function autoupdate() {
 }
 
 function deleteSelected() {
-	nodes = network.getSelectedNodes()
-	if (nodes.length == 1) {
-		node = nodeObjects[nodes[0]]["flowID"]
+	selectedNodes = network.getSelectedNodes()
+	if (selectedNodes.length == 1) {
+		node = nodeObjects[selectedNodes[0]]["flowID"]
 		if (confirm("Are you sure you want to delete object '"+ node +"'?")) {
 			var conductID = GetURLParameter("conductID");
 			$.ajax({url:"/conductEditor/"+conductID+"/flow/"+node+"/", type:"DELETE", contentType:"application/json", success: function ( responseData ) {
@@ -101,7 +101,7 @@ function updateNode(flowID, title, x, y) {
 }
 
 function deleteNode(flowID) {
-	nodes.delete({ id: flowObjects[flowID]["nodeID"] })
+	nodes.remove({ id: flowObjects[flowID]["nodeID"] })
 	delete nodeObjects[flowObjects[flowID]["nodeID"]]
 	delete flowObjects[flowID]
 }
@@ -250,19 +250,19 @@ function updateFlowchart() {
 }
 
 function triggerFlowObject() {
-	var $flowchart = $('.flowchart');
-	var selectedOperatorId = $flowchart.flowchart('getSelectedOperatorId');
-	if (selectedOperatorId != null) {
-		createTriggerObjectPanel(selectedOperatorId);
+	nodes = network.getSelectedNodes()
+	if (nodes.length == 1) {
+		node = nodeObjects[nodes[0]]["flowID"]
+		createTriggerObjectPanel(node);
 	}
 }
 
 function debugFlowObject() {
-	var $flowchart = $('.flowchart');
-	var selectedOperatorId = $flowchart.flowchart('getSelectedOperatorId');
-	if (selectedOperatorId != null) {
+	selectedNodes = network.getSelectedNodes()
+	if (selectedNodes.length == 1) {
+		node = nodeObjects[selectedNodes[0]]["flowID"]
 		var conductID = GetURLParameter("conductID")
-		$.ajax({url: "/conduct/"+conductID+"/debug/"+selectedOperatorId+"/", type:"GET", contentType:"application/json", success: function ( result ) {
+		$.ajax({url: "/conduct/"+conductID+"/debug/"+node+"/", type:"GET", contentType:"application/json", success: function ( result ) {
 			$.ajax({url: "/api/1.0/debug/", type:"POST", data:JSON.stringify({ "filter" : result["_id"], "level" : 100}), contentType:"application/json", success: function ( result ) {
 				var win = window.open('/debug/'+result["debugID"]+"/", '_blank');
 				if (win) {
@@ -300,18 +300,13 @@ function deleteFlowObject() {
 }
 
 function copyFlowObject() {
-	var $flowchart = $('.flowchart');
-	var $container = $flowchart.parent();
-	var selectedOperatorId = $flowchart.flowchart('getSelectedOperatorId');
-	if (selectedOperatorId != null) {
-		var selectedOperatorId = $flowchart.flowchart('getSelectedOperatorId');
+	selectedNodes = network.getSelectedNodes()
+	if (selectedNodes.length == 1) {
+		node = nodeObjects[selectedNodes[0]]["flowID"]
 		var conductID = GetURLParameter("conductID")
-		var pzmatrix = $flowchart.panzoom("getMatrix");
-		var currentScale = pzmatrix[0];
-		var pzoff = $flowchart.offset();
-		var x = ((($container.width() / 2) + -pzoff.left) / currentScale);
-		var y = ((($container.height() / 2) + -pzoff.top) / currentScale);
-		$.ajax({url:"/conductEditor/"+conductID+"/flow/"+selectedOperatorId+"/", type:"POST", data:JSON.stringify({action: "copy", operatorId: selectedOperatorId, x: x, y: y}), contentType:"application/json", success: function ( result ) {
+		var x = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["x"]
+		var y = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["y"]-25
+		$.ajax({url:"/conductEditor/"+conductID+"/flow/"+node+"/", type:"POST", data:JSON.stringify({action: "copy", operatorId: node, x: x, y: y}), contentType:"application/json", success: function ( result ) {
 				// Coned sucessfull
 			}
 		});
@@ -319,18 +314,13 @@ function copyFlowObject() {
 }
 
 function duplicateFlowObject() {
-	var $flowchart = $('.flowchart');
-	var $container = $flowchart.parent();
-	var selectedOperatorId = $flowchart.flowchart('getSelectedOperatorId');
-	if (selectedOperatorId != null) {
-		var selectedOperatorId = $flowchart.flowchart('getSelectedOperatorId');
+	selectedNodes = network.getSelectedNodes()
+	if (selectedNodes.length == 1) {
+		node = nodeObjects[selectedNodes[0]]["flowID"]
 		var conductID = GetURLParameter("conductID")
-		var pzmatrix = $flowchart.panzoom("getMatrix");
-		var currentScale = pzmatrix[0];
-		var pzoff = $flowchart.offset();
-		var x = ((($container.width() / 2) + -pzoff.left) / currentScale);
-		var y = ((($container.height() / 2) + -pzoff.top) / currentScale);
-		$.ajax({url:"/conductEditor/"+conductID+"/flow/"+selectedOperatorId+"/", type:"POST", data:JSON.stringify({action: "clone", operatorId: selectedOperatorId, x: x, y: y}), contentType:"application/json", success: function ( result ) {
+		var x = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["x"]
+		var y = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["y"]-25
+		$.ajax({url:"/conductEditor/"+conductID+"/flow/"+node+"/", type:"POST", data:JSON.stringify({action: "clone", operatorId: node, x: x, y: y}), contentType:"application/json", success: function ( result ) {
 				// Coned sucessfull
 			}
 		});
