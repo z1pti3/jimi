@@ -285,7 +285,7 @@ def updateFlow(conductID,flowID):
                         flowUI.x = x
                         flowUI.y = y
                         flowUI.update(["x","y"])
-                    elif "title" in data:
+                    if "title" in data:
                         flowUI.title = data["title"]
                         flowUI.update(["title"])
                     return { }, 200
