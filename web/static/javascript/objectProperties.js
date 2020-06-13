@@ -56,17 +56,23 @@ function savePropertiesPanel(flowID,panel) {
 	})
 	// Posting
 	$.ajax({url:"/api/1.0/models/"+modelType+"/"+modelID+"/", type:"POST", data: JSON.stringify({ action : "update", data: jsonData }), contentType:"application/json", success: function ( result ) {
-			if (newName != "") {
+			// Telling UI it has had some changes made
+			if (newName!="") {
 				$.ajax({url:"/conductEditor/"+conductID+"/flow/"+flowID+"/", type:"POST", async: false, data: JSON.stringify({action: "update", title : newName }), contentType:"application/json", success: function( responseData ) {
-						panel.find("#title").text(newName);
-						var $flowchart = $('.flowchart');
-						var operatorData = $flowchart.flowchart("getOperatorData", flowID);
-						operatorData["properties"]["title"] = sanitize(newName);
-						$flowchart.flowchart("setOperatorData", flowID, operatorData);
+						dropdownAlert(panel,"success","Save Successful",1000);
+						loadPropertiesPanel(flowID,panel);
+					},
+					error: function (result) {
+						dropdownAlert(panel,"error","Save Failed!",1000);
 					}
 				});
+			} else {
+				dropdownAlert(panel,"success","Save Successful",1000);
+				loadPropertiesPanel(flowID,panel);
 			}
-			dropdownAlert(panel,"success","Save Successful",1000);
+		},
+		error: function (result) {
+			dropdownAlert(panel,"error","Save Failed!",1000);
 		}
 	});
 }
