@@ -1,15 +1,15 @@
 var existingObjectHTML = `
 <div class="propertiesPanel">
-	<div class="propertiesPanel-header">
+	<div class="container-fluid propertiesPanel-header">
 		<span class="glyphicon glyphicon glyphicon-remove" id="close"></span>
 		<label id="title">Insert Existing Object</label>
 	</div>
-	<div class="propertiesPanel-body">
+	<div class="container-fluid propertiesPanel-body">
 		<input type='text' class="inputFullWidth" id='existingPropertiesPanel-SearchInput'>
 		<div class="existingPropertiesPanel-SearchResults" id="existingPropertiesPanel-SearchResults">
 		</div>
 	</div>
-	<div class="propertiesPanel-footer">
+	<div class="container-fluid propertiesPanel-footer">
 		<button id="close">Close</button>
 	</div>
 </div>
