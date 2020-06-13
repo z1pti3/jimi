@@ -128,9 +128,9 @@ function createPropertiesPanel(flowID) {
 		var panel = $(panelPropertiesHTML);
 		panel.css({top : posY, left : posX + 35});
 		panel.draggable();
-		//panel.resizable({
-		//	grid: 20
-		//});
+		panel.resizable({
+			grid: 20
+		});
 
 		// Events
 		panel.click(function () {
