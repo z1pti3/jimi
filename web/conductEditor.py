@@ -142,53 +142,89 @@ def conductFlowchartPoll(conductID):
 
     return flowchartResponse, 200
 
-@api.webServer.route("/conductEditor/<conductID>/", methods=["GET"])
-def getConduct(conductID):
-    conductObj = conduct._conduct().query(api.g["sessionData"],id=conductID)["results"]
+@api.webServer.route("/conductEditor/<conductID>/codify/", methods=["GET"])
+def getConductFlowCodify(conductID):
+    def generateFlow(currentFlow,flowDict,triggers,actions):
+        flowCode = ""
+        processQueue = []
+        indentLevel = 0
+        logic = None
+        while True:
+            if currentFlow:
+                obj = None
+                if currentFlow["type"] == "trigger":
+                    for t in triggers:
+                        if flow["triggerID"] == t._id:
+                            obj = t
+                            break
+                    for nextFlow in currentFlow["next"]:
+                        processQueue.append({ "flowID" : nextFlow["flowID"], "indentLevel": indentLevel+1, "logic" : nextFlow["logic"] })
+                elif currentFlow["type"] == "action":
+                    for a in actions:
+                        if currentFlow["actionID"] == a._id:
+                            obj = a
+                            break
+                    for nextFlow in currentFlow["next"]:
+                        processQueue.append({ "flowID" : nextFlow["flowID"], "indentLevel": indentLevel+1, "logic" : nextFlow["logic"] })
+                if obj:
+                    classObj = _class = model._model().getAsClass(api.g["sessionData"],id=obj.classID)
+                    classObj = classObj[0]
+                    blacklist = ["_id","acl","classID","workerID","startCheck","nextCheck","lastUpdateTime","lastCheck"]
+                    members = [attr for attr in dir(obj) if not callable(getattr(obj, attr)) and not "__" in attr and attr ]
+                    params=[]
+                    for member in members:
+                        if member not in blacklist:
+                            value = getattr(obj,member)
+                            if type(value) == str:
+                                value="\"{0}\"".format(value)
+                            
+                            params.append("{0}={1}".format(member,value))
+                    
+                    if currentFlow["type"] == "action":
+                        flowCode+="\r\n{0}logic({1})->{2}({3})".format(("\t"*indentLevel),logic,classObj.name,",".join(params))
+                    else:
+                        flowCode+="\r\n{0}{1}({2})".format(("\t"*indentLevel),classObj.name,",".join(params))
+            if len(processQueue) == 0:
+                break
+            else:
+                nextFlowID = processQueue[-1]["flowID"]
+                indentLevel = processQueue[-1]["indentLevel"]
+                logic = processQueue[-1]["logic"]
+                processQueue.pop()
+                if nextFlowID in flowDict:
+                    currentFlow = flowDict[nextFlowID]
+                else:
+                    currentFlow = None
+        return flowCode
+
+
+    conductObj = conduct._conduct().getAsClass(api.g["sessionData"],id=conductID)
     if len(conductObj) == 1:
         conductObj = conductObj[0]
     else:
-        return {},404
+        return { }, 404
 
     # Getting all UI flow details for flows in this conduct
-    flows = [ x["flowID"] for x in conductObj["flow"] ]
-    flowsUI = webui._modelUI().getAsClass(api.g["sessionData"],query={ "flowID" : { "$in" :flows }, "conductID" : conductID })
+    flows = [ x for x in conductObj.flow ]
+    flowDict = {}
+    for flow in flows:
+        flowDict[flow["flowID"]] = flow
+    flowTriggers = [ db.ObjectId(x["triggerID"]) for x in flows if x["type"] == "trigger" ]
+    flowActions = [ db.ObjectId(x["actionID"]) for x in flows if x["type"] == "action" ]
+    flowsList = [ x["flowID"] for x in flows ]
+    linksList = []
 
-    objectsToLoad = { "trigger" : [], "action" : [] }
-    objects = {}
-    for flow in conductObj["flow"]:
-        if "type" in flow:
-            flowType = flow["type"]
-            if "{0}{1}".format(flowType,"ID") in flow:
-                # Creating array of tigger and action so we can do one massive DB query
-                objectsToLoad[flowType].append(db.ObjectId(flow["{0}{1}".format(flowType,"ID")]))
-                # Creating objects dict
-                objects[flow["{0}{1}".format(flowType,"ID")]] = {}
-                objects[flow["{0}{1}".format(flowType,"ID")]]["_id"] = flow["{0}{1}".format(flowType,"ID")]
-                objects[flow["{0}{1}".format(flowType,"ID")]]["flowType"] = flowType
-                objects[flow["{0}{1}".format(flowType,"ID")]]["flowID"] = flow["flowID"]
-                objects[flow["{0}{1}".format(flowType,"ID")]]["next"] = flow["next"]
-                # Setting default name encase no name is set
-                objects[flow["{0}{1}".format(flowType,"ID")]]["name"] = flow["flowID"]
-                # Checking if we have a flowUI for the current flowID if so add to objects array, or keep as default
-                objects[flow["{0}{1}".format(flowType,"ID")]]["ui"] = { "x" : 0, "y" : 0, "title" : "" }
-                for flowUI in flowsUI:
-                    if flowUI.flowID == flow["flowID"]:
-                        # Overriding defaults with values loaded from the database
-                        objects[flow["{0}{1}".format(flowType,"ID")]]["ui"]["x"] = flowUI.x
-                        objects[flow["{0}{1}".format(flowType,"ID")]]["ui"]["y"] = flowUI.y
-                        objects[flow["{0}{1}".format(flowType,"ID")]]["ui"]["title"] = flowUI.title
-                        if objects[flow["{0}{1}".format(flowType,"ID")]]["ui"]["title"] == "":
-                            if flowType == "trigger":
-                                modelObject = trigger._trigger().getAsClass(api.g["sessionData"],id=objects[flow["{0}{1}".format(flowType,"ID")]]["_id"])[0]
-                            elif flowType == "action":
-                                modelObject = action._action().getAsClass(api.g["sessionData"],id=objects[flow["{0}{1}".format(flowType,"ID")]]["_id"])[0]
-                            flowUI.title = modelObject.name
-                            objects[flow["{0}{1}".format(flowType,"ID")]]["ui"]["title"] = modelObject.name
-                            flowUI.update(["title"])
-                        break
+    # For every refresh the entire flow object and UI is loaded from the database - this may need improvment for speed in future
+    flowsUI = webui._modelUI().getAsClass(api.g["sessionData"],query={ "flowID" : { "$in" :flowsList }, "conductID" : conductID })
+    actions = action._action().getAsClass(api.g["sessionData"],query={ "_id" : { "$in" : flowActions } })
+    triggers = trigger._trigger().getAsClass(api.g["sessionData"],query={ "_id" : { "$in" : flowTriggers } })
 
-    return objects, 200
+    flowCode = ""
+    for flow in flows:
+        if flow["type"] == "trigger":
+            flowCode+=generateFlow(flow,flowDict,triggers,actions)
+    
+    return render_template("blank.html",content=flowCode), 200
 
 @api.webServer.route("/conductEditor/<conductID>/flow/<flowID>/", methods=["DELETE"])
 def deleteFlow(conductID,flowID):
