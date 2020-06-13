@@ -28,9 +28,15 @@ def conductFlowchartPoll(conductID):
 
     # Getting all UI flow details for flows in this conduct
     flows = [ x for x in conductObj["flow"] ]
+    flowTriggers = [ db.ObjectId(x["triggerID"]) for x in flows if x["type"] == "trigger" ]
+    flowActions = [ db.ObjectId(x["actionID"]) for x in flows if x["type"] == "action" ]
     flowsList = [ x["flowID"] for x in flows ]
     linksList = []
-    flowsUI = webui._modelUI().getAsClass(api.g["sessionData"],query={ "flowID" : { "$in" :flowsList }, "conductID" : conductID, "lastUpdateTime" : { "$gt" : lastPollTime } })
+
+    # For every refresh the entire flow object and UI is loaded from the database - this may need improvment for speed in future
+    flowsUI = webui._modelUI().getAsClass(api.g["sessionData"],query={ "flowID" : { "$in" :flowsList }, "conductID" : conductID })
+    actions = action._action().getAsClass(api.g["sessionData"],query={ "_id" : { "$in" : flowActions } })
+    triggers = trigger._trigger().getAsClass(api.g["sessionData"],query={ "_id" : { "$in" : flowTriggers } })
 
     objectsToLoad = { "trigger" : {}, "action" : {} }
     for flow in flows:
@@ -52,15 +58,60 @@ def conductFlowchartPoll(conductID):
                 foundFlowUI = False
                 for flowUI in flowsUI:
                     if flow["flowID"] == flowUI.flowID:
-                        flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "title" : flowUI.title, "x" : flowUI.x, "y" : flowUI.y }
-                        foundFlowUI = True
-                        break
+                        if flowUI.lastUpdateTime > lastPollTime:
+                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "title" : flowUI.title, "x" : flowUI.x, "y" : flowUI.y }
+                            if flow["type"] == "trigger":
+                                for t in triggers:
+                                    if flow["triggerID"] == t._id:
+                                        flowchartResponse["operators"][flowchartResponseType][flowID]["enabled"] = t.enabled
+                                        break
+                            elif flow["type"] == "action":
+                                for a in actions:
+                                    if flow["actionID"] == a._id:
+                                        flowchartResponse["operators"][flowchartResponseType][flowID]["enabled"] = a.enabled
+                                        break
+                            foundFlowUI = True
+                            break
+                if flow["type"] == "trigger":
+                    for t in triggers:
+                        if flow["triggerID"] == t._id:
+                            if t.lastUpdateTime > lastPollTime:
+                                if flowID in flowchartResponse["operators"][flowchartResponseType]:
+                                    flowchartResponse["operators"][flowchartResponseType][flowID]["enabled"] = t.enabled
+                                else:
+                                    for flowUI in flowsUI:
+                                        if flow["flowID"] == flowUI.flowID:
+                                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "title" : flowUI.title, "x" : flowUI.x, "y" : flowUI.y, "enabled" : t.enabled }
+                                            break
+                                break
+                if flow["type"] == "action":
+                    for a in actions:
+                        if flow["actionID"] == a._id:
+                            if a.lastUpdateTime > lastPollTime:
+                                if flowID in flowchartResponse["operators"][flowchartResponseType]:
+                                    flowchartResponse["operators"][flowchartResponseType][flowID]["enabled"] = a.enabled
+                                else:
+                                    for flowUI in flowsUI:
+                                        if flow["flowID"] == flowUI.flowID:
+                                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "title" : flowUI.title, "x" : flowUI.x, "y" : flowUI.y, "enabled" : a.enabled }
+                                            break
+                            break
                 if flowchartResponseType == "create":
                     if not foundFlowUI:
                         tempFlowUI = webui._modelUI().getAsClass(api.g["sessionData"],query={ "flowID" : flowID, "conductID" : conductID })
                         if len(tempFlowUI) == 1:
                             tempFlowUI = tempFlowUI[0]
                             flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "title" : tempFlowUI.title, "x" : tempFlowUI.x, "y" : tempFlowUI.y }
+                            if flow["type"] == "trigger":
+                                for t in triggers:
+                                    if flow["triggerID"] == t._id:
+                                        flowchartResponse["operators"][flowchartResponseType][flowID]["enabled"] = t.enabled
+                                        break
+                            elif flow["type"] == "action":
+                                for a in actions:
+                                    if flow["actionID"] == a._id:
+                                        flowchartResponse["operators"][flowchartResponseType][flowID]["enabled"] = a.enabled
+                                        break
                 # Do any links need to be created
                 for nextFlow in flow["next"]:
                     linkName = "{0}->{1}".format(flowID,nextFlow["flowID"])

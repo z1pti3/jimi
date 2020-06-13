@@ -67,13 +67,16 @@ function deleteSelected() {
 	}
 }
 
-function newNode(flowID, objectID, flowType, title, x, y) {
+function newNode(flowID, objectID, flowType, title, x, y, color) {
 	flowObjects[flowID] = { "title": title, "x": x, "y": y, "flowID": flowID, "flowType": flowType, "nodeID": nextId, "_id": objectID }
 	nodeObjects[nextId] = { "flowID": flowID, "nodeID": nextId }
 	nodes.add({ id: nextId,
 		label: title, 
 		x: x, 
 		y: y,
+		color: {
+			background: color
+		},
 		shape: "box",
 		widthConstraint: {
 			minimum: 125,
@@ -88,12 +91,16 @@ function newNode(flowID, objectID, flowType, title, x, y) {
 	nextId++;
 }
 
-function updateNode(flowID, title, x, y) {
+function updateNode(flowID, title, x, y, color) {
 	flowObjects[flowID]["title"] = title
 	flowObjects[flowID]["x"] = x
 	flowObjects[flowID]["y"] = y
+
 	nodes.update({ id: flowObjects[flowID]["nodeID"],
 		label: title, 
+		color: {
+			background: color
+		},
 		x: x, 
 		y: y
 	 });
@@ -199,12 +206,20 @@ function updateFlowchart(init) {
 			// Operator Updates
 			for (operator in responseData["operators"]["update"]) {
 				obj = responseData["operators"]["update"][operator]
-				updateNode(obj["flowID"],obj["title"],obj["x"],obj["y"]);
+				color = "#7cbeeb"
+				if (obj["enabled"] == false) {
+					color = "gray"
+				}
+				updateNode(obj["flowID"],obj["title"],obj["x"],obj["y"],color);
 			}
 			// Operator Creates
 			for (operator in responseData["operators"]["create"]) {
 				obj = responseData["operators"]["create"][operator]
-				newNode(obj["flowID"],obj["_id"],obj["flowType"],obj["title"],obj["x"],obj["y"]);
+				color = "#7cbeeb"
+				if (obj["enabled"] == false) {
+					color = "gray"
+				}
+				newNode(obj["flowID"],obj["_id"],obj["flowType"],obj["title"],obj["x"],obj["y"],color);
 			}
 			// Operator Deletions
 			for (operator in responseData["operators"]["delete"]) {
