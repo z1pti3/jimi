@@ -39,7 +39,7 @@ html, body {
 	border-style: solid;
 	position: relative;
 	overflow: hidden;
-	background: white;
+	background:#e7e7e7;
 }
 
 .flowchart-operator {
