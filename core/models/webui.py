@@ -50,15 +50,17 @@ class _properties():
             return "<input type='checkbox' id='properties_items{0}'></input>".format(id)
 
         formData = []
+        blacklist = ["_id","acl","classID","workerID"]
         members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
         for member in members:
-            value = getattr(classObject,member)
-            if type(value) == str or type(value) == int or type(value) == float:
-                formData.append({"type" : "input", "schemaitem" : member, "textbox" : value})
-            elif type(value) == bool:
-                formData.append({"type" : "checkbox", "schemaitem" : member, "checked" : value})
-            elif type(value) == dict or type(value) == list:
-                formData.append({"type" : "json-input", "schemaitem" : member, "textbox" : value})
+            if member not in blacklist:
+                value = getattr(classObject,member)
+                if type(value) == str or type(value) == int or type(value) == float:
+                    formData.append({"type" : "input", "schemaitem" : member, "textbox" : value})
+                elif type(value) == bool:
+                    formData.append({"type" : "checkbox", "schemaitem" : member, "checked" : value})
+                elif type(value) == dict or type(value) == list:
+                    formData.append({"type" : "json-input", "schemaitem" : member, "textbox" : value})
         return formData
 
 from core import helpers, logging
