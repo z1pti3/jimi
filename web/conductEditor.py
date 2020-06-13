@@ -65,7 +65,7 @@ def conductFlowchartPoll(conductID):
                                 for t in triggers:
                                     if flow["triggerID"] == t._id:
                                         flowchartResponse["operators"][flowchartResponseType][flowID]["enabled"] = t.enabled
-                                        if ((t.startCheck != 0) and (t.startCheck + (t.maxDuration*1000) < time.time())):
+                                        if ((t.startCheck != 0) and (t.startCheck + t.maxDuration < time.time())):
                                             flowchartResponse["operators"][flowchartResponseType][flowID]["failed"] = True
                                         break
                             elif flow["type"] == "action":
@@ -81,13 +81,13 @@ def conductFlowchartPoll(conductID):
                             if t.lastUpdateTime > lastPollTime:
                                 if flowID in flowchartResponse["operators"][flowchartResponseType]:
                                     flowchartResponse["operators"][flowchartResponseType][flowID]["enabled"] = t.enabled
-                                    if ((t.startCheck != 0) and (t.startCheck + (t.maxDuration*1000) < time.time())):
+                                    if ((t.startCheck != 0) and (t.startCheck + t.maxDuration < time.time())):
                                             flowchartResponse["operators"][flowchartResponseType][flowID]["failed"] = True
                                 else:
                                     for flowUI in flowsUI:
                                         if flow["flowID"] == flowUI.flowID:
                                             flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "title" : flowUI.title, "x" : flowUI.x, "y" : flowUI.y, "failed" : False , "enabled" : t.enabled }
-                                            if ((t.startCheck != 0) and (t.startCheck + (t.maxDuration*1000) < time.time())):
+                                            if ((t.startCheck != 0) and (t.startCheck + t.maxDuration < time.time())):
                                                 flowchartResponse["operators"][flowchartResponseType][flowID]["failed"] = True
                                             break
                                 break
@@ -113,7 +113,7 @@ def conductFlowchartPoll(conductID):
                                 for t in triggers:
                                     if flow["triggerID"] == t._id:
                                         flowchartResponse["operators"][flowchartResponseType][flowID]["enabled"] = t.enabled
-                                        if ((t.startCheck != 0) and (t.startCheck + (t.maxDuration*1000) < time.time())):
+                                        if ((t.startCheck != 0) and (t.startCheck + t.maxDuration < time.time())):
                                             flowchartResponse["operators"][flowchartResponseType][flowID]["failed"] = True
                                         break
                             elif flow["type"] == "action":
