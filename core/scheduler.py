@@ -65,6 +65,8 @@ def getSchedule(scheduleString):
             baseTime = datetime.datetime.now()
             cron = croniter.croniter(scheduleString, baseTime)
             value = cron.get_next(datetime.datetime)
+            if (value.timestamp() < time.time()+30):
+                return None
             return int(value.timestamp())
     return None
 
