@@ -211,11 +211,7 @@ def getConductFlowCodify(conductID):
         flowDict[flow["flowID"]] = flow
     flowTriggers = [ db.ObjectId(x["triggerID"]) for x in flows if x["type"] == "trigger" ]
     flowActions = [ db.ObjectId(x["actionID"]) for x in flows if x["type"] == "action" ]
-    flowsList = [ x["flowID"] for x in flows ]
-    linksList = []
 
-    # For every refresh the entire flow object and UI is loaded from the database - this may need improvment for speed in future
-    flowsUI = webui._modelUI().getAsClass(api.g["sessionData"],query={ "flowID" : { "$in" :flowsList }, "conductID" : conductID })
     actions = action._action().getAsClass(api.g["sessionData"],query={ "_id" : { "$in" : flowActions } })
     triggers = trigger._trigger().getAsClass(api.g["sessionData"],query={ "_id" : { "$in" : flowTriggers } })
 
