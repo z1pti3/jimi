@@ -74,7 +74,16 @@ function newNode(flowID, objectID, flowType, title, x, y) {
 		label: title, 
 		x: x, 
 		y: y,
-		shape: "box"
+		shape: "box",
+		widthConstraint: {
+			minimum: 125,
+			maximum: 125
+		},
+		heightConstraint: {
+			minimum: 35,
+			maximum: 35
+		},
+		borderWidth: 3
 	 });
 	nextId++;
 }
@@ -96,15 +105,18 @@ function deleteNode(flowID) {
 	delete flowObjects[flowID]
 }
 
-function createLinkRAW(from,to,colour) {
+function createLinkRAW(from,to,color) {
 	var linkName = from + "->" + to;
-	flowLinks[linkName] = { "from": from, "to": to, "colour": colour }
+	flowLinks[linkName] = { "from": from, "to": to, "colour": color }
 	edges.add({ 
 		id: linkName,
 		from: flowObjects[from]["nodeID"], 
 		to: flowObjects[to]["nodeID"],
+		color: {
+			color: color
+		},
 		arrows: {
-			to: {
+			middle: {
 			  enabled: true,
 			  type: "arrow"
 			}
@@ -113,7 +125,8 @@ function createLinkRAW(from,to,colour) {
 			enabled: true,
 			type: "cubicBezier",
 			roundness: 0.7
-		}
+		},
+		width: 3
 	 });
 	nextId++;
 }
@@ -125,13 +138,7 @@ function updateLink(from,to) {
 	edges.update({ 
 		id: linkName,
 		from: flowObjects[from]["nodeID"], 
-		to: flowObjects[to]["nodeID"],
-		arrows: {
-			to: {
-			  enabled: true,
-			  type: "arrow"
-			}
-		}
+		to: flowObjects[to]["nodeID"]
 	});
 	return true;
 }
@@ -209,15 +216,15 @@ function updateFlowchart(init) {
 				obj = responseData["links"]["create"][link]
 				switch (obj["logic"]){
 					case true:
-						var colour = "blue"
+						var color = "blue"
 						break
 					case false:
-						var colour = "red"
+						var color = "red"
 						break
 					default:
-						var colour = "purple"
+						var color = "purple"
 				}
-				createLinkRAW(obj["from"],obj["to"],colour)
+				createLinkRAW(obj["from"],obj["to"],color)
 			}
 			// Link Updates
 			for (link in responseData["links"]["update"]) {
