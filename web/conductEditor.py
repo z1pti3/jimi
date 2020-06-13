@@ -94,13 +94,6 @@ def getConduct(conductID):
     flows = [ x["flowID"] for x in conductObj["flow"] ]
     flowsUI = webui._modelUI().getAsClass(api.g["sessionData"],query={ "flowID" : { "$in" :flows }, "conductID" : conductID })
 
-    # Legacy UI
-    legacyUIFlow = webui._flowData().query(query={"conductID" : conductID})["results"]
-    if len(legacyUIFlow) == 1:
-        legacyUIFlow = legacyUIFlow[0]
-    else:
-        legacyUIFlow = None
-
     objectsToLoad = { "trigger" : [], "action" : [] }
     objects = {}
     for flow in conductObj["flow"]:
@@ -134,23 +127,6 @@ def getConduct(conductID):
                             objects[flow["{0}{1}".format(flowType,"ID")]]["ui"]["title"] = modelObject.name
                             flowUI.update(["title"])
                         break
-                # Legacy flowUI if x,y is currently 0 ( builds the new layout from old if this is the case )
-                if legacyUIFlow:
-                    usedLegacy = False
-                    if objects[flow["{0}{1}".format(flowType,"ID")]]["ui"]["x"] == 0:
-                        objects[flow["{0}{1}".format(flowType,"ID")]]["ui"]["x"] = legacyUIFlow["flowData"]["operators"][flow["flowID"]]["left"]
-                        usedLegacy = True
-                    if objects[flow["{0}{1}".format(flowType,"ID")]]["ui"]["y"] == 0:
-                        objects[flow["{0}{1}".format(flowType,"ID")]]["ui"]["y"] = legacyUIFlow["flowData"]["operators"][flow["flowID"]]["top"]
-                        usedLegacy = True
-                    if objects[flow["{0}{1}".format(flowType,"ID")]]["ui"]["title"] == "":
-                        if flowType == "trigger":
-                            modelObject = trigger._trigger().getAsClass(id=objects[flow["{0}{1}".format(flowType,"ID")]]["_id"])[0]
-                        elif flowType == "action":
-                            modelObject = action._action().getAsClass(id=objects[flow["{0}{1}".format(flowType,"ID")]]["_id"])[0]
-                        objects[flow["{0}{1}".format(flowType,"ID")]]["ui"]["title"] = modelObject.name
-                    if usedLegacy:
-                        webui._modelUI().new(conductID,conductObj["acl"],flow["flowID"],objects[flow["{0}{1}".format(flowType,"ID")]]["ui"]["x"],objects[flow["{0}{1}".format(flowType,"ID")]]["ui"]["y"],objects[flow["{0}{1}".format(flowType,"ID")]]["ui"]["title"])
 
     return objects, 200
 
