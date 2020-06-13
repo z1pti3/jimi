@@ -1,3 +1,4 @@
+import time
 import json
 import  uuid
 
@@ -59,11 +60,13 @@ def conductFlowchartPoll(conductID):
                 for flowUI in flowsUI:
                     if flow["flowID"] == flowUI.flowID:
                         if flowUI.lastUpdateTime > lastPollTime:
-                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "title" : flowUI.title, "x" : flowUI.x, "y" : flowUI.y }
+                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "title" : flowUI.title, "x" : flowUI.x, "y" : flowUI.y, "failed" : False }
                             if flow["type"] == "trigger":
                                 for t in triggers:
                                     if flow["triggerID"] == t._id:
                                         flowchartResponse["operators"][flowchartResponseType][flowID]["enabled"] = t.enabled
+                                        if ((t.startCheck != 0) and (t.startCheck + (t.maxDuration*1000) < time.time())):
+                                            flowchartResponse["operators"][flowchartResponseType][flowID]["failed"] = True
                                         break
                             elif flow["type"] == "action":
                                 for a in actions:
@@ -78,10 +81,14 @@ def conductFlowchartPoll(conductID):
                             if t.lastUpdateTime > lastPollTime:
                                 if flowID in flowchartResponse["operators"][flowchartResponseType]:
                                     flowchartResponse["operators"][flowchartResponseType][flowID]["enabled"] = t.enabled
+                                    if ((t.startCheck != 0) and (t.startCheck + (t.maxDuration*1000) < time.time())):
+                                            flowchartResponse["operators"][flowchartResponseType][flowID]["failed"] = True
                                 else:
                                     for flowUI in flowsUI:
                                         if flow["flowID"] == flowUI.flowID:
-                                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "title" : flowUI.title, "x" : flowUI.x, "y" : flowUI.y, "enabled" : t.enabled }
+                                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "title" : flowUI.title, "x" : flowUI.x, "y" : flowUI.y, "failed" : False , "enabled" : t.enabled }
+                                            if ((t.startCheck != 0) and (t.startCheck + (t.maxDuration*1000) < time.time())):
+                                                flowchartResponse["operators"][flowchartResponseType][flowID]["failed"] = True
                                             break
                                 break
                 if flow["type"] == "action":
@@ -93,7 +100,7 @@ def conductFlowchartPoll(conductID):
                                 else:
                                     for flowUI in flowsUI:
                                         if flow["flowID"] == flowUI.flowID:
-                                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "title" : flowUI.title, "x" : flowUI.x, "y" : flowUI.y, "enabled" : a.enabled }
+                                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "title" : flowUI.title, "x" : flowUI.x, "y" : flowUI.y, "failed" : False , "enabled" : a.enabled }
                                             break
                             break
                 if flowchartResponseType == "create":
@@ -101,11 +108,13 @@ def conductFlowchartPoll(conductID):
                         tempFlowUI = webui._modelUI().getAsClass(api.g["sessionData"],query={ "flowID" : flowID, "conductID" : conductID })
                         if len(tempFlowUI) == 1:
                             tempFlowUI = tempFlowUI[0]
-                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "title" : tempFlowUI.title, "x" : tempFlowUI.x, "y" : tempFlowUI.y }
+                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "title" : tempFlowUI.title, "x" : tempFlowUI.x, "y" : tempFlowUI.y, "failed" : False }
                             if flow["type"] == "trigger":
                                 for t in triggers:
                                     if flow["triggerID"] == t._id:
                                         flowchartResponse["operators"][flowchartResponseType][flowID]["enabled"] = t.enabled
+                                        if ((t.startCheck != 0) and (t.startCheck + (t.maxDuration*1000) < time.time())):
+                                            flowchartResponse["operators"][flowchartResponseType][flowID]["failed"] = True
                                         break
                             elif flow["type"] == "action":
                                 for a in actions:

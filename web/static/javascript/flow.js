@@ -210,6 +210,9 @@ function updateFlowchart(init) {
 				if (obj["enabled"] == false) {
 					color = "gray"
 				}
+				if (obj["failed"] == true) {
+					color = "red"
+				}
 				updateNode(obj["flowID"],obj["title"],obj["x"],obj["y"],color);
 			}
 			// Operator Creates
@@ -218,6 +221,9 @@ function updateFlowchart(init) {
 				color = "#7cbeeb"
 				if (obj["enabled"] == false) {
 					color = "gray"
+				}
+				if (obj["failed"] == true) {
+					color = "red"
 				}
 				newNode(obj["flowID"],obj["_id"],obj["flowType"],obj["title"],obj["x"],obj["y"],color);
 			}
