@@ -249,7 +249,11 @@ function updateFlowchart(init) {
 			// Link Deletions
 			for (link in responseData["links"]["delete"]) {
 				obj = responseData["links"]["delete"][link]
-				deleteLink(obj["from"],obj["to"])
+				linkName = obj["linkName"]
+				edges.remove({ 
+					id: linkName
+				});
+				delete flowLinks[linkName]
 			}
 
 			// fit
