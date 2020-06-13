@@ -10,8 +10,8 @@
 	max-height: 80%;
 	max-width: 80%;
 	width: 300px;
-	overflow-y: hidden;
-	overflow-x: hidden;
+	display: flex;
+	flex-direction: column;
 }
 
 .propertiesPanelsmall {
@@ -20,8 +20,8 @@
 }
 
 .propertiesPanel-body {
-	position: relative;
-	height: -webkit-calc(100% - 60px);
+	display: inline-block;
+	height: 100%;
 	width: 100%;
 	overflow-y: scroll;
 	overflow-x: hidden;
@@ -29,12 +29,14 @@
 
 .propertiesPanel-header {
 	height: 30px;
+	width: 100%;
 	position: relative;
 	background-color: #F0F0F0;
 }
 
 .propertiesPanel-footer {
 	height: 30px;
+	width: 100%;
 	position: relative;
 	background-color: #F0F0F0;
 }

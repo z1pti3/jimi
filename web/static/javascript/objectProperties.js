@@ -1,12 +1,12 @@
 var panelPropertiesHTML = `
 <div class="propertiesPanel">
-	<div class="propertiesPanel-header">
+	<div class="container-fluid propertiesPanel-header">
 		<span class="glyphicon glyphicon glyphicon-remove" id="close"></span>
 		<label id="title"></label>
 	</div>
-	<div class="propertiesPanel-body">
+	<div class="container-fluid propertiesPanel-body">
 	</div>
-	<div class="propertiesPanel-footer">
+	<div class="container-fluid propertiesPanel-footer">
 		<button id="save">Save</button>
 		<button id="refresh">Refresh</button>
 		<button id="close">Close</button>
@@ -128,9 +128,9 @@ function createPropertiesPanel(flowID) {
 		var panel = $(panelPropertiesHTML);
 		panel.css({top : posY, left : posX + 35});
 		panel.draggable();
-		panel.resizable({
-			grid: 20
-		});
+		//panel.resizable({
+		//	grid: 20
+		//});
 
 		// Events
 		panel.click(function () {
