@@ -90,7 +90,7 @@ class _trigger(db._document):
                         if callingTriggerID != "":
                             data["callingTriggerID"] = callingTriggerID
                     if self.log:
-                        audit._audit().add("trigger","notify call",{ "triggerID" : self._id, "conductID" : loadedConduct._id, "name" : self.name })
+                        audit._audit().add("trigger","notify call",{ "triggerID" : self._id, "conductID" : loadedConduct._id, "name" : self.name, "data" : data })
                     if eventHandler:
                         eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerHandler,(self._id,data),maxDuration=maxDuration)
                     else:
