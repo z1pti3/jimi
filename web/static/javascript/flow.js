@@ -83,7 +83,7 @@ function newNode(flowID, objectID, flowType, title, x, y) {
 			minimum: 35,
 			maximum: 35
 		},
-		borderWidth: 3
+		borderWidth: 1.5
 	 });
 	nextId++;
 }
@@ -126,7 +126,7 @@ function createLinkRAW(from,to,color) {
 			type: "cubicBezier",
 			roundness: 0.7
 		},
-		width: 3
+		width: 2.5
 	 });
 	nextId++;
 }
