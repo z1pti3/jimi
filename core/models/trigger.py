@@ -72,41 +72,48 @@ class _trigger(db._document):
             if self.log:
                 audit._audit().add("trigger","notify start",{ "triggerID" : self._id, "name" : self.name })
 
-            for loadedConduct in cache.globalCache.get("conductCache",self._id,getTriggerConducts):
-                maxDuration = 60
-                if type(self.maxDuration) is int and self.maxDuration > 0:
-                    maxDuration = self.maxDuration
-                eventHandler = None
-                if self.concurrency > 0:
-                    eventHandler = workers.workerHandler(self.concurrency)
+            conducts = cache.globalCache.get("conductCache",self._id,getTriggerConducts)
+            if conducts:
+                for loadedConduct in conducts:
+                    maxDuration = 60
+                    if type(self.maxDuration) is int and self.maxDuration > 0:
+                        maxDuration = self.maxDuration
+                    eventHandler = None
+                    if self.concurrency > 0:
+                        eventHandler = workers.workerHandler(self.concurrency)
 
-                loops = 0
-                for event in events:
-                    if var == None:
-                        data = { "event" : event, "triggerID" : self._id, "var" : {}, "plugin" : {} }
-                    else: 
-                        data = { "event" : event, "triggerID" : self._id, "var" : var, "plugin" : {} }
-                    if callingTriggerID != None:
-                        if callingTriggerID != "":
-                            data["callingTriggerID"] = callingTriggerID
-                    if self.log:
-                        audit._audit().add("trigger","notify call",{ "triggerID" : self._id, "conductID" : loadedConduct._id, "name" : self.name, "data" : data })
+                    loops = 0
+                    for event in events:
+                        if var == None:
+                            data = { "event" : event, "triggerID" : self._id, "var" : {}, "plugin" : {} }
+                        else: 
+                            data = { "event" : event, "triggerID" : self._id, "var" : var, "plugin" : {} }
+                        if callingTriggerID != None:
+                            if callingTriggerID != "":
+                                data["callingTriggerID"] = callingTriggerID
+                        if self.log:
+                            audit._audit().add("trigger","notify call",{ "triggerID" : self._id, "conductID" : loadedConduct._id, "name" : self.name, "data" : data })
+                        if eventHandler:
+                            eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerHandler,(self._id,data),maxDuration=maxDuration)
+                        else:
+                            loadedConduct.triggerHandler(self._id,data)
+
+                        # CPU saver
+                        loops+=1
+                        if cpuSaver:
+                            if loops > cpuSaver["loopL"]:
+                                loops = 0
+                                time.sleep(cpuSaver["loopT"])
+
+                    # Waiting for all jobs to complete
                     if eventHandler:
-                        eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerHandler,(self._id,data),maxDuration=maxDuration)
-                    else:
-                        loadedConduct.triggerHandler(self._id,data)
-
-                    # CPU saver
-                    loops+=1
-                    if cpuSaver:
-                        if loops > cpuSaver["loopL"]:
-                            loops = 0
-                            time.sleep(cpuSaver["loopT"])
-
-                # Waiting for all jobs to complete
-                if eventHandler:
-                    eventHandler.waitAll()
-                    eventHandler.stop()
+                        eventHandler.waitAll()
+                        eventHandler.stop()
+            else:
+                logging.debug("Error trigger has no conducts, automaticly disabling: triggerID={0}".format(self._id))
+                audit._audit().add("trigger","autho disable",{ "triggerID" : self._id, "name" : self.name })
+                self.enabled = False
+                self.update(["enabled"])
 
             notifyEndTime = time.time()
             if self.log:
