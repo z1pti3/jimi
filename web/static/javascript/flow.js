@@ -302,10 +302,10 @@ function debugFlowObject() {
 }
 
 function editFlowObject() {
-	var $flowchart = $('.flowchart');
-	var selectedOperatorId = $flowchart.flowchart('getSelectedOperatorId');
-	if (selectedOperatorId != null) {
-		createPropertiesPanel(selectedOperatorId);
+	selectedNodes = network.getSelectedNodes()
+	if (selectedNodes.length == 1) {
+		node = nodeObjects[selectedNodes[0]]["flowID"]
+		createPropertiesPanel(node);
 	}
 }
 
