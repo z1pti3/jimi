@@ -17,7 +17,6 @@ var triggerObjectHTML = `
 var triggerExistingPanels = {}
 
 function triggerTriggerObjectPanel(panel,flowID) {
-	var $flowchart = $('.flowchart');
 	var conductID = GetURLParameter("conductID")
 	$.ajax({url: "/conduct/"+conductID+"/forceTrigger/"+flowID+"/", type:"POST", data:JSON.stringify({events: panel.find("#triggerValue").val() }), contentType:"application/json", success: function ( result ) {
 			dropdownAlert(panel,"success","Triggered",1000);
@@ -27,8 +26,8 @@ function triggerTriggerObjectPanel(panel,flowID) {
 
 function createTriggerObjectPanel(flowID) {
 	var conductID = GetURLParameter("conductID")
-	var modelType = loadedFlows[flowID]["flowType"]
-	var modelID = loadedFlows[flowID]["_id"]
+	var modelType = flowObjects[flowID]["flowType"]
+	var modelID = flowObjects[flowID]["_id"]
 	if (modelType == "trigger") {
 		if (!triggerExistingPanels.hasOwnProperty(flowID)) {
 			triggerExistingPanels[flowID] = flowID;
