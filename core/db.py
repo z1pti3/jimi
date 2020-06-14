@@ -111,7 +111,7 @@ class _document():
         self._dbCollection.insert_one(data)
 
     def getAttribute(self,attr):
-        return getattr(self,var)
+        return getattr(self,attr)
 
     def setAttribute(self,attr,value):
         setattr(self,attr,value)
