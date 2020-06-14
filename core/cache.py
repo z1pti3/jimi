@@ -26,12 +26,12 @@ class _cache():
             self.objects[authedCacheName]["objects"].clear()
             logging.debug("Cache store cleared, name={0}".format(authedCacheName),20)
 
-    def get(self,cacheName,uid,setFunction,*args,sessionData=None,extendCacheTime=False):
+    def get(self,cacheName,uid,setFunction,*args,sessionData=None,extendCacheTime=False,forceUpdate=False):
         authedCacheName = self.checkSessionData(cacheName,sessionData)
         if authedCacheName == None:
             return
         now = time.time()
-        if uid in self.objects[authedCacheName]["objects"]:
+        if ((uid in self.objects[authedCacheName]["objects"]) and (not forceUpdate)):
             if ((self.objects[authedCacheName]["objects"][uid]["cacheExpiry"] > now) or (extendCacheTime)):
                 self.objects[authedCacheName]["objects"][uid]["accessCount"] += 1
                 if extendCacheTime:
