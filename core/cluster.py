@@ -151,8 +151,8 @@ def loadClusterMember():
         clusterMember = clusterMember[0]
     
     clusterMember.syncCount = 0
-    clusterMember.bindAddress = apiSettings["bind"]
-    clusterMember.bindPort = apiSettings["port"]
+    clusterMember.bindAddress = apiSettings["core"]["bind"]
+    clusterMember.bindPort = apiSettings["core"]["port"]
     clusterMember.systemUID = str(uuid.uuid4())
     clusterMember.update(["syncCount","systemUID","bindAddress","bindPort"])
     return clusterMember
