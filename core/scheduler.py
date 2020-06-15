@@ -20,13 +20,17 @@ class _scheduler:
             now = int(time.time())
             self.lastHandle = now
             # Adds defined delay onto nextCheck so that it can pickup ones that would otherwise wait for after the pause
-            for t in trigger._trigger().getAsClass(query={ "systemID" : systemSettings["systemID"], "nextCheck" : { "$lt" :  (now + schedulerSettings["loopP"])}, "enabled" : True, "startCheck" :  0, "schedule" : { "$ne" : "", "$ne" : None } }):
-                t.startCheck = time.time()
-                maxDuration = 60
-                if type(t.maxDuration) is int and t.maxDuration > 0:
-                    maxDuration = t.maxDuration
-                t.workerID = workers.workers.new("trigger:{0}".format(t._id),t.checkHandler,(),maxDuration=maxDuration)
-                t.update(["startCheck","workerID"])                    
+            for t in trigger._trigger().getAsClass(query={ "systemID" : systemSettings["systemID"], "$or" : [ {"nextCheck" : { "$lt" :  (now + schedulerSettings["loopP"])}}, {"$or" : [ {"nextCheck" : { "$eq" : ""}} , {"nextCheck" : {"$eq" : None }} ] } ], "enabled" : True, "startCheck" :  0, "$and":[{"schedule" : {"$ne" : None}} , {"schedule" : {"$ne" : ""}} ] }):
+                if t.nextCheck == 0:
+                    t.nextCheck = getSchedule(t.schedule)
+                    t.update(["nextCheck"]) 
+                else:
+                    t.startCheck = time.time()
+                    maxDuration = 60
+                    if type(t.maxDuration) is int and t.maxDuration > 0:
+                        maxDuration = t.maxDuration
+                    t.workerID = workers.workers.new("trigger:{0}".format(t._id),t.checkHandler,(),maxDuration=maxDuration)
+                    t.update(["startCheck","workerID"])          
             # pause
             time.sleep(schedulerSettings["loopP"])
 
