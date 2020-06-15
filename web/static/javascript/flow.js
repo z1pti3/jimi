@@ -1,5 +1,6 @@
 // Globals
 var mouseOverOperator;
+var mouseHold;
 var cKeyState
 var loadedFlows = {};
 var pauseFlowchartUpdate = false;
@@ -91,19 +92,88 @@ function newNode(flowID, objectID, flowType, title, x, y, color) {
 	nextId++;
 }
 
-function updateNode(flowID, title, x, y, color) {
-	flowObjects[flowID]["title"] = title
-	flowObjects[flowID]["x"] = x
-	flowObjects[flowID]["y"] = y
-
-	nodes.update({ id: flowObjects[flowID]["nodeID"],
-		label: title, 
-		color: {
-			background: color
-		},
-		x: x, 
-		y: y
-	 });
+function updateNode(flow) {
+	if (flow["flowID"] in flowObjects == false) {
+		flowObjects[flow["flowID"]] = { "title": flow["title"], "x": flow["x"], "y": flow["y"], "flowID": flow["flowID"], "flowType": flow["flowType"], "nodeID": nextId, "_id": flow["_id"], "enabled" : flow["enabled"], "failed" : flow["failed"], "running" : flow["running"] }
+		nodeObjects[nextId] = { "flowID": flow["flowID"], "nodeID": nextId }
+		color = "#7cbeeb"
+		if (flow["running"] == true) {
+			color = "green"
+		}
+		if (flow["enabled"] == false) {
+			color = "gray"
+		}
+		if (flow["failed"] == true) {
+			color = "red"
+		}
+		nodes.add({ id: nextId,
+			label: flow["title"], 
+			x: flow["x"], 
+			y: flow["y"],
+			color: {
+				background: color
+			},
+			shape: "box",
+			widthConstraint: {
+				minimum: 125,
+				maximum: 125
+			},
+			heightConstraint: {
+				minimum: 35,
+				maximum: 35
+			},
+			borderWidth: 1.5
+		 });
+		nextId++;
+	} else {
+		update = {}
+		update["id"] = flowObjects[flow["flowID"]]["nodeID"]
+		updateObj = false
+		if ("x" in flow && "y" in flow) {
+			flowObjects[flow["flowID"]]["x"] = flow["x"]
+			flowObjects[flow["flowID"]]["y"] = flow["y"]
+			network.moveNode(flowObjects[flow["flowID"]]["nodeID"],flow["x"],flow["y"])
+		}
+		if ("title" in flow) {
+			flowObjects[flow["flowID"]]["title"] = flow["title"]
+			update["title"] = flow["title"]
+			updateObj = true
+		}
+		color = "#7cbeeb"
+		if ("running" in flow) {
+			flowObjects[flow["flowID"]]["running"] = flow["running"]
+			if (flow["running"]) {
+				update["color"] = { "background" : "green" }
+				color = "green"
+			} else {
+				update["color"] = { "background" : color }
+			}
+			updateObj = true
+		}
+		if ("enabled" in flow) {
+			flowObjects[flow["flowID"]]["enabled"] = flow["enabled"]
+			if (!flow["enabled"]) {
+				update["color"] = { "background" : "gray" }
+				color = "gray"
+			} else {
+				update["color"] = { "background" : color }
+			}
+			updateObj = true
+		}
+		if ("failed" in flow) {
+			flowObjects[flow["flowID"]]["failed"] = flow["failed"]
+			if (flow["failed"]) {
+				update["color"] = { "background" : "red" }
+				color = "red"
+			} else {
+				update["color"] = { "background" : color }
+			}
+			updateObj = true
+		}
+		if (updateObj) {
+			nodes.update(update)
+		}
+	}
 }
 
 function deleteNode(flowID) {
@@ -198,79 +268,65 @@ function saveNewLink(from,to) {
 
 function updateFlowchart(init) {
 	var conductID = GetURLParameter("conductID")
-	var operators = Object.keys(flowObjects)
-	var links = Object.keys(flowLinks)
-	var time = new Date().getTime() / 1000;
-	$.ajax({url:"/conductEditor/"+conductID+"/", type:"POST", timeout: 2000, data: JSON.stringify({ lastPollTime : lastUpdatePollTime, operators: operators, links: links }), contentType:"application/json", success: function ( responseData ) {
-			lastUpdatePollTime = time;
-			// Operator Updates
-			for (operator in responseData["operators"]["update"]) {
-				obj = responseData["operators"]["update"][operator]
-				color = "#7cbeeb"
-				if (obj["enabled"] == false) {
-					color = "gray"
+	if (!mouseHold) {
+		$.ajax({url:"/conductEditor/"+conductID+"/", type:"POST", timeout: 2000, data: JSON.stringify({ lastPollTime : lastUpdatePollTime, operators: flowObjects, links: Object.keys(flowLinks) }), contentType:"application/json", success: function ( responseData ) {
+				// Operator Updates
+				for (operator in responseData["operators"]["update"]) {
+					if (selectedObject != operator) {
+						updateNode(responseData["operators"]["update"][operator]);
+					}
 				}
-				if (obj["failed"] == true) {
-					color = "red"
+				// Operator Creates
+				for (operator in responseData["operators"]["create"]) {
+					updateNode(responseData["operators"]["create"][operator]);
 				}
-				updateNode(obj["flowID"],obj["title"],obj["x"],obj["y"],color);
-			}
-			// Operator Creates
-			for (operator in responseData["operators"]["create"]) {
-				obj = responseData["operators"]["create"][operator]
-				color = "#7cbeeb"
-				if (obj["enabled"] == false) {
-					color = "gray"
+				// Operator Deletions
+				for (operator in responseData["operators"]["delete"]) {
+					if (selectedObject != operator) {
+						obj = responseData["operators"]["delete"][operator]
+						deleteNode(obj["flowID"]);
+					}
 				}
-				if (obj["failed"] == true) {
-					color = "red"
+				// Link Creates
+				for (link in responseData["links"]["create"]) {
+					obj = responseData["links"]["create"][link]
+					switch (obj["logic"]){
+						case true:
+							var color = "blue"
+							break
+						case false:
+							var color = "red"
+							break
+						default:
+							var color = "purple"
+					}
+					createLinkRAW(obj["from"],obj["to"],color)
 				}
-				newNode(obj["flowID"],obj["_id"],obj["flowType"],obj["title"],obj["x"],obj["y"],color);
-			}
-			// Operator Deletions
-			for (operator in responseData["operators"]["delete"]) {
-				obj = responseData["operators"]["delete"][operator]
-				deleteNode(obj["flowID"]);
-			}
-			// Link Creates
-			for (link in responseData["links"]["create"]) {
-				obj = responseData["links"]["create"][link]
-				switch (obj["logic"]){
-					case true:
-						var color = "blue"
-						break
-					case false:
-						var color = "red"
-						break
-					default:
-						var color = "purple"
+				// Link Updates
+				for (link in responseData["links"]["update"]) {
+					obj = responseData["links"]["update"][link]
+					updateLink(obj["from"],obj["to"])
 				}
-				createLinkRAW(obj["from"],obj["to"],color)
-			}
-			// Link Updates
-			for (link in responseData["links"]["update"]) {
-				obj = responseData["links"]["update"][link]
-				updateLink(obj["from"],obj["to"])
-			}
-			// Link Deletions
-			for (link in responseData["links"]["delete"]) {
-				obj = responseData["links"]["delete"][link]
-				linkName = obj["linkName"]
-				edges.remove({ 
-					id: linkName
-				});
-				delete flowLinks[linkName]
-			}
+				// Link Deletions
+				for (link in responseData["links"]["delete"]) {
+					obj = responseData["links"]["delete"][link]
+					linkName = obj["linkName"]
+					edges.remove({ 
+						id: linkName
+					});
+					delete flowLinks[linkName]
+				}
 
-			// fit
-			if (init) {
-				network.fit();
+				// fit
+				if (init) {
+					network.fit();
+				}
+			},
+			error: function ( error ) {
+				console.log("Unable to update flowChart");
 			}
-		},
-		error: function ( error ) {
-			console.log("Unable to update flowChart");
-		}
-	});
+		});
+	}
 }
 
 function triggerFlowObject() {
@@ -310,17 +366,7 @@ function editFlowObject() {
 }
 
 function deleteFlowObject() {
-	var $flowchart = $('.flowchart');
-	var selectedOperatorId = $flowchart.flowchart('getSelectedOperatorId');
-	if (selectedOperatorId != null) {
-		if (confirm("Are you sure you want to delete object '"+ selectedOperatorId +"'?")) {
-			var conductID = GetURLParameter("conductID");
-			$.ajax({url:"/conductEditor/"+conductID+"/flow/"+selectedOperatorId+"/", type:"DELETE", contentType:"application/json", success: function ( responseData ) {
-					$flowchart.flowchart('deleteOperator', selectedOperatorId);
-				}
-			});
-		}
-	}
+	deleteSelected()
 }
 
 function copyFlowObject() {
@@ -395,6 +441,17 @@ function setupFlowchart() {
 		} else {
 			selectedObject = null;
 		}
+		return true;
+	});
+
+	network.on("dragStart", function(params) {
+		console.log(mouseHold)
+		mouseHold = true
+		return true;
+	});
+
+	network.on("dragEnd", function(params) {
+		mouseHold = false
 		return true;
 	});
 
