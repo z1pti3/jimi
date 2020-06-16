@@ -55,98 +55,85 @@ def conductFlowchartPoll(conductID):
                     flowchartResponseType = "update"
                 # Setting position if it has changed since last pollTime
                 foundFlowUI = False
+                node = {}
                 for flowUI in flowsUI:
                     if flow["flowID"] == flowUI.flowID:
-                        if flowchartResponseType == "create" or flowUI.x != flowchartOperators[flowID]["x"] or flowUI.y != flowchartOperators[flowID]["y"]:
-                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype }
-                            flowchartResponse["operators"][flowchartResponseType][flowID]["x"] = flowUI.x
-                            flowchartResponse["operators"][flowchartResponseType][flowID]["y"] = flowUI.y
+                        foundFlowUI = True
+                        if flowchartResponseType == "create":
+                            node["x"] = flowUI.x
+                            node["y"] = flowUI.y
+                            node["shape"] = "box"
+                            node["widthConstraint"] = { "minimum": 125, "maximum": 125 }
+                            node["heightConstraint"] = { "minimum": 35, "maximum": 35 }
+                            node["borderWidth"] = 1.5
+                        elif flowUI.x != flowchartOperators[flowID]["node"]["x"] or flowUI.y != flowchartOperators[flowID]["node"]["y"]:
+                            node["x"] = flowUI.x
+                            node["y"] = flowUI.y
                         if flow["type"] == "trigger":
                             for t in triggers:
                                 if flow["triggerID"] == t._id:
-                                    if flowchartResponseType == "create" or t.name != flowchartOperators[flowID]["title"]:
-                                        if flowID not in flowchartResponse["operators"][flowchartResponseType]:
-                                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype }
-                                        flowchartResponse["operators"][flowchartResponseType][flowID]["title"] = t.name
-                                    if flowchartResponseType == "create" or t.enabled != flowchartOperators[flowID]["enabled"]:
-                                        if flowID not in flowchartResponse["operators"][flowchartResponseType]:
-                                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype }
-                                        flowchartResponse["operators"][flowchartResponseType][flowID]["enabled"] = t.enabled
+                                    color = None
+                                    if t.enabled:
+                                        color = "#7cbeeb"
                                     duration = t.maxDuration
                                     if duration == 0:
                                         duration = 60
-                                    if t.startCheck == 0:
-                                        if flowchartResponseType == "create" or flowchartOperators[flowID]["running"] == True:
-                                            if flowID not in flowchartResponse["operators"][flowchartResponseType]:
-                                                flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype }
-                                            flowchartResponse["operators"][flowchartResponseType][flowID]["running"] = False
-                                    elif ((t.startCheck != 0) and (t.startCheck + duration > time.time())):
-                                        if flowchartResponseType == "create" or flowchartOperators[flowID]["running"] == False:
-                                            if flowID not in flowchartResponse["operators"][flowchartResponseType]:
-                                                flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype }
-                                            flowchartResponse["operators"][flowchartResponseType][flowID]["running"] = True
-
+                                    if ((t.startCheck != 0) and (t.startCheck + duration > time.time())):
+                                        color = "green"
                                     if ((t.startCheck != 0) and (t.startCheck + duration < time.time())):
-                                        if flowchartResponseType == "create" or flowchartOperators[flowID]["failed"] == False:
-                                            if flowID not in flowchartResponse["operators"][flowchartResponseType]:
-                                                flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype }
-                                            flowchartResponse["operators"][flowchartResponseType][flowID]["failed"] = True
+                                        color = "red"
+                                    if not t.enabled:
+                                        color = "gray"
+
+                                    if flowchartResponseType == "create":
+                                        node["label"] = t.name
+                                        node["color"] = { "background" : color }
                                     else:
-                                        if flowchartResponseType == "create" or flowchartOperators[flowID]["failed"] == True:
-                                            if flowID not in flowchartResponse["operators"][flowchartResponseType]:
-                                                flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype }
-                                            flowchartResponse["operators"][flowchartResponseType][flowID]["failed"] = False
+                                        if color != flowchartOperators[flowID]["node"]["color"]:
+                                            node["color"] = { "background" : color }
+                                        if t.name != flowchartOperators[flowID]["node"]["label"]:
+                                            node["label"] = t.name
                                     break
                         elif flow["type"] == "action":
                             for a in actions:
                                 if flow["actionID"] == a._id:
-                                    if flowchartResponseType == "create" or a.name != flowchartOperators[flowID]["title"]:
-                                        if flowID not in flowchartResponse["operators"][flowchartResponseType]:
-                                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype }
-                                        flowchartResponse["operators"][flowchartResponseType][flowID]["title"] = a.name
-                                    if flowchartResponseType == "create" or a.enabled != flowchartOperators[flowID]["enabled"]:
-                                        if flowID not in flowchartResponse["operators"][flowchartResponseType]:
-                                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype }
-                                        flowchartResponse["operators"][flowchartResponseType][flowID]["enabled"] = a.enabled
+                                    color = None
+                                    if a.enabled:
+                                        color = "#7cbeeb"
+                                    if not a.enabled:
+                                        color = "gray"
+
+                                    if flowchartResponseType == "create":
+                                        node["label"] = a.name
+                                        node["color"] = { "background" : color }
+                                    else:
+                                        if color != flowchartOperators[flowID]["node"]["color"]:
+                                            node["color"] = { "background" : color }
+                                        if a.name != flowchartOperators[flowID]["node"]["label"]:
+                                            node["label"] = a.name
                                     break
-                        foundFlowUI = True
+                        if node:
+                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "node" : node }
                         break
-                # Make objects appear at 0,0
                 if not foundFlowUI:
-                    flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype }
-                    flowchartResponse["operators"][flowchartResponseType][flowID]["x"] = 0
-                    flowchartResponse["operators"][flowchartResponseType][flowID]["y"] = 0
-                    if flow["type"] == "trigger":
-                        for t in triggers:
-                            if flow["triggerID"] == t._id:
-                                flowchartResponse["operators"][flowchartResponseType][flowID]["title"] = t.name
-                                flowchartResponse["operators"][flowchartResponseType][flowID]["enabled"] = t.enabled
-                                duration = t.maxDuration
-                                if duration == 0:
-                                    duration = 60
-                                if t.startCheck == 0:
-                                    flowchartResponse["operators"][flowchartResponseType][flowID]["running"] = False
-                                elif ((t.startCheck != 0) and (t.startCheck + duration > time.time())):
-                                    flowchartResponse["operators"][flowchartResponseType][flowID]["running"] = True
-                                if ((t.startCheck != 0) and (t.startCheck + duration < time.time())):
-                                    flowchartResponse["operators"][flowchartResponseType][flowID]["failed"] = True
-                                else:
-                                    flowchartResponse["operators"][flowchartResponseType][flowID]["failed"] = False
-                                break
-                    elif flow["type"] == "action":
-                        for a in actions:
-                            if flow["actionID"] == a._id:
-                                flowchartResponse["operators"][flowchartResponseType][flowID]["enabled"] = a.enabled
-                                flowchartResponse["operators"][flowchartResponseType][flowID]["title"] = a.name
-                                break
+                    node["x"] = 0
+                    node["y"] = 0
+                    node["shape"] = "box"
+                    node["widthConstraint"] = { "minimum": 125, "maximum": 125 }
+                    node["heightConstraint"] = { "minimum": 35, "maximum": 35 }
+                    node["borderWidth"] = 1.5
+                    node["label"] = "Unknown Object"
+                    node["color"] = { "background" : "#7cbeeb" }
+                    flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "node" : node }
+ 
                 # Do any links need to be created
                 for nextFlow in flow["next"]:
                     linkName = "{0}->{1}".format(flowID,nextFlow["flowID"])
                     linksList.append(linkName)
                     if linkName not in flowchartLinks:
                         flowchartResponse["links"]["create"][linkName] = { "from" : flowID, "to" : nextFlow["flowID"], "logic" : nextFlow["logic"] }
-                    #Updates (for logic for now)
-                    flowchartResponse["links"]["update"][linkName] = { "from" : flowID, "to" : nextFlow["flowID"], "logic" : nextFlow["logic"] }
+                    #Updates (for logic for now) << needs to be readded but using same as node with color value set from server
+                    #flowchartResponse["links"]["update"][linkName] = { "from" : flowID, "to" : nextFlow["flowID"], "logic" : nextFlow["logic"] }
 
 
     # Checking for deleted operators

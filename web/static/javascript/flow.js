@@ -68,110 +68,31 @@ function deleteSelected() {
 	}
 }
 
-function newNode(flowID, objectID, flowType, title, x, y, color) {
-	flowObjects[flowID] = { "title": title, "x": x, "y": y, "flowID": flowID, "flowType": flowType, "nodeID": nextId, "_id": objectID }
-	nodeObjects[nextId] = { "flowID": flowID, "nodeID": nextId }
-	nodes.add({ id: nextId,
-		label: title, 
-		x: x, 
-		y: y,
-		color: {
-			background: color
-		},
-		shape: "box",
-		widthConstraint: {
-			minimum: 125,
-			maximum: 125
-		},
-		heightConstraint: {
-			minimum: 35,
-			maximum: 35
-		},
-		borderWidth: 1.5
-	 });
-	nextId++;
-}
-
 function updateNode(flow) {
 	if (flow["flowID"] in flowObjects == false) {
-		flowObjects[flow["flowID"]] = { "title": flow["title"], "x": flow["x"], "y": flow["y"], "flowID": flow["flowID"], "flowType": flow["flowType"], "nodeID": nextId, "_id": flow["_id"], "enabled" : flow["enabled"], "failed" : flow["failed"], "running" : flow["running"] }
+		flowObjects[flow["flowID"]] = { "flowID": flow["flowID"], "flowType": flow["flowType"], "nodeID": nextId, "_id": flow["_id"], "node" : flow["node"] }
 		nodeObjects[nextId] = { "flowID": flow["flowID"], "nodeID": nextId }
-		color = "#7cbeeb"
-		if (flow["running"] == true) {
-			color = "green"
-		}
-		if (flow["enabled"] == false) {
-			color = "gray"
-		}
-		if (flow["failed"] == true) {
-			color = "red"
-		}
-		nodes.add({ id: nextId,
-			label: flow["title"], 
-			x: flow["x"], 
-			y: flow["y"],
-			color: {
-				background: color
-			},
-			shape: "box",
-			widthConstraint: {
-				minimum: 125,
-				maximum: 125
-			},
-			heightConstraint: {
-				minimum: 35,
-				maximum: 35
-			},
-			borderWidth: 1.5
-		 });
+		flowObjects[flow["flowID"]]["node"]["id"] = nextId
+		nodes.add(flowObjects[flow["flowID"]]["node"])
 		nextId++;
 	} else {
-		update = {}
-		update["id"] = flowObjects[flow["flowID"]]["nodeID"]
-		updateObj = false
-		if ("x" in flow && "y" in flow) {
-			flowObjects[flow["flowID"]]["x"] = flow["x"]
-			flowObjects[flow["flowID"]]["y"] = flow["y"]
-			network.moveNode(flowObjects[flow["flowID"]]["nodeID"],flow["x"],flow["y"])
-		}
-		if ("title" in flow) {
-			flowObjects[flow["flowID"]]["title"] = flow["title"]
-			update["title"] = flow["title"]
-			updateObj = true
-		}
-		color = "#7cbeeb"
-		if ("running" in flow) {
-			flowObjects[flow["flowID"]]["running"] = flow["running"]
-			if (flow["running"]) {
-				update["color"] = { "background" : "green" }
-				color = "green"
-			} else {
-				update["color"] = { "background" : color }
+		flow["node"]["id"] = flowObjects[flow["flowID"]]["nodeID"]
+		if (("x" in flow["node"] || "y" in flow["node"]) && ("color" in flow["node"] == false) && ("label" in flow["node"] == false)) {
+			flowObjects[flow["flowID"]]["node"]["x"] = flow["node"]["x"]
+			flowObjects[flow["flowID"]]["node"]["y"] = flow["node"]["y"]
+			network.moveNode(flowObjects[flow["flowID"]]["nodeID"],flow["node"]["x"],flow["node"]["y"])
+		} else {
+			if ("x" in flow["node"] || "y" in flow["node"]) {
+				flowObjects[flow["flowID"]]["node"]["x"] = flow["node"]["x"]
+				flowObjects[flow["flowID"]]["node"]["y"] = flow["node"]["y"]
 			}
-			updateObj = true
-		}
-		if ("enabled" in flow) {
-			flowObjects[flow["flowID"]]["enabled"] = flow["enabled"]
-			if (!flow["enabled"]) {
-				update["color"] = { "background" : "gray" }
-				color = "gray"
-			} else {
-				update["color"] = { "background" : color }
+			if ("color" in flow["node"]) {
+				flowObjects[flow["flowID"]]["node"]["color"] = flow["node"]["color"]
 			}
-			updateObj = true
-		}
-		if ("failed" in flow) {
-			flowObjects[flow["flowID"]]["failed"] = flow["failed"]
-			if (flow["failed"]) {
-				update["color"] = { "background" : "red" }
-				color = "red"
-			} else {
-				update["color"] = { "background" : color }
+			if ("label" in flow["node"]) {
+				flowObjects[flow["flowID"]]["node"]["label"] = flow["node"]["label"]
 			}
-			updateObj = true
-		}
-		if (updateObj) {
-			nodes.update(update)
+			nodes.update(flow["node"])
 		}
 	}
 }
@@ -445,7 +366,6 @@ function setupFlowchart() {
 	});
 
 	network.on("dragStart", function(params) {
-		console.log(mouseHold)
 		mouseHold = true
 		return true;
 	});
