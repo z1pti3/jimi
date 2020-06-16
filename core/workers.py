@@ -55,7 +55,7 @@ class workerHandler:
             logging.debug("Threaded worker started, workerID={0}".format(self.id))
 
             Q = Queue()
-            p = Process(target=multiprocessingThreadStart, args=(Q,self.call,self.args,cache.globalCache.export()))
+            p = Process(target=multiprocessingThreadStart, args=(Q,self.call,self.args,cache.globalCache.export())) # Taking an entire copy of cache is not effient review bug
             p.start()
             globalCacheObjects = Q.get()
             p.join()
