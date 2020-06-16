@@ -5,6 +5,8 @@ import uuid
 import ctypes
 import json
 import traceback
+import copy
+
 
 class _threading(threading.Thread):
     def __init__(self, *args, **keywords):
@@ -53,10 +55,11 @@ class workerHandler:
             logging.debug("Threaded worker started, workerID={0}".format(self.id))
 
             Q = Queue()
-            p = Process(target=multiprocessingThreadStart, args=(Q,self.call,self.args,cache.globalCache.objects))
+            p = Process(target=multiprocessingThreadStart, args=(Q,self.call,self.args,cache.globalCache.export()))
             p.start()
             globalCacheObjects = Q.get()
             p.join()
+            Q.close()
             
             # Ensure cache is updated with any new items
             cache.globalCache.sync(globalCacheObjects)
@@ -271,9 +274,9 @@ def start():
     return True
 
 def multiprocessingThreadStart(Q,threadCall,args,globalCache):
-    cache.globalCache.objects = globalCache
+    cache.globalCache.sync(globalCache)
     threadCall(*args)
-    Q.put(cache.globalCache.objects)
+    Q.put(cache.globalCache.export())
 
 ######### --------- API --------- #########
 if api.webServer:

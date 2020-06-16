@@ -1,4 +1,6 @@
+from threading import Lock
 import time
+import copy
 
 from core import helpers, logging
 
@@ -12,7 +14,9 @@ class _cache():
                 userID = sessionData["_id"]
                 cacheName = "{0},-,{1}".format(userID,cacheName)
         if cacheName not in self.objects:
+            lock.acquire()
             self.objects[cacheName] = { "objects" : {}, "maxSize" : maxSize, "cacheExpiry" : cacheExpiry, "userID" : userID }
+            lock.release()
             logging.debug("New cache store created, name={0}, maxSize={1}, cacheExpry={2}, userID={3}".format(cacheName,maxSize,cacheExpiry,userID),20)
 
     def clearCache(self,cacheName,sessionData=None):
@@ -28,15 +32,26 @@ class _cache():
         
     # BUG this function does not check for size so it would be possibel to go over the defined max memory size -- Add this at a later date
     def sync(self,objects):
+        lock.acquire()
         for objectKey, objectValue in objects.items():
                 if objectKey not in self.objects:
                     self.objects[objectKey] = objectValue
+        lock.release()
+
+    def export(self):
+        lock.acquire()
+        c = copy.deepcopy(self.objects)
+        lock.release()
+        return c
+
 
     def get(self,cacheName,uid,setFunction,*args,sessionData=None,extendCacheTime=False,forceUpdate=False):
         authedCacheName = self.checkSessionData(cacheName,sessionData)
         if authedCacheName == None:
             return
         now = time.time()
+        if authedCacheName not in self.objects:
+            self.newCache(authedCacheName)
         if ((uid in self.objects[authedCacheName]["objects"]) and (not forceUpdate)):
             if ((self.objects[authedCacheName]["objects"][uid]["cacheExpiry"] > now) or (extendCacheTime)):
                 self.objects[authedCacheName]["objects"][uid]["accessCount"] += 1
@@ -50,7 +65,9 @@ class _cache():
                 self.objects[authedCacheName]["objects"][uid]["cacheExpiry"] = (now + self.objects[authedCacheName]["cacheExpiry"])
                 self.objects[authedCacheName]["objects"][uid]["accessCount"] += 1
             else:
+                lock.acquire()
                 self.objects[authedCacheName]["objects"][uid] = { "objectValue" : objectValue, "accessCount" : 0, "cacheExpiry" : (now + self.objects[authedCacheName]["cacheExpiry"]) }
+                lock.release()
         if objectValue:
             return objectValue
         else:
@@ -135,5 +152,7 @@ class _cache():
             result+="name='{0}', size='{1}'\r\n".format(cacheName,cacheSzie)
         result+="\r\n\r\nTotal Size='{0}'".format(totalSize)
         return result
+
+lock = Lock()
 
 globalCache = _cache()
