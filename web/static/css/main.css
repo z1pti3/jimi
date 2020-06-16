@@ -141,7 +141,7 @@
 }
 
 .search-dropdown-menu-results {
-    max-height: 50%;
+    max-height: 300px;
     width: 250px;
     overflow: auto;
 }
