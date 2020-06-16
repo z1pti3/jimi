@@ -17,6 +17,8 @@ var flowObjects = {};
 var nodeObjects = {};
 var flowLinks = {};
 var selectedObject = null;
+var processlist = {};
+var init = false;
 
 $(document).ready(function () {
 	setupFlowchart();
@@ -39,7 +41,7 @@ $(document).ready(function () {
 });
 
 function autoupdate() {
-	setInterval(updateFlowchart, 2500);
+	setTimeout(updateFlowchart, 2500);
 }
 
 function deleteSelected() {
@@ -187,66 +189,122 @@ function saveNewLink(from,to) {
 	});
 }
 
-function updateFlowchart(init) {
-	var conductID = GetURLParameter("conductID")
-	if (!mouseHold) {
-		$.ajax({url:"/conductEditor/"+conductID+"/", type:"POST", timeout: 2000, data: JSON.stringify({ lastPollTime : lastUpdatePollTime, operators: flowObjects, links: Object.keys(flowLinks) }), contentType:"application/json", success: function ( responseData ) {
-				// Operator Updates
-				for (operator in responseData["operators"]["update"]) {
-					if (selectedObject != operator) {
-						updateNode(responseData["operators"]["update"][operator]);
-					}
-				}
-				// Operator Creates
-				for (operator in responseData["operators"]["create"]) {
-					updateNode(responseData["operators"]["create"][operator]);
-				}
-				// Operator Deletions
-				for (operator in responseData["operators"]["delete"]) {
-					if (selectedObject != operator) {
-						obj = responseData["operators"]["delete"][operator]
-						deleteNode(obj["flowID"]);
-					}
-				}
-				// Link Creates
-				for (link in responseData["links"]["create"]) {
-					obj = responseData["links"]["create"][link]
-					switch (obj["logic"]){
-						case true:
-							var color = "blue"
-							break
-						case false:
-							var color = "red"
-							break
-						default:
-							var color = "purple"
-					}
-					createLinkRAW(obj["from"],obj["to"],color)
-				}
-				// Link Updates
-				for (link in responseData["links"]["update"]) {
-					obj = responseData["links"]["update"][link]
-					updateLink(obj["from"],obj["to"])
-				}
-				// Link Deletions
-				for (link in responseData["links"]["delete"]) {
-					obj = responseData["links"]["delete"][link]
-					linkName = obj["linkName"]
-					edges.remove({ 
-						id: linkName
-					});
-					delete flowLinks[linkName]
-				}
+function updateFlowchartNonBlocking(blocking) {
+	nonlock = 0
+	// Operator Updates
+	for (operator in processlist["operators"]["update"]) {
+		if (selectedObject != operator) {
+			updateNode(processlist["operators"]["update"][operator]);
+			delete processlist["operators"]["update"][operator]
+			nonlock++
+			if ((!blocking) && (nonlock > 0)) {
+				setTimeout(function() { updateFlowchartNonBlocking() }, 10);
+				return
+			}
+		}
+	}
+	// Operator Creates
+	for (operator in processlist["operators"]["create"]) {
+		updateNode(processlist["operators"]["create"][operator]);
+		delete processlist["operators"]["create"][operator]
+		nonlock++
+		if ((!blocking) && (nonlock > 0)) {
+			setTimeout(function() { updateFlowchartNonBlocking() }, 10);
+			return
+		}
+	}
+	// Operator Deletions
+	for (operator in processlist["operators"]["delete"]) {
+		if (selectedObject != operator) {
+			obj = processlist["operators"]["delete"][operator]
+			deleteNode(obj["flowID"]);
+			delete processlist["operators"]["delete"][operator]
+			nonlock++
+			if ((!blocking) && (nonlock > 0)) {
+				setTimeout(function() { updateFlowchartNonBlocking() }, 10);
+				return
+			}
+		}
+	}
+	// Link Creates
+	for (link in processlist["links"]["create"]) {
+		obj = processlist["links"]["create"][link]
+		switch (obj["logic"]){
+			case true:
+				var color = "blue"
+				break
+			case false:
+				var color = "red"
+				break
+			default:
+				var color = "purple"
+		}
+		createLinkRAW(obj["from"],obj["to"],color)
+		delete processlist["links"]["create"][link]
+		nonlock++
+		if ((!blocking) && (nonlock > 0)) {
+			setTimeout(function() { updateFlowchartNonBlocking() }, 10);
+			return
+		}
+	}
+	// Link Updates
+	for (link in processlist["links"]["update"]) {
+		obj = processlist["links"]["update"][link]
+		updateLink(obj["from"],obj["to"])
+		delete processlist["links"]["update"][link]
+		nonlock++
+		if ((!blocking) && (nonlock > 0)) {
+			setTimeout(function() { updateFlowchartNonBlocking() }, 10);
+			return
+		}
+	}
+	// Link Deletions
+	for (link in processlist["links"]["delete"]) {
+		obj = processlist["links"]["delete"][link]
+		linkName = obj["linkName"]
+		edges.remove({ 
+			id: linkName
+		});
+		delete flowLinks[linkName]
+		delete processlist["links"]["delete"][link]
+		nonlock++
+		if ((!blocking) && (nonlock > 0)) {
+			setTimeout(function() { updateFlowchartNonBlocking() }, 10);
+			return
+		}
+	}
+}
 
-				// fit
-				if (init) {
-					network.fit();
+function updateFlowchart() {
+	if ((processlist) || (processlist.length == 0)) {
+		var conductID = GetURLParameter("conductID")
+		$.ajax({url:"/conductEditor/"+conductID+"/", type:"POST", timeout: 2000, data: JSON.stringify({ lastPollTime : lastUpdatePollTime, operators: flowObjects, links: Object.keys(flowLinks) }), contentType:"application/json", success: function ( responseData ) {
+				processlist = responseData
+				setTimeout(updateFlowchart, 2500);
+				if (init == false) {
+					updateFlowchartNonBlocking(true);
+					setTimeout(function() { updateFlowchartNonBlocking(true) }, 10);
+				} else {
+					setTimeout(function() { updateFlowchartNonBlocking(false) }, 10);
+					if (nodes.length > 0) {
+						init = true;
+						network.fit()
+					}
+				}
+				if (nodes.length > 0) {
+					if (init == false) {
+						init = true;
+						network.fit()
+					}
 				}
 			},
 			error: function ( error ) {
 				console.log("Unable to update flowChart");
+				setTimeout(updateFlowchart, 2500);
 			}
 		});
+	} else {
+		setTimeout(updateFlowchart, 2500);
 	}
 }
 
@@ -264,17 +322,17 @@ function debugFlowObject() {
 		node = nodeObjects[selectedNodes[0]]["flowID"]
 		var conductID = GetURLParameter("conductID")
 		$.ajax({url: "/conduct/"+conductID+"/debug/"+node+"/", type:"GET", contentType:"application/json", success: function ( result ) {
-			$.ajax({url: "/api/1.0/debug/", type:"POST", data:JSON.stringify({ "filter" : result["_id"], "level" : 100}), contentType:"application/json", success: function ( result ) {
-				var win = window.open('/debug/'+result["debugID"]+"/", '_blank');
-				if (win) {
-					win.focus();
-				} else {
-					alert('Popups disabled!');
-				}
+				$.ajax({url: "/api/1.0/debug/", type:"POST", data:JSON.stringify({ "filter" : result["_id"], "level" : 100}), contentType:"application/json", success: function ( result ) {
+						var win = window.open('/debug/'+result["debugID"]+"/", '_blank');
+						if (win) {
+							win.focus();
+						} else {
+							alert('Popups disabled!');
+						}
+					}
+				});
 			}
 		});
-	}
-});
 	}
 }
 
@@ -365,16 +423,6 @@ function setupFlowchart() {
 		return true;
 	});
 
-	network.on("dragStart", function(params) {
-		mouseHold = true
-		return true;
-	});
-
-	network.on("dragEnd", function(params) {
-		mouseHold = false
-		return true;
-	});
-
 	network.on("doubleClick", function(params) {
 		if (params["nodes"].length == 1) {
 			createPropertiesPanel(nodeObjects[params["nodes"][0]]["flowID"]);
@@ -388,7 +436,7 @@ function setupFlowchart() {
 		return true;
 	});
 
-	updateFlowchart(true);
+	updateFlowchart();
 	autoupdate();
 }
 
