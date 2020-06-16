@@ -33,9 +33,13 @@ class _cache():
     # BUG this function does not check for size so it would be possibel to go over the defined max memory size -- Add this at a later date
     def sync(self,objects):
         lock.acquire()
-        for objectKey, objectValue in objects.items():
-                if objectKey not in self.objects:
-                    self.objects[objectKey] = objectValue
+        for cacheKey, cacheValue in objects.items():
+                if cacheKey not in self.objects:
+                    self.objects[cacheKey] = cacheValue
+                else:
+                    for objectKey, objectValue in objects[cacheKey].items():
+                        if objectKey not in self.objects:
+                            objects[cacheKey][objectKey] = objectValue
         lock.release()
 
     def export(self):
