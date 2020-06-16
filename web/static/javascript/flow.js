@@ -282,14 +282,14 @@ function updateFlowchart() {
 				processlist = responseData
 				setTimeout(updateFlowchart, 2500);
 				if (init == false) {
-					updateFlowchartNonBlocking(true);
-					setTimeout(function() { updateFlowchartNonBlocking(true) }, 10);
-				} else {
-					setTimeout(function() { updateFlowchartNonBlocking(false) }, 10);
 					if (nodes.length > 0) {
 						init = true;
 						network.fit()
 					}
+					updateFlowchartNonBlocking(true);
+					setTimeout(function() { updateFlowchartNonBlocking(true) }, 10);
+				} else {
+					setTimeout(function() { updateFlowchartNonBlocking(false) }, 10);
 				}
 				if (nodes.length > 0) {
 					if (init == false) {
