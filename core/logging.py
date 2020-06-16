@@ -83,45 +83,46 @@ from core import api, helpers, settings
 
 ######### --------- API --------- #########
 # Possible access by non-admin users? - this needs to be checked attmped to use same function for both jimi-web and jimi-core ( maybe a bad idea )
-if not api.webServer.got_first_request:
-    @api.webServer.route(api.base+"debug/", methods=["POST"])
-    def newDebug():
-        global debugClients
-        if "admin" in api.g["sessionData"]:
-            if api.g["sessionData"]["admin"]:
-                apiEndpoint = "debug/"
-                data = json.loads(api.request.data)
-                apiResult = helpers.apiCall("POST",apiEndpoint,jsonData=data).text
-                return json.loads(apiResult), 200
-        elif api.webServer.name == "jimi_core":
-            if not settings.config["auth"]["enabled"]:
-                data = json.loads(api.request.data)
-                debugClient = _debug()
-                if "filter" in data:
-                    debugClient.filter = data["filter"]
-                if "fullStack" in data:
-                    debugClient.fullstack = data["fullStack"]
-                if "level" in data:
-                    debugClient.level = data["level"]
-                debugClients.append(debugClient)
-                return { "debugID" : debugClient._id }, 200
-        return { }, 404
+if api.webServer:
+    if not api.webServer.got_first_request:
+        @api.webServer.route(api.base+"debug/", methods=["POST"])
+        def newDebug():
+            global debugClients
+            if "admin" in api.g["sessionData"]:
+                if api.g["sessionData"]["admin"]:
+                    apiEndpoint = "debug/"
+                    data = json.loads(api.request.data)
+                    apiResult = helpers.apiCall("POST",apiEndpoint,jsonData=data).text
+                    return json.loads(apiResult), 200
+            elif api.webServer.name == "jimi_core":
+                if not settings.config["auth"]["enabled"]:
+                    data = json.loads(api.request.data)
+                    debugClient = _debug()
+                    if "filter" in data:
+                        debugClient.filter = data["filter"]
+                    if "fullStack" in data:
+                        debugClient.fullstack = data["fullStack"]
+                    if "level" in data:
+                        debugClient.level = data["level"]
+                    debugClients.append(debugClient)
+                    return { "debugID" : debugClient._id }, 200
+            return { }, 404
 
-    @api.webServer.route(api.base+"debug/<debugID>/", methods=["GET"])
-    def getDebug(debugID):
-        global debugClients
-        if "admin" in api.g["sessionData"]:
-            if api.g["sessionData"]["admin"]:
-                apiEndpoint = "debug/{0}/".format(debugID)
-                apiResult = helpers.apiCall("GET",apiEndpoint).text
-                return apiResult, 200
-        elif api.webServer.name == "jimi_core":
-            if not settings.config["auth"]["enabled"]:
-                debugClient = None
-                for tempDebugClient in debugClients:
-                    if tempDebugClient._id == debugID:
-                        debugClient = tempDebugClient
-                        break
-                if debugClient:
-                    return { "result" : debugClient.fetch() }, 200
-        return { }, 404
+        @api.webServer.route(api.base+"debug/<debugID>/", methods=["GET"])
+        def getDebug(debugID):
+            global debugClients
+            if "admin" in api.g["sessionData"]:
+                if api.g["sessionData"]["admin"]:
+                    apiEndpoint = "debug/{0}/".format(debugID)
+                    apiResult = helpers.apiCall("GET",apiEndpoint).text
+                    return apiResult, 200
+            elif api.webServer.name == "jimi_core":
+                if not settings.config["auth"]["enabled"]:
+                    debugClient = None
+                    for tempDebugClient in debugClients:
+                        if tempDebugClient._id == debugID:
+                            debugClient = tempDebugClient
+                            break
+                    if debugClient:
+                        return { "result" : debugClient.fetch() }, 200
+            return { }, 404

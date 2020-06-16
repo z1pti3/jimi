@@ -18,6 +18,7 @@ class _trigger(db._document):
     logicString = str()
     varDefinitions = dict()
     concurrency = int()  
+    threaded = bool()
 
     _dbCollection = db.db["triggers"]
 

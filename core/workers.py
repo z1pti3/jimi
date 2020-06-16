@@ -1,3 +1,4 @@
+from multiprocessing import Process, Queue
 import threading
 import time
 import uuid
@@ -24,7 +25,7 @@ class _threading(threading.Thread):
 
 class workerHandler:
     class _worker:
-        def __init__(self, name, call, args, delete, maxDuration):
+        def __init__(self, name, call, args, delete, maxDuration, multiprocessing):
             self.name = name
             self.call = call
             self.id = str(uuid.uuid4())
@@ -35,12 +36,35 @@ class workerHandler:
             self.result = None
             self.running = None
             self.args = args
-            self.thread = _threading(target=self.threadCall)
+            self.multiprocessing = multiprocessing
+            if not self.multiprocessing:
+                self.thread = _threading(target=self.threadCall)
+            else:
+                self.thread = _threading(target=self.multiprocessingThreadCall)
             self.maxDuration = maxDuration
             self.delete = delete
 
         def start(self):
             self.thread.start()
+
+        def multiprocessingThreadCall(self):
+            self.startTime = int(time.time())
+            self.running = True
+            logging.debug("Threaded worker started, workerID={0}".format(self.id))
+
+            Q = Queue()
+            p = Process(target=multiprocessingThreadStart, args=(Q,self.call,self.args,cache.globalCache.objects))
+            p.start()
+            globalCacheObjects = Q.get()
+            p.join()
+            
+            # Ensure cache is updated with any new items
+            cache.globalCache.sync(globalCacheObjects)
+
+            logging.debug("Threaded worker completed, workerID={0}".format(self.id))
+            self.running = False
+            self.endTime = int(time.time())
+            self.duration = (self.endTime - self.startTime)
 
         def threadCall(self):
             self.startTime = int(time.time())
@@ -69,7 +93,7 @@ class workerHandler:
         self.stopped = False
         
         # Autostarting worker handler thread
-        workerThread = self._worker("workerThread",self.handler,None,True,0)
+        workerThread = self._worker("workerThread",self.handler,None,True,0,False)
         workerThread.start()
         self.workerList.append(workerThread)
         self.workerID = workerThread.id
@@ -121,8 +145,8 @@ class workerHandler:
                 loops = 0
                 time.sleep(workerSettings["loopT"])
             
-    def new(self, name, call, args=None, delete=True, maxDuration=60):
-        workerThread = self._worker(name, call, args, delete, maxDuration)
+    def new(self, name, call, args=None, delete=True, maxDuration=60, multiprocessing=False):
+        workerThread = self._worker(name, call, args, delete, maxDuration, multiprocessing)
         self.workerList.append(workerThread)
         logging.debug("Created new worker, workerID={0}".format(workerThread.id))
         return workerThread.id
@@ -227,7 +251,7 @@ class workerHandler:
 
         return { "result" : True }
 
-from core import api, logging, settings, model
+from core import api, logging, settings, model, cache
 from system.models import trigger as systemTrigger
 
 workerSettings = settings.config["workers"]
@@ -245,6 +269,11 @@ def start():
     workers = workerHandler(workerSettings["concurrent"])
     logging.debug("Workers started, workerID='{0}'".format(workers.workerID),6)
     return True
+
+def multiprocessingThreadStart(Q,threadCall,args,globalCache):
+    cache.globalCache.objects = globalCache
+    threadCall(*args)
+    Q.put(cache.globalCache.objects)
 
 ######### --------- API --------- #########
 if api.webServer:

@@ -25,6 +25,12 @@ class _cache():
         elif authedCacheName in self.objects:
             self.objects[authedCacheName]["objects"].clear()
             logging.debug("Cache store cleared, name={0}".format(authedCacheName),20)
+        
+    # BUG this function does not check for size so it would be possibel to go over the defined max memory size -- Add this at a later date
+    def sync(self,objects):
+        for objectKey, objectValue in objects.items():
+                if objectKey not in self.objects:
+                    self.objects[objectKey] = objectValue
 
     def get(self,cacheName,uid,setFunction,*args,sessionData=None,extendCacheTime=False,forceUpdate=False):
         authedCacheName = self.checkSessionData(cacheName,sessionData)
