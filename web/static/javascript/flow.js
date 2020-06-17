@@ -353,8 +353,8 @@ function copyFlowObject() {
 	if (selectedNodes.length == 1) {
 		node = nodeObjects[selectedNodes[0]]["flowID"]
 		var conductID = GetURLParameter("conductID")
-		var x = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["x"]
-		var y = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["y"]-25
+		var x = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["node"]["x"]
+		var y = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["node"]["y"]-25
 		$.ajax({url:"/conductEditor/"+conductID+"/flow/"+node+"/", type:"POST", data:JSON.stringify({action: "copy", operatorId: node, x: x, y: y}), contentType:"application/json", success: function ( result ) {
 				// Coned sucessfull
 			}
@@ -367,8 +367,8 @@ function duplicateFlowObject() {
 	if (selectedNodes.length == 1) {
 		node = nodeObjects[selectedNodes[0]]["flowID"]
 		var conductID = GetURLParameter("conductID")
-		var x = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["x"]
-		var y = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["y"]-25
+		var x = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["node"]["x"]
+		var y = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["node"]["y"]-25
 		$.ajax({url:"/conductEditor/"+conductID+"/flow/"+node+"/", type:"POST", data:JSON.stringify({action: "clone", operatorId: node, x: x, y: y}), contentType:"application/json", success: function ( result ) {
 				// Coned sucessfull
 			}
