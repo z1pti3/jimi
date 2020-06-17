@@ -6,7 +6,7 @@ import ctypes
 import json
 import traceback
 import copy
-
+import sys
 
 class _threading(threading.Thread):
     def __init__(self, *args, **keywords):
@@ -52,19 +52,36 @@ class workerHandler:
         def multiprocessingThreadCall(self):
             self.startTime = int(time.time())
             self.running = True
-            logging.debug("Threaded worker started, workerID={0}".format(self.id))
+            logging.debug("Threaded process worker started, workerID={0}".format(self.id))
 
             Q = Queue()
-            p = Process(target=multiprocessingThreadStart, args=(Q,self.call,self.args,cache.globalCache.export())) # Taking an entire copy of cache is not effient review bug
-            p.start()
-            globalCacheObjects = Q.get()
-            p.join()
-            Q.close()
-            
-            # Ensure cache is updated with any new items
-            cache.globalCache.sync(globalCacheObjects)
+            p = Process(target=multiprocessingThreadStart, args=(Q,self.call,self.args)) # Taking an entire copy of cache is not effient review bug
+            try:
+                p.start()
+                try:
+                    rc, e = Q.get(timeout=self.maxDuration)
+                    p.join(timeout=self.maxDuration)
+                except:
+                    raise SystemExit
 
-            logging.debug("Threaded worker completed, workerID={0}".format(self.id))
+                if rc != 0:
+                    logging.debug("Threaded process worker crashed, workerID={0}".format(self.id))
+                    systemTrigger.failedTrigger(self.id,"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
+
+                # Ensure cache is updated with any new items
+                #cache.globalCache.sync(globalCacheObjects)
+            except SystemExit:
+                logging.debug("Threaded process worker killed, workerID={0}".format(self.id))
+                systemTrigger.failedTrigger(self.id,"triggerKilled")
+            except Exception as e:
+                logging.debug("Threaded worker crashed, workerID={0}".format(self.id))
+                systemTrigger.failedTrigger(self.id,"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
+            finally:
+                if p.exitcode == None:
+                    p.terminate()
+                #Q.close()
+            
+            logging.debug("Threaded process worker completed, workerID={0}".format(self.id))
             self.running = False
             self.endTime = int(time.time())
             self.duration = (self.endTime - self.startTime)
@@ -273,10 +290,16 @@ def start():
     logging.debug("Workers started, workerID='{0}'".format(workers.workerID),6)
     return True
 
-def multiprocessingThreadStart(Q,threadCall,args,globalCache):
-    cache.globalCache.sync(globalCache)
-    threadCall(*args)
-    Q.put(cache.globalCache.export())
+def multiprocessingThreadStart(Q,threadCall,args):
+    #cache.globalCache.sync(globalCache)
+    rc = 0
+    error = None
+    try:
+        threadCall(*args)
+    except Exception as e:
+        error = e
+        rc = 1
+    Q.put((rc,error))
 
 ######### --------- API --------- #########
 if api.webServer:
