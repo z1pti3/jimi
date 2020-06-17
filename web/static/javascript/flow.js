@@ -72,13 +72,16 @@ function deleteSelected() {
 
 function updateNode(flow) {
 	if (flow["flowID"] in flowObjects == false) {
-		flowObjects[flow["flowID"]] = { "flowID": flow["flowID"], "flowType": flow["flowType"], "nodeID": nextId, "_id": flow["_id"], "node" : flow["node"] }
+		flowObjects[flow["flowID"]] = { "flowID": flow["flowID"], "flowType": flow["flowType"], "nodeID": nextId, "_id": flow["_id"], "name" : flow["name"], "node" : flow["node"] }
 		nodeObjects[nextId] = { "flowID": flow["flowID"], "nodeID": nextId }
 		flowObjects[flow["flowID"]]["node"]["id"] = nextId
 		nodes.add(flowObjects[flow["flowID"]]["node"])
 		nextId++;
 	} else {
 		flow["node"]["id"] = flowObjects[flow["flowID"]]["nodeID"]
+		if ( "name" in flow ) {
+			flowObjects[flow["flowID"]]["name"] = flow["name"]
+		}
 		if (("x" in flow["node"] || "y" in flow["node"]) && ("color" in flow["node"] == false) && ("label" in flow["node"] == false)) {
 			flowObjects[flow["flowID"]]["node"]["x"] = flow["node"]["x"]
 			flowObjects[flow["flowID"]]["node"]["y"] = flow["node"]["y"]

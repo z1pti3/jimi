@@ -85,7 +85,7 @@ function loadPropertiesPanel(flowID,panel) {
 	// Building properties form
 	var conductID = GetURLParameter("conductID")
 	panel.find(".propertiesPanel-body").empty();
-	panel.find("#title").text(flowID);
+	panel.find("#title").text(flowObjects[flowID]["name"]);
 	$.ajax({ url: "/conduct/"+conductID+"/flowProperties/"+flowID+"/", type:"GET", success: function ( result ) {
 			var $table = $('<table width="100%">');
 			for (objectItem in result["formData"]) {

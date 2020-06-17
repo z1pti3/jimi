@@ -56,6 +56,7 @@ def conductFlowchartPoll(conductID):
                     flowchartResponseType = "update"
                 # Setting position if it has changed since last pollTime
                 foundFlowUI = False
+                name = flow["flowID"]
                 node = {}
                 for flowUI in flowsUI:
                     if flow["flowID"] == flowUI.flowID:
@@ -74,6 +75,7 @@ def conductFlowchartPoll(conductID):
                         if flow["type"] == "trigger":
                             for t in triggers:
                                 if flow["triggerID"] == t._id:
+                                    name = t.name
                                     modeClass = cache.globalCache.get("modelCache",t.classID,model.getClassObject,sessionData=api.g["sessionData"])[0]
                                     color = None
                                     if t.enabled:
@@ -88,19 +90,20 @@ def conductFlowchartPoll(conductID):
                                     if not t.enabled:
                                         color = "gray"
 
-                                    name = "<b>{0}</b>\n{1}".format(t.name,modeClass.name)
+                                    label = "<b>{0}</b>\n{1}".format(t.name,modeClass.name)
                                     if flowchartResponseType == "create":
-                                        node["label"] = name
+                                        node["label"] = label
                                         node["color"] = { "background" : color }
                                     else:
                                         if color != flowchartOperators[flowID]["node"]["color"]:
                                             node["color"] = { "background" : color }
-                                        if name != flowchartOperators[flowID]["node"]["label"]:
-                                            node["label"] = name
+                                        if label != flowchartOperators[flowID]["node"]["label"]:
+                                            node["label"] = label
                                     break
                         elif flow["type"] == "action":
                             for a in actions:
                                 if flow["actionID"] == a._id:
+                                    name = a.name
                                     modeClass = cache.globalCache.get("modelCache",a.classID,model.getClassObject,sessionData=api.g["sessionData"])[0]
                                     color = None
                                     if a.enabled:
@@ -108,18 +111,18 @@ def conductFlowchartPoll(conductID):
                                     if not a.enabled:
                                         color = "gray"
 
-                                    name = "<b>{0}</b>\n{1}".format(a.name,modeClass.name)
+                                    label = "<b>{0}</b>\n{1}".format(a.name,modeClass.name)
                                     if flowchartResponseType == "create":
-                                        node["label"] = name
+                                        node["label"] = label
                                         node["color"] = { "background" : color }
                                     else:
                                         if color != flowchartOperators[flowID]["node"]["color"]:
                                             node["color"] = { "background" : color }
-                                        if name != flowchartOperators[flowID]["node"]["label"]:
-                                            node["label"] = name
+                                        if label != flowchartOperators[flowID]["node"]["label"]:
+                                            node["label"] = label
                                     break
                         if node:
-                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "node" : node }
+                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "name" : name, "node" : node }
                         break
                 if not foundFlowUI:
                     node["x"] = 0
