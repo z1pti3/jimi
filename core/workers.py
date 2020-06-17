@@ -1,4 +1,5 @@
 from multiprocessing import Process, Queue
+import multiprocessing
 import threading
 import time
 import uuid
@@ -54,6 +55,7 @@ class workerHandler:
             self.running = True
             logging.debug("Threaded process worker started, workerID={0}".format(self.id))
 
+            multiprocessing.set_start_method("spawn",force=True)
             Q = Queue()
             p = Process(target=multiprocessingThreadStart, args=(Q,self.call,self.args)) # Taking an entire copy of cache is not effient review bug
             try:
