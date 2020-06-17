@@ -4,7 +4,7 @@ import  uuid
 
 from flask import Flask, request, render_template, make_response, redirect
 
-from core import api, model, db
+from core import api, model, db, cache
 
 from core.models import trigger, action, conduct, webui
 
@@ -37,6 +37,7 @@ def conductFlowchartPoll(conductID):
     flowsUI = webui._modelUI().getAsClass(api.g["sessionData"],query={ "flowID" : { "$in" :flowsList }, "conductID" : conductID })
     actions = action._action().getAsClass(api.g["sessionData"],query={ "_id" : { "$in" : flowActions } })
     triggers = trigger._trigger().getAsClass(api.g["sessionData"],query={ "_id" : { "$in" : flowTriggers } })
+    cache.globalCache.newCache("modelCache",sessionData=api.g["sessionData"])
 
     for flow in flows:
         if "type" in flow:
@@ -66,12 +67,14 @@ def conductFlowchartPoll(conductID):
                             node["widthConstraint"] = { "minimum": 125, "maximum": 125 }
                             node["heightConstraint"] = { "minimum": 35, "maximum": 35 }
                             node["borderWidth"] = 1.5
+                            node["font"] = { "multi": True }
                         elif flowUI.x != flowchartOperators[flowID]["node"]["x"] or flowUI.y != flowchartOperators[flowID]["node"]["y"]:
                             node["x"] = flowUI.x
                             node["y"] = flowUI.y
                         if flow["type"] == "trigger":
                             for t in triggers:
                                 if flow["triggerID"] == t._id:
+                                    modeClass = cache.globalCache.get("modelCache",t.classID,model.getClassObject,sessionData=api.g["sessionData"])[0]
                                     color = None
                                     if t.enabled:
                                         color = "#7cbeeb"
@@ -85,32 +88,35 @@ def conductFlowchartPoll(conductID):
                                     if not t.enabled:
                                         color = "gray"
 
+                                    name = "<b>{0}</b>\n{1}".format(t.name,modeClass.name)
                                     if flowchartResponseType == "create":
-                                        node["label"] = t.name
+                                        node["label"] = name
                                         node["color"] = { "background" : color }
                                     else:
                                         if color != flowchartOperators[flowID]["node"]["color"]:
                                             node["color"] = { "background" : color }
-                                        if t.name != flowchartOperators[flowID]["node"]["label"]:
-                                            node["label"] = t.name
+                                        if name != flowchartOperators[flowID]["node"]["label"]:
+                                            node["label"] = name
                                     break
                         elif flow["type"] == "action":
                             for a in actions:
                                 if flow["actionID"] == a._id:
+                                    modeClass = cache.globalCache.get("modelCache",a.classID,model.getClassObject,sessionData=api.g["sessionData"])[0]
                                     color = None
                                     if a.enabled:
                                         color = "#7cbeeb"
                                     if not a.enabled:
                                         color = "gray"
 
+                                    name = "<b>{0}</b>\n{1}".format(a.name,modeClass.name)
                                     if flowchartResponseType == "create":
-                                        node["label"] = a.name
+                                        node["label"] = name
                                         node["color"] = { "background" : color }
                                     else:
                                         if color != flowchartOperators[flowID]["node"]["color"]:
                                             node["color"] = { "background" : color }
-                                        if a.name != flowchartOperators[flowID]["node"]["label"]:
-                                            node["label"] = a.name
+                                        if name != flowchartOperators[flowID]["node"]["label"]:
+                                            node["label"] = name
                                     break
                         if node:
                             flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "node" : node }

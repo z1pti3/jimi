@@ -55,7 +55,6 @@ class workerHandler:
             self.running = True
             logging.debug("Threaded process worker started, workerID={0}".format(self.id))
 
-            multiprocessing.set_start_method("spawn",force=True)
             Q = Queue()
             p = Process(target=multiprocessingThreadStart, args=(Q,self.call,self.args)) # Taking an entire copy of cache is not effient review bug
             try:
@@ -277,6 +276,8 @@ from core import api, logging, settings, model, cache
 from system.models import trigger as systemTrigger
 
 workerSettings = settings.config["workers"]
+
+multiprocessing.set_start_method("spawn",force=True)
 
 def start():
     global workers

@@ -75,6 +75,9 @@ def loadModel(modelName):
         return _class
     return None
 
+def getClassObject(classID,sessionData):
+    return _model().getAsClass(sessionData,id=classID)
+
 ######### --------- API --------- #########
 if api.webServer:
     if not api.webServer.got_first_request:
