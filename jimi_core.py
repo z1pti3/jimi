@@ -5,7 +5,7 @@ if __name__ == "__main__":
     api.createServer("jimi_core")
 
     # Core imports
-    from core import workers, plugin, scheduler, cluster, settings, screen, model, helpers, auth
+    from core import workers, plugin, scheduler, cluster, settings, screen, model, helpers, auth, flow
 
     # Disable auth for CLI access
     auth.authSettings["enabled"] = False

@@ -24,7 +24,7 @@ api.createServer("jimi_web",template_folder=str(Path("web","templates")),static_
 from core import model
 
 # Other pages
-from web import modelEditor, conductEditor
+from web import modelEditor, conductEditor, codify
 
 # Add plugin blueprints
 pluginPages = []

@@ -1,0 +1,107 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		<script src="{{ url_for('static', filename='includes/jquery/js/jquery-3.4.1.js') }}"></script>
+		<script src="{{ url_for('static', filename='includes/jquery/js/jquery-ui-1.12.1.js') }}"></script>
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.theme.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.structure.css') }}">
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
+		<script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
+
+		<script src="{{ url_for('static', filename='javascript/helpers.js') }}"></script>
+		<script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/alert.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/codify.css') }}">
+
+
+	</head>
+	<body>
+		<div class="container-fluid">
+      Events:<br>
+      <textarea id="events" class="inputFullWidth" style="height: 150px;"></textarea></br>
+      Codify Flow:<br>
+      <textarea id="codeEditor" class="inputFullWidth" style="height: 350px;"></textarea></br>
+      <button id="run">Run</button></br>
+      Output:<br>
+      <pre id="output">ttt</pre>
+		</div>
+		
+	</body>
+</html>
+
+<script>
+  $("#run").click(function () {
+    $.ajax({url: "/codify/", type:"POST", data:JSON.stringify({ events: $('#events').val(), code: $('#codeEditor').val() }), contentType:"application/json", success: function(result) {
+        $('#output').text(result["result"])
+      } 
+    });
+  });
+
+	(function($) {
+  $.fn.enableSmartTab = function() {
+    var $this;
+    $this = $(this);
+    $this.keydown(function(e) {
+      var after, before, end, lastNewLine, changeLength, re, replace, selection, start, val;
+      if ((e.charCode === 9 || e.keyCode === 9) && !e.altKey && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        start = this.selectionStart;
+        end = this.selectionEnd;
+        val = $this.val();
+        before = val.substring(0, start);
+        after = val.substring(end);
+        replace = true;
+        if (start !== end) {
+          selection = val.substring(start, end);
+          if (~selection.indexOf('\n')) {
+            replace = false;
+            changeLength = 0;
+            lastNewLine = before.lastIndexOf('\n');
+            if (!~lastNewLine) {
+              selection = before + selection;
+              changeLength = before.length;
+              before = '';
+            } else {
+              selection = before.substring(lastNewLine) + selection;
+              changeLength = before.length - lastNewLine;
+              before = before.substring(0, lastNewLine);
+            }
+            if (e.shiftKey) {
+              re = /(\n|^)(\t|[ ]{1,8})/g;
+              if (selection.match(re)) {
+                start--;
+                changeLength--;
+              }
+              selection = selection.replace(re, '$1');
+            } else {
+              selection = selection.replace(/(\n|^)/g, '$1\t');
+              start++;
+              changeLength++;
+            }
+            $this.val(before + selection + after);
+            this.selectionStart = start;
+            this.selectionEnd = start + selection.length - changeLength;
+          }
+        }
+        if (replace && !e.shiftKey) {
+          $this.val(before + '\t' + after);
+          this.selectionStart = this.selectionEnd = start + 1;
+        }
+      }
+    });
+  };
+})(jQuery);
+
+$(function() {
+  $("textarea").enableSmartTab();
+})
+</script>
