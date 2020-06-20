@@ -10,6 +10,7 @@ class _document():
     classID = str()
     acl = dict()
     lastUpdateTime = int()
+    creationTime = int()
 
     def __init__(self):
         pass
@@ -34,6 +35,7 @@ class _document():
         if len(result) == 1:
             result = result[0]
             self.classID = result["_id"]
+            self.creationTime = int(time.time())
             result = self._dbCollection.insert_one(self.parse())
             self._id = result.inserted_id
             return result
