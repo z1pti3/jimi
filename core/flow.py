@@ -11,6 +11,29 @@ cpuSaver = settings.config["cpuSaver"]
 regexFunction = re.compile("^([a-zA-Z0-9]*)\(.*\)")
 regexCommor = re.compile(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")
 
+def flowLogicEval(data,logicVar):
+    if type(logicVar) is bool:
+        try:
+            if "action" in data:
+                if logicVar == data["action"]["result"]:
+                    return True
+            #No action so must be a trigger, thus it's always true!
+            else:
+                return True
+        except:
+            pass
+    elif type(logicVar) is int:
+        try:
+            if logicVar == data["action"]["rc"]:
+                return True
+        except:
+            pass
+    elif type(logicVar) is str:
+        if logicVar.startswith("if"):
+            if logic.ifEval(logicVar, { "data" : data }):
+                return True
+    return False
+
 def getObjectFromCode(codeFunction):
     functionName = codeFunction.split("(")[0]
     args = regexCommor.split(codeFunction[(len(functionName)+1):-1])
@@ -73,11 +96,11 @@ def executeCodifyFlow(eventsData,codifyData):
                         outputText+="\ndata={0}".format(data)
                         objectContinue = True
                         if currentObject.logicString.startswith("if"):
-                            #if logic.ifEval(currentTrigger.logicString,{ "data" : data}):
-                            if currentObject.varDefinitions:
-                                    data["var"] = variable.varEval(currentObject.varDefinitions,data["var"],{ "data" : data})
-                            else:
-                                objectContinue = False
+                            if logic.ifEval(currentObject.logicString,{ "data" : data}):
+                                if currentObject.varDefinitions:
+                                        data["var"] = variable.varEval(currentObject.varDefinitions,data["var"],{ "data" : data})
+                                else:
+                                    objectContinue = False
                         else:
                             if currentObject.varDefinitions:
                                 data["var"] = variable.varEval(currentObject.varDefinitions,data["var"],{ "data" : data})
@@ -86,23 +109,22 @@ def executeCodifyFlow(eventsData,codifyData):
                             for nextFlow in currentFlow["next"]:
                                 if not passData:
                                     passData = copy.deepcopy(data)
-                                #check logic
                                 processQueue.append({ "flow" : nextFlow, "data" : passData })
                                 passData = None
                         outputText+="\ndata={0}\n".format(data)
                     elif currentFlow["type"] == "action":
                         if currentObject.enabled:
-                            outputText+="\nExecuted {0}".format(currentFlow["codeLine"])
-                            outputText+="\ndata={0}".format(data)
-                            data["action"] = currentObject.runHandler(data,persistentData)
-                            passData = data
-                            for nextFlow in currentFlow["next"]:
-                                if not passData:
-                                    passData = copy.deepcopy(data)
-                                #check logic
-                                processQueue.append({ "flow" : nextFlow, "data" : passData })
-                                passData = None
-                            outputText+="\ndata={0}".format(data)
+                            if flowLogicEval(data,helpers.typeCast(re.sub('\W','',currentFlow["logic"][7:-1]))):
+                                outputText+="\nExecuted {0}".format(currentFlow["codeLine"])
+                                outputText+="\ndata={0}".format(data)
+                                data["action"] = currentObject.runHandler(data,persistentData)
+                                passData = data
+                                for nextFlow in currentFlow["next"]:
+                                    if not passData:
+                                        passData = copy.deepcopy(data)
+                                    processQueue.append({ "flow" : nextFlow, "data" : passData })
+                                    passData = None
+                                outputText+="\ndata={0}\n".format(data)
                 if len(processQueue) == 0:
                     break
                 else:
