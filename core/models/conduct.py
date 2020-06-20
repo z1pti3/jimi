@@ -105,6 +105,7 @@ class _conduct(db._document):
     def flowHandler(self,currentFlow,flowDict,data):
         processQueue = []
         persistentData = {}
+        data["conductID"] = self._id
         loops = 0
         while True:
             if currentFlow:
