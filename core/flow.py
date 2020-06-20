@@ -62,6 +62,7 @@ def getObjectFromCode(codeFunction):
 def executeCodifyFlow(eventsData,codifyData):
     outputText = ""
 
+    # Build Flow
     flows = []
     flowLevel = {}
     for flow in codifyData.split("\n"):
@@ -82,6 +83,7 @@ def executeCodifyFlow(eventsData,codifyData):
             if flowIndentLevel not in flowLevel:
                 flowLevel[flowIndentLevel] = flowLevel[flowIndentLevel-1]["next"][-1]
         
+    # Execute Flow
     for flow in flows:
         persistentData = {}
         for event in flow["events"]:
