@@ -66,9 +66,9 @@ def executeCodifyFlow(eventsData,codifyData):
     for flow in codifyData.split("\n"):
         flowIndentLevel = len(flow.split("\t"))-1
         if flowIndentLevel == 0:
-            events = helpers.evalString(eventsData)
+            events = helpers.typeCast(eventsData)
+            classObject = getObjectFromCode(flow)
             if type(events) != list:
-                classObject = getObjectFromCode(flow)
                 classObject.checkHeader()
                 classObject.check()
                 events = classObject.result["events"]
