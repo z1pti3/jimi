@@ -160,7 +160,13 @@ def generatePasswordHash(password,salt,hType="j1"):
 
 def generateSession(dataDict):
     dataDict["expiry"] = time.time() + authSettings["sessionTimeout"]
+    if "CSRF" not in dataDict:
+        dataDict["CSRF"] = secrets.token_urlsafe(16)
     return jwt.encode(dataDict, sessionPrivateKey.encode(), algorithm="RS256")
+
+def generateSystemSession():
+    data = { "expiry" : time.time() + 10, "admin" : True, "_id" : 0, "primaryGroup" : 0, "authenticated" : True, "api" : True }
+    return jwt.encode(data, sessionPrivateKey.encode(), algorithm="RS256")
 
 def validateSession(sessionToken):
     try:
@@ -249,9 +255,19 @@ if api.webServer:
                         if not validSession:
                             return api.redirect("/login?return={0}".format(api.request.full_path), code=302)
                         api.g["type"] = "cookie"
+                        # Confirm CSRF
+                        if api.request.method in ["POST","PUI","DELETE"]:
+                            try:
+                                data = json.loads(api.request.data)
+                            except:
+                                data = api.request.form["CSRF"]
+                            if validSession["sessionData"]["CSRF"] != data["CSRF"]:
+                                return {}, 403
                     elif "x-api-token" in api.request.headers:
                         validSession = validateSession(api.request.headers.get("x-api-token"))
                         if not validSession:
+                            return {}, 403
+                        if validSession["sessionData"]["api"] != True:
                             return {}, 403
                         api.g["type"] = "x-api-token"
                     else: 

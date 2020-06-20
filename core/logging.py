@@ -92,7 +92,7 @@ if api.webServer:
                 if api.g["sessionData"]["admin"]:
                     apiEndpoint = "debug/"
                     data = json.loads(api.request.data)
-                    apiResult = helpers.apiCall("POST",apiEndpoint,jsonData=data).text
+                    apiResult = helpers.apiCall("POST",apiEndpoint,jsonData=data,token=api.g["sessionToken"]).text
                     return json.loads(apiResult), 200
             elif api.webServer.name == "jimi_core":
                 if not settings.config["auth"]["enabled"]:
@@ -114,7 +114,7 @@ if api.webServer:
             if "admin" in api.g["sessionData"]:
                 if api.g["sessionData"]["admin"]:
                     apiEndpoint = "debug/{0}/".format(debugID)
-                    apiResult = helpers.apiCall("GET",apiEndpoint).text
+                    apiResult = helpers.apiCall("GET",apiEndpoint,token=api.g["sessionToken"]).text
                     return apiResult, 200
             elif api.webServer.name == "jimi_core":
                 if not settings.config["auth"]["enabled"]:

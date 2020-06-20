@@ -239,14 +239,17 @@ def reload():
                 importlib.reload(moduleItem[1])
 
 apiURL = "http://{0}:{1}/{2}".format(settings.config["api"]["core"]["bind"],settings.config["api"]["core"]["port"],settings.config["api"]["core"]["base"])
-def apiCall(methord,apiEndpoint,jsonData=None):
+def apiCall(methord,apiEndpoint,jsonData=None,token=None):
     url = "{0}/{1}".format(apiURL,apiEndpoint)
+    headers = {}
+    if token:
+        headers["x-api-token"] = token
     if methord == "GET":
-        response = requests.get(url,proxies=settings.config["api"]["proxy"])
+        response = requests.get(url,proxies=settings.config["api"]["proxy"],headers=headers,allow_redirects=False)
     elif methord == "POST":
-        response = requests.post(url,json=jsonData,proxies=settings.config["api"]["proxy"])
+        response = requests.post(url,json=jsonData,proxies=settings.config["api"]["proxy"],headers=headers,allow_redirects=False)
     elif methord == "DELETE":
-        response = requests.delete(url,proxies=settings.config["api"]["proxy"])
+        response = requests.delete(url,proxies=settings.config["api"]["proxy"],headers=headers,allow_redirects=False)
     return response
 
 def isBase64(s):

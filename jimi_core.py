@@ -7,9 +7,6 @@ if __name__ == "__main__":
     # Core imports
     from core import workers, plugin, scheduler, cluster, settings, screen, model, helpers, auth, flow
 
-    # Disable auth for CLI access
-    auth.authSettings["enabled"] = False
-
     api.startServer(debug=True, use_reloader=False, host=apiSettings["bind"], port=apiSettings["port"], threaded=True)
 
     import time
@@ -22,11 +19,12 @@ if __name__ == "__main__":
 
     # Auto start the application using its API
     apiEndpoint = "workers/"
-    helpers.apiCall("POST",apiEndpoint,{"action" : "start"})
+    apiToken = auth.generateSystemSession()
+    helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
     apiEndpoint = "scheduler/"
-    helpers.apiCall("POST",apiEndpoint,{"action" : "start"})
+    helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
     apiEndpoint = "cluster/"
-    helpers.apiCall("POST",apiEndpoint,{"action" : "start"})
+    helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
 
     # Loading main screen
     from core.screens import mainScreen

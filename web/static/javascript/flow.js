@@ -50,7 +50,7 @@ function deleteSelected() {
 		node = nodeObjects[selectedNodes[0]]["flowID"]
 		if (confirm("Are you sure you want to delete object '"+ node +"'?")) {
 			var conductID = GetURLParameter("conductID");
-			$.ajax({url:"/conductEditor/"+conductID+"/flow/"+node+"/", type:"DELETE", contentType:"application/json", success: function ( responseData ) {
+			$.ajax({url:"/conductEditor/"+conductID+"/flow/"+node+"/", data: JSON.stringify({ CSRF: CSRF }), type:"DELETE", contentType:"application/json", success: function ( responseData ) {
 					deleteNode(node)
 				}
 			});
@@ -63,7 +63,7 @@ function deleteSelected() {
 		var conductID = GetURLParameter("conductID");
 		var to = link["to"]
 		var from = link["from"]
-		$.ajax({url:"/conductEditor/"+conductID+"/flowLink/"+from+"/"+to+"/", type:"DELETE", contentType:"application/json", success: function ( responseData ) {
+		$.ajax({url:"/conductEditor/"+conductID+"/flowLink/"+from+"/"+to+"/", data: JSON.stringify({ CSRF: CSRF }), type:"DELETE", contentType:"application/json", success: function ( responseData ) {
 				deleteLink(from,to)
 			}
 		});
@@ -163,7 +163,7 @@ function createLink(from,to,colour,save) {
 
 	if (save) {
 		var conductID = GetURLParameter("conductID")
-		$.ajax({url:"/conductEditor/"+conductID+"/flowLink/"+from+"/"+to+"/", type:"PUT", contentType:"application/json", success: function ( responseData ) {
+		$.ajax({url:"/conductEditor/"+conductID+"/flowLink/"+from+"/"+to+"/", data: JSON.stringify({ CSRF: CSRF }), type:"PUT", contentType:"application/json", success: function ( responseData ) {
 				if (createLinkRAW(from,to,colour)) {
 					return true;
 				} else {
@@ -186,7 +186,7 @@ function createLink(from,to,colour,save) {
 
 function saveNewLink(from,to) {
 	var conductID = GetURLParameter("conductID")
-	$.ajax({url:"/conductEditor/"+conductID+"/flowLink/"+from+"/"+to+"/", type:"PUT", contentType:"application/json", success: function ( responseData ) {
+	$.ajax({url:"/conductEditor/"+conductID+"/flowLink/"+from+"/"+to+"/", data: JSON.stringify({ CSRF: CSRF }), type:"PUT", contentType:"application/json", success: function ( responseData ) {
 			return true;
 		}
 	});
@@ -281,7 +281,7 @@ function updateFlowchartNonBlocking(blocking) {
 function updateFlowchart() {
 	if ((processlist) || (processlist.length == 0)) {
 		var conductID = GetURLParameter("conductID")
-		$.ajax({url:"/conductEditor/"+conductID+"/", type:"POST", timeout: 2000, data: JSON.stringify({ lastPollTime : lastUpdatePollTime, operators: flowObjects, links: Object.keys(flowLinks) }), contentType:"application/json", success: function ( responseData ) {
+		$.ajax({url:"/conductEditor/"+conductID+"/", type:"POST", timeout: 2000, data: JSON.stringify({ lastPollTime : lastUpdatePollTime, operators: flowObjects, links: Object.keys(flowLinks), CSRF: CSRF }), contentType:"application/json", success: function ( responseData ) {
 				processlist = responseData
 				setTimeout(updateFlowchart, 2500);
 				if (init == false) {
@@ -325,7 +325,7 @@ function debugFlowObject() {
 		node = nodeObjects[selectedNodes[0]]["flowID"]
 		var conductID = GetURLParameter("conductID")
 		$.ajax({url: "/conduct/"+conductID+"/debug/"+node+"/", type:"GET", contentType:"application/json", success: function ( result ) {
-				$.ajax({url: "/api/1.0/debug/", type:"POST", data:JSON.stringify({ "filter" : result["_id"], "level" : 100}), contentType:"application/json", success: function ( result ) {
+				$.ajax({url: "/api/1.0/debug/", type:"POST", data:JSON.stringify({ "filter" : result["_id"], "level" : 100, CSRF: CSRF}), contentType:"application/json", success: function ( result ) {
 						var win = window.open('/debug/'+result["debugID"]+"/", '_blank');
 						if (win) {
 							win.focus();
@@ -358,7 +358,7 @@ function copyFlowObject() {
 		var conductID = GetURLParameter("conductID")
 		var x = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["node"]["x"]
 		var y = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["node"]["y"]-25
-		$.ajax({url:"/conductEditor/"+conductID+"/flow/"+node+"/", type:"POST", data:JSON.stringify({action: "copy", operatorId: node, x: x, y: y}), contentType:"application/json", success: function ( result ) {
+		$.ajax({url:"/conductEditor/"+conductID+"/flow/"+node+"/", type:"POST", data:JSON.stringify({action: "copy", operatorId: node, x: x, y: y, CSRF: CSRF}), contentType:"application/json", success: function ( result ) {
 				// Coned sucessfull
 			}
 		});
@@ -372,7 +372,7 @@ function duplicateFlowObject() {
 		var conductID = GetURLParameter("conductID")
 		var x = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["node"]["x"]
 		var y = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["node"]["y"]-25
-		$.ajax({url:"/conductEditor/"+conductID+"/flow/"+node+"/", type:"POST", data:JSON.stringify({action: "clone", operatorId: node, x: x, y: y}), contentType:"application/json", success: function ( result ) {
+		$.ajax({url:"/conductEditor/"+conductID+"/flow/"+node+"/", type:"POST", data:JSON.stringify({action: "clone", operatorId: node, x: x, y: y, CSRF: CSRF}), contentType:"application/json", success: function ( result ) {
 				// Coned sucessfull
 			}
 		});
@@ -406,7 +406,7 @@ function setupFlowchart() {
 			var conductID = GetURLParameter("conductID")
 			for (node in params["nodes"]) {
 				// Slow need to allow batch updates in future in the backend
-				$.ajax({url:"/conductEditor/"+conductID+"/flow/"+nodeObjects[params["nodes"][node]]["flowID"]+"/", type:"POST", data: JSON.stringify({action: "update", x : pos[params["nodes"][node]]["x"], y : pos[params["nodes"][node]]["y"] }), contentType:"application/json", success: function( responseData ) {
+				$.ajax({url:"/conductEditor/"+conductID+"/flow/"+nodeObjects[params["nodes"][node]]["flowID"]+"/", type:"POST", data: JSON.stringify({action: "update", x : pos[params["nodes"][node]]["x"], y : pos[params["nodes"][node]]["y"], CSRF: CSRF }), contentType:"application/json", success: function( responseData ) {
 					}
 				});
 			}

@@ -33,6 +33,7 @@ function saveLinkPropertiesPanel(from,to,panel) {
 	var conductID = GetURLParameter("conductID")
 	var objectJson = {};
 	objectJson["logic"] = panel.find("#propertiesPanelLinkValue").val();
+	objectJson["CSRF"] = CSRF
 	$.ajax({ url: "/conduct/"+conductID+"/flowlogic/"+from+"/"+to+"/", type : "POST", data:JSON.stringify(objectJson), contentType:"application/json", success: function(result) {
 			dropdownAlert(panel,"success","Save Successful",1000);
 		}

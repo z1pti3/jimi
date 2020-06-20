@@ -39,8 +39,12 @@
 </html>
 
 <script>
+  var CSRF = "{{CSRF}}"
+</script>
+
+<script>
   $("#run").click(function () {
-    $.ajax({url: "/codify/", type:"POST", data:JSON.stringify({ events: $('#events').val(), code: $('#codeEditor').val() }), contentType:"application/json", success: function(result) {
+    $.ajax({url: "/codify/", type:"POST", data:JSON.stringify({ events: $('#events').val(), code: $('#codeEditor').val(), CSRF: CSRF }), contentType:"application/json", success: function(result) {
         $('#output').text(result["result"])
       } 
     });

@@ -43,7 +43,7 @@ function loadExistingObjectPanel(panel) {
 					var y = pos["y"]
 					var conductID = GetURLParameter("conductID")
 					var $this = $(this);
-					$.ajax({url:"/conductEditor/"+conductID+"/flow/", type:"POST", data:JSON.stringify({action: "drop", flowType: "action", _id: $this.attr("id"), x: x, y: y}), contentType:"application/json", success: function ( result ) {
+					$.ajax({url:"/conductEditor/"+conductID+"/flow/", type:"POST", data:JSON.stringify({action: "drop", flowType: "action", _id: $this.attr("id"), x: x, y: y, CSRF: CSRF}), contentType:"application/json", success: function ( result ) {
 						// Drop sucessfull
 						}
 					});
@@ -75,7 +75,7 @@ function loadExistingObjectPanel(panel) {
 					var y = pos["y"]
 					var conductID = GetURLParameter("conductID")
 					var $this = $(this);
-					$.ajax({url:"/conductEditor/"+conductID+"/flow/", type:"POST", data:JSON.stringify({action: "drop", flowType: "trigger", _id: $this.attr("id"), x: x, y: y}), contentType:"application/json", success: function ( result ) {
+					$.ajax({url:"/conductEditor/"+conductID+"/flow/", type:"POST", data:JSON.stringify({action: "drop", flowType: "trigger", _id: $this.attr("id"), x: x, y: y, CSRF: CSRF}), contentType:"application/json", success: function ( result ) {
 						// Drop sucessfull
 						}
 					});

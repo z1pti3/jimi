@@ -1,6 +1,7 @@
 import requests
 import time
 
+
 class selectWorker:
     model = None
     workerID = None
@@ -24,12 +25,12 @@ class selectWorker:
         self.menu.load()
 
     def show(self,args):
-        print(helpers.apiCall("GET",self.apiEndpoint).text)
+        print(helpers.apiCall("GET",self.apiEndpoint,token=auth.generateSystemSession()).text)
 
     def kill(self,args):
-        helpers.apiCall("DELETE",self.apiEndpoint)
+        helpers.apiCall("DELETE",self.apiEndpoint,token=auth.generateSystemSession())
 
     def end(self,args):
         raise KeyboardInterrupt
 
-from core import api, workers, logging, settings, helpers, screen
+from core import api, workers, logging, settings, helpers, screen, auth

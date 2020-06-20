@@ -33,6 +33,10 @@
 </html>
 
 <script>
+    var CSRF = "{{CSRF}}"
+</script>
+
+<script>
     
     function buildTable_ListModels() {
         $('#table').DataTable({
@@ -177,7 +181,7 @@
                         var data = this.data();
                         jsonData[data["value"][0]] = $("#property_"+data["value"][0]).val()
                     } );
-                    $.ajax({url:"/api/1.0/models/"+modelName+"/"+id+"/", type:"POST", data: JSON.stringify({ action : "update", data: jsonData }), contentType:"application/json", success: function ( result ) {
+                    $.ajax({url:"/api/1.0/models/"+modelName+"/"+id+"/", type:"POST", data: JSON.stringify({ action : "update", data: jsonData, CSRF: CSRF }), contentType:"application/json", success: function ( result ) {
                             alertNow("Object saved!");
                         }
                     });

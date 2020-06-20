@@ -36,7 +36,7 @@ function saveNewObjectPanel(panel) {
 		pos = network.getViewPosition()
 		var x = pos["x"]
 		var y = pos["y"]
-		$.ajax({url:"/conductEditor/"+conductID+"/flow/", type:"PUT", data:JSON.stringify({classID: classID, x: x, y: y}), contentType:"application/json", success: function ( responseData ) {
+		$.ajax({url:"/conductEditor/"+conductID+"/flow/", type:"PUT", data:JSON.stringify({classID: classID, x: x, y: y, CSRF: CSRF}), contentType:"application/json", success: function ( responseData ) {
 				// Created new object
 			}
 		});

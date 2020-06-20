@@ -18,7 +18,7 @@ var triggerExistingPanels = {}
 
 function triggerTriggerObjectPanel(panel,flowID) {
 	var conductID = GetURLParameter("conductID")
-	$.ajax({url: "/conduct/"+conductID+"/forceTrigger/"+flowID+"/", type:"POST", data:JSON.stringify({events: panel.find("#triggerValue").val() }), contentType:"application/json", success: function ( result ) {
+	$.ajax({url: "/conduct/"+conductID+"/forceTrigger/"+flowID+"/", type:"POST", data:JSON.stringify({events: panel.find("#triggerValue").val(), CSRF: CSRF }), contentType:"application/json", success: function ( result ) {
 			dropdownAlert(panel,"success","Triggered",1000);
 		}
 	});

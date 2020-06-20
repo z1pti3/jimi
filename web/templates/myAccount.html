@@ -30,6 +30,10 @@
 </html>
 
 <script>
+    var CSRF = "{{CSRF}}"
+</script>
+
+<script>
 
     function getAccount() {
         $('#table').DataTable({
@@ -77,7 +81,7 @@
                         var data = this.data();
                         jsonData[data["value"][0]] = $("#property_"+data["value"][0]).val()
                     } );
-                    $.ajax({url:"/api/1.0/auth/myAccount/", type:"POST", data: JSON.stringify({ data: jsonData }), contentType:"application/json", success: function ( result ) {
+                    $.ajax({url:"/api/1.0/auth/myAccount/", type:"POST", data: JSON.stringify({ data: jsonData, CSRF: CSRF }), contentType:"application/json", success: function ( result ) {
                             alertNow("Object saved!");
                         }
                     });

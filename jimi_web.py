@@ -213,7 +213,7 @@ def forceTrigger(conductID,flowID):
 	flow = flow[0]
 	data = json.loads(api.request.data)
 	apiEndpoint = "scheduler/{0}/".format(flow["triggerID"])
-	helpers.apiCall("POST",apiEndpoint,{ "action" : "trigger", "events" : data["events"] })
+	helpers.apiCall("POST",apiEndpoint,{ "action" : "trigger", "events" : data["events"] },token=api.g["sessionToken"])
 	return { }, 200
 
 @api.webServer.route("/conduct/<conductID>/debug/<flowID>/", methods=["GET"])
@@ -451,7 +451,7 @@ def conductPage(conductID):
 	if "acl" not in conductObj:
 		conductObj["acl"] = {}
 		
-	return render_template("flow.html", conductID=conductObj["_id"], conductName=conductObj["name"], conductACL=conductObj["acl"], conductEnabled=conductObj["enabled"], content=conductObj, actions=action._action().query()["results"], triggers=trigger._trigger().query()["results"], flowData=flowData)
+	return render_template("flow.html", conductID=conductObj["_id"], conductName=conductObj["name"], conductACL=conductObj["acl"], conductEnabled=conductObj["enabled"], content=conductObj, actions=action._action().query()["results"], triggers=trigger._trigger().query()["results"], flowData=flowData, CSRF=api.g["sessionData"]["CSRF"])
 
 @api.webServer.route("/conduct/<conductID>/", methods=["POST"])
 def saveConduct(conductID):
@@ -709,20 +709,20 @@ def workerPage():
 		if "admin" in api.g["sessionData"]:
 			if api.g["sessionData"]["admin"]:
 				apiEndpoint = "workers/stats/"
-				workerContent = helpers.apiCall("GET",apiEndpoint).text
+				workerContent = helpers.apiCall("GET",apiEndpoint,token=api.g["sessionToken"]).text
 				return render_template("workers.html", content=workerContent)
 	return {}, 403
 
 @api.webServer.route("/myAccount/", methods=["GET"])
 def myAccountPage():
-	return render_template("myAccount.html")
+	return render_template("myAccount.html", CSRF=api.g["sessionData"]["CSRF"])
 
 @api.webServer.route("/admin/backups/", methods=["GET"])
 def backupsPage():
 	if api.g["sessionData"]:
 		if "admin" in api.g["sessionData"]:
 			if api.g["sessionData"]["admin"]:
-				return render_template("backups.html", content="")
+				return render_template("backups.html", content="", CSRF=api.g["sessionData"]["CSRF"])
 	return {}, 403
 
 @api.webServer.route("/admin/backup-system/", methods=["GET"])

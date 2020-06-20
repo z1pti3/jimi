@@ -55,13 +55,14 @@ function savePropertiesPanel(flowID,panel) {
 		}
 	})
 	// Posting
-	$.ajax({url:"/api/1.0/models/"+modelType+"/"+modelID+"/", type:"POST", data: JSON.stringify({ action : "update", data: jsonData }), contentType:"application/json", success: function ( result ) {
+	$.ajax({url:"/api/1.0/models/"+modelType+"/"+modelID+"/", type:"POST", data: JSON.stringify({ action : "update", data: jsonData, CSRF: CSRF }), contentType:"application/json", success: function ( result ) {
 			// Telling UI it has had some changes made
 			if (newName) {
 				postData = { "action": "update" }
 				if (newName) {
 					postData["title"] = newName
 				}
+				postData["CSRF"] = CSRF
 				$.ajax({url:"/conductEditor/"+conductID+"/flow/"+flowID+"/", type:"POST", async: false, data: JSON.stringify(postData), contentType:"application/json", success: function( responseData ) {
 						dropdownAlert(panel,"success","Save Successful",1000);
 						loadPropertiesPanel(flowID,panel);

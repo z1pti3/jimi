@@ -36,13 +36,13 @@ class mainScreen:
         # Dynamic loading of plugins
         self.menu.items.append(["select plugin", None])
         apiEndpoint = "plugins/"
-        for plugin in json.loads(helpers.apiCall("GET",apiEndpoint).text)["results"]:
+        for plugin in json.loads(helpers.apiCall("GET",apiEndpoint,token=auth.generateSystemSession()).text)["results"]:
             self.menu.items.append(["select plugin {0}".format(plugin["name"]),callSelectPlugin])
         
         self.menu.load()
 
 
-from core import api, workers, logging, settings, helpers, screen
+from core import api, workers, logging, settings, helpers, screen, auth
 
 from core.screens import classScreen, coreScreen, workerScreen, pluginScreen
 
@@ -112,13 +112,13 @@ def callWorkerAPI(args):
     if len(args) == 2:
         apiEndpoint = "workers/"
         if args[0] == "list":
-            print(helpers.apiCall("GET",apiEndpoint).text)
+            print(helpers.apiCall("GET",apiEndpoint,token=auth.generateSystemSession()).text)
 
 def callClassAPI(args):
     if len(args) == 2:
         apiEndpoint = "models/{0}/all/".format(args[1])
         if args[0] == "list":
-            print(helpers.apiCall("GET",apiEndpoint).text)
+            print(helpers.apiCall("GET",apiEndpoint,token=auth.generateSystemSession()).text)
 
 def callSelectClass(args):
     if len(args) == 3:
@@ -139,17 +139,17 @@ def listPlugins(args):
     if len(args) == 2:
         apiEndpoint = "plugins/"
         if args[0] == "list":
-            print(helpers.apiCall("GET",apiEndpoint).text)
+            print(helpers.apiCall("GET",apiEndpoint,token=auth.generateSystemSession()).text)
 
 def listUsers(args):
     if len(args) == 2:
         apiEndpoint = "user/"
         if args[0] == "list":
-            print(helpers.apiCall("GET",apiEndpoint).text)
+            print(helpers.apiCall("GET",apiEndpoint,token=auth.generateSystemSession()).text)
 
 def listGroups(args):
     if len(args) == 2:
         apiEndpoint = "group/"
         if args[0] == "list":
-            print(helpers.apiCall("GET",apiEndpoint).text)
+            print(helpers.apiCall("GET",apiEndpoint,token=auth.generateSystemSession()).text)
 

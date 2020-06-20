@@ -10,7 +10,7 @@ from core.models import trigger, action, conduct, webui
 
 @api.webServer.route("/conductEditor/", methods=["GET"])
 def editConduct():
-    return render_template("conductEditor.html")
+    return render_template("conductEditor.html", CSRF=api.g["sessionData"]["CSRF"])
 
 @api.webServer.route("/conductEditor/<conductID>/", methods=["POST"])
 def conductFlowchartPoll(conductID):
@@ -237,7 +237,7 @@ def getConductFlowCodify(conductID):
         if flow["type"] == "trigger":
             flowCode+=generateFlow(flow,flowDict,triggers,actions)
     
-    return render_template("blank.html",content=flowCode), 200
+    return render_template("blank.html",content=flowCode, CSRF=api.g["sessionData"]["CSRF"]), 200
 
 @api.webServer.route("/conductEditor/<conductID>/flow/<flowID>/", methods=["DELETE"])
 def deleteFlow(conductID,flowID):
