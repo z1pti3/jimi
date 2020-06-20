@@ -38,6 +38,7 @@ def getObjectFromCode(codeFunction):
     functionName = codeFunction.split("(")[0]
     args = regexCommor.split(codeFunction[(len(functionName)+1):-1])
     classObject = model._model().getAsClass(query={ "name" : functionName })[0].classObject()
+    classObject.enabled = True
     members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
     for arg in args:
         key = arg.split("=")[0]
@@ -120,7 +121,9 @@ def executeCodifyFlow(eventsData,codifyData):
                         if currentObject.enabled:
                             outputText+="\nExecuted {0}".format(currentFlow["codeLine"])
                             outputText+="\ndata={0}".format(data)
-                            if flowLogicEval(data,helpers.typeCast(re.sub('\W','',currentFlow["logic"][7:-1]))):
+                            logic = re.sub('\W','',currentFlow["logic"])
+                            logic = logic[5:]
+                            if flowLogicEval(data,helpers.typeCast(logic)):
                                 outputText+="\nFlow Logic Pass"
                                 data["action"] = currentObject.runHandler(data,persistentData)
                                 passData = data
@@ -156,4 +159,3 @@ if api.webServer:
             data = json.loads(api.request.data)
             result = executeCodifyFlow(data["events"],data["code"])
             return { "result" : result }, 200
-
