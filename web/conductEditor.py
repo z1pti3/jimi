@@ -197,7 +197,10 @@ def getConductFlowCodify(conductID):
                     if currentFlow["type"] == "action":
                         flowCode+="\r\n{0}logic({1})->{2}({3})".format(("\t"*indentLevel),logic,classObj.name,",".join(params))
                     else:
-                        flowCode+="\r\n{0}{1}({2})".format(("\t"*indentLevel),classObj.name,",".join(params))
+                        if len(flowCode) > 0:
+                            flowCode+="\r\n{0}{1}({2})".format(("\t"*indentLevel),classObj.name,",".join(params))
+                        else:
+                            flowCode="{0}({1})".format(classObj.name,",".join(params))
             if len(processQueue) == 0:
                 break
             else:
