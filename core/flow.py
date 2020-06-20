@@ -97,10 +97,13 @@ def executeCodifyFlow(eventsData,codifyData):
                         objectContinue = True
                         if currentObject.logicString.startswith("if"):
                             if logic.ifEval(currentObject.logicString,{ "data" : data}):
+                                outputText+="\nLogic Pass"
                                 if currentObject.varDefinitions:
                                         data["var"] = variable.varEval(currentObject.varDefinitions,data["var"],{ "data" : data})
                                 else:
                                     objectContinue = False
+                            else:
+                                outputText+="\nLogic Failed"
                         else:
                             if currentObject.varDefinitions:
                                 data["var"] = variable.varEval(currentObject.varDefinitions,data["var"],{ "data" : data})
@@ -111,12 +114,14 @@ def executeCodifyFlow(eventsData,codifyData):
                                     passData = copy.deepcopy(data)
                                 processQueue.append({ "flow" : nextFlow, "data" : passData })
                                 passData = None
-                        outputText+="\ndata={0}\n".format(data)
+                        outputText+="\ndata={0}".format(data)
+                        outputText+="\n"
                     elif currentFlow["type"] == "action":
                         if currentObject.enabled:
+                            outputText+="\nExecuted {0}".format(currentFlow["codeLine"])
+                            outputText+="\ndata={0}".format(data)
                             if flowLogicEval(data,helpers.typeCast(re.sub('\W','',currentFlow["logic"][7:-1]))):
-                                outputText+="\nExecuted {0}".format(currentFlow["codeLine"])
-                                outputText+="\ndata={0}".format(data)
+                                outputText+="\nFlow Logic Pass"
                                 data["action"] = currentObject.runHandler(data,persistentData)
                                 passData = data
                                 for nextFlow in currentFlow["next"]:
@@ -124,7 +129,10 @@ def executeCodifyFlow(eventsData,codifyData):
                                         passData = copy.deepcopy(data)
                                     processQueue.append({ "flow" : nextFlow, "data" : passData })
                                     passData = None
-                                outputText+="\ndata={0}\n".format(data)
+                                outputText+="\ndata={0}".format(data)
+                            else:
+                                outputText+="\nFlow Logic Failed"
+                            outputText+="\n"
                 if len(processQueue) == 0:
                     break
                 else:
