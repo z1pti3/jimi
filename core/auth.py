@@ -275,8 +275,8 @@ if api.webServer:
                         validSession = validateSession(api.request.headers.get("x-api-token"))
                         if not validSession:
                             return {}, 403
-                        if validSession["sessionData"]["api"] != True:
-                            return {}, 403
+                        #if validSession["sessionData"]["api"] != True:
+                        #    return {}, 403
                         api.g["type"] = "x-api-token"
                     else: 
                         return api.redirect("/login?return={0}".format(api.request.full_path), code=302)
