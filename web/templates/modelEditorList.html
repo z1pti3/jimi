@@ -206,7 +206,7 @@
     function deleteObject(objectID) {
         if (confirm("Are you sure you want to delete object ("+objectID+")?")) {
             var pathname = window.location.pathname;
-            $.ajax({url:"/api/1.0/models/"+GetURLParameter("modelName")+"/"+objectID+"/", type:"DELETE", success: function ( result ) {
+            $.ajax({url:"/api/1.0/models/"+GetURLParameter("modelName")+"/"+objectID+"/", data: JSON.stringify({CSRF: CSRF}), type:"DELETE", success: function ( result ) {
                     alertNow("Object deleted!");
                 }
             })
@@ -218,7 +218,7 @@
     }
 
     function createObject() {
-        $.ajax({url:"/api/1.0/models/"+GetURLParameter("modelName")+"/", type:"PUT", success: function ( result ) {
+        $.ajax({url:"/api/1.0/models/"+GetURLParameter("modelName")+"/", data: JSON.stringify({CSRF: CSRF}), type:"PUT", success: function ( result ) {
                 editObject(result["result"]["_id"]);
             }
         })
