@@ -295,13 +295,6 @@ if api.webServer:
                         if api.g["type"] == "cookie":
                             if "renew" in api.g:
                                 response.set_cookie("jimiAuth", value=generateSession(api.g["sessionData"]), max_age=600) # Need to add secure=True before production, httponly=False cant be used due to auth polling
-                    # Ensuring that all forms that contain <<!!csrf!!>> get replaced with the users csrf token
-                    #if "<<!!csrf!!>>" in response.data.decode():
-                    #    if "csrf" not in api.g["sessionData"]:
-                    #        api.g["sessionData"]["csrf"] = secrets.token_hex(32)
-                    #        response.set_cookie("jimiAuth", value=generateSession(api.g["sessionData"]))
-                    #    response.response = response.response.replace("<<!!csrf!!>>",api.g["sessionData"]["csrf"])
-            # Header Security
             # Cache Weakness
             if api.request.endpoint != "static": 
                 response.headers['Cache-Control'] = 'no-cache, no-store'
