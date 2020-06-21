@@ -259,8 +259,15 @@ if api.webServer:
                         if api.request.method in ["POST","PUI","DELETE"]:
                             try:
                                 data = json.loads(api.request.data)
+                                if "CSRF" not in data:
+                                    raise KeyError
                             except:
-                                data = api.request.form["CSRF"]
+                                try:
+                                    data = json.loads(list(api.request.form.to_dict().keys())[0])
+                                    if "CSRF" not in data:
+                                        raise KeyError
+                                except:
+                                    data = api.request.form["CSRF"]
                             if validSession["sessionData"]["CSRF"] != data["CSRF"]:
                                 return {}, 403
                     elif "x-api-token" in api.request.headers:
