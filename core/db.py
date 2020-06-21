@@ -73,7 +73,11 @@ class _document():
 
     # Updated DB with latest values
     @mongoConnectionWrapper
-    def update(self,fields):
+    def update(self,fields,sessionData=None):
+        if sessionData:
+            for field in fields:
+                if not fieldACLAccess(sessionData,self.acl,field,"write"):
+                    return False
         # Appendingh last update time to every update
         fields.append("lastUpdateTime")
         self.lastUpdateTime = time.time()
@@ -112,12 +116,16 @@ class _document():
     def insert_one(self,data):
         self._dbCollection.insert_one(data)
 
-    def getAttribute(self,attr):
-        return getattr(self,attr)
+    def getAttribute(self,attr,sessionData=None):
+        if not sessionData or fieldACLAccess(sessionData,self.acl,attr,accessType="read"):
+            return getattr(self,attr)
+        return None
 
-    def setAttribute(self,attr,value):
-        setattr(self,attr,value)
-        return True
+    def setAttribute(self,attr,value,sessionData=None):
+        if not sessionData or fieldACLAccess(sessionData,self.acl,attr,accessType="write"):
+            setattr(self,attr,value)
+            return True
+        return False
 
     # API Calls - NONE LOADED CLASS OBJECTS <<<<<<<<<<<<<<<<<<<<<< Will need to support decorators to enable plugin support?
     @mongoConnectionWrapper
@@ -167,7 +175,7 @@ class _document():
                         fieldAccessPermitted = True
                         # Checking if sessionData is permitted field level access
                         if "acl" in doc and not adminBypass and sessionData and authSettings["enabled"]:
-                            fieldAccessPermitted = fieldACLAccess(accessIDs,doc["acl"],field)
+                            fieldAccessPermitted = fieldACLAccess(sessionData,doc["acl"],field)
                         # Allow field data to be returned if access is permitted
                         if fieldAccessPermitted:
                             value = helpers.handelTypes(doc[field])
@@ -179,7 +187,7 @@ class _document():
                     fieldAccessPermitted = True
                     # Checking if sessionData is permitted field level access
                     if "acl" in doc and not adminBypass and sessionData and authSettings["enabled"]:
-                        fieldAccessPermitted = fieldACLAccess(accessIDs,doc["acl"],field)
+                        fieldAccessPermitted = fieldACLAccess(sessionData,doc["acl"],field)
                     # Allow field data to be returned if access is permitted
                     if fieldAccessPermitted:
                         value = helpers.handelTypes(doc[field])
@@ -296,20 +304,32 @@ def list_collection_names():
     return db.list_collection_names()
 
 # Checks if access to a field is permitted by the object ACL
-def fieldACLAccess(accessIDs,acl,field,accessType="read"):
+def fieldACLAccess(sessionData,acl,field,accessType="read"):
     if not authSettings["enabled"]:
         return True
-    if "fields" in acl:
-        fieldAcls = [ x for x in acl["fields"] if field == x["field"] ]
-        if len(fieldAcls) == 0:
-            return True
-        # Checking if the sessionData permits access to the given ACL
-        for fieldAcl in fieldAcls:
-            for accessID in fieldAcl["ids"]:
-                if accessID["accessID"] in accessIDs and accessID[accessType]:
-                    return True
-    else:
-        return True
+    accessIDs= []
+    access = False
+    adminBypass = False
+    if sessionData:
+        adminBypass = False
+        if "admin" in sessionData:
+            if sessionData["admin"]:
+                adminBypass = True
+                access = True
+        if not adminBypass:
+            accessIDs = sessionData["accessIDs"]
+        if "fields" in acl:
+            fieldAcls = [ x for x in acl["fields"] if field == x["field"] ]
+            if len(fieldAcls) == 0:
+                return True
+            # Checking if the sessionData permits access to the given ACL
+            for fieldAcl in fieldAcls:
+                for accessID in fieldAcl["ids"]:
+                    if accessID["accessID"] in accessIDs and accessID[accessType]:
+                        return True
+        else:
+            access, accessIDs, adminBypass = ACLAccess(sessionData,acl,accessType)
+            return access
     return False
 
 # Checks if access to the object is permitted by the object ACL

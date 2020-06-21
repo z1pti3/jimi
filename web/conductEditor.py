@@ -262,7 +262,7 @@ def deleteFlow(conductID,flowID):
                     if nextflowValue["flowID"] == flowID:
                         conductObj.flow[conductObj.flow.index(flowItemsValue)]["next"].remove(nextflowValue)
             conductObj.flow.remove(flow)
-            conductObj.update(["flow"])
+            conductObj.update(["flow"],sessionData=api.g["sessionData"])
         return { }, 200
     else:
         return { }, 404
@@ -300,7 +300,7 @@ def newFlow(conductID):
             else:
                 return { }, 404
             modelFlowObject.acl = { "ids" : [ { "accessID" : api.g["sessionData"]["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
-            modelFlowObject.update(["acl"])
+            modelFlowObject.update(["acl"],sessionData=api.g["sessionData"])
             flow["type"] = modelFlowObjectType
             if subtype != "action" and subtype != "trigger":
                 flow["subtype"] = subtype
@@ -309,7 +309,7 @@ def newFlow(conductID):
             webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],data["x"],data["y"],modelFlowObject.name)
             # Appending new object to conduct
             conductObj.flow.append(flow)
-            conductObj.update(["flow"])
+            conductObj.update(["flow"],sessionData=api.g["sessionData"])
             return { }, 201
     else:
         return { }, 403
@@ -346,7 +346,7 @@ def dropExistingObject(conductID):
 
             webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],data["x"],data["y"],name)
             conductObj.flow.append(flow)
-            conductObj.update(["flow"])
+            conductObj.update(["flow"],sessionData=api.g["sessionData"])
             return { }, 201
     return { }, 404
 
@@ -377,10 +377,10 @@ def updateFlow(conductID,flowID):
                     if "x" in data and "y" in data:
                         flowUI.x = x
                         flowUI.y = y
-                        flowUI.update(["x","y"])
+                        flowUI.update(["x","y"],sessionData=api.g["sessionData"])
                     if "title" in data:
                         flowUI.title = data["title"]
-                        flowUI.update(["title"])
+                        flowUI.update(["title"],sessionData=api.g["sessionData"])
                     return { }, 200
                 else:
                     webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],x,y)
@@ -401,7 +401,7 @@ def updateFlow(conductID,flowID):
                     flowUI = webui._modelUI().getAsClass(api.g["sessionData"],query={ "flowID" : flow["flowID"], "conductID" : conductID })[0]
                     webui._modelUI().new(conductID,conductObj.acl,newFlow["flowID"],data["x"],data["y"],flowUI.title)
                     conductObj.flow.append(newFlow)
-                    conductObj.update(["flow"])
+                    conductObj.update(["flow"],sessionData=api.g["sessionData"])
                     return { }, 201
         elif data["action"] == "clone":
             access, accessIDs, adminBypass = db.ACLAccess(api.g["sessionData"],conductObj.acl,"write")
@@ -455,7 +455,7 @@ def updateFlow(conductID,flowID):
                                     if member not in dontCopy:
                                         setattr(modelFlowObjectClone,member,getattr(modelFlowObject,member))
                                         updateList.append(member)
-                                modelFlowObjectClone.update(updateList)
+                                modelFlowObjectClone.update(updateList,sessionData=api.g["sessionData"])
 
                                 # Set conduct flow to correct type and objectID
                                 flow["{0}{1}".format(flow["type"],"ID")] = str(newFlowObjectID)
@@ -464,7 +464,7 @@ def updateFlow(conductID,flowID):
                                 # Adding UI position for cloned object
                                 flowUI = webui._modelUI().getAsClass(api.g["sessionData"],query={ "flowID" : flowID, "conductID" : conductID })[0]
                                 webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],data["x"],data["y"],"Copy - {0}".format(flowUI.title))
-                                conductObj.update(["flow"])
+                                conductObj.update(["flow"],sessionData=api.g["sessionData"])
                                 return { "result" : True}, 201
     return { }, 404
 
@@ -483,7 +483,7 @@ def newFlowLink(conductID,fromFlowID,toFlowID):
         if len(nextFlows) == 0:
             if toFlow["type"] != "trigger":
                 fromFlow["next"].append({ "flowID" : toFlowID, "logic": True })
-                conductObj.update(["flow"])
+                conductObj.update(["flow"],sessionData=api.g["sessionData"])
                 return { }, 201
             else:
                 return { }, 403
@@ -505,9 +505,11 @@ def deleteFlowLink(conductID,fromFlowID,toFlowID):
             fromFlow = fromFlow[0]
             for nextflow in fromFlow["next"]:
                 if nextflow["flowID"] == toFlowID:
-                    conductObj.flow[conductObj.flow.index(fromFlow)]["next"].remove(nextflow)
-                    conductObj.update(["flow"])
-                    return { }, 200
+                    if db.fieldACLAccess(api.g["sessionData"],conductObj.acl,"flow","delete"):
+                        conductObj.flow[conductObj.flow.index(fromFlow)]["next"].remove(nextflow)
+                        conductObj.update(["flow"])
+                        return { }, 200
+                    return {}, 403
         return { }, 404
     else:
         return {}, 403

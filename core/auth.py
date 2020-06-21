@@ -4,6 +4,7 @@ import hashlib
 import time
 import json
 import jwt
+import functools
 from pathlib import Path
 from Crypto.Cipher import AES, PKCS1_OAEP # pycryptodome
 from Crypto.PublicKey import RSA
@@ -40,7 +41,7 @@ class _user(db._document):
         else:
             return None
 
-    def setAttribute(self,attr,value):
+    def setAttribute(self,attr,value,sessionData=None):
         if attr == "passwordHash" and not helpers.isBase64(value):
             if meetsPasswordPolicy(value):
                 result = generatePasswordHash(value, self.username)
@@ -50,7 +51,7 @@ class _user(db._document):
                 return True
             else:
                 return False
-        setattr(self,attr,value)
+        setattr(self,attr,value,sessionData=sessionData)
         return True
 
     def newAPIToken(self):
@@ -342,8 +343,8 @@ if api.webServer:
             if len(user) == 1:
                 user = user[0]
                 data = json.loads(api.request.data)
-                user.setAttribute("passwordHash",data["data"]["passwordHash"])
-                user.setAttribute("name",data["data"]["name"])
+                user.setAttribute("passwordHash",data["data"]["passwordHash"],sessionData=api.g["sessionData"])
+                user.setAttribute("name",data["data"]["name"],sessionData=api.g["sessionData"])
                 user.update(["name","passwordHash","apiTokens"])
                 return {}, 200
             return {}, 403

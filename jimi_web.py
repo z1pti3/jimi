@@ -287,7 +287,7 @@ def setConductFlowLogic(conductID,flowID,nextflowID):
 								flow["next"][key] = {"flowID" : nextFlow["flowID"], "logic" : int(data["logic"])}
 							except ValueError:
 								return { }, 403
-						conductObj.update(["flow"])
+						conductObj.update(["flow"],sessionData=api.g["sessionData"])
 						return { }, 200
 	else:
 		return {},403
@@ -367,7 +367,7 @@ def setConductFlow(conductID,flowID):
 				# Set conduct flow to correct type and objectID
 				flow["type"] = modelFlowObjectType
 				flow["{0}{1}".format(modelFlowObjectType,"ID")] = str(newFlowObjectID)
-				conductObj.update(["flow"])
+				conductObj.update(["flow"],sessionData=api.g["sessionData"])
 
 		# Updating new or existing modeFlowObject
 		if modelFlowObject:
@@ -384,7 +384,7 @@ def setConductFlow(conductID,flowID):
 						fieldAccessPermitted = True
 						# Checking if sessionData is permitted field level access
 						if _class.acl and not adminBypass:
-							fieldAccessPermitted = db.fieldACLAccess(accessIDs,_class.acl,dataKey,"write")
+							fieldAccessPermitted = db.fieldACLAccess(api.g["sessionData"],_class.acl,dataKey,"write")
 						if fieldAccessPermitted:
 							# Change update database entry _id
 							if dataKey not in unsafeUpdateList:
@@ -393,39 +393,39 @@ def setConductFlow(conductID,flowID):
 									changeLog[dataKey]["currentValue"] = getattr(_class, dataKey)
 									if type(getattr(_class, dataKey)) is str:
 										if dataValue:
-											if _class.setAttribute(dataKey, str(dataValue)):
+											if _class.setAttribute(dataKey, str(dataValue),sessionData=api.g["sessionData"]):
 												updateItemsList.append(dataKey)
 												changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
 									elif type(getattr(_class, dataKey)) is int:
 										try:
-											if _class.setAttribute(dataKey, int(dataValue)):
+											if _class.setAttribute(dataKey, int(dataValue),sessionData=api.g["sessionData"]):
 												updateItemsList.append(dataKey)
 												changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
 										except ValueError:
-											if _class.setAttribute(dataKey, 0):
+											if _class.setAttribute(dataKey, 0,sessionData=api.g["sessionData"]):
 												updateItemsList.append(dataKey)
 												changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
 									elif type(getattr(_class, dataKey)) is float:
 										try:
-											if _class.setAttribute(dataKey, float(dataValue)):
+											if _class.setAttribute(dataKey, float(dataValue),sessionData=api.g["sessionData"]):
 												updateItemsList.append(dataKey)
 												changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
 										except ValueError:
-											if _class.setAttribute(dataKey, 0):
+											if _class.setAttribute(dataKey, 0,sessionData=api.g["sessionData"]):
 												updateItemsList.append(dataKey)
 												changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
 									elif type(getattr(_class, dataKey)) is bool:
-										if _class.setAttribute(dataKey, bool(dataValue)):
+										if _class.setAttribute(dataKey, bool(dataValue),sessionData=api.g["sessionData"]):
 											updateItemsList.append(dataKey)
 											changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
 									elif type(getattr(_class, dataKey)) is dict or type(getattr(_class, dataKey)) is list:
 										if dataValue:
-											if _class.setAttribute(dataKey, json.loads(dataValue)):
+											if _class.setAttribute(dataKey, json.loads(dataValue),sessionData=api.g["sessionData"]):
 												updateItemsList.append(dataKey)
 												changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
 					# Commit back to database
 					if updateItemsList:
-						_class.update(updateItemsList)
+						_class.update(updateItemsList,sessionData=api.g["sessionData"])
 						# Adding audit record
 						if "_id" in api.g["sessionData"]:
 							audit._audit().add("model","update",{ "_id" : api.g["sessionData"]["_id"], "objects" : helpers.unicodeEscapeDict(changeLog) })
@@ -473,7 +473,7 @@ def saveConduct(conductID):
 				"next" : []
 			}
 			conductObj.flow.append(flow)
-			conductObj.update(["flow"])
+			conductObj.update(["flow"],sessionData=api.g["sessionData"])
 			return { "result" : True, "flowID" :  newFlowID}, 201
 		else:
 			return {},403
@@ -531,12 +531,12 @@ def saveConduct(conductID):
 								if member not in dontCopy:
 									setattr(modelFlowObjectClone,member,getattr(modelFlowObject,member))
 									updateList.append(member)
-							modelFlowObjectClone.update(updateList)
+							modelFlowObjectClone.update(updateList,sessionData=api.g["sessionData"])
 
 							# Set conduct flow to correct type and objectID
 							flow["{0}{1}".format(flow["type"],"ID")] = str(newFlowObjectID)
 							conductObj.flow.append(flow)
-							conductObj.update(["flow"])
+							conductObj.update(["flow"],sessionData=api.g["sessionData"])
 			return { "result" : True, "flowID" :  newFlowID}, 201
 		else:
 			return {},403
@@ -557,7 +557,7 @@ def saveConduct(conductID):
 				flow["type"] = "action"
 				flow["actionID"] = data["actionID"]
 			conductObj.flow.append(flow)
-			conductObj.update(["flow"])
+			conductObj.update(["flow"],sessionData=api.g["sessionData"])
 			return { "result" : True, "flowID" :  newFlowID}, 201
 		else:
 			return {},403
@@ -573,7 +573,7 @@ def saveConduct(conductID):
 					newFlowData["{}>{}".format(flowData['links'][flow]['fromOperator'],flowData['links'][flow]['toOperator'])] = flowData['links'][flow]
 					flowPopList.append(flow)
 			if len(newFlowData) > 0:
-				flowData['links'].update(newFlowData)
+				flowData['links'].update(newFlowData,sessionData=api.g["sessionData"])
 				for popItem in flowPopList:
 					flowData['links'].pop(popItem)
 			poplistOperator = []
@@ -642,14 +642,14 @@ def saveConduct(conductID):
 					pass
 
 			# Updating all possible updated values
-			conductObj.update(["flow","name","enabled","acl"])
+			conductObj.update(["flow","name","enabled","acl"],sessionData=api.g["sessionData"])
 				
 			existingFlow = webui._flowData().query(query={"conductID" : conductID})["results"]
 			if len(existingFlow) > 0:
 				existingFlow = existingFlow[0]
 				existingFlow = webui._flowData().load(existingFlow["_id"])
 				existingFlow.flowData = flowData
-				existingFlow.update(["flowData"])
+				existingFlow.update(["flowData"],sessionData=api.g["sessionData"])
 			else:
 				webui._flowData().new(conductID,flowData)
 				return { "result" : True, "flowData" : flowData }, 201

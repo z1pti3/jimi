@@ -38,7 +38,7 @@ class _conduct(db._document):
         else:
             return None
 
-    def setAttribute(self,attr,value):
+    def setAttribute(self,attr,value,sessionData=None):
         if attr == "name":
             results = self.query(query={"name" : value, "_id" : { "$ne" : db.ObjectId(self._id) }})["results"]
             if len(results) != 0:

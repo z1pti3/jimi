@@ -208,7 +208,7 @@ if api.webServer:
                                 fieldAccessPermitted = True
                                 # Checking if sessionData is permitted field level access
                                 if _class.acl and not adminBypass:
-                                    fieldAccessPermitted = db.fieldACLAccess(accessIDs,_class.acl,dataKey,"write")
+                                    fieldAccessPermitted = db.fieldACLAccess(api.g["sessionData"],_class.acl,dataKey,"write")
 
                                 if fieldAccessPermitted:
                                     # _id is a protected mongodb object and cant be updated
@@ -218,25 +218,25 @@ if api.webServer:
                                             changeLog[dataKey]["currentValue"] = getattr(_class, dataKey)
                                             if type(getattr(_class, dataKey)) is str:
                                                 if dataValue:
-                                                    if _class.setAttribute(dataKey, str(dataValue)):
+                                                    if _class.setAttribute(dataKey, str(dataValue),sessionData=api.g["sessionData"]):
                                                         updateItemsList.append(dataKey)
                                                         changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
                                             elif type(getattr(_class, dataKey)) is int:
                                                 try:
-                                                    if _class.setAttribute(dataKey, int(dataValue)):
+                                                    if _class.setAttribute(dataKey, int(dataValue),sessionData=api.g["sessionData"]):
                                                         updateItemsList.append(dataKey)
                                                         changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
                                                 except ValueError:
-                                                    if _class.setAttribute(dataKey, 0):
+                                                    if _class.setAttribute(dataKey, 0,sessionData=api.g["sessionData"]):
                                                         updateItemsList.append(dataKey)
                                                         changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
                                             elif type(getattr(_class, dataKey)) is float:
                                                 try:
-                                                    if _class.setAttribute(dataKey, float(dataValue)):
+                                                    if _class.setAttribute(dataKey, float(dataValue),sessionData=api.g["sessionData"]):
                                                         updateItemsList.append(dataKey)
                                                         changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
                                                 except ValueError:
-                                                    if _class.setAttribute(dataKey, 0):
+                                                    if _class.setAttribute(dataKey, 0,sessionData=api.g["sessionData"]):
                                                         updateItemsList.append(dataKey)
                                                         changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
                                             elif type(getattr(_class, dataKey)) is bool:
@@ -246,12 +246,12 @@ if api.webServer:
                                                         dataValue = True
                                                     else:
                                                         dataValue = False
-                                                if _class.setAttribute(dataKey, dataValue):
+                                                if _class.setAttribute(dataKey, dataValue,sessionData=api.g["sessionData"]):
                                                     updateItemsList.append(dataKey)
                                                     changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
                                             elif type(getattr(_class, dataKey)) is dict or type(getattr(_class, dataKey)) is list:
                                                 if dataValue:
-                                                    if _class.setAttribute(dataKey, json.loads(dataValue)):
+                                                    if _class.setAttribute(dataKey, json.loads(dataValue),sessionData=api.g["sessionData"]):
                                                         updateItemsList.append(dataKey)
                                                         changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
                             # Commit back to database
