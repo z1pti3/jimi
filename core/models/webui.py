@@ -50,7 +50,7 @@ class _properties():
             return "<input type='checkbox' id='properties_items{0}'></input>".format(id)
 
         formData = []
-        blacklist = ["_id","acl","classID","workerID"]
+        blacklist = ["acl","classID","workerID"]
         members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
         for member in members:
             if member not in blacklist:
