@@ -252,15 +252,17 @@ def deleteFlow(conductID,flowID):
         conductObj = conductObj[0]
     else:
         return { }, 404
-    flow = [ x for x in conductObj.flow if x["flowID"] ==  flowID]
-    if len(flow) == 1:
-        flow = flow[0]
-        for flowItemsValue in conductObj.flow:
-            for nextflowValue in flowItemsValue["next"]:
-                if nextflowValue["flowID"] == flowID:
-                    conductObj.flow[conductObj.flow.index(flowItemsValue)]["next"].remove(nextflowValue)
-        conductObj.flow.remove(flow)
-        conductObj.update(["flow"])
+    access, accessIDs, adminBypass = db.ACLAccess(api.g["sessionData"],conductObj.acl,"write")
+    if access:
+        flow = [ x for x in conductObj.flow if x["flowID"] ==  flowID]
+        if len(flow) == 1:
+            flow = flow[0]
+            for flowItemsValue in conductObj.flow:
+                for nextflowValue in flowItemsValue["next"]:
+                    if nextflowValue["flowID"] == flowID:
+                        conductObj.flow[conductObj.flow.index(flowItemsValue)]["next"].remove(nextflowValue)
+            conductObj.flow.remove(flow)
+            conductObj.update(["flow"])
         return { }, 200
     else:
         return { }, 404
