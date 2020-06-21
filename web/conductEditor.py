@@ -56,6 +56,7 @@ def conductFlowchartPoll(conductID):
                     flowchartResponseType = "update"
                 # Setting position if it has changed since last pollTime
                 foundFlowUI = False
+                foundObject = False
                 name = flow["flowID"]
                 node = {}
                 for flowUI in flowsUI:
@@ -99,6 +100,7 @@ def conductFlowchartPoll(conductID):
                                             node["color"] = { "background" : color }
                                         if label != flowchartOperators[flowID]["node"]["label"]:
                                             node["label"] = label
+                                    foundObject = True
                                     break
                         elif flow["type"] == "action":
                             for a in actions:
@@ -120,8 +122,12 @@ def conductFlowchartPoll(conductID):
                                             node["color"] = { "background" : color }
                                         if label != flowchartOperators[flowID]["node"]["label"]:
                                             node["label"] = label
+                                    foundObject = True
                                     break
                         if node:
+                            if not foundObject:
+                                node["label"] = "Unknown Object"
+                                node["color"] = { "background" : "black" }
                             flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "name" : name, "node" : node }
                         break
                 if not foundFlowUI:
@@ -132,7 +138,7 @@ def conductFlowchartPoll(conductID):
                     node["heightConstraint"] = { "minimum": 35, "maximum": 35 }
                     node["borderWidth"] = 1.5
                     node["label"] = "Unknown Object"
-                    node["color"] = { "background" : "#7cbeeb" }
+                    node["color"] = { "background" : "black" }
                     flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "node" : node }
  
                 # Do any links need to be created
@@ -492,12 +498,14 @@ def deleteFlowLink(conductID,fromFlowID,toFlowID):
         return { }, 404
     access, accessIDs, adminBypass = db.ACLAccess(api.g["sessionData"],conductObj.acl,"write")
     if access:
-        fromFlow = [ x for x in conductObj.flow if x["flowID"] ==  fromFlowID][0]
-        for nextflow in fromFlow["next"]:
-            if nextflow["flowID"] == toFlowID:
-                conductObj.flow[conductObj.flow.index(fromFlow)]["next"].remove(nextflow)
-                conductObj.update(["flow"])
-                return { }, 200
+        fromFlow = [ x for x in conductObj.flow if x["flowID"] ==  fromFlowID]
+        if len(fromFlow) > 0:
+            fromFlow = fromFlow[0]
+            for nextflow in fromFlow["next"]:
+                if nextflow["flowID"] == toFlowID:
+                    conductObj.flow[conductObj.flow.index(fromFlow)]["next"].remove(nextflow)
+                    conductObj.update(["flow"])
+                    return { }, 200
         return { }, 404
     else:
         return {}, 403
