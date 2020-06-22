@@ -2,7 +2,7 @@ import re
 
 from core import logging, helpers, function
 
-def ifEval(logicString,dicts={}):
+def ifEval(logicString,dicts={},debug=False):
     functionSafeList = function.systemFunctions
     if "if " == logicString[:3]:
         tempLogic = logicString[3:]
@@ -17,13 +17,19 @@ def ifEval(logicString,dicts={}):
         if re.search('^(True|False|\(|\)| |or|and|not)*$',tempLogic):
             result = eval(tempLogic) # Can be an unsafe call be very careful with this!
             logging.debug("Action logicEval completed, result='{0}'".format(result),10)
+            if debug:
+                return (tempLogic, result)
             return result
         else:
             logging.debug("Action logicEval tempLogic contains unsafe items, tempLogic='{0}'".format(tempLogic),3)
     else:
         # Return true if string does not start "if " e.g. if is not defined
+        if debug:
+            return ("", True)
         return True
     # Default False
+    if debug:
+        return ("", False)
     return False
 
 def logicProcess(statement):

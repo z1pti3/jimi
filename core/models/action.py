@@ -62,13 +62,16 @@ class _action(db._document):
         self.runHeader(data,persistentData,actionResult)
         if self.logicString.startswith("if"):
             debugText="Checking logic ({0}) = ".format(self.logicString)
-            if logic.ifEval(self.logicString, { "data" : data }):
+            if debug:
+                logicDebugText, logicResult = logic.ifEval(self.logicString, { "data" : data }, debug=True)
+                debugText+="{0}\nLogic Debug ({1})".format(logicResult,logicDebugText)
+            else:
+                logicResult = logic.ifEval(self.logicString, { "data" : data })
+            if logicResult:
                 self.run(data,persistentData,actionResult)
                 if self.varDefinitions:
                     data["var"] = variable.varEval(self.varDefinitions,data["var"],{ "data" : data, "action" : actionResult})
-                debugText+="Pass"
             else:
-                debugText+="Failed"
                 actionResult["result"] = False
                 actionResult["rc"] = -100
         else:
