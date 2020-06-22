@@ -84,7 +84,7 @@ def conductFlowchartPoll(conductID):
                                     duration = t.maxDuration
                                     if duration == 0:
                                         duration = 60
-                                    if ((t.startCheck != 0) and (t.startCheck + duration > time.time())):
+                                    if (((t.startCheck != 0) and (t.startCheck + duration > time.time())) or (t.lastCheck > time.time()-2.5)):
                                         color = "green"
                                     if ((t.startCheck != 0) and (t.startCheck + duration < time.time())):
                                         color = "red"
