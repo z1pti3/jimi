@@ -55,16 +55,20 @@ class _action(db._document):
         setattr(self,attr,value)
         return True
 
-    def runHandler(self,data,persistentData):
+    def runHandler(self,data,persistentData,debug=False):
         startTime = time.time()
+        debugText=""
         actionResult = { "result" : False, "rc" : -1, "actionID" : self._id, "data" : {} }
         self.runHeader(data,persistentData,actionResult)
         if self.logicString.startswith("if"):
+            debugText="Checking logic {0} = ".format(self.logicString)
             if logic.ifEval(self.logicString, { "data" : data }):
                 self.run(data,persistentData,actionResult)
                 if self.varDefinitions:
                     data["var"] = variable.varEval(self.varDefinitions,data["var"],{ "data" : data, "action" : actionResult})
+                debugText+="Pass"
             else:
+                debugText+="Failed"
                 actionResult["result"] = False
                 actionResult["rc"] = -100
         else:
@@ -72,6 +76,8 @@ class _action(db._document):
             if self.varDefinitions:
                 data["var"] = variable.varEval(self.varDefinitions,data["var"],{ "data" : data, "action" : actionResult})
         self.runFooter(data,persistentData,actionResult,startTime)
+        if debug:
+            return (debugText, actionResult)
         return actionResult
 
     def runHeader(self,data,persistentData,actionResult):
