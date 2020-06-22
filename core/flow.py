@@ -42,7 +42,13 @@ def getObjectFromCode(codeFunction):
     members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
     for arg in args:
         key = arg.split("=")[0]
-        value = helpers.typeCast(arg[len(key)+1:])
+        if len(arg[len(key)+1:]) > 2:
+            if ((arg[len(key)+1:][1] == "[" or arg[len(key)+1:][1] == "{") and (arg[len(key)+1:][-2] == "]" or arg[len(key)+1:][-2] == "}")):
+                value = helpers.typeCast(arg[len(key)+1:][1:-1])
+            else:
+                value = helpers.typeCast(arg[len(key)+1:])
+        else:
+            value = helpers.typeCast(arg[len(key)+1:])
         for member in members:
             if key == member:
                 if type(getattr(classObject,member)) == type(value):
@@ -66,21 +72,25 @@ def executeCodifyFlow(eventsData,codifyData):
     flows = []
     flowLevel = {}
     for flow in codifyData.split("\n"):
-        flowIndentLevel = len(flow.split("\t"))-1
-        if flowIndentLevel == 0:
-            events = helpers.typeCast(eventsData)
-            classObject = getObjectFromCode(flow)
-            if type(events) != list:
-                classObject.checkHeader()
-                classObject.check()
-                events = classObject.result["events"]
-            flows.append({ "events": events, "classObject" : classObject, "type" : "trigger", "codeLine" : flow, "next" : [] })
-            if flowIndentLevel not in flowLevel:
+        if flow:
+            flowIndentLevel = len(flow.split("\t"))-1
+            flow = flow.replace("\t","")
+            if flowIndentLevel == 0:
+                events = helpers.typeCast(eventsData)
+                classObject = getObjectFromCode(flow)
+                if type(events) != list:
+                    classObject.checkHeader()
+                    classObject.check()
+                    events = classObject.result["events"]
+                flows.append({ "events": events, "classObject" : classObject, "type" : "trigger", "codeLine" : flow, "next" : [] })
                 flowLevel[flowIndentLevel] = flows[-1]
-        else:
-            classObject = getObjectFromCode(flow.split("->")[1])
-            flowLevel[flowIndentLevel-1]["next"].append({ "classObject" : classObject, "type" : "action", "codeLine" : flow.split("->")[1], "logic" : flow.split("->")[0], "next" : [] })
-            if flowIndentLevel not in flowLevel:
+            else:
+                if len(flow.split("->")) == 2:
+                    classObject = getObjectFromCode(flow.split("->")[1])
+                    flowLevel[flowIndentLevel-1]["next"].append({ "classObject" : classObject, "type" : "action", "codeLine" : flow.split("->")[1], "logic" : flow.split("->")[0], "next" : [] })
+                else:
+                    classObject = getObjectFromCode(flow)
+                    flowLevel[flowIndentLevel-1]["next"].append({ "classObject" : classObject, "type" : "action", "codeLine" : flow, "logic" : "logic(True)", "next" : [] })
                 flowLevel[flowIndentLevel] = flowLevel[flowIndentLevel-1]["next"][-1]
         
     # Execute Flow
@@ -99,6 +109,7 @@ def executeCodifyFlow(eventsData,codifyData):
                         outputText+="\ndata={0}".format(data)
                         objectContinue = True
                         if currentObject.logicString.startswith("if"):
+                            outputText+="\nChecking logic - {0}".format(currentObject.logicString)
                             if logic.ifEval(currentObject.logicString,{ "data" : data}):
                                 outputText+="\nLogic Pass"
                                 if currentObject.varDefinitions:
@@ -123,8 +134,8 @@ def executeCodifyFlow(eventsData,codifyData):
                         if currentObject.enabled:
                             outputText+="\nExecuted {0}".format(currentFlow["codeLine"])
                             outputText+="\ndata={0}".format(data)
-                            logic = re.sub('\W','',currentFlow["logic"])
-                            logic = logic[5:]
+                            logic = currentFlow["logic"][5:]
+                            outputText+="\nChecking Flow logic - {0}".format(logic)
                             if flowLogicEval(data,helpers.typeCast(logic)):
                                 outputText+="\nFlow Logic Pass"
                                 data["action"] = currentObject.runHandler(data,persistentData)

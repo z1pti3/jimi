@@ -197,6 +197,11 @@ def getConductFlowCodify(conductID):
                             value = getattr(obj,member)
                             if type(value) == str:
                                 value="\"{0}\"".format(value)
+                            elif type(value) == dict:
+                                value="\"{0}\"".format(value)
+                            elif type(value) == list:
+                                value="\"{0}\"".format(value)
+
                             
                             params.append("{0}={1}".format(member,value))
                     
