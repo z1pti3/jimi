@@ -48,7 +48,7 @@ sum(a,b,etc,etc) - Adds all supplied ints
 
 cidr(address, addressRange) - True if IPv4 address given is within network CIDR provided
 
-**Install**
+**Install:**
 1. Install and configure MongoDB
 2. Install python requirements from requirements.py
 3. Create data directroy and within this directoy place settings.json and an RSA public and private key
@@ -130,9 +130,6 @@ settings.json - Sample:
             "minUpper" : 1,
             "minSpecial" : 0
         }
-    },
-    "humio" : {
-
     }
 }
 ```
