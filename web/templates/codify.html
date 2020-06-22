@@ -32,7 +32,7 @@
       <textarea id="codeEditor" class="inputFullWidth" style="height: 350px;" wrap="soft"></textarea></br>
       <button id="run">Run</button></br>
       Output:<br>
-      <pre id="output"></pre>
+      <textarea id="output" class="inputFullWidth" style="height: 250px;" wrap="soft"></textarea></br>
 		</div>
 		
 	</body>
@@ -44,6 +44,7 @@
 
 <script>
   $("#run").click(function () {
+    $('#output').text("Running...")
     $.ajax({url: "/codify/", type:"POST", data:JSON.stringify({ events: $('#events').val(), code: $('#codeEditor').val(), CSRF: CSRF }), contentType:"application/json", success: function(result) {
         $('#output').text(result["result"])
       } 
