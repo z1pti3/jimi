@@ -51,7 +51,7 @@ class _user(db._document):
                 return True
             else:
                 return False
-        setattr(self,attr,value,sessionData=sessionData)
+        setattr(self,attr,value)
         return True
 
     def newAPIToken(self):
