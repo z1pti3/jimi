@@ -91,7 +91,7 @@ def conductFlowchartPoll(conductID):
                                     if not t.enabled:
                                         color = "gray"
 
-                                    label = "<b>{0}</b>\n{1}".format(t.name,modeClass.name)
+                                    label = "({0},{1})\n<b>{2}</b>\n{3}".format(t.systemID,t.clusterSet,t.name,modeClass.name)
                                     if flowchartResponseType == "create":
                                         node["label"] = label
                                         node["color"] = { "background" : color }

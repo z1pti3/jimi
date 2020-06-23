@@ -13,6 +13,7 @@ class _trigger(db._document):
     enabled = bool()
     log = bool()
     clusterSet = int()
+    systemID = int()
     comment = str()
     maxDuration = int()
     logicString = str()
