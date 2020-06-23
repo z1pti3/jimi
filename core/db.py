@@ -295,7 +295,7 @@ from core import settings, logging, helpers, model
 mongodbSettings = settings.config["mongodb"]
 authSettings = settings.config["auth"]
 
-dbClient = pymongo.MongoClient("mongodb://{0}:{1}/".format(mongodbSettings["host"],mongodbSettings["port"]))
+dbClient = pymongo.MongoClient(mongodbSettings["hosts"],username=mongodbSettings["username"],password=mongodbSettings["password"])
 
 db = dbClient[mongodbSettings["db"]]
 
