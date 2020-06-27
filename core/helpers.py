@@ -51,7 +51,7 @@ def evalString(varString,dicts={},functionSafeList=functionSafeList):
     evalMatches = regexEvalString.findall(varString)
     for evalMatch in evalMatches:
         if results is not None:
-            results = typeCast(results.replace(evalMatch[0],str(typeCast(evalMatch[1],dicts,functionSafeList))))
+            results = typeCast(results.replace(evalMatch[0],str(typeCast(evalMatch[1],dicts,functionSafeList)).strip()))
     return results
 
 def evalDict(varDict,dicts={},functionSafeList=functionSafeList):
