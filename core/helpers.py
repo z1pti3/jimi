@@ -11,6 +11,7 @@ from types import ModuleType, FunctionType
 from gc import get_referents
 import json
 import ast
+import time
 
 from bson.objectid import ObjectId 
 from core import settings, function
@@ -25,6 +26,18 @@ regexFunctionOpen = re.compile("^([a-zA-Z0-9]*)\(.*")
 regexCommor = re.compile(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")
 regexInt = re.compile("^[0-9]*$")
 regexFloat = re.compile("^[0-9]*\.[0-9]*$")
+
+class cpuSaver():
+    loops = 0
+
+    def __init__(self):
+        self.cpuSaver = settings.config["cpuSaver"]
+
+    def tick(self):
+        if self.cpuSaver:
+            if self.loops > self.cpuSaver["loopL"]:
+                self.loops = 0
+                time.sleep(self.cpuSaver["loopT"])
 
 # Return evaluated dictionary of list seperated varibles ['test','this is a test %data["event"]["tick"]%']
 def defineVars(varDefinitions,dicts={},functionSafeList=functionSafeList):

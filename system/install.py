@@ -7,7 +7,7 @@ import string
 from core import db
 
 # Current System Version
-systemVersion = 1.0
+systemVersion = 1.01
 
 # Initialize 
 dbCollectionName = "system"
@@ -161,6 +161,7 @@ def systemInstall():
 
 	# System - Actions
 	from core.models import action
+	# resetTrigger
 	actions = action._action().query(query={"name" : "resetTrigger"})["results"]
 	if len(actions) < 1:
 		from system.models import action as systemAction
@@ -173,6 +174,10 @@ def systemInstall():
 		temp = temp[0]
 		temp.hidden = True
 		temp.update(["hidden"])
+	# forEach
+	actions = action._action().query(query={"name" : "forEach"})["results"]
+	if len(actions) < 1:
+		model.registerModel("forEach","_forEach","_action","system.models.forEach")
 
 	from core import auth
 
@@ -218,6 +223,13 @@ def systemUpgrade(currentVersion):
 				pluginClass = pluginClass[0]
 				pluginClass.upgradeHandler()
 		return True
+	
+	if currentVersion < 1.01:
+		# forEach
+		from core.models import action
+		actions = action._action().query(query={"name" : "forEach"})["results"]
+		if len(actions) < 1:
+			model.registerModel("forEach","_forEach","_action","system.models.forEach")
 
 	upgradeInstalledPlugins()
 	return True
