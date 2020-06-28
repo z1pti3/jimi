@@ -299,3 +299,7 @@ def getObjectMemoryUsage(obj):
                 need_referents.append(obj)
         objects = get_referents(*need_referents)
     return size
+
+def lower_dict(d):
+    new_dict = dict((k.lower(), v) for k, v in d.items())
+    return new_dict
