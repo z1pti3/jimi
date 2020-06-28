@@ -27,3 +27,5 @@ Highly customizable using loops, if logic, variables, in-build functions and eas
 Checkout the wiki for more details and installation instructions
 
 ![Screenshot](examples/screenshots/screenshot1.png)
+
+![Screenshot](examples/screenshots/screenshot2.png)
