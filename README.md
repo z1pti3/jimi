@@ -13,6 +13,8 @@
     `Y888888 '               8 8888           ,8'         `         `8.`8888.            8 8888
 ```
 
+Simple yet powerfull
+
 A python based automation and scheduler platform, but can be used to acheive a number of things:
 * Security incident detection by polling event management solutions
 * IT ticket automation, open, close and update tickets
@@ -27,3 +29,7 @@ Highly customizable using loops, if logic, variables, in-build functions and eas
 Checkout the wiki for more details and installation instructions
 
 ![Screenshot](examples/screenshots/screenshot1.png)
+
+![Screenshot](examples/screenshots/screenshot2.png)
+
+![Screenshot](examples/screenshots/screenshot3.png)
