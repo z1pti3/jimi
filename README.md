@@ -26,6 +26,12 @@ A python based automation and scheduler platform, but can be used to acheive a n
 
 Highly customizable using loops, if logic, variables, in-build functions and easily expandable using plugins
 
+Other Features:
+* Multi-user and group
+* Object and field level ACL
+* Cluster support with active/active and automatic failover
+* CLI for debugging
+
 Checkout the wiki for more details and installation instructions
 
 ![Screenshot](examples/screenshots/screenshot1.png)
