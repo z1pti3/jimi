@@ -13,7 +13,7 @@
     `Y888888 '               8 8888           ,8'         `         `8.`8888.            8 8888
 ```
 
-https://github.com/z1pti3/jimi/raw/v1.1/examples/screenshots/screenshot1.png
+!(https://github.com/z1pti3/jimi/raw/v1.1/examples/screenshots/screenshot1.png)
 
 A python based automation and scheduler platform, but can be used to acheive a number of things:
 * Security incident detection by polling event management solutions
