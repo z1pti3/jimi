@@ -25,3 +25,5 @@ A python based automation and scheduler platform, but can be used to acheive a n
 Highly customizable using loops, if logic, variables, in-build functions and easily expandable using plugins
 
 Checkout the wiki for more details and installation instructions
+
+![Screenshot](examples/screenshots/screenshot1.png)
