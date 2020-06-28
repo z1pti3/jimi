@@ -31,6 +31,7 @@ Other Features:
 * Object and field level ACL
 * Cluster support with active/active and automatic failover
 * CLI for debugging
+* Audit logging
 
 Checkout the wiki for more details and installation instructions
 
