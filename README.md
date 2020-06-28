@@ -29,3 +29,5 @@ Checkout the wiki for more details and installation instructions
 ![Screenshot](examples/screenshots/screenshot1.png)
 
 ![Screenshot](examples/screenshots/screenshot2.png)
+
+![Screenshot](examples/screenshots/screenshot3.png)
