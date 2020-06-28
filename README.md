@@ -32,6 +32,10 @@ Other Features:
 * Cluster support with active/active and automatic failover
 * CLI for debugging
 * Audit logging
+* Logic within object and connecting lines
+* Pass variables
+* Threading and concurrency options
+* Expandable using plugins
 
 Checkout the wiki for more details and installation instructions
 
