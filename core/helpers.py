@@ -281,7 +281,6 @@ def isBase64(s):
             pass
     return False
 
-
 def getObjectMemoryUsage(obj):
     BLACKLIST = type, ModuleType, FunctionType
     """sum size of object & members."""
