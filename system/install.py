@@ -25,7 +25,7 @@ class _system(db._document):
 		result = self._dbCollection.insert_one({ "name" : name })
 		return result
 
-from core import db, logging, model, settings
+from core import db, logging, model, settings, plugin
 
 systemSettings = settings.config["system"]
 
@@ -86,6 +86,8 @@ def setup():
 			logging.debug("Starting system upgrade completed",-1)
 		else:
 			sys.exit("Unable to complete upgrade")
+
+	plugin.updatePluginDB()
 
 # Set startCheck to 0 so that all triggers start
 def resetTriggers():

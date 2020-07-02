@@ -199,5 +199,3 @@ def updatePluginDB():
 # Cleans all object references for non-existent plugin models
 def cleanPluginDB():
     pass
-
-updatePluginDB()
