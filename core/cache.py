@@ -3,7 +3,7 @@ import copy
 
 from core import helpers, logging
 
-class _cache():
+class _cache:
     objects = dict()
 
     def newCache(self,cacheName,maxSize=10485760,cacheExpiry=60,sessionData=None):
@@ -58,7 +58,16 @@ class _cache():
         cacheExpiry = self.objects[authedCacheName]["cacheExpiry"]
         if customCacheTime != None:
             cacheExpiry = customCacheTime
+
+        # newObjectSize = helpers.getObjectMemoryUsage(objectValue)
+        # currentCacheSzie = helpers.getObjectMemoryUsage(self.objects[authedCacheName]["objects"])
+        # memoryNeeded = (currentCacheSzie + newObjectSize) - self.objects[authedCacheName]["maxSize"]
+        # if memoryNeeded > 0:
+        #     if not self.reduceSize(cacheName,memoryNeeded,sessionData=sessionData):
+        #         logging.debug("ERROR - Cache store full and unable to free enough space for new object, name={0}".format(authedCacheName),1)
+        #         return False
         self.objects[authedCacheName]["objects"][uid] = { "objectValue" : objectValue, "accessCount" : 0, "cacheExpiry" : (now + cacheExpiry) }
+        return True
 
     def append(self,cacheName,uid,appendValue,sessionData=None):
         authedCacheName = self.checkSessionData(cacheName,sessionData)
@@ -117,13 +126,15 @@ class _cache():
             newObject = setFunction(uid,sessionData,*args)
         else:
             newObject = setFunction(uid,sessionData)
-        newObjectSize = helpers.getObjectMemoryUsage(newObject)
-        currentCacheSzie = helpers.getObjectMemoryUsage(self.objects[authedCacheName]["objects"])
-        memoryNeeded = (currentCacheSzie + newObjectSize) - self.objects[authedCacheName]["maxSize"]
-        if memoryNeeded > 0:
-            if not self.reduceSize(cacheName,memoryNeeded,sessionData=sessionData):
-                logging.debug("ERROR - Cache store full and unable to free enough space for new object, name={0}".format(authedCacheName),5)
-                return (False, newObject)
+
+        # if newObject != None:
+            # newObjectSize = helpers.getObjectMemoryUsage(newObject)
+            # currentCacheSzie = helpers.getObjectMemoryUsage(self.objects[authedCacheName]["objects"])
+            # memoryNeeded = (currentCacheSzie + newObjectSize) - self.objects[authedCacheName]["maxSize"]
+            # if memoryNeeded > 0:
+            #     if not self.reduceSize(cacheName,memoryNeeded,sessionData=sessionData):
+            #         logging.debug("ERROR - Cache store full and unable to free enough space for new object, name={0}".format(authedCacheName),1)
+            #         return (False, newObject)
         return (True, newObject)
 
     def reduceSize(self,cacheName,amountToFree,sessionData=None):
@@ -160,7 +171,10 @@ class _cache():
                     break
 
         for item in poplist:
-            del self.objects[authedCacheName]["objects"][item]
+            try:
+                del self.objects[authedCacheName]["objects"][item]
+            except:
+                pass
 
         if amountReduced >= amountToFree:
             return True
