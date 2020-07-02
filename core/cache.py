@@ -41,8 +41,30 @@ class _cache():
         c = copy.deepcopy(self.objects)
         return c
 
+    def insert(self,cacheName,uid,objectValue,sessionData=None):
+        authedCacheName = self.checkSessionData(cacheName,sessionData)
+        if authedCacheName == None:
+            return
+        now = time.time()
+        if authedCacheName not in self.objects:
+            self.newCache(authedCacheName)
+        self.objects[authedCacheName]["objects"][uid] = { "objectValue" : objectValue, "accessCount" : 0, "cacheExpiry" : (now + self.objects[authedCacheName]["cacheExpiry"]) }
 
-    def get(self,cacheName,uid,setFunction,*args,sessionData=None,extendCacheTime=False,forceUpdate=False):
+    def append(self,cacheName,uid,appendValue,sessionData=None):
+        authedCacheName = self.checkSessionData(cacheName,sessionData)
+        if authedCacheName == None:
+            return
+        if uid in self.objects[authedCacheName]["objects"]:
+            self.objects[authedCacheName]["objects"][uid]["objectValue"].append(appendValue)
+
+    def appendDict(self,cacheName,uid,appendKey,appendValue,sessionData=None):
+        authedCacheName = self.checkSessionData(cacheName,sessionData)
+        if authedCacheName == None:
+            return
+        if uid in self.objects[authedCacheName]["objects"]:
+            self.objects[authedCacheName]["objects"][uid]["objectValue"][appendKey] = appendValue
+
+    def get(self,cacheName,uid,setFunction,*args,sessionData=None,extendCacheTime=False,forceUpdate=False,nullUpdate=False,dontCheck=False):
         authedCacheName = self.checkSessionData(cacheName,sessionData)
         if authedCacheName == None:
             return
@@ -55,16 +77,19 @@ class _cache():
                 if extendCacheTime:
                     self.objects[authedCacheName]["objects"][uid]["cacheFor"] =  ( now + self.objects[authedCacheName]["cacheExpiry"] )
                 return self.objects[authedCacheName]["objects"][uid]["objectValue"]
-        cache, objectValue = self.getObjectValue(cacheName,uid,setFunction,*args,sessionData=sessionData)
-        if cache and objectValue:
-            if uid in self.objects[authedCacheName]["objects"]:
-                self.objects[authedCacheName]["objects"][uid]["objectValue"] = objectValue
-                self.objects[authedCacheName]["objects"][uid]["cacheExpiry"] = (now + self.objects[authedCacheName]["cacheExpiry"])
-                self.objects[authedCacheName]["objects"][uid]["accessCount"] += 1
+        if not dontCheck:
+            cache, objectValue = self.getObjectValue(cacheName,uid,setFunction,*args,sessionData=sessionData)
+            if cache and ( objectValue or nullUpdate ):
+                if uid in self.objects[authedCacheName]["objects"]:
+                    self.objects[authedCacheName]["objects"][uid]["objectValue"] = objectValue
+                    self.objects[authedCacheName]["objects"][uid]["cacheExpiry"] = (now + self.objects[authedCacheName]["cacheExpiry"])
+                    self.objects[authedCacheName]["objects"][uid]["accessCount"] += 1
+                else:
+                    self.objects[authedCacheName]["objects"][uid] = { "objectValue" : objectValue, "accessCount" : 0, "cacheExpiry" : (now + self.objects[authedCacheName]["cacheExpiry"]) }
+            if objectValue:
+                return objectValue
             else:
-                self.objects[authedCacheName]["objects"][uid] = { "objectValue" : objectValue, "accessCount" : 0, "cacheExpiry" : (now + self.objects[authedCacheName]["cacheExpiry"]) }
-        if objectValue:
-            return objectValue
+                return None
         else:
             return None
 

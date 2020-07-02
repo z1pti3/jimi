@@ -13,7 +13,7 @@ class _document():
     creationTime = int()
 
     def __init__(self):
-        pass
+        cache.globalCache.newCache("dbModelCache")
 
     # Wrapped mongo call that catches and retrys on error
     def mongoConnectionWrapper(func):
@@ -29,9 +29,8 @@ class _document():
 
     # Create new object
     @mongoConnectionWrapper
-    def new(self):
-        # Confirming that the new class has been regisrted as a model
-        result = model._model().query(query={"className" : self.__class__.__name__})["results"]
+    def new(self,sessionData=None):
+        result = cache.globalCache.get("dbModelCache",self.__class__.__name__,getClassByName,sessionData=sessionData,extendCacheTime=True)
         if len(result) == 1:
             result = result[0]
             self.classID = result["_id"]
@@ -42,6 +41,18 @@ class _document():
         else:
             logging.debug("Cannot create new document className='{0}' not found".format(self.__class__.__name__),3)
             return False
+
+    def asyncNew(self,sessionData=None):
+        result = cache.globalCache.get("dbModelCache",self.__class__.__name__,getClassByName,sessionData=sessionData,extendCacheTime=True)
+        if len(result) == 1:
+            result = result[0]
+            self.classID = result["_id"]
+            self.creationTime = int(time.time())
+            newAsyncOperaton(self._dbCollection.name,"insert",self)
+            return self
+        else:
+            logging.debug("Cannot create new document className='{0}' not found".format(self.__class__.__name__),3)
+            return None
 
     # Converts jsonList into class - Seperate function to getAsClass so it can be overridden to support plugin loading for child classes
     def loadAsClass(self,jsonList,sessionData=None):
@@ -87,6 +98,23 @@ class _document():
             update["$set"][field] = getattr(self,field)
         result = updateDocumentByID(self._dbCollection,self._id,update)
         return result
+
+    # Updated DB with latest values
+    @mongoConnectionWrapper
+    def asyncUpdate(self,fields,sessionData=None):
+        if sessionData:
+            for field in fields:
+                if not fieldACLAccess(sessionData,self.acl,field,"write"):
+                    return False
+        # Appendingh last update time to every update
+        fields.append("lastUpdateTime")
+        self.lastUpdateTime = time.time()
+
+        update = { "$set" : {} }
+        for field in fields:
+            update["$set"][field] = getattr(self,field)
+
+        newAsyncOperaton(self._dbCollection.name,"update",{"_id" : self._id, "update" : update})
         
     # Parse class into json dict
     def parse(self,hidden=False):
@@ -133,6 +161,14 @@ class _document():
         result = { "results" : [] }
         if fields is None:
             fields = []
+        # Ensure we pull required fields
+        if len(fields) > 0:
+            if "_id" not in fields:
+                fields.append("_id")
+            if "classID" not in fields:
+                fields.append("classID")
+            if "acl" not in fields:
+                fields.append("acl")
         if id and not query:
             try:
                 query = { "_id" : ObjectId(id) }
@@ -290,7 +326,7 @@ class _document():
         return result
 
 
-from core import settings, logging, helpers, model
+from core import settings, logging, helpers, model, cache
 
 mongodbSettings = settings.config["mongodb"]
 authSettings = settings.config["auth"]
@@ -372,5 +408,40 @@ def findDocumentByID(dbCollection,id):
 # Delete database
 def delete():
     dbClient.drop_database(mongodbSettings["db"]) 
+
+def getClassByName(match,sessionData):
+    return model._model().query(query={"className" : match})["results"]
+
+def asyncOperatonProcessing():
+    cpuSaver = helpers.cpuSaver()
+    for asyncOperatonCollection, asyncOperatonMethod in asyncOperatons.items():
+        # Insert
+        bulkInsert = []
+        for insert in asyncOperatonMethod["insert"]:
+            bulkInsert.append(insert.parse())
+            cpuSaver.tick()
+        if len(bulkInsert) > 0:
+            collection = db[asyncOperatonCollection]
+            results = collection.insert_many(bulkInsert)
+            for index,item in enumerate(results.inserted_ids):
+                asyncOperatonMethod["insert"][index]._id = str(item)
+                cpuSaver.tick()
+            asyncOperatonMethod["insert"] = []
+        # Update
+        if len(asyncOperatonMethod["update"]) > 0:
+            bulkUpdate = db[asyncOperatonCollection].initialize_unordered_bulk_op()
+            for update in asyncOperatonMethod["update"]:
+                bulkUpdate.find({ "_id" : ObjectId(update["_id"]) }).update_one(update["update"])
+                cpuSaver.tick()
+            bulkUpdate.execute()
+            asyncOperatonMethod["insert"] = []
+
+def newAsyncOperaton(collection,method,value):
+    if collection not in asyncOperatons:
+        asyncOperatons[collection] = { "insert" : [], "update" : [] }
+    asyncOperatons[collection][method].append(value)
+
+# Support for bulk
+asyncOperatons = {}
 
 logging.debug("db.py loaded")

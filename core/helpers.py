@@ -27,17 +27,27 @@ regexCommor = re.compile(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")
 regexInt = re.compile("^[0-9]*$")
 regexFloat = re.compile("^[0-9]*\.[0-9]*$")
 
-class cpuSaver():
+class cpuSaver:
     loops = 0
 
     def __init__(self):
         self.cpuSaver = settings.config["cpuSaver"]
 
-    def tick(self):
+    def tick(self,runAfter=0,sleepFor=0):
         if self.cpuSaver:
-            if self.loops > self.cpuSaver["loopL"]:
+            sleep = False
+            if runAfter > 0:
+                if self.loops > runAfter:
+                    sleep = True
+                elif self.loops > self.cpuSaver["loopL"]:
+                    sleep = True
+            if sleep:
+                if sleepFor > 0:
+                    time.sleep(sleepFor)
+                else:
+                    time.sleep(self.cpuSaver["loopT"])
                 self.loops = 0
-                time.sleep(self.cpuSaver["loopT"])
+            self.loops+=1
 
 # Return evaluated dictionary of list seperated varibles ['test','this is a test %data["event"]["tick"]%']
 def defineVars(varDefinitions,dicts={},functionSafeList=functionSafeList):

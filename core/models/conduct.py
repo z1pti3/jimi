@@ -106,7 +106,7 @@ class _conduct(db._document):
         processQueue = []
         persistentData = {}
         data["conductID"] = self._id
-        loops = 0
+        cpuSaver = helpers.cpuSaver()
         while True:
             if currentFlow:
                 if currentFlow["type"] == "trigger":
@@ -169,17 +169,12 @@ class _conduct(db._document):
                 else:
                     currentFlow = None
             # CPU saver
-            loops+=1
-            if cpuSaver:
-                if loops > cpuSaver["loopL"]:
-                    loops = 0
-                    time.sleep(cpuSaver["loopT"])
+            cpuSaver.tick()
 
 from core import helpers, logging, model, audit, settings, cache
 from core.models import action, trigger
 from system import variable, logic
 
-cpuSaver = settings.config["cpuSaver"]
 
 def getAction(actionID,sessionData):
     return action._action().getAsClass(id=actionID)
@@ -191,7 +186,7 @@ def getTriggeredFlowTriggers(triggerID,sessionData,flowData):
     return [ x for x in flowData if "triggerID" in x and x["triggerID"] == triggerID and x["type"] == "trigger" ]
 
 def getTriggeredFlowActions(actionID,sessionData,flowData):
-    return [ x for x in flowData if "actionID" in x and x["actionID"] == triggerID and x["type"] == "action" ]
+    return [ x for x in flowData if "actionID" in x and x["actionID"] == actionID and x["type"] == "action" ]
 
 def getTriggeredFlowFlows(flowID,sessionData,flowData):
     return [ x for x in flowData if "flowID" in x and x["flowID"] == flowID and x["type"] == "action" ]
