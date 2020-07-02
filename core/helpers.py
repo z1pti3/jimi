@@ -11,6 +11,7 @@ from types import ModuleType, FunctionType
 from gc import get_referents
 import json
 import ast
+import time
 
 from bson.objectid import ObjectId 
 from core import settings, function
@@ -25,6 +26,30 @@ regexFunctionOpen = re.compile("^([a-zA-Z0-9]*)\(.*")
 regexCommor = re.compile(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")
 regexInt = re.compile("^[0-9]*$")
 regexFloat = re.compile("^[0-9]*\.[0-9]*$")
+
+class cpuSaver:
+    loops = 0
+
+    def __init__(self):
+        self.cpuSaver = settings.config["cpuSaver"]
+
+    def tick(self,runAfter=0,sleepFor=0):
+        if self.cpuSaver:
+            sleep = False
+            if runAfter > 0:
+                if self.loops > runAfter:
+                    sleep = True
+                elif self.loops > self.cpuSaver["loopL"]:
+                    sleep = True
+            if sleep:
+                if sleepFor > 0:
+                    time.sleep(sleepFor)
+                else:
+                    time.sleep(self.cpuSaver["loopT"])
+                self.loops = 0
+                return True
+            self.loops+=1
+        return False
 
 # Return evaluated dictionary of list seperated varibles ['test','this is a test %data["event"]["tick"]%']
 def defineVars(varDefinitions,dicts={},functionSafeList=functionSafeList):
@@ -145,22 +170,29 @@ def handelTypes(_object):
 
 def jsonToClass(_class,json):
     members = [attr for attr in dir(_class) if not callable(getattr(_class, attr)) and not "__" in attr and attr ]
-    for key, value in json.items():
-        for member in members:
+    for member in members:
+        foundAndSet = False
+        for key, value in json.items():
             if key == member:
                 valueObject = handelTypes(value)
                 if type(getattr(_class,member)) == type(valueObject):
                     setattr(_class,member,valueObject)
+                    foundAndSet = True
                     break
                 elif type(getattr(_class,member)) == str:
                     setattr(_class,member,str(valueObject))
+                    foundAndSet = True
                     break
                 elif type(getattr(_class,member)) == float and type(valueObject) == int:
                     setattr(_class,member,float(valueObject))
+                    foundAndSet = True
                     break
                 elif type(getattr(_class,member)) == int and type(valueObject) == float:
                     setattr(_class,member,int(valueObject))
+                    foundAndSet = True
                     break
+        if not foundAndSet:
+            setattr(_class,member,type(getattr(_class,member))())
     return _class
 
 def classToJson(_class,hidden=False):
@@ -261,7 +293,6 @@ def isBase64(s):
             pass
     return False
 
-
 def getObjectMemoryUsage(obj):
     BLACKLIST = type, ModuleType, FunctionType
     """sum size of object & members."""
@@ -279,3 +310,7 @@ def getObjectMemoryUsage(obj):
                 need_referents.append(obj)
         objects = get_referents(*need_referents)
     return size
+
+def lower_dict(d):
+    new_dict = dict((k.lower(), v) for k, v in d.items())
+    return new_dict

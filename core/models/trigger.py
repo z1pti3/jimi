@@ -76,6 +76,7 @@ class _trigger(db._document):
 
             conducts = cache.globalCache.get("conductCache",self._id,getTriggerConducts)
             if conducts:
+                cpuSaver = helpers.cpuSaver()
                 for loadedConduct in conducts:
                     maxDuration = 60
                     if type(self.maxDuration) is int and self.maxDuration > 0:
@@ -84,7 +85,6 @@ class _trigger(db._document):
                     if self.concurrency > 0:
                         eventHandler = workers.workerHandler(self.concurrency)
 
-                    loops = 0
                     for event in events:
                         if var == None:
                             data = { "event" : event, "triggerID" : self._id, "var" : {}, "plugin" : {} }
@@ -101,11 +101,7 @@ class _trigger(db._document):
                             loadedConduct.triggerHandler(self._id,data)
 
                         # CPU saver
-                        loops+=1
-                        if cpuSaver:
-                            if loops > cpuSaver["loopL"]:
-                                loops = 0
-                                time.sleep(cpuSaver["loopT"])
+                        cpuSaver.tick()
 
                     # Waiting for all jobs to complete
                     if eventHandler:
@@ -150,11 +146,9 @@ class _trigger(db._document):
             audit._audit().add("trigger","check end",{ "triggerID" : self._id, "name" : self.name, "duration" : (self.lastCheck-startTime) })
         logging.debug("Trigger check complete, triggerID='{0}'".format(self._id),7)
 
-from core import helpers, logging, model, audit, workers, scheduler, cache, settings
+from core import helpers, logging, model, audit, workers, scheduler, cache, settings, helpers
 from core.models import conduct
 from system.models import trigger as systemTrigger
-
-cpuSaver = settings.config["cpuSaver"]
 
 def getClassObject(classID,sessionData):
     return model._model().getAsClass(sessionData,id=classID)

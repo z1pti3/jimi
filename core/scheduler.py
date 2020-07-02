@@ -30,7 +30,7 @@ class _scheduler:
                     if type(t.maxDuration) is int and t.maxDuration > 0:
                         maxDuration = t.maxDuration
                     t.workerID = workers.workers.new("trigger:{0}".format(t._id),t.checkHandler,(),maxDuration=maxDuration,multiprocessing=t.threaded)
-                    t.update(["startCheck","workerID"])          
+                    t.update(["startCheck","workerID"])       
             # pause
             time.sleep(schedulerSettings["loopP"])
 
