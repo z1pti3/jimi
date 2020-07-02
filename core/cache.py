@@ -64,7 +64,7 @@ class _cache():
         if uid in self.objects[authedCacheName]["objects"]:
             self.objects[authedCacheName]["objects"][uid]["objectValue"][appendKey] = appendValue
 
-    def get(self,cacheName,uid,setFunction,*args,sessionData=None,extendCacheTime=False,forceUpdate=False,nullUpdate=False,dontCheck=False):
+    def get(self,cacheName,uid,setFunction,*args,sessionData=None,extendCacheTime=False,forceUpdate=False,nullUpdate=False,dontCheck=False,bulkProcess=None):
         authedCacheName = self.checkSessionData(cacheName,sessionData)
         if authedCacheName == None:
             return
@@ -78,6 +78,8 @@ class _cache():
                     self.objects[authedCacheName]["objects"][uid]["cacheFor"] =  ( now + self.objects[authedCacheName]["cacheExpiry"] )
                 return self.objects[authedCacheName]["objects"][uid]["objectValue"]
         if not dontCheck:
+            if bulkProcess != None:
+                bulkProcess()
             cache, objectValue = self.getObjectValue(cacheName,uid,setFunction,*args,sessionData=sessionData)
             if cache and ( objectValue or nullUpdate ):
                 if uid in self.objects[authedCacheName]["objects"]:
