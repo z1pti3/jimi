@@ -85,11 +85,14 @@ class _trigger(db._document):
                     if self.concurrency > 0:
                         eventHandler = workers.workerHandler(self.concurrency)
 
-                    for event in events:
+                    for index, event in enumerate(events):
+                        first = True if index == 0 else False
+                        last = True if index == len(events) - 1 else False
+
                         if var == None:
-                            data = { "event" : event, "triggerID" : self._id, "var" : {}, "plugin" : {} }
+                            data = { "event" : event, "eventStats" : { "first" : first, "current" : index, "total" : len(events), "last" : last }, "triggerID" : self._id, "var" : {}, "plugin" : {} }
                         else: 
-                            data = { "event" : event, "triggerID" : self._id, "var" : var, "plugin" : {} }
+                            data = { "event" : event, "eventStats" : { "first" : first, "current" : index, "total" : len(events), "last" : last }, "triggerID" : self._id, "var" : var, "plugin" : {} }
                         if callingTriggerID != None:
                             if callingTriggerID != "":
                                 data["callingTriggerID"] = callingTriggerID
