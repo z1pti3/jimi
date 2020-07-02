@@ -41,14 +41,24 @@ class _cache():
         c = copy.deepcopy(self.objects)
         return c
 
-    def insert(self,cacheName,uid,objectValue,sessionData=None):
+    def delete(self,cacheName,uid,sessionData=None):
+        authedCacheName = self.checkSessionData(cacheName,sessionData)
+        if authedCacheName == None:
+            return
+        if uid in self.objects[authedCacheName]["objects"]:
+            del self.objects[authedCacheName]["objects"][uid]
+
+    def insert(self,cacheName,uid,objectValue,sessionData=None,customCacheTime=None):
         authedCacheName = self.checkSessionData(cacheName,sessionData)
         if authedCacheName == None:
             return
         now = time.time()
         if authedCacheName not in self.objects:
             self.newCache(authedCacheName)
-        self.objects[authedCacheName]["objects"][uid] = { "objectValue" : objectValue, "accessCount" : 0, "cacheExpiry" : (now + self.objects[authedCacheName]["cacheExpiry"]) }
+        cacheExpiry = self.objects[authedCacheName]["cacheExpiry"]
+        if customCacheTime != None:
+            cacheExpiry = customCacheTime
+        self.objects[authedCacheName]["objects"][uid] = { "objectValue" : objectValue, "accessCount" : 0, "cacheExpiry" : (now + cacheExpiry) }
 
     def append(self,cacheName,uid,appendValue,sessionData=None):
         authedCacheName = self.checkSessionData(cacheName,sessionData)
@@ -64,7 +74,7 @@ class _cache():
         if uid in self.objects[authedCacheName]["objects"]:
             self.objects[authedCacheName]["objects"][uid]["objectValue"][appendKey] = appendValue
 
-    def get(self,cacheName,uid,setFunction,*args,sessionData=None,extendCacheTime=False,forceUpdate=False,nullUpdate=False,dontCheck=False,bulkProcess=None):
+    def get(self,cacheName,uid,setFunction,*args,sessionData=None,extendCacheTime=False,customCacheTime=None,forceUpdate=False,nullUpdate=False,dontCheck=False):
         authedCacheName = self.checkSessionData(cacheName,sessionData)
         if authedCacheName == None:
             return
@@ -75,19 +85,23 @@ class _cache():
             if ((self.objects[authedCacheName]["objects"][uid]["cacheExpiry"] > now) or (extendCacheTime)):
                 self.objects[authedCacheName]["objects"][uid]["accessCount"] += 1
                 if extendCacheTime:
-                    self.objects[authedCacheName]["objects"][uid]["cacheFor"] =  ( now + self.objects[authedCacheName]["cacheExpiry"] )
+                    if customCacheTime == None:
+                        self.objects[authedCacheName]["objects"][uid]["cacheFor"] =  ( now + self.objects[authedCacheName]["cacheExpiry"] )
+                    else:
+                        self.objects[authedCacheName]["objects"][uid]["cacheFor"] =  ( now + customCacheTime )
                 return self.objects[authedCacheName]["objects"][uid]["objectValue"]
         if not dontCheck:
-            if bulkProcess != None:
-                bulkProcess()
             cache, objectValue = self.getObjectValue(cacheName,uid,setFunction,*args,sessionData=sessionData)
             if cache and ( objectValue or nullUpdate ):
+                cacheExpiry = self.objects[authedCacheName]["cacheExpiry"]
+                if customCacheTime != None:
+                    cacheExpiry = customCacheTime
                 if uid in self.objects[authedCacheName]["objects"]:
                     self.objects[authedCacheName]["objects"][uid]["objectValue"] = objectValue
-                    self.objects[authedCacheName]["objects"][uid]["cacheExpiry"] = (now + self.objects[authedCacheName]["cacheExpiry"])
+                    self.objects[authedCacheName]["objects"][uid]["cacheExpiry"] = (now + cacheExpiry)
                     self.objects[authedCacheName]["objects"][uid]["accessCount"] += 1
                 else:
-                    self.objects[authedCacheName]["objects"][uid] = { "objectValue" : objectValue, "accessCount" : 0, "cacheExpiry" : (now + self.objects[authedCacheName]["cacheExpiry"]) }
+                    self.objects[authedCacheName]["objects"][uid] = { "objectValue" : objectValue, "accessCount" : 0, "cacheExpiry" : (now + cacheExpiry) }
             if objectValue:
                 return objectValue
             else:
