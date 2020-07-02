@@ -201,7 +201,7 @@ def classToJson(_class,hidden=False):
     validTypes = [str,int,bool,float,list,dict]
     for member in members:
         if type(getattr(_class,member)) in validTypes:
-            c# Skips hidden values
+            # Skips hidden values
             if not hidden:
                 if member[0] != "_":
                     result[member] = handelTypes(getattr(_class,member))
