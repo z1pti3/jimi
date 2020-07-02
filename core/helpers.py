@@ -47,7 +47,9 @@ class cpuSaver:
                 else:
                     time.sleep(self.cpuSaver["loopT"])
                 self.loops = 0
+                return True
             self.loops+=1
+        return False
 
 # Return evaluated dictionary of list seperated varibles ['test','this is a test %data["event"]["tick"]%']
 def defineVars(varDefinitions,dicts={},functionSafeList=functionSafeList):

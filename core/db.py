@@ -42,13 +42,13 @@ class _document():
             logging.debug("Cannot create new document className='{0}' not found".format(self.__class__.__name__),3)
             return False
 
-    def asyncNew(self,sessionData=None):
+    def bulkNew(self,bulkClass,sessionData=None):
         result = cache.globalCache.get("dbModelCache",self.__class__.__name__,getClassByName,sessionData=sessionData,extendCacheTime=True)
         if len(result) == 1:
             result = result[0]
             self.classID = result["_id"]
             self.creationTime = int(time.time())
-            newAsyncOperaton(self._dbCollection.name,"insert",self)
+            bulkClass.newBulkOperaton(self._dbCollection.name,"insert",self)
             return self
         else:
             logging.debug("Cannot create new document className='{0}' not found".format(self.__class__.__name__),3)
@@ -101,7 +101,7 @@ class _document():
 
     # Updated DB with latest values
     @mongoConnectionWrapper
-    def asyncUpdate(self,fields,sessionData=None):
+    def bulkUpdate(self,fields,bulkClass,sessionData=None):
         if sessionData:
             for field in fields:
                 if not fieldACLAccess(sessionData,self.acl,field,"write"):
@@ -114,7 +114,7 @@ class _document():
         for field in fields:
             update["$set"][field] = getattr(self,field)
 
-        newAsyncOperaton(self._dbCollection.name,"update",{"_id" : self._id, "update" : update})
+        bulkClass.newBulkOperaton(self._dbCollection.name,"update",{"_id" : self._id, "update" : update})
         
     # Parse class into json dict
     def parse(self,hidden=False):
@@ -325,6 +325,50 @@ class _document():
             result[key] = type(value).__name__
         return result
 
+class _bulk():
+
+    def __init__(self,processPollTime=10):
+        self.bulkOperatons = {}
+        self.processPollTime = processPollTime
+        self.nextPoll = time.time() + self.processPollTime
+
+    def __del__(self):
+        self.bulkOperatonProcessing()
+
+    def tick(self):
+        if self.nextPoll < time.time():
+            self.bulkOperatonProcessing()
+            self.nextPoll = time.time() + self.processPollTime
+
+    def bulkOperatonProcessing(self):
+        cpuSaver = helpers.cpuSaver()
+        for bulkOperatonCollection, bulkOperatonMethod in self.bulkOperatons.items():
+            # Insert
+            bulkInsert = []
+            for insert in bulkOperatonMethod["insert"]:
+                bulkInsert.append(insert.parse())
+                cpuSaver.tick()
+            if len(bulkInsert) > 0:
+                collection = db[bulkOperatonCollection]
+                results = collection.insert_many(bulkInsert)
+                for index,item in enumerate(results.inserted_ids):
+                    bulkOperatonMethod["insert"][index]._id = str(item)
+                    cpuSaver.tick()
+                bulkOperatonMethod["insert"] = []
+            # Update
+            if len(bulkOperatonMethod["update"]) > 0:
+                bulkUpdate = db[bulkOperatonCollection].initialize_unordered_bulk_op()
+                for update in bulkOperatonMethod["update"]:
+                    bulkUpdate.find({ "_id" : ObjectId(update["_id"]) }).update_one(update["update"])
+                    cpuSaver.tick()
+                bulkUpdate.execute()
+                bulkOperatonMethod["insert"] = []
+
+    def newBulkOperaton(self,collection,method,value):
+        if collection not in self.bulkOperatons:
+            self.bulkOperatons[collection] = { "insert" : [], "update" : [] }
+        self.bulkOperatons[collection][method].append(value)
+
 
 from core import settings, logging, helpers, model, cache
 
@@ -411,37 +455,5 @@ def delete():
 
 def getClassByName(match,sessionData):
     return model._model().query(query={"className" : match})["results"]
-
-def asyncOperatonProcessing():
-    cpuSaver = helpers.cpuSaver()
-    for asyncOperatonCollection, asyncOperatonMethod in asyncOperatons.items():
-        # Insert
-        bulkInsert = []
-        for insert in asyncOperatonMethod["insert"]:
-            bulkInsert.append(insert.parse())
-            cpuSaver.tick()
-        if len(bulkInsert) > 0:
-            collection = db[asyncOperatonCollection]
-            results = collection.insert_many(bulkInsert)
-            for index,item in enumerate(results.inserted_ids):
-                asyncOperatonMethod["insert"][index]._id = str(item)
-                cpuSaver.tick()
-            asyncOperatonMethod["insert"] = []
-        # Update
-        if len(asyncOperatonMethod["update"]) > 0:
-            bulkUpdate = db[asyncOperatonCollection].initialize_unordered_bulk_op()
-            for update in asyncOperatonMethod["update"]:
-                bulkUpdate.find({ "_id" : ObjectId(update["_id"]) }).update_one(update["update"])
-                cpuSaver.tick()
-            bulkUpdate.execute()
-            asyncOperatonMethod["insert"] = []
-
-def newAsyncOperaton(collection,method,value):
-    if collection not in asyncOperatons:
-        asyncOperatons[collection] = { "insert" : [], "update" : [] }
-    asyncOperatons[collection][method].append(value)
-
-# Support for bulk
-asyncOperatons = {}
 
 logging.debug("db.py loaded")
