@@ -198,13 +198,15 @@ def jsonToClass(_class,json):
 def classToJson(_class,hidden=False):
     members = [attr for attr in dir(_class) if not callable(getattr(_class, attr)) and not "__" in attr and attr ]
     result = {}
+    validTypes = [str,int,bool,float,list,dict]
     for member in members:
-        # Skips hidden values
-        if not hidden:
-            if member[0] != "_":
+        if type(getattr(_class,member)) in validTypes:
+            c# Skips hidden values
+            if not hidden:
+                if member[0] != "_":
+                    result[member] = handelTypes(getattr(_class,member))
+            else:
                 result[member] = handelTypes(getattr(_class,member))
-        else:
-            result[member] = handelTypes(getattr(_class,member))
     return result
 
 def unicodeEscapeDict(dictVar):
