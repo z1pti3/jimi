@@ -40,6 +40,12 @@ class _cache:
     def export(self):
         c = copy.deepcopy(self.objects)
         return c
+    
+    def getAll(self,cacheName,sessionData=None):
+        authedCacheName = self.checkSessionData(cacheName,sessionData)
+        if authedCacheName == None:
+            return
+        return self.objects[authedCacheName]["objects"]
 
     def delete(self,cacheName,uid,sessionData=None):
         authedCacheName = self.checkSessionData(cacheName,sessionData)
