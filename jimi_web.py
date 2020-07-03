@@ -251,6 +251,16 @@ def workerPage():
 				return render_template("workers.html", content=workerContent)
 	return {}, 403
 
+@api.webServer.route("/cluster/", methods=["GET"])
+def clusterPage():
+	if api.g["sessionData"]:
+		if "admin" in api.g["sessionData"]:
+			if api.g["sessionData"]["admin"]:
+				apiEndpoint = "cluster/"
+				content = helpers.apiCall("GET",apiEndpoint,token=api.g["sessionToken"]).text
+				return render_template("blank.html", content=content)
+	return {}, 403
+
 @api.webServer.route("/myAccount/", methods=["GET"])
 def myAccountPage():
 	return render_template("myAccount.html", CSRF=api.g["sessionData"]["CSRF"])
