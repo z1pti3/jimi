@@ -309,70 +309,87 @@ if api.webServer:
     if not api.webServer.got_first_request:
         @api.webServer.route(api.base+"workers/", methods=["GET"])
         def getWorkers():
-            result = workers.api_get()
-            if result["results"]:
-                return result, 200
+            if api.g["sessionData"]["admin"]:
+                result = workers.api_get()
+                if result["results"]:
+                    return result, 200
+                else:
+                    return {}, 404
             else:
-                return {}, 404
+                return {},403
 
         @api.webServer.route(api.base+"workers/", methods=["DELETE"])
         def deleteWorkers():
-            result = workers.api_delete()
-            if result["result"]:
-                return result, 200
+            if api.g["sessionData"]["admin"]:
+                result = workers.api_delete()
+                if result["result"]:
+                    return result, 200
+                else:
+                    return {}, 404
             else:
-                return {}, 404
+                return {},403
 
         @api.webServer.route(api.base+"workers/", methods=["POST"])
         def updateWorkers():
-            data = json.loads(api.request.data)
-            if data["action"] == "start":
-                result = start()
-                return { "result" : result }, 200
-            elif data["action"] == "settings":
-                if "concurrent" in data:
-                    workerSettings["concurrent"] = int(data["concurrent"])
-                    workers.concurrent = workerSettings["concurrent"]
-                if "loopT" in data:
-                    workerSettings["loopT"] = float(data["loopT"])
-                if "loopL" in data:
-                    workerSettings["loopL"] = float(data["loopL"])
-                return { }, 200
+            if api.g["sessionData"]["admin"]:
+                data = json.loads(api.request.data)
+                if data["action"] == "start":
+                    result = start()
+                    return { "result" : result }, 200
+                elif data["action"] == "settings":
+                    if "concurrent" in data:
+                        workerSettings["concurrent"] = int(data["concurrent"])
+                        workers.concurrent = workerSettings["concurrent"]
+                    if "loopT" in data:
+                        workerSettings["loopT"] = float(data["loopT"])
+                    if "loopL" in data:
+                        workerSettings["loopL"] = float(data["loopL"])
+                    return { }, 200
+                else:
+                    return { }, 404
             else:
-                return { }, 404
+                return { }, 403
 
         @api.webServer.route(api.base+"workers/<workerID>/", methods=["GET"])
         def getWorker(workerID):
-            if workerID == "0":
-                result = workers.api_get(workers.workerID)
-                result["results"][0]["lastHandle"] = workers.lastHandle
-                result["results"][0]["workerID"] = workers.workerID
-            else:
-                result = workers.api_get(workerID)
+            if api.g["sessionData"]["admin"]:
+                if workerID == "0":
+                    result = workers.api_get(workers.workerID)
+                    result["results"][0]["lastHandle"] = workers.lastHandle
+                    result["results"][0]["workerID"] = workers.workerID
+                else:
+                    result = workers.api_get(workerID)
 
-            if result["results"]:
-                return result, 200
+                if result["results"]:
+                    return result, 200
+                else:
+                    return {}, 404
             else:
-                return {}, 404
+                return {},403
 
         @api.webServer.route(api.base+"workers/<workerID>/", methods=["DELETE"])
         def deleteWorker(workerID):
-            result = workers.api_delete(workerID)
-            if result["result"]:
-                return result, 200
+            if api.g["sessionData"]["admin"]:
+                result = workers.api_delete(workerID)
+                if result["result"]:
+                    return result, 200
+                else:
+                    return {}, 404
             else:
-                return {}, 404
+                return {}, 403
 
         @api.webServer.route(api.base+"workers/stats/", methods=["GET"])
         def getWorkerStats():
             result = {}
             result["results"] = []
-            result["results"].append({ "activeCount" : workers.activeCount(), "queueLength" : workers.queue(), "workers" : workers.active() })
+            if api.g["sessionData"]["admin"]:
+                result["results"].append({ "activeCount" : workers.activeCount(), "queueLength" : workers.queue(), "workers" : workers.active() })
             return result, 200
 
         @api.webServer.route(api.base+"workers/settings/", methods=["GET"])
         def getWorkerSettings():
             result = {}
             result["results"] = []
-            result["results"].append(workerSettings)
+            if api.g["sessionData"]["admin"]:
+                result["results"].append(workerSettings)
             return result, 200
