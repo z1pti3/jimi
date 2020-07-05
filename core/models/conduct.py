@@ -170,6 +170,16 @@ class _conduct(db._document):
                     currentFlow = None
             # CPU saver
             cpuSaver.tick()
+        # Post processing for all event postRun actions
+        if "eventStats" in data:
+            if data["eventStats"]["last"]:
+                for flow in flowDict:
+                    if flowDict[flow]["type"] == "action":
+                        class_ = cache.globalCache.get("actionCache",flowDict[flow]["actionID"],getAction)
+                        if class_:
+                            if len(class_) > 0:
+                                class_ = class_[0]
+                                class_.postRun()
 
 from core import helpers, logging, model, audit, settings, cache
 from core.models import action, trigger

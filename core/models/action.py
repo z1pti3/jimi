@@ -97,6 +97,9 @@ class _action(db._document):
             audit._audit().add("action","action end",{ "actionID" : self._id, "actionName" : self.name, "data" : data, "persistentData" : persistentData, "actionResult" : actionResult, "duration" : (time.time() - startTime) })
         logging.debug("Action run complete, actionID='{0}', data='{1}'".format(self._id,data),7)
 
+    def postRun(self):
+        pass
+
     def logicEval(self, logicString, data):
         def logicProcess(statement):
             try:
