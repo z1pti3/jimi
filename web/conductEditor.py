@@ -455,11 +455,13 @@ def updateFlow(conductID,flowID):
                                 # Setting values in cloned object
                                 members = [attr for attr in dir(modelFlowObject) if not callable(getattr(modelFlowObject, attr)) and not "__" in attr and attr ]
                                 dontCopy=["_id","name"]
+                                validTypes = [str,int,bool,float,list,dict]
                                 updateList = []
                                 for member in members:
                                     if member not in dontCopy:
-                                        setattr(modelFlowObjectClone,member,getattr(modelFlowObject,member))
-                                        updateList.append(member)
+                                        if type(getattr(modelFlowObject,member)) in validTypes:
+                                            setattr(modelFlowObjectClone,member,getattr(modelFlowObject,member))
+                                            updateList.append(member)
                                 modelFlowObjectClone.update(updateList,sessionData=api.g["sessionData"])
 
                                 # Set conduct flow to correct type and objectID
