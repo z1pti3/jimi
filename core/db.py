@@ -3,6 +3,7 @@ import time
 import functools
 import copy
 from bson.objectid import ObjectId
+from threading import Lock
 
 # DB Document Class
 class _document():
@@ -331,6 +332,7 @@ class _bulk():
         self.bulkOperatons = {}
         self.processPollTime = processPollTime
         self.nextPoll = time.time() + self.processPollTime
+        self.lock = Lock()
 
     def __del__(self):
         self.bulkOperatonProcessing()
@@ -341,6 +343,7 @@ class _bulk():
             self.nextPoll = time.time() + self.processPollTime
 
     def bulkOperatonProcessing(self):
+        self.lock.acquire()
         cpuSaver = helpers.cpuSaver()
         for bulkOperatonCollection, bulkOperatonMethod in self.bulkOperatons.items():
             # Insert
@@ -363,11 +366,14 @@ class _bulk():
                     cpuSaver.tick()
                 bulkUpdate.execute()
                 bulkOperatonMethod["insert"] = []
+        self.lock.release()
 
     def newBulkOperaton(self,collection,method,value):
+        self.lock.acquire()
         if collection not in self.bulkOperatons:
             self.bulkOperatons[collection] = { "insert" : [], "update" : [] }
         self.bulkOperatons[collection][method].append(value)
+        self.lock.release()
 
 
 from core import settings, logging, helpers, model, cache
