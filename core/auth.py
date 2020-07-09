@@ -297,8 +297,8 @@ if api.webServer:
             if authSettings["enabled"]:
                     if api.g.type != "bypass":
                         if api.g.type == "cookie":
-                            #if "renew" in api.g:
-                            response.set_cookie("jimiAuth", value=generateSession(api.g.sessionData), max_age=600) # Need to add secure=True before production, httponly=False cant be used due to auth polling
+                            if "renew" in api.g:
+                                response.set_cookie("jimiAuth", value=generateSession(api.g.sessionData), max_age=600) # Need to add secure=True before production, httponly=False cant be used due to auth polling
             # Cache Weakness
             if api.request.endpoint != "static": 
                 response.headers['Cache-Control'] = 'no-cache, no-store'
