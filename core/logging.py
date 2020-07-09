@@ -88,11 +88,11 @@ from core import api, helpers, settings
 #         @api.webServer.route(api.base+"debug/", methods=["POST"])
 #         def newDebug():
 #             global debugClients
-#             if "admin" in api.g["sessionData"]:
-#                 if api.g["sessionData"]["admin"]:
+#             if "admin" in api.g.sessionData:
+#                 if api.g.sessionData["admin"]:
 #                     apiEndpoint = "debug/"
 #                     data = json.loads(api.request.data)
-#                     apiResult = helpers.apiCall("POST",apiEndpoint,jsonData=data,token=api.g["sessionToken"]).text
+#                     apiResult = helpers.apiCall("POST",apiEndpoint,jsonData=data,token=api.g.sessionToken).text
 #                     return json.loads(apiResult), 200
 #             elif api.webServer.name == "jimi_core":
 #                 if not settings.config["auth"]["enabled"]:
@@ -111,10 +111,10 @@ from core import api, helpers, settings
 #         @api.webServer.route(api.base+"debug/<debugID>/", methods=["GET"])
 #         def getDebug(debugID):
 #             global debugClients
-#             if "admin" in api.g["sessionData"]:
-#                 if api.g["sessionData"]["admin"]:
+#             if "admin" in api.g.sessionData:
+#                 if api.g.sessionData["admin"]:
 #                     apiEndpoint = "debug/{0}/".format(debugID)
-#                     apiResult = helpers.apiCall("GET",apiEndpoint,token=api.g["sessionToken"]).text
+#                     apiResult = helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken).text
 #                     return apiResult, 200
 #             elif api.webServer.name == "jimi_core":
 #                 if not settings.config["auth"]["enabled"]:

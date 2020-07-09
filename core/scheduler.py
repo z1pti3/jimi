@@ -102,7 +102,7 @@ if api.webServer:
     if not api.webServer.got_first_request:
         @api.webServer.route(api.base+"scheduler/", methods=["GET"])
         def getScheduler():
-            if api.g["sessionData"]["admin"]:
+            if api.g.sessionData["admin"]:
                 if scheduler:
                     return { "result": { "stopped" : scheduler.stopped, "startTime" : scheduler.startTime, "lastHandle" : scheduler.lastHandle, "workerID" : scheduler.workerID } },200
                 else:
@@ -112,7 +112,7 @@ if api.webServer:
 
         @api.webServer.route(api.base+"scheduler/", methods=["POST"])
         def updateScheduler():
-            if api.g["sessionData"]["admin"]:
+            if api.g.sessionData["admin"]:
                 data = json.loads(api.request.data)
                 if data["action"] == "start":
                     result = start()
@@ -124,7 +124,7 @@ if api.webServer:
 
         @api.webServer.route(api.base+"scheduler/<triggerID>/", methods=["POST"])
         def forceTriggers(triggerID):
-            if api.g["sessionData"]["admin"]:
+            if api.g.sessionData["admin"]:
                 data = json.loads(api.request.data)
                 if data["action"] == "trigger":
                     class_ = trigger._trigger().getAsClass(id=triggerID)[0]

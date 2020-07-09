@@ -10,11 +10,11 @@ from core.models import trigger, action, conduct, webui
 
 @api.webServer.route("/conductEditor/", methods=["GET"])
 def editConduct():
-    return render_template("conductEditor.html", CSRF=api.g["sessionData"]["CSRF"])
+    return render_template("conductEditor.html", CSRF=api.g.sessionData["CSRF"])
 
 @api.webServer.route("/conductEditor/<conductID>/", methods=["POST"])
 def conductFlowchartPoll(conductID):
-    conductObj = conduct._conduct().query(api.g["sessionData"],id=conductID)["results"]
+    conductObj = conduct._conduct().query(api.g.sessionData,id=conductID)["results"]
     if len(conductObj) == 1:
         conductObj = conductObj[0]
     else:
@@ -34,10 +34,10 @@ def conductFlowchartPoll(conductID):
     linksList = []
 
     # For every refresh the entire flow object and UI is loaded from the database - this may need improvment for speed in future
-    flowsUI = webui._modelUI().getAsClass(api.g["sessionData"],query={ "flowID" : { "$in" :flowsList }, "conductID" : conductID })
-    actions = action._action().getAsClass(api.g["sessionData"],query={ "_id" : { "$in" : flowActions } })
-    triggers = trigger._trigger().getAsClass(api.g["sessionData"],query={ "_id" : { "$in" : flowTriggers } })
-    cache.globalCache.newCache("modelCache",sessionData=api.g["sessionData"])
+    flowsUI = webui._modelUI().getAsClass(api.g.sessionData,query={ "flowID" : { "$in" :flowsList }, "conductID" : conductID })
+    actions = action._action().getAsClass(api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
+    triggers = trigger._trigger().getAsClass(api.g.sessionData,query={ "_id" : { "$in" : flowTriggers } })
+    cache.globalCache.newCache("modelCache",sessionData=api.g.sessionData)
 
     for flow in flows:
         if "type" in flow:
@@ -77,7 +77,7 @@ def conductFlowchartPoll(conductID):
                             for t in triggers:
                                 if flow["triggerID"] == t._id:
                                     name = t.name
-                                    modeClass = cache.globalCache.get("modelCache",t.classID,model.getClassObject,sessionData=api.g["sessionData"])[0]
+                                    modeClass = cache.globalCache.get("modelCache",t.classID,model.getClassObject,sessionData=api.g.sessionData)[0]
                                     color = None
                                     if t.enabled:
                                         color = "#7cbeeb"
@@ -106,7 +106,7 @@ def conductFlowchartPoll(conductID):
                             for a in actions:
                                 if flow["actionID"] == a._id:
                                     name = a.name
-                                    modeClass = cache.globalCache.get("modelCache",a.classID,model.getClassObject,sessionData=api.g["sessionData"])[0]
+                                    modeClass = cache.globalCache.get("modelCache",a.classID,model.getClassObject,sessionData=api.g.sessionData)[0]
                                     color = None
                                     if a.enabled:
                                         color = "#7cbeeb"
@@ -187,7 +187,7 @@ def getConductFlowCodify(conductID):
                     for nextFlow in currentFlow["next"]:
                         processQueue.append({ "flowID" : nextFlow["flowID"], "indentLevel": indentLevel+1, "logic" : nextFlow["logic"] })
                 if obj:
-                    classObj = _class = model._model().getAsClass(api.g["sessionData"],id=obj.classID)
+                    classObj = _class = model._model().getAsClass(api.g.sessionData,id=obj.classID)
                     classObj = classObj[0]
                     blacklist = ["_id","acl","classID","workerID","startCheck","nextCheck","lastUpdateTime","lastCheck"]
                     members = [attr for attr in dir(obj) if not callable(getattr(obj, attr)) and not "__" in attr and attr ]
@@ -226,7 +226,7 @@ def getConductFlowCodify(conductID):
         return flowCode
 
 
-    conductObj = conduct._conduct().getAsClass(api.g["sessionData"],id=conductID)
+    conductObj = conduct._conduct().getAsClass(api.g.sessionData,id=conductID)
     if len(conductObj) == 1:
         conductObj = conductObj[0]
     else:
@@ -240,24 +240,24 @@ def getConductFlowCodify(conductID):
     flowTriggers = [ db.ObjectId(x["triggerID"]) for x in flows if x["type"] == "trigger" ]
     flowActions = [ db.ObjectId(x["actionID"]) for x in flows if x["type"] == "action" ]
 
-    actions = action._action().getAsClass(api.g["sessionData"],query={ "_id" : { "$in" : flowActions } })
-    triggers = trigger._trigger().getAsClass(api.g["sessionData"],query={ "_id" : { "$in" : flowTriggers } })
+    actions = action._action().getAsClass(api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
+    triggers = trigger._trigger().getAsClass(api.g.sessionData,query={ "_id" : { "$in" : flowTriggers } })
 
     flowCode = ""
     for flow in flows:
         if flow["type"] == "trigger":
             flowCode+=generateFlow(flow,flowDict,triggers,actions)
     
-    return render_template("blank.html",content=flowCode, CSRF=api.g["sessionData"]["CSRF"]), 200
+    return render_template("blank.html",content=flowCode, CSRF=api.g.sessionData["CSRF"]), 200
 
 @api.webServer.route("/conductEditor/<conductID>/flow/<flowID>/", methods=["DELETE"])
 def deleteFlow(conductID,flowID):
-    conductObj = conduct._conduct().getAsClass(api.g["sessionData"],id=conductID)
+    conductObj = conduct._conduct().getAsClass(api.g.sessionData,id=conductID)
     if len(conductObj) == 1:
         conductObj = conductObj[0]
     else:
         return { }, 404
-    access, accessIDs, adminBypass = db.ACLAccess(api.g["sessionData"],conductObj.acl,"write")
+    access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,conductObj.acl,"write")
     if access:
         flow = [ x for x in conductObj.flow if x["flowID"] ==  flowID]
         if len(flow) == 1:
@@ -267,20 +267,20 @@ def deleteFlow(conductID,flowID):
                     if nextflowValue["flowID"] == flowID:
                         conductObj.flow[conductObj.flow.index(flowItemsValue)]["next"].remove(nextflowValue)
             conductObj.flow.remove(flow)
-            conductObj.update(["flow"],sessionData=api.g["sessionData"])
+            conductObj.update(["flow"],sessionData=api.g.sessionData)
         return { }, 200
     else:
         return { }, 404
 
 @api.webServer.route("/conductEditor/<conductID>/flow/", methods=["PUT"])
 def newFlow(conductID):
-    conductObj = conduct._conduct().getAsClass(api.g["sessionData"],id=conductID)
+    conductObj = conduct._conduct().getAsClass(api.g.sessionData,id=conductID)
     if len(conductObj) == 1:
         conductObj = conductObj[0]
     else:
         return { }, 404
 
-    access, accessIDs, adminBypass = db.ACLAccess(api.g["sessionData"],conductObj.acl,"write")
+    access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,conductObj.acl,"write")
     if access:
         data = json.loads(api.request.data)
         # Get new UUID store within current conduct flow and return UUID
@@ -290,22 +290,22 @@ def newFlow(conductID):
             "next" : []
         }
         # Creating new object of model type
-        _class = model._model().getAsClass(api.g["sessionData"],id=data["classID"])
+        _class = model._model().getAsClass(api.g.sessionData,id=data["classID"])
         if _class:
             subtype = _class[0].name
             _class = _class[0].classObject()
             newFlowObjectID = _class().new(flow["flowID"]).inserted_id
             # Working out by bruteforce which type this is ( try and load it by parent class and check for error) - get on trigger if it does not exist will return None
             modelFlowObjectType = "action"
-            if len(trigger._trigger().getAsClass(api.g["sessionData"],id=newFlowObjectID)) > 0:
+            if len(trigger._trigger().getAsClass(api.g.sessionData,id=newFlowObjectID)) > 0:
                 modelFlowObjectType = "trigger"
-            modelFlowObject = _class().getAsClass(api.g["sessionData"],id=newFlowObjectID)
+            modelFlowObject = _class().getAsClass(api.g.sessionData,id=newFlowObjectID)
             if len(modelFlowObject) == 1:
                 modelFlowObject = modelFlowObject[0]
             else:
                 return { }, 404
-            modelFlowObject.acl = { "ids" : [ { "accessID" : api.g["sessionData"]["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
-            modelFlowObject.update(["acl"],sessionData=api.g["sessionData"])
+            modelFlowObject.acl = { "ids" : [ { "accessID" : api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
+            modelFlowObject.update(["acl"],sessionData=api.g.sessionData)
             flow["type"] = modelFlowObjectType
             if subtype != "action" and subtype != "trigger":
                 flow["subtype"] = subtype
@@ -314,7 +314,7 @@ def newFlow(conductID):
             webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],data["x"],data["y"],modelFlowObject.name)
             # Appending new object to conduct
             conductObj.flow.append(flow)
-            conductObj.update(["flow"],sessionData=api.g["sessionData"])
+            conductObj.update(["flow"],sessionData=api.g.sessionData)
             return { }, 201
     else:
         return { }, 403
@@ -323,12 +323,12 @@ def newFlow(conductID):
     
 @api.webServer.route("/conductEditor/<conductID>/flow/", methods=["POST"])
 def dropExistingObject(conductID):
-    conductObj = conduct._conduct().getAsClass(api.g["sessionData"],id=conductID)
+    conductObj = conduct._conduct().getAsClass(api.g.sessionData,id=conductID)
     if len(conductObj) == 1:
         conductObj = conductObj[0]
     else:
         return { }, 404
-    access, accessIDs, adminBypass = db.ACLAccess(api.g["sessionData"],conductObj.acl,"write")
+    access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,conductObj.acl,"write")
     if access:
         data = json.loads(api.request.data)
         if data["action"] == "drop":
@@ -341,9 +341,9 @@ def dropExistingObject(conductID):
             }
             modelFlowObject = None
             if data["flowType"] == "trigger":
-                modelFlowObject = trigger._trigger().getAsClass(api.g["sessionData"],id=data["_id"])[0]
+                modelFlowObject = trigger._trigger().getAsClass(api.g.sessionData,id=data["_id"])[0]
             elif data["flowType"] == "action":
-                modelFlowObject = action._action().getAsClass(api.g["sessionData"],id=data["_id"])[0]
+                modelFlowObject = action._action().getAsClass(api.g.sessionData,id=data["_id"])[0]
             if modelFlowObject:
                 name = modelFlowObject.name
             else:
@@ -351,13 +351,13 @@ def dropExistingObject(conductID):
 
             webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],data["x"],data["y"],name)
             conductObj.flow.append(flow)
-            conductObj.update(["flow"],sessionData=api.g["sessionData"])
+            conductObj.update(["flow"],sessionData=api.g.sessionData)
             return { }, 201
     return { }, 404
 
 @api.webServer.route("/conductEditor/<conductID>/flow/<flowID>/", methods=["POST"])
 def updateFlow(conductID,flowID):
-    conductObj = conduct._conduct().getAsClass(api.g["sessionData"],id=conductID)
+    conductObj = conduct._conduct().getAsClass(api.g.sessionData,id=conductID)
     if len(conductObj) == 1:
         conductObj = conductObj[0]
     else:
@@ -368,7 +368,7 @@ def updateFlow(conductID,flowID):
         flow = flow[0]
         data = json.loads(api.request.data)
         if data["action"] == "update":
-            access, accessIDs, adminBypass = db.ACLAccess(api.g["sessionData"],conductObj.acl,"write")
+            access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,conductObj.acl,"write")
             if access:
                 if "x" in data and "y" in data:
                     try:
@@ -376,22 +376,22 @@ def updateFlow(conductID,flowID):
                         y = int(data["y"])
                     except:
                         return { }, 403
-                flowUI = webui._modelUI().getAsClass(api.g["sessionData"],query={ "flowID" : flow["flowID"], "conductID" : conductID })
+                flowUI = webui._modelUI().getAsClass(api.g.sessionData,query={ "flowID" : flow["flowID"], "conductID" : conductID })
                 if len(flowUI) == 1:
                     flowUI = flowUI[0]
                     if "x" in data and "y" in data:
                         flowUI.x = x
                         flowUI.y = y
-                        flowUI.update(["x","y"],sessionData=api.g["sessionData"])
+                        flowUI.update(["x","y"],sessionData=api.g.sessionData)
                     if "title" in data:
                         flowUI.title = data["title"]
-                        flowUI.update(["title"],sessionData=api.g["sessionData"])
+                        flowUI.update(["title"],sessionData=api.g.sessionData)
                     return { }, 200
                 else:
                     webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],x,y)
                     return { }, 201
         elif data["action"] == "copy":
-            access, accessIDs, adminBypass = db.ACLAccess(api.g["sessionData"],conductObj.acl,"write")
+            access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,conductObj.acl,"write")
             if access:
                 flow = [ x for x in conductObj.flow if x["flowID"] ==  data["operatorId"]]
                 if len(flow) == 1:
@@ -403,13 +403,13 @@ def updateFlow(conductID,flowID):
                         "{0}{1}".format(flow["type"],"ID") : flow["{0}{1}".format(flow["type"],"ID")],
                         "next" : []
                     }
-                    flowUI = webui._modelUI().getAsClass(api.g["sessionData"],query={ "flowID" : flow["flowID"], "conductID" : conductID })[0]
+                    flowUI = webui._modelUI().getAsClass(api.g.sessionData,query={ "flowID" : flow["flowID"], "conductID" : conductID })[0]
                     webui._modelUI().new(conductID,conductObj.acl,newFlow["flowID"],data["x"],data["y"],flowUI.title)
                     conductObj.flow.append(newFlow)
-                    conductObj.update(["flow"],sessionData=api.g["sessionData"])
+                    conductObj.update(["flow"],sessionData=api.g.sessionData)
                     return { }, 201
         elif data["action"] == "clone":
-            access, accessIDs, adminBypass = db.ACLAccess(api.g["sessionData"],conductObj.acl,"write")
+            access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,conductObj.acl,"write")
             if access:
                 flow = [ x for x in conductObj.flow if x["flowID"] ==  data["operatorId"]]
                 if len(flow) == 1:
@@ -419,12 +419,12 @@ def updateFlow(conductID,flowID):
                     # Check if the modelType and object are unchanged
                     if "type" in flow:
                         if flow["type"] == "trigger":
-                            modelFlowObject = trigger._trigger().getAsClass(api.g["sessionData"],id=flow["{0}{1}".format(flow["type"],"ID")])
+                            modelFlowObject = trigger._trigger().getAsClass(api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
                             if len(modelFlowObject) == 1:
                                 modelFlowObject = modelFlowObject[0]
                             modelFlowObjectType = "trigger"
                         if flow["type"] == "action":
-                            modelFlowObject = action._action().getAsClass(api.g["sessionData"],id=flow["{0}{1}".format(flow["type"],"ID")])
+                            modelFlowObject = action._action().getAsClass(api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
                             if len(modelFlowObject) == 1:
                                 modelFlowObject = modelFlowObject[0]
                             modelFlowObjectType = "action"
@@ -439,14 +439,14 @@ def updateFlow(conductID,flowID):
                                 "next" : []
                             }
                             # New object required
-                            _class = model._model().getAsClass(api.g["sessionData"],id=modelFlowObject.classID)
+                            _class = model._model().getAsClass(api.g.sessionData,id=modelFlowObject.classID)
                             if _class:
                                 _class = _class[0].classObject()
                                 # Bug exists as name value is not requried by db class but is for core models - this could result in an error if new model is added that does not accept name within new function override
                                 newFlowObjectID = _class().new(flow["flowID"]).inserted_id
 
                                 # Working out by bruteforce which type this is ( try and load it by parent class and check for error) - get on trigger if it does not exist will return None
-                                modelFlowObjectClone = _class().getAsClass(api.g["sessionData"],id=newFlowObjectID)
+                                modelFlowObjectClone = _class().getAsClass(api.g.sessionData,id=newFlowObjectID)
                                 if len(modelFlowObjectClone) == 1:
                                     modelFlowObjectClone = modelFlowObjectClone[0]
                                 else:
@@ -462,27 +462,27 @@ def updateFlow(conductID,flowID):
                                         if type(getattr(modelFlowObject,member)) in validTypes:
                                             setattr(modelFlowObjectClone,member,getattr(modelFlowObject,member))
                                             updateList.append(member)
-                                modelFlowObjectClone.update(updateList,sessionData=api.g["sessionData"])
+                                modelFlowObjectClone.update(updateList,sessionData=api.g.sessionData)
 
                                 # Set conduct flow to correct type and objectID
                                 flow["{0}{1}".format(flow["type"],"ID")] = str(newFlowObjectID)
                                 conductObj.flow.append(flow)
 
                                 # Adding UI position for cloned object
-                                flowUI = webui._modelUI().getAsClass(api.g["sessionData"],query={ "flowID" : flowID, "conductID" : conductID })[0]
+                                flowUI = webui._modelUI().getAsClass(api.g.sessionData,query={ "flowID" : flowID, "conductID" : conductID })[0]
                                 webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],data["x"],data["y"],"Copy - {0}".format(flowUI.title))
-                                conductObj.update(["flow"],sessionData=api.g["sessionData"])
+                                conductObj.update(["flow"],sessionData=api.g.sessionData)
                                 return { "result" : True}, 201
     return { }, 404
 
 @api.webServer.route("/conductEditor/<conductID>/flowLink/<fromFlowID>/<toFlowID>/", methods=["PUT"])
 def newFlowLink(conductID,fromFlowID,toFlowID):
-    conductObj = conduct._conduct().getAsClass(api.g["sessionData"],id=conductID)
+    conductObj = conduct._conduct().getAsClass(api.g.sessionData,id=conductID)
     if len(conductObj) == 1:
         conductObj = conductObj[0]
     else:
         return { }, 404
-    access, accessIDs, adminBypass = db.ACLAccess(api.g["sessionData"],conductObj.acl,"write")
+    access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,conductObj.acl,"write")
     if access:
         fromFlow = [ x for x in conductObj.flow if x["flowID"] ==  fromFlowID][0]
         toFlow = [ x for x in conductObj.flow if x["flowID"] ==  toFlowID][0]
@@ -490,7 +490,7 @@ def newFlowLink(conductID,fromFlowID,toFlowID):
         if len(nextFlows) == 0:
             if toFlow["type"] != "trigger":
                 fromFlow["next"].append({ "flowID" : toFlowID, "logic": True })
-                conductObj.update(["flow"],sessionData=api.g["sessionData"])
+                conductObj.update(["flow"],sessionData=api.g.sessionData)
                 return { }, 201
             else:
                 return { }, 403
@@ -500,19 +500,19 @@ def newFlowLink(conductID,fromFlowID,toFlowID):
 
 @api.webServer.route("/conductEditor/<conductID>/flowLink/<fromFlowID>/<toFlowID>/", methods=["DELETE"])
 def deleteFlowLink(conductID,fromFlowID,toFlowID):
-    conductObj = conduct._conduct().getAsClass(api.g["sessionData"],id=conductID)
+    conductObj = conduct._conduct().getAsClass(api.g.sessionData,id=conductID)
     if len(conductObj) == 1:
         conductObj = conductObj[0]
     else:
         return { }, 404
-    access, accessIDs, adminBypass = db.ACLAccess(api.g["sessionData"],conductObj.acl,"write")
+    access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,conductObj.acl,"write")
     if access:
         fromFlow = [ x for x in conductObj.flow if x["flowID"] ==  fromFlowID]
         if len(fromFlow) > 0:
             fromFlow = fromFlow[0]
             for nextflow in fromFlow["next"]:
                 if nextflow["flowID"] == toFlowID:
-                    if db.fieldACLAccess(api.g["sessionData"],conductObj.acl,"flow","delete"):
+                    if db.fieldACLAccess(api.g.sessionData,conductObj.acl,"flow","delete"):
                         conductObj.flow[conductObj.flow.index(fromFlow)]["next"].remove(nextflow)
                         conductObj.update(["flow"])
                         return { }, 200

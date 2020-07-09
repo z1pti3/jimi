@@ -309,7 +309,7 @@ if api.webServer:
     if not api.webServer.got_first_request:
         @api.webServer.route(api.base+"workers/", methods=["GET"])
         def getWorkers():
-            if api.g["sessionData"]["admin"]:
+            if api.g.sessionData["admin"]:
                 result = workers.api_get()
                 if result["results"]:
                     return result, 200
@@ -320,7 +320,7 @@ if api.webServer:
 
         @api.webServer.route(api.base+"workers/", methods=["DELETE"])
         def deleteWorkers():
-            if api.g["sessionData"]["admin"]:
+            if api.g.sessionData["admin"]:
                 result = workers.api_delete()
                 if result["result"]:
                     return result, 200
@@ -331,7 +331,7 @@ if api.webServer:
 
         @api.webServer.route(api.base+"workers/", methods=["POST"])
         def updateWorkers():
-            if api.g["sessionData"]["admin"]:
+            if api.g.sessionData["admin"]:
                 data = json.loads(api.request.data)
                 if data["action"] == "start":
                     result = start()
@@ -352,7 +352,7 @@ if api.webServer:
 
         @api.webServer.route(api.base+"workers/<workerID>/", methods=["GET"])
         def getWorker(workerID):
-            if api.g["sessionData"]["admin"]:
+            if api.g.sessionData["admin"]:
                 if workerID == "0":
                     result = workers.api_get(workers.workerID)
                     result["results"][0]["lastHandle"] = workers.lastHandle
@@ -369,7 +369,7 @@ if api.webServer:
 
         @api.webServer.route(api.base+"workers/<workerID>/", methods=["DELETE"])
         def deleteWorker(workerID):
-            if api.g["sessionData"]["admin"]:
+            if api.g.sessionData["admin"]:
                 result = workers.api_delete(workerID)
                 if result["result"]:
                     return result, 200
@@ -382,7 +382,7 @@ if api.webServer:
         def getWorkerStats():
             result = {}
             result["results"] = []
-            if api.g["sessionData"]["admin"]:
+            if api.g.sessionData["admin"]:
                 result["results"].append({ "activeCount" : workers.activeCount(), "queueLength" : workers.queue(), "workers" : workers.active() })
             return result, 200
 
@@ -390,6 +390,6 @@ if api.webServer:
         def getWorkerSettings():
             result = {}
             result["results"] = []
-            if api.g["sessionData"]["admin"]:
+            if api.g.sessionData["admin"]:
                 result["results"].append(workerSettings)
             return result, 200

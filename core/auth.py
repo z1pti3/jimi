@@ -246,7 +246,10 @@ if api.webServer:
         # Ensures that all requests require basic level of authentication ( athorization handled by dectirators )
         @api.webServer.before_request
         def api_alwaysAuthBefore():
-            api.g = { "sessionData" : {}, "sessionToken": "", "type" : "" }
+            api.g.sessionData = {}
+            api.g.sessionToken = ""
+            api.g.type = ""
+            #api.g = { "sessionData" : {}, "sessionToken": "", "type" : "" }
             if authSettings["enabled"]:
                 noAuthEndPoints = ["static","loginPage","api_validateUser","api_validateAPIKey"]
                 if api.request.endpoint not in noAuthEndPoints:
@@ -255,7 +258,7 @@ if api.webServer:
                         validSession = validateSession(api.request.cookies["jimiAuth"])
                         if not validSession:
                             return api.redirect("/login?return={0}".format(api.request.full_path), code=302)
-                        api.g["type"] = "cookie"
+                        api.g.type = "cookie"
                         # Confirm CSRF
                         if api.request.method in ["POST","PUI","DELETE"]:
                             try:
@@ -277,25 +280,25 @@ if api.webServer:
                             return {}, 403
                         #if validSession["sessionData"]["api"] != True:
                         #    return {}, 403
-                        api.g["type"] = "x-api-token"
+                        api.g.type = "x-api-token"
                     else: 
                         return api.redirect("/login?return={0}".format(api.request.full_path), code=302)
                     # Data that is returned to the Flask request handler function
-                    api.g["sessionData"] = validSession["sessionData"]
-                    api.g["sessionToken"] = validSession["sessionToken"]
+                    api.g.sessionData = validSession["sessionData"]
+                    api.g.sessionToken = validSession["sessionToken"]
                     if "renew" in validSession:
-                        api.g["renew"] = validSession["renew"]
+                        api.g.renew = validSession["renew"]
                 else:
-                    api.g["type"] = "bypass"
+                    api.g.type = "bypass"
             
         # Ensures that all requests return an up to date sessionToken to prevent session timeout for valid sessions
         @api.webServer.after_request
         def api_alwaysAuthAfter(response):
             if authSettings["enabled"]:
-                    if api.g["type"] != "bypass":
-                        if api.g["type"] == "cookie":
-                            if "renew" in api.g:
-                                response.set_cookie("jimiAuth", value=generateSession(api.g["sessionData"]), max_age=600) # Need to add secure=True before production, httponly=False cant be used due to auth polling
+                    if api.g.type != "bypass":
+                        if api.g.type == "cookie":
+                            #if "renew" in api.g:
+                            response.set_cookie("jimiAuth", value=generateSession(api.g.sessionData), max_age=600) # Need to add secure=True before production, httponly=False cant be used due to auth polling
             # Cache Weakness
             if api.request.endpoint != "static": 
                 response.headers['Cache-Control'] = 'no-cache, no-store'
@@ -333,18 +336,18 @@ if api.webServer:
         def api_logout():
             response = api.make_response(api.redirect("/login?return=/?"))
             response.set_cookie("jimiAuth", value="")
-            audit._audit().add("auth","logout",{ "action" : "sucess", "_id" : api.g["sessionData"]["_id"] })
+            audit._audit().add("auth","logout",{ "action" : "sucess", "_id" : api.g.sessionData["_id"] })
             return response, 302
 
         # Checks that username and password are a match
         @api.webServer.route(api.base+"auth/myAccount/", methods=["POST"])
         def api_updateMyAccount():
-            user = _user().getAsClass(id=api.g["sessionData"]["_id"])
+            user = _user().getAsClass(id=api.g.sessionData["_id"])
             if len(user) == 1:
                 user = user[0]
                 data = json.loads(api.request.data)
-                user.setAttribute("passwordHash",data["data"]["passwordHash"],sessionData=api.g["sessionData"])
-                user.setAttribute("name",data["data"]["name"],sessionData=api.g["sessionData"])
+                user.setAttribute("passwordHash",data["data"]["passwordHash"],sessionData=api.g.sessionData)
+                user.setAttribute("name",data["data"]["name"],sessionData=api.g.sessionData)
                 user.update(["name","passwordHash","apiTokens"])
                 return {}, 200
             return {}, 403
@@ -352,7 +355,7 @@ if api.webServer:
         # Called by API systems to request an x-api-token string from x-api-key provided
         @api.webServer.route(api.base+"auth/myAccount/", methods=["GET"])
         def api_getMyAccount():
-            user = _user().getAsClass(id=api.g["sessionData"]["_id"])
+            user = _user().getAsClass(id=api.g.sessionData["_id"])
             if len(user) == 1:
                 user = user[0]
                 userProps = {}

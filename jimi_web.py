@@ -44,7 +44,7 @@ from core.models import conduct, action, trigger, webui
 @api.webServer.route("/")
 def mainPage():
 	from system import install
-	return render_template("main.html", conducts=conduct._conduct().query(api.g["sessionData"],query={ "name" : { "$exists" : True } },sort=[( "name", 1 )])["results"], version=install.installedVersion(), pluginPages=pluginPages)
+	return render_template("main.html", conducts=conduct._conduct().query(api.g.sessionData,query={ "name" : { "$exists" : True } },sort=[( "name", 1 )])["results"], version=install.installedVersion(), pluginPages=pluginPages)
 
 @api.webServer.route("/login")
 def loginPage():
@@ -53,7 +53,7 @@ def loginPage():
 @api.webServer.route("/conduct/PropertyTypes/", methods=["GET"])
 def getConductPropertyTypes():
 	result = []
-	models = model._model().query(api.g["sessionData"],query={ 
+	models = model._model().query(api.g.sessionData,query={ 
 		"$and" : [ 
 			{ 
 				"$or" : [ 
@@ -77,7 +77,7 @@ def getConductPropertyTypes():
 
 @api.webServer.route("/conduct/<conductID>/flowProperties/<flowID>/", methods=["GET"])
 def getConductFlowProperties(conductID,flowID):
-	conductObj = conduct._conduct().query(api.g["sessionData"],id=conductID)["results"]
+	conductObj = conduct._conduct().query(api.g.sessionData,id=conductID)["results"]
 	if len(conductObj) == 1:
 		conductObj = conductObj[0]
 	else:
@@ -88,17 +88,17 @@ def getConductFlowProperties(conductID,flowID):
 		formData = None
 		if "type" in flow:
 			if flow["type"] == "trigger":
-				triggerObj = trigger._trigger().query(api.g["sessionData"],id=flow["triggerID"])["results"]
+				triggerObj = trigger._trigger().query(api.g.sessionData,id=flow["triggerID"])["results"]
 				if len(triggerObj) == 1:
 					triggerObj = triggerObj[0]
 				else:
 					return {}, 404
-				_class = model._model().getAsClass(api.g["sessionData"],id=triggerObj["classID"])
+				_class = model._model().getAsClass(api.g.sessionData,id=triggerObj["classID"])
 				if len(_class) == 1:
 					_class = _class[0].classObject()
 				else:
 					return {}, 404
-				triggerObj = _class().getAsClass(api.g["sessionData"],id=triggerObj["_id"])
+				triggerObj = _class().getAsClass(api.g.sessionData,id=triggerObj["_id"])
 				if len(triggerObj) == 1:
 					triggerObj = triggerObj[0]
 				else:
@@ -108,15 +108,15 @@ def getConductFlowProperties(conductID,flowID):
 				else:
 					formData = webui._properties().generate(triggerObj)
 			elif flow["type"] == "action":
-				actionObj = action._action().query(api.g["sessionData"],id=flow["actionID"])["results"]
+				actionObj = action._action().query(api.g.sessionData,id=flow["actionID"])["results"]
 				if len(actionObj) == 1:
 					actionObj = actionObj[0]
 				else:
 					return {},404
-				_class = model._model().getAsClass(api.g["sessionData"],id=actionObj["classID"])
+				_class = model._model().getAsClass(api.g.sessionData,id=actionObj["classID"])
 				if len(_class) == 1:
 					_class = _class[0].classObject()
-				actionObj = _class().getAsClass(api.g["sessionData"],id=actionObj["_id"])
+				actionObj = _class().getAsClass(api.g.sessionData,id=actionObj["_id"])
 				if len(actionObj) == 1:
 					actionObj = actionObj[0]
 				else:
@@ -129,7 +129,7 @@ def getConductFlowProperties(conductID,flowID):
 
 @api.webServer.route("/conduct/<conductID>/flow/<flowID>/", methods=["GET"])
 def getConductFlow(conductID,flowID):
-	conductObj = conduct._conduct().query(api.g["sessionData"],id=conductID)["results"]
+	conductObj = conduct._conduct().query(api.g.sessionData,id=conductID)["results"]
 	if len(conductObj) == 1:
 		conductObj = conductObj[0]
 	else:
@@ -146,7 +146,7 @@ def getConductFlow(conductID,flowID):
 
 @api.webServer.route("/conduct/<conductID>/forceTrigger/<flowID>/", methods=["POST"])
 def forceTrigger(conductID,flowID):
-	conductObj = conduct._conduct().query(api.g["sessionData"],id=conductID)["results"]
+	conductObj = conduct._conduct().query(api.g.sessionData,id=conductID)["results"]
 	if len(conductObj) == 1:
 		conductObj = conductObj[0]
 	else:
@@ -155,12 +155,12 @@ def forceTrigger(conductID,flowID):
 	flow = flow[0]
 	data = json.loads(api.request.data)
 	apiEndpoint = "scheduler/{0}/".format(flow["triggerID"])
-	helpers.apiCall("POST",apiEndpoint,{ "action" : "trigger", "events" : data["events"] },token=api.g["sessionToken"])
+	helpers.apiCall("POST",apiEndpoint,{ "action" : "trigger", "events" : data["events"] },token=api.g.sessionToken)
 	return { }, 200
 
 @api.webServer.route("/conduct/<conductID>/flowlogic/<flowID>/<nextflowID>/", methods=["GET"])
 def getConductFlowLogic(conductID,flowID,nextflowID):
-	conductObj = conduct._conduct().query(api.g["sessionData"],id=conductID)["results"]
+	conductObj = conduct._conduct().query(api.g.sessionData,id=conductID)["results"]
 	if len(conductObj) == 1:
 		conductObj = conductObj[0]
 	else:
@@ -180,12 +180,12 @@ def getConductFlowLogic(conductID,flowID,nextflowID):
 
 @api.webServer.route("/conduct/<conductID>/flowlogic/<flowID>/<nextflowID>/", methods=["POST"])
 def setConductFlowLogic(conductID,flowID,nextflowID):
-	conductObj = conduct._conduct().getAsClass(api.g["sessionData"],id=conductID)
+	conductObj = conduct._conduct().getAsClass(api.g.sessionData,id=conductID)
 	if len(conductObj) == 1:
 		conductObj = conductObj[0]
 	else:
 		return {},404
-	access, accessIDs, adminBypass = db.ACLAccess(api.g["sessionData"],conductObj.acl,"write")
+	access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,conductObj.acl,"write")
 	if access:
 		flow = [ x for x in conductObj.flow if x["flowID"] ==  flowID]
 		data = json.loads(api.request.data)
@@ -213,7 +213,7 @@ def setConductFlowLogic(conductID,flowID,nextflowID):
 								flow["next"][key] = {"flowID" : nextFlow["flowID"], "logic" : int(data["logic"])}
 							except ValueError:
 								return { }, 403
-						conductObj.update(["flow"],sessionData=api.g["sessionData"])
+						conductObj.update(["flow"],sessionData=api.g.sessionData)
 						return { }, 200
 	else:
 		return {},403
@@ -221,17 +221,17 @@ def setConductFlowLogic(conductID,flowID,nextflowID):
 
 @api.webServer.route("/admin/settings/", methods=["GET"])
 def settingsPage():
-	if api.g["sessionData"]:
-		if "admin" in api.g["sessionData"]:
-			if api.g["sessionData"]["admin"]:
+	if api.g.sessionData:
+		if "admin" in api.g.sessionData:
+			if api.g.sessionData["admin"]:
 				return render_template("blank.html", content="Settings")
 	return {}, 403
 
 @api.webServer.route("/audit/", methods=["GET"])
 def auditPage():
-	if api.g["sessionData"]:
-		if "admin" in api.g["sessionData"]:
-			if api.g["sessionData"]["admin"]:
+	if api.g.sessionData:
+		if "admin" in api.g.sessionData:
+			if api.g.sessionData["admin"]:
 				auditData = audit._audit().query(query={},fields=["_id","time","source","type","data","systemID"],limit=1000,sort=[( "_id", -1 )])["results"]
 				auditContent = []
 				for auditItem in auditData:
@@ -243,41 +243,41 @@ def auditPage():
 
 @api.webServer.route("/workers/", methods=["GET"])
 def workerPage():
-	if api.g["sessionData"]:
-		if "admin" in api.g["sessionData"]:
-			if api.g["sessionData"]["admin"]:
+	if api.g.sessionData:
+		if "admin" in api.g.sessionData:
+			if api.g.sessionData["admin"]:
 				apiEndpoint = "workers/stats/"
-				workerContent = helpers.apiCall("GET",apiEndpoint,token=api.g["sessionToken"]).text
+				workerContent = helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken).text
 				return render_template("workers.html", content=workerContent)
 	return {}, 403
 
 @api.webServer.route("/cluster/", methods=["GET"])
 def clusterPage():
-	if api.g["sessionData"]:
-		if "admin" in api.g["sessionData"]:
-			if api.g["sessionData"]["admin"]:
+	if api.g.sessionData:
+		if "admin" in api.g.sessionData:
+			if api.g.sessionData["admin"]:
 				apiEndpoint = "cluster/"
-				content = helpers.apiCall("GET",apiEndpoint,token=api.g["sessionToken"]).text
+				content = helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken).text
 				return render_template("blank.html", content=content)
 	return {}, 403
 
 @api.webServer.route("/myAccount/", methods=["GET"])
 def myAccountPage():
-	return render_template("myAccount.html", CSRF=api.g["sessionData"]["CSRF"])
+	return render_template("myAccount.html", CSRF=api.g.sessionData["CSRF"])
 
 @api.webServer.route("/admin/backups/", methods=["GET"])
 def backupsPage():
-	if api.g["sessionData"]:
-		if "admin" in api.g["sessionData"]:
-			if api.g["sessionData"]["admin"]:
-				return render_template("backups.html", content="", CSRF=api.g["sessionData"]["CSRF"])
+	if api.g.sessionData:
+		if "admin" in api.g.sessionData:
+			if api.g.sessionData["admin"]:
+				return render_template("backups.html", content="", CSRF=api.g.sessionData["CSRF"])
 	return {}, 403
 
 @api.webServer.route("/admin/backup-system/", methods=["GET"])
 def backup():
-	if api.g["sessionData"]:
-		if "admin" in api.g["sessionData"]:
-			if api.g["sessionData"]["admin"]:
+	if api.g.sessionData:
+		if "admin" in api.g.sessionData:
+			if api.g.sessionData["admin"]:
 				process = subprocess.Popen(["mongodump","--db={}".format(db.mongodbSettings["db"]),"--archive=/tmp/tempDBfile"], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 				stdout, stderr = process.communicate()
 				if process.returncode == 0:
@@ -288,9 +288,9 @@ def backup():
 
 @api.webServer.route("/admin/restore-system/", methods=["POST"])
 def restore():
-	if api.g["sessionData"]:
-		if "admin" in api.g["sessionData"]:
-			if api.g["sessionData"]["admin"]:
+	if api.g.sessionData:
+		if "admin" in api.g.sessionData:
+			if api.g.sessionData["admin"]:
 				if "file" not in request.files:
 					flash("No file found")
 					return redirect("/admin/backups")

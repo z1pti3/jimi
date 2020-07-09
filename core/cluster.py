@@ -183,7 +183,7 @@ if api.webServer:
         @api.webServer.route(api.base+"cluster/", methods=["GET"])
         def getCluster():
             result = None
-            if api.g["sessionData"]["admin"]:
+            if api.g.sessionData["admin"]:
                 if cluster:
                     result = { "stopped" : cluster.stopped, "startTime" : cluster.startTime, "lastHandle" : cluster.lastHandle, "workerID" : cluster.workerID }
                 results = _clusterMember().query()["results"]
@@ -191,7 +191,7 @@ if api.webServer:
 
         @api.webServer.route(api.base+"cluster/", methods=["POST"])
         def updateCluster():
-            if api.g["sessionData"]["admin"]:
+            if api.g.sessionData["admin"]:
                 data = json.loads(api.request.data)
                 if data["action"] == "start":
                     result = start()

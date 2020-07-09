@@ -96,7 +96,7 @@ if api.webServer:
         @api.webServer.route(api.base+"plugins/<pluginName>/installed/", methods=["GET"])
         def pluginInstalled(pluginName):
             result = { "installed" : False }
-            plugins = _plugin().query(api.g["sessionData"],query={ "name" : pluginName })["results"]
+            plugins = _plugin().query(api.g.sessionData,query={ "name" : pluginName })["results"]
             if len(plugins) == 1:
                 plugins = plugins[0]
                 if plugins["installed"]:
@@ -125,7 +125,7 @@ if api.webServer:
         def getPlugin(pluginName):
             result = {}
             result["results"] = []
-            plugins = _plugin().query(api.g["sessionData"],query={ "name" : pluginName })["results"]
+            plugins = _plugin().query(api.g.sessionData,query={ "name" : pluginName })["results"]
             if len(plugins) == 1:
                 result["results"] = plugins
             if result["results"]:
@@ -139,7 +139,7 @@ if api.webServer:
             if data["action"] == "install" or data["action"] == "uninstall" or data["action"] == "upgrade":
                 pluginClass = loadPluginClass(pluginName)
                 if pluginClass:
-                    plugins = _plugin().query(api.g["sessionData"],query={ "name" : pluginName })["results"]
+                    plugins = _plugin().query(api.g.sessionData,query={ "name" : pluginName })["results"]
                     if len(plugins) == 1:
                         plugins = plugins[0]
                         if data["action"] == "install":

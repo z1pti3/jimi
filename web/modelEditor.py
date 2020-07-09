@@ -4,4 +4,4 @@ from core import api, model
 
 @api.webServer.route("/model/", methods=["GET"])
 def modelEditorMainPage():
-    return render_template("modelEditorList.html", CSRF=api.g["sessionData"]["CSRF"])
+    return render_template("modelEditorList.html", CSRF=api.g.sessionData["CSRF"])

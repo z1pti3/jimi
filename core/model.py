@@ -84,8 +84,8 @@ if api.webServer:
         @api.webServer.route(api.base+"models/", methods=["GET"])
         def getModels():
             result = []
-            api.g["sessionData"]
-            models = _model().query(api.g["sessionData"],query={ "_id" : { "$exists": True } })["results"]
+            api.g.sessionData
+            models = _model().query(api.g.sessionData,query={ "_id" : { "$exists": True } })["results"]
             for model in models:
                 result.append(model["name"])
             return { "models" : result }, 200
@@ -97,7 +97,7 @@ if api.webServer:
                 results = _model().query(query={ "className" : class_.__name__ })["results"]
                 if len(results) == 1:
                     results = results[0]
-                    return class_().query(api.g["sessionData"],query={ "classID" : results["_id"] },fields=["_id","name","classType"]), 200
+                    return class_().query(api.g.sessionData,query={ "classID" : results["_id"] },fields=["_id","name","classType"]), 200
             return {}, 404
 
         @api.webServer.route(api.base+"models/<modelName>/extra/", methods=["GET"])
@@ -107,7 +107,7 @@ if api.webServer:
                 results = _model().query(query={ "className" : class_.__name__ })["results"]
                 if len(results) == 1:
                     results = results[0]
-                    results = class_().query(api.g["sessionData"],query={ "classID" : results["_id"] },fields=["_id","name","classType","lastUpdateTime"])["results"]
+                    results = class_().query(api.g.sessionData,query={ "classID" : results["_id"] },fields=["_id","name","classType","lastUpdateTime"])["results"]
                     if modelName == "action" or modelName == "trigger":
                         for result in results:
                             result["whereUsed"] = conduct._conduct().query(query={ "$or" : [ { "flow.triggerID" : { "$in" : [ result["_id"] ] } }, { "flow.actionID" : { "$in" : [ result["_id"] ] } } ] },fields=["_id","name"])["results"]
@@ -129,7 +129,7 @@ if api.webServer:
 
                     result = []
                     for classID in classIDs:
-                        for foundObject in class_().query(api.g["sessionData"],query={ "classID" : classID },fields=["_id","name"])["results"]:
+                        for foundObject in class_().query(api.g.sessionData,query={ "classID" : classID },fields=["_id","name"])["results"]:
                             result.append(foundObject)
 
                     return { "results" : result}, 200
@@ -140,7 +140,7 @@ if api.webServer:
         def getModelSchema(modelName):
             class_ = loadModel(modelName)
             if class_:
-                access, accessIDs, adminBypass = db.ACLAccess(api.g["sessionData"],class_.acl,"read")
+                access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,class_.acl,"read")
                 if access:
                     return class_.classObject()().api_getSchema(), 200
                 else:
@@ -152,7 +152,7 @@ if api.webServer:
         def getModelObject(modelName,objectID):
             class_ = loadModel(modelName).classObject()
             if class_:
-                result = class_().query(api.g["sessionData"],id=objectID)
+                result = class_().query(api.g.sessionData,id=objectID)
                 if result["results"]:
                     return result, 200
                 else:
@@ -164,10 +164,10 @@ if api.webServer:
         def deleteModelObject(modelName,objectID):
             class_ = loadModel(modelName)
             if class_:
-                _class = class_.classObject()().getAsClass(api.g["sessionData"],id=objectID)
+                _class = class_.classObject()().getAsClass(api.g.sessionData,id=objectID)
                 if len(_class) == 1:
                     _class = _class[0]
-                    access, accessIDs, adminBypass = db.ACLAccess(api.g["sessionData"],_class.acl,"delete")
+                    access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,_class.acl,"delete")
                     if access:
                         result = class_.classObject()().api_delete(id=objectID)
                         if result["result"]:
@@ -180,11 +180,11 @@ if api.webServer:
         def newModelObject(modelName):
             class_ = loadModel(modelName)
             if class_:
-                access, accessIDs, adminBypass = db.ACLAccess(api.g["sessionData"],class_.acl,"read")
+                access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,class_.acl,"read")
                 if access:
                     class_ = class_.classObject()()
-                    if api.g["sessionData"]:
-                        class_.acl = { "ids" : [ { "accessID" : api.g["sessionData"]["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
+                    if api.g.sessionData:
+                        class_.acl = { "ids" : [ { "accessID" : api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
                     newObjectID = super(type(class_), class_).new().inserted_id
                     return { "result" : { "_id" : str(newObjectID) } }, 200
             return {}, 404
@@ -198,17 +198,17 @@ if api.webServer:
                     updateItemsList = []
                     changeLog = {}
                     data = data["data"]
-                    _class = class_.classObject()().getAsClass(api.g["sessionData"],id=objectID)
+                    _class = class_.classObject()().getAsClass(api.g.sessionData,id=objectID)
                     if len(_class) == 1:
                         _class = _class[0]
                         # Builds list of permitted ACL
-                        access, accessIDs, adminBypass = db.ACLAccess(api.g["sessionData"],_class.acl,"write")
+                        access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,_class.acl,"write")
                         if access:
                             for dataKey, dataValue in data.items():
                                 fieldAccessPermitted = True
                                 # Checking if sessionData is permitted field level access
                                 if _class.acl and not adminBypass:
-                                    fieldAccessPermitted = db.fieldACLAccess(api.g["sessionData"],_class.acl,dataKey,"write")
+                                    fieldAccessPermitted = db.fieldACLAccess(api.g.sessionData,_class.acl,dataKey,"write")
 
                                 if fieldAccessPermitted:
                                     # _id is a protected mongodb object and cant be updated
@@ -218,25 +218,25 @@ if api.webServer:
                                             changeLog[dataKey]["currentValue"] = getattr(_class, dataKey)
                                             if type(getattr(_class, dataKey)) is str:
                                                 if dataValue:
-                                                    if _class.setAttribute(dataKey, str(dataValue),sessionData=api.g["sessionData"]):
+                                                    if _class.setAttribute(dataKey, str(dataValue),sessionData=api.g.sessionData):
                                                         updateItemsList.append(dataKey)
                                                         changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
                                             elif type(getattr(_class, dataKey)) is int:
                                                 try:
-                                                    if _class.setAttribute(dataKey, int(dataValue),sessionData=api.g["sessionData"]):
+                                                    if _class.setAttribute(dataKey, int(dataValue),sessionData=api.g.sessionData):
                                                         updateItemsList.append(dataKey)
                                                         changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
                                                 except ValueError:
-                                                    if _class.setAttribute(dataKey, 0,sessionData=api.g["sessionData"]):
+                                                    if _class.setAttribute(dataKey, 0,sessionData=api.g.sessionData):
                                                         updateItemsList.append(dataKey)
                                                         changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
                                             elif type(getattr(_class, dataKey)) is float:
                                                 try:
-                                                    if _class.setAttribute(dataKey, float(dataValue),sessionData=api.g["sessionData"]):
+                                                    if _class.setAttribute(dataKey, float(dataValue),sessionData=api.g.sessionData):
                                                         updateItemsList.append(dataKey)
                                                         changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
                                                 except ValueError:
-                                                    if _class.setAttribute(dataKey, 0,sessionData=api.g["sessionData"]):
+                                                    if _class.setAttribute(dataKey, 0,sessionData=api.g.sessionData):
                                                         updateItemsList.append(dataKey)
                                                         changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
                                             elif type(getattr(_class, dataKey)) is bool:
@@ -246,20 +246,20 @@ if api.webServer:
                                                         dataValue = True
                                                     else:
                                                         dataValue = False
-                                                if _class.setAttribute(dataKey, dataValue,sessionData=api.g["sessionData"]):
+                                                if _class.setAttribute(dataKey, dataValue,sessionData=api.g.sessionData):
                                                     updateItemsList.append(dataKey)
                                                     changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
                                             elif type(getattr(_class, dataKey)) is dict or type(getattr(_class, dataKey)) is list:
                                                 if dataValue:
-                                                    if _class.setAttribute(dataKey, json.loads(dataValue),sessionData=api.g["sessionData"]):
+                                                    if _class.setAttribute(dataKey, json.loads(dataValue),sessionData=api.g.sessionData):
                                                         updateItemsList.append(dataKey)
                                                         changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
                             # Commit back to database
                             if updateItemsList:
                                 _class.update(updateItemsList)
                                 # Adding audit record
-                                if "_id" in api.g["sessionData"]:
-                                    audit._audit().add("model","update",{ "_id" : api.g["sessionData"]["_id"], "objects" : helpers.unicodeEscapeDict(changeLog) })
+                                if "_id" in api.g.sessionData:
+                                    audit._audit().add("model","update",{ "_id" : api.g.sessionData["_id"], "objects" : helpers.unicodeEscapeDict(changeLog) })
                                 else:
                                     audit._audit().add("model","update",{ "objects" : helpers.unicodeEscapeDict(changeLog) })
                             return {}, 200
