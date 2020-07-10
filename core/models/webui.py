@@ -24,14 +24,16 @@ class _modelUI(db._document):
     _dbCollection = db.db["modelUI"]
 
     def new(self,conductID,acl,flowID,x,y,title=""):
-        self.conductID = conductID
-        self.acl = acl
-        self.flowID = flowID
-        self.x = x
-        self.y = y
-        self.title = title
-        # Run parent class function ( altunative to end decorator for the new function within a class )
-        return super(_modelUI, self).new()
+        if len(_modelUI().query(query={"conductID" : conductID, "flowID" : flowID})["results"]) < 1:
+            self.conductID = conductID
+            self.acl = acl
+            self.flowID = flowID
+            self.x = x
+            self.y = y
+            self.title = title
+            # Run parent class function ( altunative to end decorator for the new function within a class )
+            return super(_modelUI, self).new()
+        return False
 
 # Class used to generate UI properties form
 class _properties():

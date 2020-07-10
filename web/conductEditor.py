@@ -520,3 +520,29 @@ def deleteFlowLink(conductID,fromFlowID,toFlowID):
         return { }, 404
     else:
         return {}, 403
+
+
+@api.webServer.route("/conduct/<conductID>/editACL/<flowID>", methods=["GET"])
+def getACL(conductID,flowID):
+    webObj = webui._modelUI().getAsClass(api.g.sessionData,query={"conductID" : conductID, "flowID" : flowID})
+    if len(webObj) == 1:
+        webObj = webObj[0]
+        return {"acl":webObj.acl}, 200
+    else:
+        return { }, 404
+
+@api.webServer.route("/conduct/<conductID>/editACL/<flowID>", methods=["POST"])
+def editACL(conductID,flowID):
+    webObj = webui._modelUI().getAsClass(api.g.sessionData,query={"conductID" : conductID, "flowID" : flowID})
+    if len(webObj) == 1:
+        webObj = webObj[0]
+    else:
+        return { }, 404
+    access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,webObj.acl,"write")
+    if access:
+        data = json.loads(api.request.data)
+        webObj.acl = json.loads(data["acl"])
+        webObj.update(["acl"])
+        return { }, 200
+    else:
+        return {}, 403        

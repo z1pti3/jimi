@@ -347,6 +347,14 @@ function editFlowObject() {
 	}
 }
 
+function editFlowACL() {
+	selectedNodes = network.getSelectedNodes()
+	if (selectedNodes.length == 1) {
+		node = nodeObjects[selectedNodes[0]]["flowID"]
+		createACLValuesPanel(node);
+	}
+}
+
 function deleteFlowObject() {
 	deleteSelected()
 }
