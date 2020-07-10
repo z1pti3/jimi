@@ -155,6 +155,10 @@ def forceTrigger(conductID,flowID):
 	flow = flow[0]
 	data = json.loads(api.request.data)
 	apiEndpoint = "scheduler/{0}/".format(flow["triggerID"])
+	if "_id" in api.g.sessionData:
+		audit._audit().add("trigger","force",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID })
+	else:
+		audit._audit().add("trigger","force",{ "user" : "system", "conductID" : conductID, "flowID" : flowID })
 	helpers.apiCall("POST",apiEndpoint,{ "action" : "trigger", "events" : data["events"] },token=api.g.sessionToken)
 	return { }, 200
 
@@ -213,6 +217,10 @@ def setConductFlowLogic(conductID,flowID,nextflowID):
 								flow["next"][key] = {"flowID" : nextFlow["flowID"], "logic" : int(data["logic"])}
 							except ValueError:
 								return { }, 403
+						if "_id" in api.g.sessionData:
+							audit._audit().add("flowLogic","update",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID, "nextflowID" : nextflowID, "logic" : data["logic"] })
+						else:
+							audit._audit().add("flowLogic","update",{ "user" : "system", "conductID" : conductID, "flowID" : flowID , "nextflowID" : nextflowID, "logic" : data["logic"] })
 						conductObj.update(["flow"],sessionData=api.g.sessionData)
 						return { }, 200
 	else:
@@ -291,6 +299,10 @@ def restore():
 	if api.g.sessionData:
 		if "admin" in api.g.sessionData:
 			if api.g.sessionData["admin"]:
+				if "_id" in api.g.sessionData:
+					audit._audit().add("system","restore start",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"] })
+				else:
+					audit._audit().add("system","restore start",{ "user" : "system" })
 				if "file" not in request.files:
 					flash("No file found")
 					return redirect("/admin/backups")
@@ -303,6 +315,10 @@ def restore():
 					file.save("/tmp/12345678-backup")
 					process = subprocess.Popen(["mongorestore","--nsInclude=\"{}.*\"".format(db.mongodbSettings["db"]),"--archive=/tmp/12345678-backup","--drop"], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 					stdout, stderr = process.communicate()
+					if "_id" in api.g.sessionData:
+						audit._audit().add("system","restore end",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"] })
+					else:
+						audit._audit().add("system","restore end",{ "user" : "system" })
 					if process.returncode == 0:
 						return render_template("blank.html", content="Restore Successful!")	
 					if process.returncode == 1:

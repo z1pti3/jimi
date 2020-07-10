@@ -4,7 +4,7 @@ import  uuid
 
 from flask import Flask, request, render_template, make_response, redirect
 
-from core import api, model, db, cache
+from core import api, model, db, cache, audit
 
 from core.models import trigger, action, conduct, webui
 
@@ -268,6 +268,10 @@ def deleteFlow(conductID,flowID):
                     if nextflowValue["flowID"] == flowID:
                         conductObj.flow[conductObj.flow.index(flowItemsValue)]["next"].remove(nextflowValue)
             conductObj.flow.remove(flow)
+            if "_id" in api.g.sessionData:
+                audit._audit().add("flow","delete",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID })
+            else:
+                audit._audit().add("flow","delete",{ "user" : "system", "conductID" : conductID, "flowID" : flowID })
             conductObj.update(["flow"],sessionData=api.g.sessionData)
         return { }, 200
     else:
@@ -315,6 +319,10 @@ def newFlow(conductID):
             webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],data["x"],data["y"],modelFlowObject.name)
             # Appending new object to conduct
             conductObj.flow.append(flow)
+            if "_id" in api.g.sessionData:
+                audit._audit().add("flow","create",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "conductID" : conductID, "newFlowID" : newFlowID })
+            else:
+                audit._audit().add("flow","create",{ "user" : "system", "conductID" : conductID, "newFlowID" : newFlowID })
             conductObj.update(["flow"],sessionData=api.g.sessionData)
             return { }, 201
     else:
@@ -351,6 +359,10 @@ def dropExistingObject(conductID):
                 name = flow["flowID"]
 
             webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],data["x"],data["y"],name)
+            if "_id" in api.g.sessionData:
+                audit._audit().add("flow","drop",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "conductID" : conductID, "objectID" : data["_id"], "newFlowID" : newFlowID })
+            else:
+                audit._audit().add("flow","drop",{ "user" : "system", "conductID" : conductID, "objectID" : data["_id"], "newFlowID" : newFlowID })
             conductObj.flow.append(flow)
             conductObj.update(["flow"],sessionData=api.g.sessionData)
             return { }, 201
@@ -383,9 +395,17 @@ def updateFlow(conductID,flowID):
                     if "x" in data and "y" in data:
                         flowUI.x = x
                         flowUI.y = y
+                        if "_id" in api.g.sessionData:
+                            audit._audit().add("flow","update",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID, "x" : x, "y" : y })
+                        else:
+                            audit._audit().add("flow","update",{ "user" : "system", "conductID" : conductID, "flowID" : flowID, "x" : x, "y" : y })
                         flowUI.update(["x","y"],sessionData=api.g.sessionData)
                     if "title" in data:
                         flowUI.title = data["title"]
+                        if "_id" in api.g.sessionData:
+                            audit._audit().add("flow","update",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID, "title" :data["title"] })
+                        else:
+                            audit._audit().add("flow","update",{ "user" : "system", "conductID" : conductID, "flowID" : flowID, "title" :data["title"] })
                         flowUI.update(["title"],sessionData=api.g.sessionData)
                     return { }, 200
                 else:
@@ -404,6 +424,10 @@ def updateFlow(conductID,flowID):
                         "{0}{1}".format(flow["type"],"ID") : flow["{0}{1}".format(flow["type"],"ID")],
                         "next" : []
                     }
+                    if "_id" in api.g.sessionData:
+                        audit._audit().add("flow","copy",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID })
+                    else:
+                        audit._audit().add("flow","copy",{ "user" : "system", "conductID" : conductID, "flowID" : flowID })
                     flowUI = webui._modelUI().getAsClass(api.g.sessionData,query={ "flowID" : flow["flowID"], "conductID" : conductID })[0]
                     webui._modelUI().new(conductID,conductObj.acl,newFlow["flowID"],data["x"],data["y"],flowUI.title)
                     conductObj.flow.append(newFlow)
@@ -473,6 +497,10 @@ def updateFlow(conductID,flowID):
                                 flowUI = webui._modelUI().getAsClass(api.g.sessionData,query={ "flowID" : flowID, "conductID" : conductID })[0]
                                 webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],data["x"],data["y"],"Copy - {0}".format(flowUI.title))
                                 conductObj.update(["flow"],sessionData=api.g.sessionData)
+                                if "_id" in api.g.sessionData:
+                                    audit._audit().add("flow","duplicate",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID, "newFlowID" : newFlowID })
+                                else:
+                                    audit._audit().add("flow","duplicate",{ "user" : "system", "conductID" : conductID, "flowID" : flowID, "newFlowID" : newFlowID })
                                 return { "result" : True}, 201
     return { }, 404
 
@@ -491,6 +519,10 @@ def newFlowLink(conductID,fromFlowID,toFlowID):
         if len(nextFlows) == 0:
             if toFlow["type"] != "trigger":
                 fromFlow["next"].append({ "flowID" : toFlowID, "logic": True })
+                if "_id" in api.g.sessionData:
+                    audit._audit().add("flow","new link",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "conductID" : conductID, "fromFlowID" : fromFlowID, "toFlowID": toFlowID })
+                else:
+                    audit._audit().add("flow","new link",{ "user" : "system", "conductID" : conductID, "fromFlowID" : fromFlowID, "toFlowID": toFlowID })
                 conductObj.update(["flow"],sessionData=api.g.sessionData)
                 return { }, 201
             else:
@@ -515,6 +547,10 @@ def deleteFlowLink(conductID,fromFlowID,toFlowID):
                 if nextflow["flowID"] == toFlowID:
                     if db.fieldACLAccess(api.g.sessionData,conductObj.acl,"flow","delete"):
                         conductObj.flow[conductObj.flow.index(fromFlow)]["next"].remove(nextflow)
+                        if "_id" in api.g.sessionData:
+                            audit._audit().add("flow","delete link",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "conductID" : conductID, "fromFlowID" : fromFlowID, "toFlowID": toFlowID })
+                        else:
+                            audit._audit().add("flow","delete link",{ "user" : "system", "conductID" : conductID, "fromFlowID" : fromFlowID, "toFlowID": toFlowID })
                         conductObj.update(["flow"])
                         return { }, 200
                     return {}, 403
@@ -543,6 +579,10 @@ def editACL(conductID,flowID):
     if access:
         data = json.loads(api.request.data)
         webObj.acl = json.loads(data["acl"])
+        if "_id" in api.g.sessionData:
+            audit._audit().add("flow","update",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID, "acl" : data["acl"] })
+        else:
+            audit._audit().add("flow","update",{ "user" : "system", "conductID" : conductID, "flowID" : flowID, "acl" : data["acl"] })
         webObj.update(["acl"])
         return { }, 200
     else:

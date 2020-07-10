@@ -205,7 +205,7 @@ def validateUser(username,password):
             user.failedLoginCount = 0
             user.update(["lastLoginAttempt","failedLoginCount"])
             audit._audit().add("auth","login",{ "action" : "sucess", "src_ip" : api.request.remote_addr, "username" : username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" :user.primaryGroup, "admin" : isAdmin(user) })
-            return generateSession({ "_id" : user._id, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True })
+            return generateSession({ "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True })
         else:
             user.failedLoginCount+=1
             user.update(["lastLoginAttempt","failedLoginCount"])
@@ -325,7 +325,7 @@ if api.webServer:
                 user = _user().getAsClass(query={ "apiTokens" : { "$in" : [ api.request.headers.get("x-api-key") ] } } )
                 if len(user) == 1:
                     user = user[0]  
-                    return { "x-api-token" : generateSession({ "_id" : user._id, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True })}
+                    return { "x-api-token" : generateSession({ "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True })}
             return {}, 404
 
         @api.webServer.route(api.base+"auth/poll/", methods=["GET"])

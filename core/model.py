@@ -169,6 +169,10 @@ if api.webServer:
                     _class = _class[0]
                     access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,_class.acl,"delete")
                     if access:
+                        if "_id" in api.g.sessionData:
+                            audit._audit().add("model","delete",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "modelName" : modelName, "objectID" : objectID })
+                        else:
+                            audit._audit().add("model","delete",{ "user" : "system", "objectID" : objectID })
                         result = class_.classObject()().api_delete(id=objectID)
                         if result["result"]:
                             return result, 200
@@ -186,6 +190,10 @@ if api.webServer:
                     if api.g.sessionData:
                         class_.acl = { "ids" : [ { "accessID" : api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
                     newObjectID = super(type(class_), class_).new().inserted_id
+                    if "_id" in api.g.sessionData:
+                        audit._audit().add("model","create",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "modelName" : modelName, "objectID" : newObjectID })
+                    else:
+                        audit._audit().add("model","create",{ "user" : "system", "objectID" : newObjectID })
                     return { "result" : { "_id" : str(newObjectID) } }, 200
             return {}, 404
 
@@ -256,12 +264,12 @@ if api.webServer:
                                                         changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
                             # Commit back to database
                             if updateItemsList:
-                                _class.update(updateItemsList)
                                 # Adding audit record
                                 if "_id" in api.g.sessionData:
-                                    audit._audit().add("model","update",{ "_id" : api.g.sessionData["_id"], "objects" : helpers.unicodeEscapeDict(changeLog) })
+                                    audit._audit().add("model","update",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "objects" : helpers.unicodeEscapeDict(changeLog), "modelName" : modelName, "objectID" : objectID })
                                 else:
-                                    audit._audit().add("model","update",{ "objects" : helpers.unicodeEscapeDict(changeLog) })
+                                    audit._audit().add("model","update",{ "user" : "system", "objects" : helpers.unicodeEscapeDict(changeLog), "modelName" : modelName, "objectID" : objectID })
+                                _class.update(updateItemsList)
                             return {}, 200
                         else:
                             return {}, 403
