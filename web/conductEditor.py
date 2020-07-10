@@ -190,20 +190,21 @@ def getConductFlowCodify(conductID):
                     classObj = _class = model._model().getAsClass(api.g.sessionData,id=obj.classID)
                     classObj = classObj[0]
                     blacklist = ["_id","acl","classID","workerID","startCheck","nextCheck","lastUpdateTime","lastCheck"]
+                    typeList = [str,int,float,dict,list]
                     members = [attr for attr in dir(obj) if not callable(getattr(obj, attr)) and not "__" in attr and attr ]
                     params=[]
                     for member in members:
                         if member not in blacklist:
                             value = getattr(obj,member)
                             if type(value) == str:
-                                value="\"{0}\"".format(value)
+                                value="\"{0}\"".format(value.replace("\"","\\\""))
                             elif type(value) == dict:
                                 value="\"{0}\"".format(value)
                             elif type(value) == list:
                                 value="\"{0}\"".format(value)
 
-                            
-                            params.append("{0}={1}".format(member,value))
+                            if type(value) in typeList:
+                                params.append("{0}={1}".format(member,value))
                     
                     if currentFlow["type"] == "action":
                         flowCode+="\r\n{0}logic({1})->{2}({3})".format(("\t"*indentLevel),logic,classObj.name,",".join(params))
