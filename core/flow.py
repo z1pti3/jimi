@@ -101,7 +101,7 @@ def executeCodifyFlow(eventsData,codifyData):
             outputText+="\nNow Running For Event - {0}".format(event)
             outputText+="\n-----------------------------------------------------------------------------------"
             outputText+="\n"
-            data = { "event" : event, "var" : {}, "plugin" : {} }
+            data = { "event" : event, "eventStats" : { "first" : False, "current" : 0, "total" : 0, "last" : False }, "conductID" : "codify", "flowID" : "codify", "var" : {}, "plugin" : {} }
             processQueue = []
             currentFlow = flow
             currentObject = currentFlow["classObject"]

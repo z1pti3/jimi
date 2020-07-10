@@ -86,19 +86,21 @@ class _document():
     # Updated DB with latest values
     @mongoConnectionWrapper
     def update(self,fields,sessionData=None):
-        if sessionData:
-            for field in fields:
-                if not fieldACLAccess(sessionData,self.acl,field,"write"):
-                    return False
-        # Appendingh last update time to every update
-        fields.append("lastUpdateTime")
-        self.lastUpdateTime = time.time()
+        if self._id != "":
+            if sessionData:
+                for field in fields:
+                    if not fieldACLAccess(sessionData,self.acl,field,"write"):
+                        return False
+            # Appendingh last update time to every update
+            fields.append("lastUpdateTime")
+            self.lastUpdateTime = time.time()
 
-        update = { "$set" : {} }
-        for field in fields:
-            update["$set"][field] = getattr(self,field)
-        result = updateDocumentByID(self._dbCollection,self._id,update)
-        return result
+            update = { "$set" : {} }
+            for field in fields:
+                update["$set"][field] = getattr(self,field)
+            result = updateDocumentByID(self._dbCollection,self._id,update)
+            return result
+        return False
 
     # Updated DB with latest values
     @mongoConnectionWrapper
