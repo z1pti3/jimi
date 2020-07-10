@@ -92,9 +92,6 @@ def setup():
 # Set startCheck to 0 so that all triggers start
 def resetTriggers():
 	from core.models import trigger
-	print(len(trigger._trigger().getAsClass()))
-	# Clearing any triggers with a startCheck set - Very poor as it hammers the DB, be better to do this as one mass update command to the database
-	# This wont scale to clustering as it will clear all running triggers even if they were running by another cluster node
 	triggers = trigger._trigger().query(query={"startCheck" : { "$gt" : 0}})["results"]
 	for triggerJson in triggers:
 		triggerClass = trigger._trigger().get(triggerJson["_id"])

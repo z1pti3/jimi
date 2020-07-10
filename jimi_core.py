@@ -15,7 +15,6 @@ if __name__ == "__main__":
     # Running setup
     from system import install
     install.setup()
-    install.resetTriggers()
 
     # Auto start the application using its API
     apiEndpoint = "workers/"

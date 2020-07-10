@@ -24,6 +24,7 @@ class selectCore:
             ["set worker",self.setWorker],
             ["reload", self.reload],
             ["clear",None],
+            ["clear startCheck",self.clearStartCheck],
             ["clear cache",self.clearCache],
             ["end", self.end],
             ], "[ core ] >> ")
@@ -83,5 +84,10 @@ class selectCore:
     def showCluster(self,args):
         self.apiEndpoint = "cluster/"
         print(helpers.apiCall("GET",self.apiEndpoint,token=auth.generateSystemSession()).text)
+
+    def clearStartCheck(self,args):
+        from system import install
+        install.resetTriggers()
+        print("All triggers reset!")
 
 from core import api, workers, logging, settings, helpers, screen, cache, auth
