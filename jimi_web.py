@@ -28,7 +28,13 @@ for plugin in plugins:
 	if os.path.isfile(Path("plugins/{0}/web/{0}.py".format(plugin))):
 		mod = __import__("plugins.{0}.web.{0}".format(plugin), fromlist=["pluginPages"])
 		api.webServer.register_blueprint(mod.pluginPages,url_prefix='/plugin')
-		pluginPages.append(plugin)
+		hidden = False
+		try:
+			hidden = mod.pluginPagesHidden
+		except:
+			pass
+		if not hidden:
+			pluginPages.append(plugin)
 
 from core import logging, db
 
