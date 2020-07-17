@@ -175,7 +175,7 @@ def validateSession(sessionToken):
         if dataDict["authenticated"]:
             if dataDict["expiry"] < time.time():
                 return None
-            elif dataDict["expiry"] < time.time() + ( authSettings["sessionTimeout"] / 4 ):
+            elif dataDict["expiry"] < time.time() + ( authSettings["sessionTimeout"] / 2 ):
                 return { "sessionData" : dataDict, "sessionToken" : sessionToken, "renew" : True }
             else:
                 return { "sessionData" : dataDict, "sessionToken" : sessionToken }
@@ -257,22 +257,29 @@ if api.webServer:
                     if "jimiAuth" in api.request.cookies:
                         validSession = validateSession(api.request.cookies["jimiAuth"])
                         if not validSession:
-                            return api.redirect("/login?return={0}".format(api.request.full_path), code=302)
+                            redirectEndPoints = ["api_sessionPolling","mainPage","statusPage"]
+                            if api.request.endpoint in redirectEndPoints:
+                                return api.redirect("/login?return={0}".format(api.request.full_path), code=302)
+                            else:
+                                return {}, 403
                         api.g.type = "cookie"
                         # Confirm CSRF
                         if api.request.method in ["POST","PUI","DELETE"]:
                             try:
-                                data = json.loads(api.request.data)
-                                if "CSRF" not in data:
-                                    raise KeyError
-                            except:
                                 try:
-                                    data = json.loads(list(api.request.form.to_dict().keys())[0])
+                                    data = json.loads(api.request.data)
                                     if "CSRF" not in data:
                                         raise KeyError
                                 except:
-                                    data = api.request.form["CSRF"]
-                            if validSession["sessionData"]["CSRF"] != data["CSRF"]:
+                                    try:
+                                        data = json.loads(list(api.request.form.to_dict().keys())[0])
+                                        if "CSRF" not in data:
+                                            raise KeyError
+                                    except:
+                                        data = api.request.form["CSRF"]
+                                if validSession["sessionData"]["CSRF"] != data["CSRF"]:
+                                    return {}, 403
+                            except:
                                 return {}, 403
                     elif "x-api-token" in api.request.headers:
                         validSession = validateSession(api.request.headers.get("x-api-token"))
