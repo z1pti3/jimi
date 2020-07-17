@@ -54,6 +54,11 @@ class _user(db._document):
         setattr(self,attr,value)
         return True
 
+    def getAttribute(self,attr,sessionData=None):
+        if attr == "passwordHash":
+            return "*****"
+        return super(_user, self).getAttribute(attr,sessionData=sessionData)
+
     def newAPIToken(self):
         apiSessionToken = secrets.token_hex(128)
         self.apiTokens.append(apiSessionToken)
@@ -366,7 +371,7 @@ if api.webServer:
             if len(user) == 1:
                 user = user[0]
                 userProps = {}
-                userProps["name"] = user.name
-                userProps["passwordHash"] = user.passwordHash
+                userProps["name"] = user.getAttribute("name",sessionData=api.g.sessionData)
+                userProps["passwordHash"] = user.getAttribute("passwordHash",sessionData=api.g.sessionData)
                 return { "results" : [ userProps ] }, 200
             return { }, 404
