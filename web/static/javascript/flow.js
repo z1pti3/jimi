@@ -129,7 +129,7 @@ function createLinkRAW(from,to,color) {
 			type: "cubicBezier",
 			roundness: 0.7
 		},
-		width: 2.5
+		width: 1.5
 	 });
 	nextId++;
 }
@@ -234,10 +234,10 @@ function updateFlowchartNonBlocking(blocking) {
 		obj = processlist["links"]["create"][link]
 		switch (obj["logic"]){
 			case true:
-				var color = "blue"
+				var color = "#3dbeff"
 				break
 			case false:
-				var color = "red"
+				var color = "#ff2c10"
 				break
 			default:
 				var color = "purple"

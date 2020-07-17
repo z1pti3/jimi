@@ -4,6 +4,7 @@
 <script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='themes/default/default.css') }}">
 
 <html>
     <head>
@@ -15,9 +16,9 @@
             <div id="sidebar-wrapper">
                 <ul class="sidebar-nav">
                     <div class="btn-group btn-block sidebar_item">
-                        <a class="btn btn-primary btn-block" role="button" target="content-frame" href="/status/">Status</a>
+                        <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/status/">Status</a>
                         <div class="btn-group btn-block sidebar_item">
-                            <button type="button" class="btn btn-primary btn-block dropdown-toggle" data-toggle="dropdown">
+                            <button type="button" class="btn btn-primary btn-block dropdown-toggle theme-navButton" data-toggle="dropdown">
                                 Conducts Editor
                                 <span class="caret"></span>
                             </button>
@@ -30,13 +31,13 @@
                                 </div>
                             </ul>
                         </div>
-                        <a class="btn btn-primary btn-block" role="button" target="content-frame" href="/codify/">Codify</a>
+                        <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/codify/">Codify</a>
                         <div class="btn-group btn-block sidebar_item">
-                            <button type="button" class="btn btn-primary btn-block dropdown-toggle" data-toggle="dropdown">
+                            <button type="button" class="btn btn-primary btn-block dropdown-toggle theme-navButton" data-toggle="dropdown">
                                 Administration 
                                 <span class="caret"></span>
                             </button>
-                            <ul class="dropdown-menu sidebar-dropdown-menu" role="menu">
+                            <ul class="dropdown-menu sidebar-dropdown-menu " role="menu">
                                 <div class="search-dropdown-menu-results">
                                     <li><a target="content-frame" href="/model/">Object Editor</a></li>
                                     <li><a target="content-frame" href="/admin/backups/">Backups</a></li>
@@ -44,7 +45,7 @@
                             </ul>
                         </div>
                         <div class="btn-group btn-block sidebar_item">
-                            <button type="button" class="btn btn-primary btn-block dropdown-toggle" data-toggle="dropdown">
+                            <button type="button" class="btn btn-primary btn-block dropdown-toggle theme-navButton" data-toggle="dropdown">
                                 Plugins 
                                 <span class="caret"></span>
                             </button>
@@ -56,11 +57,11 @@
                                 </div>
                             </ul>
                         </div>
-                        <a class="btn btn-primary btn-block" role="button" target="content-frame" href="/cluster/">Cluster</a>
-                        <a class="btn btn-primary btn-block" role="button" target="content-frame" href="/audit/">Audit</a>
-                        <a class="btn btn-primary btn-block" role="button" target="content-frame" href="/workers/">Workers</a>
-                        <a class="btn btn-primary btn-block" role="button" target="content-frame" href="/myAccount/">My Account</a>
-                        <a class="btn btn-primary btn-block" role="button" href="/api/1.0/auth/logout/">Logout</a>
+                        <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/cluster/">Cluster</a>
+                        <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/audit/">Audit</a>
+                        <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/workers/">Workers</a>
+                        <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/myAccount/">My Account</a>
+                        <a class="btn btn-primary btn-block theme-navButton" role="button" href="/api/1.0/auth/logout/">Logout</a>
                     </div>
                 </ul>
                 <!-- Sidebar bottom -->
@@ -78,7 +79,7 @@
                     V{{ version }}, CodeName=Roll Over
                 </div>
                 <div class="container-fluid page-background">
-                    <div class="container-fluid page-content">
+                    <div class="container-fluid page-content theme-content">
                         <iframe onload="this.contentWindow.focus()" name="content-frame" class="content-frame" focus()></iframe>
                     </div>
                 </div>

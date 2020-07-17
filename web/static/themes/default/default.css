@@ -1,0 +1,13 @@
+.theme-navButton {
+    background-color: #111111;
+}
+
+.theme-navButton:hover {
+    background-color: #220433;
+}
+
+.theme-content {
+    background-color: #0a0a0a;
+    border: none;
+}
+

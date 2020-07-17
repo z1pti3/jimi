@@ -66,10 +66,11 @@ def conductFlowchartPoll(conductID):
                             node["x"] = flowUI.x
                             node["y"] = flowUI.y
                             node["shape"] = "box"
-                            node["widthConstraint"] = { "minimum": 125, "maximum": 125 }
-                            node["heightConstraint"] = { "minimum": 35, "maximum": 35 }
-                            node["borderWidth"] = 1.5
-                            node["font"] = { "multi": True }
+                            node["widthConstraint"] = { "minimum": 75, "maximum": 275 }
+                            node["heightConstraint"] = { "minimum": 35, "maximum": 75 }
+                            node["borderWidth"] = 1
+                            node["borderWidthSelected"] = 2.5
+                            node["font"] = { "color" : "#ddd", "multi": True }
                         elif flowUI.x != flowchartOperators[flowID]["node"]["x"] or flowUI.y != flowchartOperators[flowID]["node"]["y"]:
                             node["x"] = flowUI.x
                             node["y"] = flowUI.y
@@ -94,10 +95,10 @@ def conductFlowchartPoll(conductID):
                                     label = "({0},{1})\n<b>{2}</b>\n{3}".format(t.systemID,t.clusterSet,t.name,modeClass.name)
                                     if flowchartResponseType == "create":
                                         node["label"] = label
-                                        node["color"] = { "background" : color }
+                                        node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : color } }
                                     else:
                                         if color != flowchartOperators[flowID]["node"]["color"]:
-                                            node["color"] = { "background" : color }
+                                            node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : color } }
                                         if label != flowchartOperators[flowID]["node"]["label"]:
                                             node["label"] = label
                                     foundObject = True
@@ -109,17 +110,17 @@ def conductFlowchartPoll(conductID):
                                     modeClass = cache.globalCache.get("modelCache",a.classID,model.getClassObject,sessionData=api.g.sessionData)[0]
                                     color = None
                                     if a.enabled:
-                                        color = "#7cbeeb"
+                                        color = "#0a0a0a"
                                     if not a.enabled:
                                         color = "gray"
 
                                     label = "<b>{0}</b>\n{1}".format(a.name,modeClass.name)
                                     if flowchartResponseType == "create":
                                         node["label"] = label
-                                        node["color"] = { "background" : color }
+                                        node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : color } }
                                     else:
                                         if color != flowchartOperators[flowID]["node"]["color"]:
-                                            node["color"] = { "background" : color }
+                                            node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : color } }
                                         if label != flowchartOperators[flowID]["node"]["label"]:
                                             node["label"] = label
                                     foundObject = True
@@ -133,10 +134,8 @@ def conductFlowchartPoll(conductID):
                 if not foundFlowUI:
                     node["x"] = 0
                     node["y"] = 0
-                    node["shape"] = "box"
-                    node["widthConstraint"] = { "minimum": 125, "maximum": 125 }
-                    node["heightConstraint"] = { "minimum": 35, "maximum": 35 }
-                    node["borderWidth"] = 1.5
+                    node["shape"] = "dot"
+                    node["borderWidth"] = 1
                     node["label"] = "Unknown Object"
                     node["color"] = { "background" : "black" }
                     flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "node" : node }

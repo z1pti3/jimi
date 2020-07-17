@@ -6,7 +6,7 @@
     height:100%;
     overflow-y: hidden;
     overflow-x: hidden;
-    background: #181818;
+    background: #111111;
     opacity:0.9;
     transition:all .1s;
     display:flex;
@@ -71,7 +71,7 @@
 }
 
 .sidebar-dropdown-menu {
-    background: #181818;
+    background: #111111;
 }
 
 
@@ -86,7 +86,7 @@
 }
 
 .page-background {
-    background:#181818;
+    background:#111111;
     opacity:0.9;
     padding: 0px 7px 7px 0px;
     height: 100%;
@@ -108,7 +108,7 @@
 }
 
 .header-panel {
-    background: #181818;
+    background: #111111;
     opacity:0.9;
     height: 60px;
     text-align: left;
@@ -119,7 +119,7 @@
 }
 
 .footer-panel {
-    background: #181818;
+    background: #111111;
     opacity:0.9;
     height: 20px;
     text-align: center;
