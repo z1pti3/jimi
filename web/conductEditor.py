@@ -81,7 +81,7 @@ def conductFlowchartPoll(conductID):
                                     modeClass = cache.globalCache.get("modelCache",t.classID,model.getClassObject,sessionData=api.g.sessionData)[0]
                                     color = None
                                     if t.enabled:
-                                        color = "#7cbeeb"
+                                        color = "#0a0a0a"
                                     duration = t.maxDuration
                                     if duration == 0:
                                         duration = 60
