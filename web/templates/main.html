@@ -114,18 +114,6 @@
             });
         });
     });
-
-    $(document).ready(function(){
-        $("#newConduct").on("click", function() {
-            $.ajax({url:"/conduct/", type:"POST", data:JSON.stringify({action: "new", name: $("#myInput").val()}), contentType:"application/json", success: function ( result ) {
-                    var li = $("<li>");
-                    li.append($('<a target="content-frame" href="/conduct/'+result["conductID"]+'/">'+$("#myInput").val()+'</a>'));
-                    $("#conducts-list").append(li);
-                    $('.content-frame').attr("src","/conduct/"+result["conductID"]+"/");
-                }
-            });
-        });
-    });
 </script>
 
 <script>
@@ -138,5 +126,5 @@
             }
         });
     }
-    setInterval(function(){ authPoll(); }, 60000)
+    setInterval(function(){ authPoll(); }, 10000)
 </script>
