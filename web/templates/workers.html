@@ -1,8 +1,9 @@
 <html>
     <head>
-    <title>JIMI - Workers</title>        
+    <title>JIMI - Workers</title>    
+    <link rel="stylesheet" href="{{ url_for('static', filename='themes/default/default.css') }}">    
     </head>
-    <body>
-        {{ content }}
+    <body class="theme-panelContainer">
+        {{ content|safe }}
     </body>
 </html>

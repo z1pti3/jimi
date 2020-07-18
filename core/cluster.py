@@ -164,6 +164,15 @@ def getMaster():
         return (clusterMaster.bindAddress, clusterMaster.bindPort)
     return ("127.0.0.1",5000)
 
+def getAll():
+    clusterMembers = _clusterMember().getAsClass(query={ "lastSyncTime" : { "$gt" : (time.time()-60) } })
+    if len(clusterMembers) > 0:
+        result = []
+        for clusterMember in clusterMembers:
+            result.append((clusterMember.bindAddress, clusterMember.bindPort))
+        return result
+    return [("127.0.0.1",5000)]
+
 def start():
     global cluster
     try:

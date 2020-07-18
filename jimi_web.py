@@ -261,8 +261,15 @@ def workerPage():
 		if "admin" in api.g.sessionData:
 			if api.g.sessionData["admin"]:
 				apiEndpoint = "workers/stats/"
-				workerContent = helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken).text
-				return render_template("workers.html", content=workerContent)
+				servers = cluster.getAll()
+				content = ""
+				for host, port in servers:
+					url="http://{0}:{1}".format(host,port)
+					content += "{0}:{1}".format(host,port)
+					content += "<br>"
+					content += helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken,overrideURL=url).text
+					content += "<br>"
+				return render_template("workers.html", content=content)
 	return {}, 403
 
 @api.webServer.route("/cluster/", methods=["GET"])
