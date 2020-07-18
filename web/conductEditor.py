@@ -188,7 +188,7 @@ def getConductFlowCodify(conductID):
                 if obj:
                     classObj = _class = model._model().getAsClass(api.g.sessionData,id=obj.classID)
                     classObj = classObj[0]
-                    blacklist = ["_id","acl","classID","workerID","startCheck","nextCheck","lastUpdateTime","lastCheck"]
+                    blacklist = ["_id","acl","classID","workerID","startCheck","nextCheck","lastUpdateTime","lastCheck","clusterSet","concurrency","creationTime","schedule"]
                     typeList = [str,int,float,dict,list]
                     members = [attr for attr in dir(obj) if not callable(getattr(obj, attr)) and not "__" in attr and attr ]
                     params=[]
