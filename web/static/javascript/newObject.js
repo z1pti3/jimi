@@ -1,16 +1,16 @@
 var newObjectHTML = `
-<div class="propertiesPanel propertiesPanelsmall">
-	<div class="propertiesPanel-header">
+<div class="propertiesPanel propertiesPanelsmall theme-panelContainer">
+	<div class="propertiesPanel-header theme-panelHeader">
 		<span class="glyphicon glyphicon glyphicon-remove" id="close"></span>
 		<label id="title">Create New Object</label>
 	</div>
-	<div class="propertiesPanel-body">
-		<select class="inputFullWidth" id="newObjectPanel-objectType"></select>
+	<div class="propertiesPanel-body theme-panelBody">
+		<select class="inputFullWidth theme-panelSelect" id="newObjectPanel-objectType"></select>
 	</div>
-	<div class="propertiesPanel-footer">
-		<button id="save">Create</button>
-		<button id="existing" onClick="createExistingObjectPanel()">Existing</button>
-		<button id="close">Close</button>
+	<div class="propertiesPanel-footer theme-panelFooter">
+		<button id="save" class="btn btn-primary theme-panelButton">Create</button>
+		<button id="existing" onClick="createExistingObjectPanel()" class="btn btn-primary theme-panelButton">Existing</button>
+		<button id="close" class="btn btn-primary theme-panelButton">Close</button>
 	</div>
 </div>
 `

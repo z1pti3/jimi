@@ -11,3 +11,59 @@
     border: none;
 }
 
+.theme-popupContainer {
+
+}
+
+.theme-popup {
+
+}
+
+.theme-panelContainer {
+    background-color: #222222;
+    color: #ddd;
+    border-color: #2e6da4;
+    border-radius: 2px;
+}
+
+.theme-panelHeader {
+    background-color: #222222;
+}
+
+.theme-panelBody {
+    background-color: #222222;
+}
+
+.theme-panelFooter {
+    background-color: #222222;
+}
+
+.theme-panelButton {
+    background-color: #222222;
+    border-color: #2e6da4;
+}
+
+.theme-panelButton:hover {
+    background-color: #220433;
+}
+
+.theme-panelLabel {
+}
+
+.theme-panelTextArea {
+    background-color: #0f0f0f;
+    min-height: 75px;
+}
+
+.theme-panelTextbox {
+    background-color: #0f0f0f; 
+}
+
+.theme-panelSelect {
+    background-color: #0f0f0f; 
+}
+
+.theme-panelCheckbox {
+    background-color: #0f0f0f;
+    color: brown;
+}

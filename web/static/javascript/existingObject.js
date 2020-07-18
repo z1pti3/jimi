@@ -1,16 +1,16 @@
 var existingObjectHTML = `
-<div class="propertiesPanel">
-	<div class="container-fluid propertiesPanel-header">
+<div class="propertiesPanel theme-panelContainer">
+	<div class="container-fluid propertiesPanel-header theme-panelHeader">
 		<span class="glyphicon glyphicon glyphicon-remove" id="close"></span>
 		<label id="title">Insert Existing Object</label>
 	</div>
-	<div class="container-fluid propertiesPanel-body">
-		<input type='text' class="inputFullWidth" id='existingPropertiesPanel-SearchInput'>
+	<div class="container-fluid propertiesPanel-body theme-panelBody">
+		<input type='text' class="inputFullWidth theme-panelTextbox" id='existingPropertiesPanel-SearchInput'>
 		<div class="existingPropertiesPanel-SearchResults" id="existingPropertiesPanel-SearchResults">
 		</div>
 	</div>
-	<div class="container-fluid propertiesPanel-footer">
-		<button id="close">Close</button>
+	<div class="container-fluid propertiesPanel-footer theme-panelFooter">
+		<button id="close" class="btn btn-primary theme-panelButton">Close</button>
 	</div>
 </div>
 `

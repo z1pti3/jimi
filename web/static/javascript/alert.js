@@ -1,6 +1,6 @@
 var alertHTML = `
-<div class="alert" id="alert-container" role="alert">
-    <div class="alert">
+<div class="alert theme-popupContainer" id="alert-container" role="alert">
+    <div class="alert theme-popup">
         <p id="alert-message"></p>
     </div>
 </div>

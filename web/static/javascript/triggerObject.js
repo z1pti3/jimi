@@ -1,15 +1,15 @@
 var triggerObjectHTML = `
-<div class="propertiesPanel">
-	<div class="propertiesPanel-header">
+<div class="propertiesPanel theme-panelContainer">
+	<div class="propertiesPanel-header theme-panelHeader">
 		<span class="glyphicon glyphicon glyphicon-remove" id="close"></span>
 		<label id="title"></label>
 	</div>
-	<div class="propertiesPanel-body">
-		<textarea id="triggerValue" type="text" class="inputFullWidth"></textarea>
+	<div class="propertiesPanel-body theme-panelBody">
+		<textarea id="triggerValue" type="text" class="inputFullWidth theme-panelTextArea"></textarea>
 	</div>
-	<div class="propertiesPanel-footer">
-		<button id="trigger">Trigger</button>
-		<button id="close">Close</button>
+	<div class="propertiesPanel-footer theme-panelFooter">
+		<button id="trigger" class="btn btn-primary theme-panelButton">Trigger</button>
+		<button id="close" class="btn btn-primary theme-panelButton">Close</button>
 	</div>
 </div>
 `

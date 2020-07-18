@@ -1,16 +1,16 @@
 var panelLinkHTML = `
-<div class="propertiesPanel">
-	<div class="propertiesPanel-header">
+<div class="propertiesPanel theme-panelContainer">
+	<div class="propertiesPanel-header theme-panelHeader">
 		<span class="glyphicon glyphicon glyphicon-remove" id="close"></span>
 		<label id="title"></label>
 	</div>
-	<div class="propertiesPanel-body">
-	<textarea id="propertiesPanelLinkValue" class="inputFullWidth"></textarea>
+	<div class="propertiesPanel-body theme-panelBody">
+	<textarea id="propertiesPanelLinkValue" class="inputFullWidth theme-panelTextArea"></textarea>
 	</div>
-	<div class="propertiesPanel-footer">
-		<button id="save">Save</button>
-		<button id="refresh">Refresh</button>
-		<button id="close">Close</button>
+	<div class="propertiesPanel-footer theme-panelFooter">
+		<button id="save" class="btn btn-primary theme-panelButton">Save</button>
+		<button id="refresh" class="btn btn-primary theme-panelButton">Refresh</button>
+		<button id="close" class="btn btn-primary theme-panelButton">Close</button>
 	</div>
 </div>
 `
