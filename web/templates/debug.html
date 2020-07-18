@@ -6,6 +6,8 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
 <script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
+<script src="{{ url_for('static', filename='includes/visjs/js/moment.js') }}"></script>
+<script src="{{ url_for('static', filename='includes/datatables/js/datetime.moment.js') }}"></script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
 
@@ -13,8 +15,8 @@
     <head>
         <title>JIMI - Debug</title>    
     </head>
-    <body>
-        <table id="orderTable" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
+    <body class="theme-panelContainer">
+        <table id="orderTable" class="table table-sm theme-table" cellspacing="0" width="100%">
             <thead>
             </thead>
             <tbody>
@@ -25,7 +27,9 @@
 
 <script>
     $(document).ready(function () {
+        $.fn.dataTable.moment('DD-MMM-YY HH:mm:ss');
         $('#orderTable').DataTable({
+            "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
             "paging" : false,
             "order" : [[ 0, "asc" ]],
             columns : [
@@ -40,6 +44,7 @@
         });
         $('.dataTables_length').addClass('bs-select');
         $('.dataTables_filter input[type="search"]').css({'width':'200px'});
+        $('.dataTables_filter input[type="search"]').addClass("theme-panelTextbox")
     });
 </script>
 

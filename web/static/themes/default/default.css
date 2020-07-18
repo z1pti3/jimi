@@ -54,10 +54,12 @@
 .theme-panelTextArea {
     background-color: #0f0f0f;
     min-height: 75px;
+    color: #ddd;
 }
 
 .theme-panelTextbox {
     background-color: #0f0f0f; 
+    color: #ddd;
 }
 
 .theme-panelSelect {
@@ -66,5 +68,52 @@
 
 .theme-panelCheckbox {
     background-color: #0f0f0f;
-    color: brown;
+}
+
+.theme-table {
+    background-color: #0f0f0f;
+    color: #ddd;
+    border-color: #2e6da4;
+    border-width: 1px;
+    border-style: solid;
+}
+
+.theme-tableHeader {
+    background-color: #111111;
+    color: #ddd;
+}
+
+.theme-tableBody {
+    border: none;
+}
+
+.theme-tableRowOdd {
+    background-color: #222222;
+    color: #ddd;
+}
+
+.theme-tableRowEven {
+    background-color: #0f0f0f;
+    color: #ddd;
+}
+
+.theme-json {
+    background-color: #0f0f0f;
+    color: #ddd;
+}
+
+.theme-jsonkey {
+    color: #ff2c10;
+}
+
+.theme-jsonstring {
+    color: #fff;
+}
+
+.theme-jsonboolean {
+    color: #32a732;
+}
+
+.theme-jsonnull {
+    color: #9b9b9b;
 }

@@ -26,8 +26,6 @@ function sanitize(string) {
   }
 
 
-
-
   function syntaxHighlight(json) {
     if (typeof json != 'string') {
         json = JSON.stringify(json, undefined, 2);
@@ -46,6 +44,6 @@ function sanitize(string) {
         } else if (/null/.test(match)) {
             cls = 'null';
         }
-        return '<span class="' + cls + '">' + match + '</span>';
+        return '<span class="theme-json' + cls + '">' + match + '</span>';
     });
 }

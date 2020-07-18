@@ -6,25 +6,31 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
 <script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
+<script src="{{ url_for('static', filename='includes/visjs/js/moment.js') }}"></script>
+<script src="{{ url_for('static', filename='includes/datatables/js/datetime.moment.js') }}"></script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/modelEditor.css') }}">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='themes/default/default.css') }}">
 
 
 <html>
     <head>
     <title>JIMI - My Account</title>   
     </head>
-    <body>
+    <body class="theme-panelContainer">
         <div class="alert-container alert alert-success hidden" role="alert">
             <div class="alert">
                 <p id="alertMessage"></p>
             </div>
         </div>
-        <table id="table" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
-            <thead></thead>
-            <tbody></tbody>
+        <table id="table" class="table table-sm theme-table" cellspacing="0" width="100%">
+            <thead class="theme-tableHeader">
+            </thead>
+            <tbody class="theme-tableBody">
+            </tbody>
         </table>
     </body>
 </html>
@@ -34,17 +40,19 @@
 </script>
 
 <script>
-
+    $(document).ready(function () {
+        $.fn.dataTable.moment('DD-MMM-YY HH:mm:ss');
+    });
     function getAccount() {
         $('#table').DataTable({
+            "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
             "paging" : false,
             "order" : [[ 0, "asc" ]],
             columns : [
                 { "data": "property", "name": "property", "title": "Property", "autoWidth": true, render: $.fn.dataTable.render.text() },
                 { 
                     "data": "value", "name": "value", "title": "Value", "autoWidth": true, render: function (data, type, row) {
-                        // Possible XSS??
-                        return '<textarea type="text" class="form-control form-control-sm full-width" id="property_'+ data[0] +'">'+data[1]+'</textarea>';
+                        return '<textarea type="text" class="form-control form-control-sm full-width theme-panelTextArea" id="property_'+ data[0] +'">'+data[1]+'</textarea>';
                     }
                 }
             ],
@@ -59,6 +67,7 @@
 
         $('.dataTables_length').addClass('bs-select');
         $('.dataTables_filter input[type="search"]').css({'width':'200px'});
+        $('.dataTables_filter input[type="search"]').addClass("theme-panelTextbox")
 
         $.ajax({url:"/api/1.0/auth/myAccount/", type:"GET", success: function ( result ) {
                 for ( resultItem in result["results"][0] ) {

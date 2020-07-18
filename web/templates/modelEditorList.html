@@ -6,28 +6,37 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
 <script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
+<script src="{{ url_for('static', filename='includes/visjs/js/moment.js') }}"></script>
+<script src="{{ url_for('static', filename='includes/datatables/js/datetime.moment.js') }}"></script>
+
+<script src="{{ url_for('static', filename='javascript/helpers.js') }}"></script>
+
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/modelEditor.css') }}">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='themes/default/default.css') }}">
 
 
 <html>
     <head>
         
     </head>
-    <body>
+    <body class="theme-panelContainer">
         <div class="alert-container alert alert-success hidden" role="alert">
             <div class="alert">
                 <p id="alertMessage"></p>
             </div>
         </div>
         <div id="createObjectContainer" class="hidden">
-            <button class="createObject" onclick="createObject()">Create Object</button>
+            <button class="btn btn-primary createObject theme-panelButton" onclick="createObject()">Create Object</button>
         </div>
-        <table id="table" class="table table-striped table-bordered table-sm" cellspacing="0" width="100%">
-            <thead></thead>
-            <tbody></tbody>
+        <table id="table" class="table table-sm theme-table" cellspacing="0" width="100%">
+            <thead class="theme-tableHeader">
+            </thead>
+            <tbody class="theme-tableBody">
+            </tbody>
         </table>
     </body>
 </html>
@@ -37,13 +46,22 @@
 </script>
 
 <script>
-    
+    $(document).ready(function () {
+        $.fn.dataTable.moment('DD-MMM-YY HH:mm:ss');
+    });
+
     function buildTable_ListModels() {
         $('#table').DataTable({
+            "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
             "paging" : false,
             "order" : [[ 0, "asc" ]],
             columns : [
                 { "data": null, "name": "name", "title": "Name", "autoWidth": true, render: $.fn.dataTable.render.text() },
+                { 
+                    "data": "options", "name": "options", "title": "Options", "autoWidth": true, render: function (data, type, row) {
+                        return '<button class="btn btn-primary theme-panelButton">Edit</button>';
+                    }
+                },
             ],
             columnDefs: [
                 {
@@ -56,6 +74,7 @@
 
         $('.dataTables_length').addClass('bs-select');
         $('.dataTables_filter input[type="search"]').css({'width':'200px'});
+        $('.dataTables_filter input[type="search"]').addClass("theme-panelTextbox")
 
         $('#table tbody').on('click', 'tr', function () {
             var data = table.row( this ).data();
@@ -76,6 +95,7 @@
     function buildTable_ListModel( modelName ) {
         $('#createObjectContainer').toggleClass("hidden");
         $('#table').DataTable({
+            "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
             "paging" : false,
             "order" : [[ 0, "asc" ]],
             columns : [
@@ -83,8 +103,7 @@
                 { "data": "name", "name": "name", "title": "Name", "autoWidth": true, render: $.fn.dataTable.render.text() },
                 { 
                     "data": "options", "name": "options", "title": "Options", "autoWidth": true, render: function (data, type, row) {
-                        // Possible XSS??
-                        return '<button onclick="editObject(\''+data+'\')">Edit</button> <button onclick="deleteObject(\''+data+'\')">Del</button>';
+                        return '<button class="btn btn-primary theme-panelButton" onclick="editObject(\''+data+'\')">Edit</button> <button class="btn btn-primary theme-panelButton" onclick="deleteObject(\''+data+'\')">Del</button>';
                     }
                 },
                 { "data": "whereUsed", "name": "whereUsed", "title": "whereUsed", "autoWidth": true, render: $.fn.dataTable.render.text() },
@@ -101,6 +120,7 @@
 
         $('.dataTables_length').addClass('bs-select');
         $('.dataTables_filter input[type="search"]').css({'width':'200px'});
+        $('.dataTables_filter input[type="search"]').addClass("theme-panelTextbox")
 
         $.ajax({url:"/api/1.0/models/"+modelName+"/extra/", type:"GET", success: function ( result ) {
                 for ( resultItem in result["results"] ) {
@@ -136,14 +156,14 @@
 
     function EditModel(modelName,id) {
         $('#table').DataTable({
+            "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
             "paging" : false,
             "order" : [[ 0, "asc" ]],
             columns : [
                 { "data": "property", "name": "property", "title": "Property", "autoWidth": true, render: $.fn.dataTable.render.text() },
                 { 
                     "data": "value", "name": "value", "title": "Value", "autoWidth": true, render: function (data, type, row) {
-                        // Possible XSS??
-                        return '<textarea type="text" class="form-control form-control-sm full-width" id="property_'+ data[0] +'">'+data[1]+'</textarea>';
+                        return '<textarea type="text" class="form-control form-control-sm full-width theme-panelTextArea" id="property_'+ data[0] +'">'+data[1]+'</textarea>';
                     }
                 }
             ],
@@ -158,6 +178,7 @@
 
         $('.dataTables_length').addClass('bs-select');
         $('.dataTables_filter input[type="search"]').css({'width':'200px'});
+        $('.dataTables_filter input[type="search"]').addClass("theme-panelTextbox")
 
         $.ajax({url:"/api/1.0/models/"+modelName+"/"+id+"/", type:"GET", success: function ( result ) {
                 for ( resultItem in result["results"][0] ) {

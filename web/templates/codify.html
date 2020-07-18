@@ -20,21 +20,22 @@
 		<script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
 
 		<link rel="stylesheet" href="{{ url_for('static', filename='css/alert.css') }}">
-		<link rel="stylesheet" href="{{ url_for('static', filename='css/codify.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/codify.css') }}">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='themes/default/default.css') }}">
 
 
 	</head>
-	<body>
-		<div class="container-fluid">
+	<body class="theme-panelContainer">
+		<div class="container-fluid theme-panelContainer">
       Events:<br>
-      <textarea id="events" class="inputFullWidth" style="height: 150px;"></textarea></br>
+      <textarea id="events" class="inputFullWidth theme-panelTextArea" style="height: 150px;"></textarea></br>
       Codify Flow:<br>
-      <textarea id="codeEditor" class="inputFullWidth" style="height: 350px;" wrap="soft"></textarea></br>
-      <button id="run">Run</button></br>
+      <textarea id="codeEditor" class="inputFullWidth theme-panelTextArea" style="height: 350px;" wrap="soft"></textarea></br>
+      <button id="run" class="btn btn-primary theme-panelButton">Run</button></br>
       Output:<br>
-      <textarea id="output" class="inputFullWidth" style="height: 250px;" wrap="soft"></textarea></br>
+      <textarea id="output" class="inputFullWidth theme-panelTextArea" style="height: 250px;" wrap="soft"></textarea></br>
 		</div>
-		
 	</body>
 </html>
 
