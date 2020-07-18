@@ -143,19 +143,26 @@ def loadClusterMember():
     if len(clusterMember) == 1:
         clusterMember = clusterMember[0]
     elif len(clusterMember) > 1:
+        clusterMember = clusterMember[0]
         logging.debug("ERROR: Duplicated systemID found.",-1)
-        return None
     else:
         clusterMember = _clusterMember().new(systemSettings["systemID"]).inserted_id
         clusterMember = _clusterMember().getAsClass(id=clusterMember)
         clusterMember = clusterMember[0]
     
     clusterMember.syncCount = 0
-    clusterMember.bindAddress = apiSettings["core"]["bind"]
-    clusterMember.bindPort = apiSettings["core"]["port"]
+    clusterMember.bindAddress = systemSettings["accessAddress"]
+    clusterMember.bindPort = systemSettings["accessPort"]
     clusterMember.systemUID = str(uuid.uuid4())
     clusterMember.update(["syncCount","systemUID","bindAddress","bindPort"])
     return clusterMember
+
+def getMaster():
+    clusterMaster = _clusterMember().getAsClass(query={ "master" : True })
+    if len(clusterMaster) > 0:
+        clusterMaster = clusterMaster[0]
+        return (clusterMaster.bindAddress, clusterMaster.bindPort)
+    return ("127.0.0.1",5000)
 
 def start():
     global cluster

@@ -273,8 +273,11 @@ def reload():
                 importlib.reload(moduleItem[1])
 
 apiURL = "http://{0}:{1}/{2}".format(settings.config["api"]["core"]["bind"],settings.config["api"]["core"]["port"],settings.config["api"]["core"]["base"])
-def apiCall(methord,apiEndpoint,jsonData=None,token=None):
-    url = "{0}/{1}".format(apiURL,apiEndpoint)
+def apiCall(methord,apiEndpoint,jsonData=None,token=None,overrideURL=None):
+    if overrideURL != None:
+        url = "{0}/{1}/{2}".format(overrideURL,settings.config["api"]["core"]["base"],apiEndpoint)
+    else:
+        url = "{0}/{1}".format(apiURL,apiEndpoint)
     headers = {}
     if token:
         headers["x-api-token"] = token

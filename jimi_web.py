@@ -16,7 +16,7 @@ apiSettings = settings.config["api"]["web"]
 
 api.createServer("jimi_web",template_folder=str(Path("web","templates")),static_folder=str(Path("web","static")))
 
-from core import model
+from core import model, cluster
 
 # Other pages
 from web import modelEditor, conductEditor, codify
@@ -271,7 +271,9 @@ def clusterPage():
 		if "admin" in api.g.sessionData:
 			if api.g.sessionData["admin"]:
 				apiEndpoint = "cluster/"
-				content = helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken).text
+				host,port = cluster.getMaster()
+				url="http://{0}:{1}".format(host,port)
+				content = helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken,overrideURL=url).text
 				return render_template("blank.html", content=content)
 	return {}, 403
 
