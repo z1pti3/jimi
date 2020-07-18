@@ -41,6 +41,7 @@
 .theme-panelButton {
     background-color: #222222;
     border-color: #2e6da4;
+    color: #ddd;
 }
 
 .theme-panelButton:hover {
