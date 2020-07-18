@@ -191,9 +191,9 @@ if api.webServer:
                         class_.acl = { "ids" : [ { "accessID" : api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
                     newObjectID = super(type(class_), class_).new().inserted_id
                     if "_id" in api.g.sessionData:
-                        audit._audit().add("model","create",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "modelName" : modelName, "objectID" : newObjectID })
+                        audit._audit().add("model","create",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "modelName" : modelName, "objectID" : str(newObjectID) })
                     else:
-                        audit._audit().add("model","create",{ "user" : "system", "objectID" : newObjectID })
+                        audit._audit().add("model","create",{ "user" : "system", "objectID" : str(newObjectID) })
                     return { "result" : { "_id" : str(newObjectID) } }, 200
             return {}, 404
 
