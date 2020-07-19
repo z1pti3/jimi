@@ -256,7 +256,7 @@ def conductImportData(conductID):
                             if member not in blacklist:
                                 setattr(existingTrigger,member,importData["trigger"][flow["triggerID"]][member])
                                 updateList.append(member)
-                    existingTrigger.update(updateList)
+                    existingTrigger.update(updateList,sessionData=api.g.sessionData)
                     flow["triggerID"] = existingTrigger._id
             elif flow["type"] == "action":
                 classObj = _class = model._model().getAsClass(api.g.sessionData,query={ "name" : importData["action"][flow["actionID"]]["className"] })
@@ -279,9 +279,9 @@ def conductImportData(conductID):
                             if member not in blacklist:
                                 setattr(existingTrigger,member,importData["action"][flow["actionID"]][member])
                                 updateList.append(member)
-                    existingAction.update(updateList)
+                    existingAction.update(updateList,sessionData=api.g.sessionData)
                     flow["actionID"] = existingAction._id
-    conductObj.update(["flow"])
+    conductObj.update(["flow"],sessionData=api.g.sessionData)
     return {}, 200
 
 @api.webServer.route("/conductEditor/<conductID>/codify/", methods=["GET"])
