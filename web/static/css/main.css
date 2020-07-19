@@ -29,6 +29,15 @@
     opacity: 1;
   }
 
+  #wrapper .btn{
+    height: 35px;
+  }
+
+  #wrapper.menuDisplayed .btn{
+    color: #ddd;
+    height: 35px;
+  }
+
   #wrapper.menuDisplayed .sidebar_button{
     opacity: 1;
   }
@@ -67,13 +76,12 @@
 
 .sidebar_item {
     transition:all .1s;
-    opacity: 0;
+    opacity: 1;
 }
 
 .sidebar-dropdown-menu {
     background: #111111;
 }
-
 
 /* Main Content */
 #page-content-wrapper{
