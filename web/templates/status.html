@@ -3,6 +3,8 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/dataTables.bootstrap.css') }}">
 <script src="{{ url_for('static', filename='includes/datatables/js/dataTables.bootstrap.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/fixedHeader.dataTables.min.css') }}">
+<script src="{{ url_for('static', filename='includes/datatables/js/dataTables.fixedHeader.min.js') }}"></script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
 <script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
@@ -34,6 +36,10 @@
         var tableData = {{ triggers|tojson }}
         $('#orderTable').DataTable({
             "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
+            fixedHeader: {
+                header: true,
+                footer: true
+            },
             "paging" : false,
             columns : [
                     { "data": "_id", "name": "_id", "title": "_id", "width": "50px", render: $.fn.dataTable.render.text() },

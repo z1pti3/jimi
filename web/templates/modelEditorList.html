@@ -3,6 +3,8 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/dataTables.bootstrap.css') }}">
 <script src="{{ url_for('static', filename='includes/datatables/js/dataTables.bootstrap.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/fixedHeader.dataTables.min.css') }}">
+<script src="{{ url_for('static', filename='includes/datatables/js/dataTables.fixedHeader.min.js') }}"></script>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
 <script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
@@ -53,6 +55,10 @@
     function buildTable_ListModels() {
         $('#table').DataTable({
             "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
+            fixedHeader: {
+                header: true,
+                footer: true
+            },
             "paging" : false,
             "order" : [[ 0, "asc" ]],
             columns : [
@@ -96,6 +102,10 @@
         $('#createObjectContainer').toggleClass("hidden");
         $('#table').DataTable({
             "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
+            fixedHeader: {
+                header: true,
+                footer: true
+            },
             "paging" : false,
             "order" : [[ 0, "asc" ]],
             columns : [
@@ -157,6 +167,10 @@
     function EditModel(modelName,id) {
         $('#table').DataTable({
             "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
+            fixedHeader: {
+                header: true,
+                footer: true
+            },
             "paging" : false,
             "order" : [[ 0, "asc" ]],
             columns : [
