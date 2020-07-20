@@ -49,11 +49,12 @@ class _clusterMember(db._document):
             if clusterMember.lastSyncTime > now - clusterSettings["deadTimer"]:
                 active.append(clusterMember.systemID)
 
-            if ((clusterMember.master) and (clusterMember.lastSyncTime < now - clusterSettings["deadTimer"])):
+            if clusterMember.master:
                 clusterMember.master = False
                 clusterMember.update(["master"])
                 deadMaster = True
-            else:
+
+            if (clusterMember.lastSyncTime < now - clusterSettings["deadTimer"]):
                 if lowestMaster[1] > clusterMember.systemID:
                     lowestMaster[0] = clusterMember
                     lowestMaster[1] = clusterMember.systemID
