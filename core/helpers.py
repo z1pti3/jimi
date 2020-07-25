@@ -272,7 +272,7 @@ def reload():
             if type(moduleItem[1]) is types.ModuleType:
                 importlib.reload(moduleItem[1])
 
-apiURL = "http://{0}:{1}/{2}".format(settings.config["api"]["core"]["bind"],settings.config["api"]["core"]["port"],settings.config["api"]["core"]["base"])
+apiURL = "http://{0}:{1}/{2}".format(settings.config["system"]["accessAddress"],settings.config["system"]["accessPort"],settings.config["api"]["core"]["base"])
 def apiCall(methord,apiEndpoint,jsonData=None,token=None,overrideURL=None,timeout=2):
     if overrideURL != None:
         url = "{0}/{1}/{2}".format(overrideURL,settings.config["api"]["core"]["base"],apiEndpoint)
@@ -289,7 +289,7 @@ def apiCall(methord,apiEndpoint,jsonData=None,token=None,overrideURL=None,timeou
             response = requests.post(url,json=jsonData,proxies=settings.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
         elif methord == "DELETE":
             response = requests.delete(url,proxies=settings.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
-    except:
+    except Exception as e:
         pass
     return response
 

@@ -282,7 +282,7 @@ def workerPage():
 					url="http://{0}:{1}".format(host,port)
 					content += "{0}:{1}".format(host,port)
 					content += "<br>"
-					response += helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken,overrideURL=url)
+					response = helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken,overrideURL=url)
 					if response:
 						content += response.text
 					content += "<br>"
