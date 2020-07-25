@@ -50,7 +50,20 @@ from core.models import conduct, action, trigger, webui
 @api.webServer.route("/")
 def mainPage():
 	from system import install
-	return render_template("main.html", conducts=conduct._conduct().query(api.g.sessionData,query={ "name" : { "$exists" : True } },sort=[( "name", 1 )])["results"], version=install.installedVersion(), pluginPages=pluginPages, admin=api.g.sessionData["admin"])
+	return render_template("main.html", version=install.installedVersion(), admin=api.g.sessionData["admin"])
+
+@api.webServer.route("/plugins/")
+def loadPluginPages():
+	userPlugins = []
+	userModels = model._model().getAsClass(sessionData=api.g.sessionData,query={ "name" : { "$in" : pluginPages } })
+	for userModel in userModels:
+		if userModel.name in pluginPages:
+			userPlugins.append(userModel.name)
+	return { "result"  :userPlugins }, 200
+
+@api.webServer.route("/conducts/")
+def loadConducts():
+	return { "result" : conduct._conduct().query(api.g.sessionData,query={ "name" : { "$exists" : True } },sort=[( "name", 1 )])["results"] }, 200
 
 @api.webServer.route("/login")
 def loginPage():
