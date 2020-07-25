@@ -32,18 +32,20 @@
                             </ul>
                         </div>
                         <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/codify/">Codify (BETA)</a>
-                        <div class="btn-group btn-block sidebar_item">
-                            <button type="button" class="btn btn-primary btn-block dropdown-toggle theme-navButton" data-toggle="dropdown">
-                                Administration 
-                                <span class="caret"></span>
-                            </button>
-                            <ul class="dropdown-menu sidebar-dropdown-menu " role="menu">
-                                <div class="search-dropdown-menu-results">
-                                    <li><a target="content-frame" href="/model/">Object Editor</a></li>
-                                    <li><a target="content-frame" href="/admin/backups/">Backups</a></li>
-                                </div>
-                            </ul>
-                        </div>
+                        {% if admin %}
+                            <div class="btn-group btn-block sidebar_item">
+                                <button type="button" class="btn btn-primary btn-block dropdown-toggle theme-navButton" data-toggle="dropdown">
+                                    Administration 
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu sidebar-dropdown-menu " role="menu">
+                                    <div class="search-dropdown-menu-results">
+                                        <li><a target="content-frame" href="/model/">Object Editor</a></li>
+                                        <li><a target="content-frame" href="/admin/backups/">Backups</a></li>
+                                    </div>
+                                </ul>
+                            </div>
+                        {% endif %}
                         <div class="btn-group btn-block sidebar_item">
                             <button type="button" class="btn btn-primary btn-block dropdown-toggle theme-navButton" data-toggle="dropdown">
                                 Plugins 
@@ -57,9 +59,11 @@
                                 </div>
                             </ul>
                         </div>
-                        <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/cluster/">Cluster</a>
-                        <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/audit/">Audit</a>
-                        <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/workers/">Workers</a>
+                        {% if admin %}
+                            <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/cluster/">Cluster</a>
+                            <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/audit/">Audit</a>
+                            <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/workers/">Workers</a>
+                        {% endif %}
                         <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/myAccount/">My Account</a>
                         <a class="btn btn-primary btn-block theme-navButton" role="button" href="/api/1.0/auth/logout/">Logout</a>
                     </div>
