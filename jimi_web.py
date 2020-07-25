@@ -165,7 +165,9 @@ def forceTrigger(conductID,flowID):
 		audit._audit().add("trigger","force",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID })
 	else:
 		audit._audit().add("trigger","force",{ "user" : "system", "conductID" : conductID, "flowID" : flowID })
-	helpers.apiCall("POST",apiEndpoint,{ "action" : "trigger", "events" : data["events"] },token=api.g.sessionToken)
+	host,port = cluster.getMaster()
+	url="http://{0}:{1}".format(host,port)
+	helpers.apiCall("POST",apiEndpoint,{ "action" : "trigger", "events" : data["events"] },token=api.g.sessionToken,overrideURL=url)
 	return { }, 200
 
 @api.webServer.route("/conduct/<conductID>/flowlogic/<flowID>/<nextflowID>/", methods=["GET"])
@@ -267,7 +269,9 @@ def workerPage():
 					url="http://{0}:{1}".format(host,port)
 					content += "{0}:{1}".format(host,port)
 					content += "<br>"
-					content += helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken,overrideURL=url).text
+					response += helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken,overrideURL=url)
+					if response:
+						content += response.text
 					content += "<br>"
 				return render_template("workers.html", content=content)
 	return {}, 403
@@ -280,7 +284,9 @@ def clusterPage():
 				apiEndpoint = "cluster/"
 				host,port = cluster.getMaster()
 				url="http://{0}:{1}".format(host,port)
-				content = helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken,overrideURL=url).text
+				content = helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken,overrideURL=url)
+				if content:
+					content = content.text
 				return render_template("blank.html", content=content)
 	return {}, 403
 
