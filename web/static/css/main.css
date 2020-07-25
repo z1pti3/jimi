@@ -44,7 +44,7 @@
   
   /* Sidebar styling */
   .sidebar-nav{
-    padding:0;
+    padding: 1px;
     list-style:none; 
     width:100%;
     text-align: center;
