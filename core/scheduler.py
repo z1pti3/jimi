@@ -144,13 +144,12 @@ if api.webServer:
                             events = [events]
                         class_.workerID = workers.workers.new("trigger:{0}".format(triggerID),class_.notify,(events,),maxDuration=maxDuration)
                         class_.update(["startCheck","workerID"])
+                        return { "result" : True }, 200
                     else:
                         logging.debug("Error unable to force trigger, triggerID={0} as it is already running.".format(triggerID))
                         return { "result" : False, "reason" : "Trigger already running" }, 403
                 else:
                     logging.debug("Error unable to force trigger, triggerID={0} as its triggerID cannot be loaded.".format(triggerID))
                     return { "result" : False, "reason" : "triggerID could not be loaded" }, 404
-
-                return { "result" : True }, 200
             else:
                 return {}, 404
