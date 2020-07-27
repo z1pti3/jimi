@@ -124,34 +124,32 @@ if api.webServer:
 
         @api.webServer.route(api.base+"scheduler/<triggerID>/", methods=["POST"])
         def forceTriggers(triggerID):
-            if api.g.sessionData["admin"]:
-                data = json.loads(api.request.data)
-                if data["action"] == "trigger":
-                    class_ = trigger._trigger().getAsClass(id=triggerID)[0]
-                    if class_:
-                        if class_.startCheck == 0:
-                            class_.startCheck = time.time()
-                            maxDuration = 60
-                            if type(class_.maxDuration) is int and class_.maxDuration > 0:
-                                maxDuration = class_.maxDuration
-                            try:
-                                events = json.loads(data["events"])
-                            except json.decoder.JSONDecodeError:
-                                events = [data["events"]]
-                                # Ensure we run even if no event data was sent
-                                if events == [""]:
-                                    events = ["1"]
-                            if type(events) != list:
-                                events = [events]
-                            class_.workerID = workers.workers.new("trigger:{0}".format(triggerID),class_.notify,(events,),maxDuration=maxDuration)
-                            class_.update(["startCheck","workerID"])
-                        else:
-                            logging.debug("Error unable to force trigger, triggerID={0} as it is already running.".format(triggerID))
-                            return { "result" : False, "reason" : "Trigger already running" }, 403
+            data = json.loads(api.request.data)
+            if data["action"] == "trigger":
+                class_ = trigger._trigger().getAsClass(sessionData=api.g.sessionData,id=triggerID)[0]
+                if class_:
+                    if class_.startCheck == 0:
+                        class_.startCheck = time.time()
+                        maxDuration = 60
+                        if type(class_.maxDuration) is int and class_.maxDuration > 0:
+                            maxDuration = class_.maxDuration
+                        try:
+                            events = json.loads(data["events"])
+                        except json.decoder.JSONDecodeError:
+                            events = [data["events"]]
+                            # Ensure we run even if no event data was sent
+                            if events == [""]:
+                                events = ["1"]
+                        if type(events) != list:
+                            events = [events]
+                        class_.workerID = workers.workers.new("trigger:{0}".format(triggerID),class_.notify,(events,),maxDuration=maxDuration)
+                        class_.update(["startCheck","workerID"])
+                        return { "result" : True }, 200
                     else:
-                        logging.debug("Error unable to force trigger, triggerID={0} as its triggerID cannot be loaded.".format(triggerID))
-                        return { "result" : False, "reason" : "triggerID could not be loaded" }, 404
-
-                return { "result" : True }, 200
+                        logging.debug("Error unable to force trigger, triggerID={0} as it is already running.".format(triggerID))
+                        return { "result" : False, "reason" : "Trigger already running" }, 403
+                else:
+                    logging.debug("Error unable to force trigger, triggerID={0} as its triggerID cannot be loaded.".format(triggerID))
+                    return { "result" : False, "reason" : "triggerID could not be loaded" }, 404
             else:
-                return {}, 403
+                return {}, 404

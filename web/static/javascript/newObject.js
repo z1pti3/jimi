@@ -60,7 +60,7 @@ function createNewObjectPanel() {
 		var posX = e.clientX;
 		var posY = e.clientY;
 		var panel = $(newObjectHTML);
-		panel.css({top : posY, left : posX - 250});
+		panel.css({top : posY, left : posX - 325});
 		panel.draggable();
 		panel.resizable({
 			grid: 20

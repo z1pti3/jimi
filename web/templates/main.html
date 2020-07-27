@@ -25,41 +25,39 @@
                             <ul class="dropdown-menu sidebar-dropdown-menu search-dropdown-menu" role="menu">
                                 <input class="form-control" id="myInput" type="text" placeholder="Search.." width="150px">
                                 <div id="conducts-list" class="search-dropdown-menu-results">
-                                    {% for conduct in conducts %}
-                                        <li><a target="content-frame" href="/conductEditor/?conductID={{ conduct["_id"] }}">{{ conduct["name"] }}</a></li>
-                                    {% endfor %}
                                 </div>
                             </ul>
                         </div>
-                        <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/codify/">Codify</a>
-                        <div class="btn-group btn-block sidebar_item">
-                            <button type="button" class="btn btn-primary btn-block dropdown-toggle theme-navButton" data-toggle="dropdown">
-                                Administration 
-                                <span class="caret"></span>
-                            </button>
-                            <ul class="dropdown-menu sidebar-dropdown-menu " role="menu">
-                                <div class="search-dropdown-menu-results">
-                                    <li><a target="content-frame" href="/model/">Object Editor</a></li>
-                                    <li><a target="content-frame" href="/admin/backups/">Backups</a></li>
-                                </div>
-                            </ul>
-                        </div>
+                        <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/codify/">Codify (BETA)</a>
+                        {% if admin %}
+                            <div class="btn-group btn-block sidebar_item">
+                                <button type="button" class="btn btn-primary btn-block dropdown-toggle theme-navButton" data-toggle="dropdown">
+                                    Administration 
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu sidebar-dropdown-menu " role="menu">
+                                    <div class="search-dropdown-menu-results">
+                                        <li><a target="content-frame" href="/model/">Object Editor</a></li>
+                                        <li><a target="content-frame" href="/admin/backups/">Backups</a></li>
+                                    </div>
+                                </ul>
+                            </div>
+                        {% endif %}
                         <div class="btn-group btn-block sidebar_item">
                             <button type="button" class="btn btn-primary btn-block dropdown-toggle theme-navButton" data-toggle="dropdown">
                                 Plugins 
                                 <span class="caret"></span>
                             </button>
                             <ul class="dropdown-menu sidebar-dropdown-menu" role="menu">
-                                <div class="search-dropdown-menu-results">
-                                    {% for pluginPage in pluginPages %}
-                                        <li><a target="content-frame" href="/plugin/{{ pluginPage }}">{{ pluginPage }}</a></li>
-                                    {% endfor %}
+                                <div id="plugins-list" class="search-dropdown-menu-results">
                                 </div>
                             </ul>
                         </div>
-                        <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/cluster/">Cluster</a>
-                        <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/audit/">Audit</a>
-                        <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/workers/">Workers</a>
+                        {% if admin %}
+                            <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/cluster/">Cluster</a>
+                            <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/audit/">Audit</a>
+                            <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/workers/">Workers</a>
+                        {% endif %}
                         <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/myAccount/">My Account</a>
                         <a class="btn btn-primary btn-block theme-navButton" role="button" href="/api/1.0/auth/logout/">Logout</a>
                     </div>
@@ -118,13 +116,46 @@
 
 <script>
     function authPoll(){
-        $.ajax({url:"/api/1.0/auth/poll/", type:"GET", success: function ( result ) {
+        $.ajax({url:"/api/1.0/auth/poll/", type:"GET", timeout: 3500, success: function ( result ) {
                 var r = result["data"]
                 if (r != true) {
                     location.reload();
                 }
             }
         });
+        $.ajax({url:"/conducts/", type:"GET", timeout: 3500, success: function ( result ) {
+                $("#conducts-list").empty()
+                for ( conduct in result["result"] ) {
+                    listItem = $("<li>")
+                    address = $("<a target='content-frame'>")
+                    address.attr({"href":"/conductEditor/?conductID="+result["result"][conduct]["_id"]})
+                    address.text(result["result"][conduct]["name"])
+                    listItem.append(address)
+                    $("#conducts-list").append(listItem)
+                }
+                var value = $("#myInput").val().toLowerCase();
+                $(".search-dropdown-menu li").filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            }
+        });
+        $.ajax({url:"/plugins/", type:"GET", timeout: 3500, success: function ( result ) {
+                $("#plugins-list").empty()
+                for ( plugin in result["result"] ) {
+                    listItem = $("<li>")
+                    address = $("<a target='content-frame'>")
+                    address.attr({"href":"/plugin/"+result["result"][plugin]})
+                    address.text(result["result"][plugin])
+                    listItem.append(address)
+                    $("#plugins-list").append(listItem)
+                }
+            }
+        });
+        setTimeout(function(){ authPoll(); }, 5000)
     }
-    setInterval(function(){ authPoll(); }, 10000)
+
+    $(document).ready(function(){
+        authPoll()
+    });
+        
 </script>

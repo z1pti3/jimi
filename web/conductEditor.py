@@ -4,7 +4,7 @@ import  uuid
 
 from flask import Flask, request, render_template, make_response, redirect
 
-from core import api, model, db, cache, audit
+from core import api, model, db, cache, audit, helpers
 
 from core.models import trigger, action, conduct, webui
 
@@ -160,6 +160,129 @@ def conductFlowchartPoll(conductID):
             flowchartResponse["links"]["delete"][flowchartLink] = { "linkName" : flowchartLink }
 
     return flowchartResponse, 200
+
+@api.webServer.route("/conductEditor/<conductID>/export/", methods=["GET"])
+def conductExport(conductID):
+    conductObj = conduct._conduct().getAsClass(api.g.sessionData,id=conductID)
+    if len(conductObj) == 1:
+        conductObj = conductObj[0]
+    else:
+        return { }, 404
+    flows = [ x for x in conductObj.flow ]
+    flowTriggers = [ db.ObjectId(x["triggerID"]) for x in flows if x["type"] == "trigger" ]
+    flowActions = [ db.ObjectId(x["actionID"]) for x in flows if x["type"] == "action" ]
+    actions = action._action().getAsClass(api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
+    triggers = trigger._trigger().getAsClass(api.g.sessionData,query={ "_id" : { "$in" : flowTriggers } })
+    result = { "flow" : conductObj.flow, "action" : {}, "trigger" : {}, "ui" : {} }
+    for flow in flows:
+        obj = None
+        if flow["type"] == "trigger":
+            for t in triggers:
+                if flow["triggerID"] == t._id:
+                    obj = t
+                    break
+        elif flow["type"] == "action":
+            for a in actions:
+                if flow["actionID"] == a._id:
+                    obj = a
+                    break
+        if obj:
+            classObj = _class = model._model().getAsClass(api.g.sessionData,id=obj.classID)
+            classObj = classObj[0]
+            if obj._id not in result[flow["type"]]:
+                result[flow["type"]][obj._id] = { "className" : classObj.name }
+                blacklist = ["acl","classID","workerID","startCheck","nextCheck","lastUpdateTime","creationTime","systemID"]
+                typeList = [str,int,float,dict,list]
+                members = [attr for attr in dir(obj) if not callable(getattr(obj, attr)) and not "__" in attr and attr ]
+                for member in members:
+                    if member not in blacklist:
+                        value = getattr(obj,member)
+                        if type(value) in typeList:
+                            result[flow["type"]][obj._id][member] = value
+            if flow["flowID"] not in result["ui"]:
+                result["ui"][flow["flowID"]] = { "x" : 0, "y" : 0, "title" : "" }
+                flowUI = webui._modelUI().getAsClass(api.g.sessionData,query={ "flowID" : flow["flowID"], "conductID" : conductID })
+                if len(flowUI) > 0:
+                    flowUI = flowUI[0]
+                    result["ui"][flow["flowID"]]["x"] = flowUI.x
+                    result["ui"][flow["flowID"]]["y"] = flowUI.y
+                    result["ui"][flow["flowID"]]["title"] = flowUI.title
+    return render_template("blank.html",content=result, CSRF=api.g.sessionData["CSRF"]), 200
+
+@api.webServer.route("/conductEditor/<conductID>/import/", methods=["GET"])
+def conductImport(conductID):
+    return render_template("import.html", CSRF=api.g.sessionData["CSRF"]), 200
+
+@api.webServer.route("/conductEditor/<conductID>/import/", methods=["POST"])
+def conductImportData(conductID):
+    conductObj = conduct._conduct().getAsClass(api.g.sessionData,id=conductID)
+    if len(conductObj) == 1:
+        conductObj = conductObj[0]
+    else:
+        return { }, 404
+    access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,conductObj.acl,"write")
+    if access:
+        data = json.loads(api.request.data)
+        importData = helpers.typeCast(data["importData"])
+        conductObj.flow = importData["flow"]
+        for flow in importData["flow"]:
+            flowUI = webui._modelUI().getAsClass(api.g.sessionData,query={ "flowID" : flow["flowID"], "conductID" : conductID })
+            if len(flowUI) > 0:
+                flowUI = flowUI[0]
+                flowUI.x = importData["ui"][flow["flowID"]]["x"]
+                flowUI.y = importData["ui"][flow["flowID"]]["y"]
+                flowUI.title = importData["ui"][flow["flowID"]]["title"]
+                flowUI.update(["x","y","title"])
+            else:
+                webui._modelUI().new(conductObj._id,conductObj.acl,flow["flowID"],importData["ui"][flow["flowID"]]["x"],importData["ui"][flow["flowID"]]["y"],importData["ui"][flow["flowID"]]["title"])
+            if flow["type"] == "trigger":
+                classObj = _class = model._model().getAsClass(api.g.sessionData,query={ "name" : importData["trigger"][flow["triggerID"]]["className"] })
+                if len(classObj) > 0:
+                    classObj = classObj[0]
+                    existingTrigger = trigger._trigger().getAsClass(api.g.sessionData,query={ "name" : importData["trigger"][flow["triggerID"]]["name"], "classID" : classObj._id })
+                    if len(existingTrigger) > 0:
+                        existingTrigger = existingTrigger[0]
+                    else:
+                        _class = classObj.classObject()
+                        newObjectID = _class().new(importData["trigger"][flow["triggerID"]]["name"]).inserted_id
+                        existingTrigger = _class().getAsClass(api.g.sessionData,id=newObjectID)[0]
+                        existingTrigger.acl = conductObj.acl
+                        existingTrigger.update(["acl"])
+                    members = [attr for attr in dir(existingTrigger) if not callable(getattr(existingTrigger, attr)) and not "__" in attr and attr ]
+                    blacklist = ["_id","classID","className","acl","lastCheck"]
+                    updateList = []
+                    for member in members:
+                        if member in importData["trigger"][flow["triggerID"]]:
+                            if member not in blacklist:
+                                setattr(existingTrigger,member,importData["trigger"][flow["triggerID"]][member])
+                                updateList.append(member)
+                    existingTrigger.update(updateList,sessionData=api.g.sessionData)
+                    flow["triggerID"] = existingTrigger._id
+            elif flow["type"] == "action":
+                classObj = _class = model._model().getAsClass(api.g.sessionData,query={ "name" : importData["action"][flow["actionID"]]["className"] })
+                if len(classObj) > 0:
+                    classObj = classObj[0]
+                    existingAction = action._action().getAsClass(api.g.sessionData,query={ "name" : importData["action"][flow["actionID"]]["name"], "classID" : classObj._id })
+                    if len(existingAction) > 0:
+                        existingAction = existingAction[0]
+                    else:
+                        _class = classObj.classObject()
+                        newObjectID = _class().new(importData["action"][flow["actionID"]]["name"]).inserted_id
+                        existingAction = _class().getAsClass(api.g.sessionData,id=newObjectID)[0]
+                        existingAction.acl = conductObj.acl
+                        existingAction.update(["acl"])
+                    members = [attr for attr in dir(existingAction) if not callable(getattr(existingAction, attr)) and not "__" in attr and attr ]
+                    blacklist = ["_id","classID","className","acl","lastCheck"]
+                    updateList = []
+                    for member in members:
+                        if member in importData["action"][flow["actionID"]]:
+                            if member not in blacklist:
+                                setattr(existingTrigger,member,importData["action"][flow["actionID"]][member])
+                                updateList.append(member)
+                    existingAction.update(updateList,sessionData=api.g.sessionData)
+                    flow["actionID"] = existingAction._id
+    conductObj.update(["flow"],sessionData=api.g.sessionData)
+    return {}, 200
 
 @api.webServer.route("/conductEditor/<conductID>/codify/", methods=["GET"])
 def getConductFlowCodify(conductID):

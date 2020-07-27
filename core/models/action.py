@@ -85,7 +85,7 @@ class _action(db._document):
 
     def runHeader(self,data,persistentData,actionResult):
         if self.log:
-            audit._audit().add("action","action start",{ "actionID" : self._id, "actionName" : self.name, "data" : data, "persistentData" : persistentData, "actionResult" : actionResult })
+            audit._audit().add("action","action start",{ "actionID" : self._id, "actionName" : self.name, "var" : data["var"], "event" : data["event"], "actionResult" : actionResult })
         logging.debug("Action run started, actionID='{0}', data='{1}'".format(self._id,data),7)
 
     def run(self,data,persistentData,actionResult):
@@ -94,7 +94,7 @@ class _action(db._document):
 
     def runFooter(self,data,persistentData,actionResult,startTime):
         if self.log:
-            audit._audit().add("action","action end",{ "actionID" : self._id, "actionName" : self.name, "data" : data, "persistentData" : persistentData, "actionResult" : actionResult, "duration" : (time.time() - startTime) })
+            audit._audit().add("action","action end",{ "actionID" : self._id, "actionName" : self.name, "var" : data["var"], "event" : data["event"], "actionResult" : actionResult, "duration" : (time.time() - startTime) })
         logging.debug("Action run complete, actionID='{0}', data='{1}'".format(self._id,data),7)
 
     def postRun(self):

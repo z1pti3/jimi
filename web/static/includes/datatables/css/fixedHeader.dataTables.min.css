@@ -1,0 +1,18 @@
+table.fixedHeader-floating{
+    position:fixed !important;
+}
+
+table.fixedHeader-floating.no-footer{
+    border-bottom-width:0
+}
+
+table.fixedHeader-locked{
+    position:absolute !important;
+}
+
+@media print{
+    table.fixedHeader-floating
+    {
+        display:none
+    }
+}
