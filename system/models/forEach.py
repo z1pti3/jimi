@@ -33,9 +33,9 @@ class _forEach(action._action):
 				cpuSaver = helpers.cpuSaver()
 				for event in events:
 					if self.mergeEvents:
-						tempData = { "event" : {**data["event"],**event}, "callingTriggerID" : data["triggerID"], "triggerID" : self._id, "var" : data["var"], "skip" : skip }
+						tempData = { "event" : {**data["event"],**event}, "callingTriggerID" : data["triggerID"], "triggerID" : self._id, "var" : data["var"], "skip" : skip, "plugin" : data["plugin"] }
 					else:
-						tempData = { "event" : event, "callingTriggerID" : data["triggerID"], "triggerID" : self._id, "var" : data["var"], "skip" : skip }
+						tempData = { "event" : event, "callingTriggerID" : data["triggerID"], "triggerID" : self._id, "var" : data["var"], "skip" : skip, "plugin" : data["plugin"] }
 					if foundConducts:
 						for foundConduct in foundConducts:
 							foundConduct.triggerHandler(data["flowID"],tempData,flowIDType=True)
