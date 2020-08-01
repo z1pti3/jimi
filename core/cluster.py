@@ -97,6 +97,7 @@ class _clusterMember(db._document):
                         member = lowestMember[0]
                         if inactiveTrigger.clusterSet != 0:
                             if str(inactiveTrigger.clusterSet) not in groups:
+                                # Should check others within the group to ensure we put them back on the same member
                                 groups[str(inactiveTrigger.clusterSet)] = lowestMember[0]
                             else:
                                 member = groups[str(inactiveTrigger.clusterSet)]

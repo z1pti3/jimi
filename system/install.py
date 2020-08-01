@@ -96,7 +96,8 @@ def resetTriggers():
 	for triggerJson in triggers:
 		triggerClass = trigger._trigger().get(triggerJson["_id"])
 		triggerClass.startCheck = 0
-		triggerClass.update(["startCheck"])
+		triggerClass.attemptCount = 0
+		triggerClass.update(["startCheck","attemptCount"])
 
 def randomString(length=12):
 	charSet = string.ascii_letters + string.digits

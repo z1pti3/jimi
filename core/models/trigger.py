@@ -20,6 +20,8 @@ class _trigger(db._document):
     varDefinitions = dict()
     concurrency = int()  
     threaded = bool()
+    attemptCount = int()
+    autoRestartCount = int()
 
     _dbCollection = db.db["triggers"]
 
@@ -121,9 +123,10 @@ class _trigger(db._document):
                 audit._audit().add("trigger","notify end",{ "triggerID" : self._id, "name" : self.name, "duration" : (notifyEndTime-notifyStartTime) })
 
         self.startCheck = 0
+        self.attemptCount = 0
         self.lastCheck = time.time()
         self.nextCheck = scheduler.getSchedule(self.schedule)
-        self.update(["startCheck","lastCheck","nextCheck"])
+        self.update(["startCheck","lastCheck","nextCheck","attemptCount"])
 
     def checkHandler(self):
         startTime = time.time()
