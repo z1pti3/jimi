@@ -17,6 +17,7 @@ class _forEach(action._action):
 		if "skip" in data:
 			actionResult["result"] = True
 			actionResult["rc"] = 0
+			del data["skip"]
 			return actionResult
 		else:
 			events = []
