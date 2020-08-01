@@ -225,10 +225,9 @@ if api.webServer:
                                             changeLog[dataKey] = {}
                                             changeLog[dataKey]["currentValue"] = getattr(_class, dataKey)
                                             if type(getattr(_class, dataKey)) is str:
-                                                if dataValue:
-                                                    if _class.setAttribute(dataKey, str(dataValue),sessionData=api.g.sessionData):
-                                                        updateItemsList.append(dataKey)
-                                                        changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
+                                                if _class.setAttribute(dataKey, str(dataValue),sessionData=api.g.sessionData):
+                                                    updateItemsList.append(dataKey)
+                                                    changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
                                             elif type(getattr(_class, dataKey)) is int:
                                                 try:
                                                     if _class.setAttribute(dataKey, int(dataValue),sessionData=api.g.sessionData):
