@@ -27,6 +27,8 @@ A python based automation and scheduler platform, but can be used to acheive a n
 
 Highly customizable using loops, if logic, variables, in-build functions and easily expandable using plugins
 
+https://github.com/topics/jimiplugin
+
 Other Features:
 * Multi-user and group
 * Object and field level ACL
