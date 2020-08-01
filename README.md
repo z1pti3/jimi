@@ -33,6 +33,7 @@ Other Features:
 * Multi-user and group
 * Object and field level ACL
 * Cluster support with active/active and automatic failover
+* Secure secret storage
 * CLI for debugging
 * Audit logging
 * Logic within object and connecting lines
@@ -43,6 +44,8 @@ Other Features:
 Checkout the wiki for more details and installation instructions
 
 https://github.com/z1pti3/jimi/wiki/Installation
+
+OLD Screenshot - now in dark mode!
 
 ![Screenshot](examples/screenshots/screenshot1.png)
 
