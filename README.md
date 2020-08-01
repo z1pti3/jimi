@@ -42,6 +42,8 @@ Other Features:
 
 Checkout the wiki for more details and installation instructions
 
+https://github.com/z1pti3/jimi/wiki/Installation
+
 ![Screenshot](examples/screenshots/screenshot1.png)
 
 ![Screenshot](examples/screenshots/screenshot2.png)
