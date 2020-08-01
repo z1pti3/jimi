@@ -38,7 +38,7 @@ class _forEach(action._action):
 						tempData = { "event" : event, "callingTriggerID" : data["triggerID"], "triggerID" : self._id, "var" : data["var"], "skip" : skip, "plugin" : data["plugin"] }
 					if foundConducts:
 						for foundConduct in foundConducts:
-							foundConduct.triggerHandler(data["flowID"],tempData,flowIDType=True)
+							foundConduct.triggerHandler(data["flowID"],tempData,flowIDType=True,persistentData=persistentData)
 
 					cpuSaver.tick()
 		# Returning false to stop flow continue

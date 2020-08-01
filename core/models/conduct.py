@@ -47,10 +47,10 @@ class _conduct(db._document):
         return True
 
     # actionIDType=True uses actionID instead of triggerID
-    def triggerHandler(self,triggerID,data,actionIDType=False,flowIDType=False):
+    def triggerHandler(self,triggerID,data,actionIDType=False,flowIDType=False,persistentData=None):
         startTime=time.time()
         self.triggerHeader(triggerID,data)
-        self.trigger(triggerID,actionIDType,flowIDType,data)
+        self.trigger(triggerID,actionIDType,flowIDType,data,persistentData=persistentData)
         self.triggerFooter(triggerID,data,startTime)
     
     def triggerHeader(self,triggerID,data):
@@ -59,7 +59,7 @@ class _conduct(db._document):
         data["conductID"] = self._id
         logging.debug("Conduct triggered, conductID='{0}', triggerID='{1}' data='{2}'".format(self._id,triggerID,data),5)
 
-    def trigger(self,triggerID,actionIDType,flowIDType,data):
+    def trigger(self,triggerID,actionIDType,flowIDType,data,persistentData=None):
         flowDict = cache.globalCache.get("flowDict",self._id,getFlowDict,self.flow)
 
         if actionIDType:
@@ -71,7 +71,7 @@ class _conduct(db._document):
  
         # Triggers all found flows
         for triggeredFlow in triggeredFlows:
-            self.flowHandler(triggeredFlow,flowDict,data)
+            self.flowHandler(triggeredFlow,flowDict,data,persistentData)
 
     def triggerFooter(self,triggerID,data,startTime):
         if self.log:
@@ -102,9 +102,10 @@ class _conduct(db._document):
                     return True
         return False
 
-    def flowHandler(self,currentFlow,flowDict,data):
+    def flowHandler(self,currentFlow,flowDict,data,persistentData=None):
         processQueue = []
-        persistentData = {}
+        if not persistentData:
+            persistentData = {}
         data["conductID"] = self._id
         cpuSaver = helpers.cpuSaver()
         while True:
