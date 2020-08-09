@@ -425,7 +425,7 @@ function setupFlowchart() {
 	network.on("click", function(params) {
 		if (params["nodes"].length == 1) {
 			if (cKeyState) {
-				createLink(selectedObject,nodeObjects[params["nodes"][0]]["flowID"],"blue",true);
+				createLink(selectedObject,nodeObjects[params["nodes"][0]]["flowID"],"#3dbeff",true);
 			}
 			selectedObject = nodeObjects[params["nodes"][0]]["flowID"]
 		} else {
