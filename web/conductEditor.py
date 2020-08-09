@@ -143,19 +143,27 @@ def conductFlowchartPoll(conductID):
                 # Do any links need to be created
                 for nextFlow in flow["next"]:
                     linkName = "{0}->{1}".format(flowID,nextFlow["flowID"])
+                    color = "green"
+                    if type(nextFlow["logic"]) is bool:
+                        if nextFlow["logic"] == True:
+                            color = "#3dbeff"
+                        else:
+                            color = "#ff2c10"
+                    elif type(nextFlow["logic"]) is str:
+                        if nextFlow["logic"].startswith("if "):
+                            color = "purple"
                     linksList.append(linkName)
-                    if linkName not in flowchartLinks:
-                        flowchartResponse["links"]["create"][linkName] = { "from" : flowID, "to" : nextFlow["flowID"], "logic" : nextFlow["logic"] }
-                    #Updates (for logic for now) << needs to be readded but using same as node with color value set from server
-                    #flowchartResponse["links"]["update"][linkName] = { "from" : flowID, "to" : nextFlow["flowID"], "logic" : nextFlow["logic"] }
-
+                    if linkName not in flowchartLinks.keys():
+                        flowchartResponse["links"]["create"][linkName] = { "from" : flowID, "to" : nextFlow["flowID"], "logic" : nextFlow["logic"], "color" : color }
+                    elif flowchartLinks[linkName]["color"] != color:
+                        flowchartResponse["links"]["update"][linkName] = { "from" : flowID, "to" : nextFlow["flowID"], "logic" : nextFlow["logic"], "color" : color }
 
     # Checking for deleted operators
     for flowchartOperator in flowchartOperators:
         if flowchartOperator not in flowsList:
             flowchartResponse["operators"]["delete"][flowchartOperator] = { "flowID" : flowchartOperator }
     # Checking for deleted links
-    for flowchartLink in flowchartLinks:
+    for flowchartLink in flowchartLinks.keys():
         if flowchartLink not in linksList:
             flowchartResponse["links"]["delete"][flowchartLink] = { "linkName" : flowchartLink }
 

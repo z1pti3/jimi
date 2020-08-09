@@ -110,7 +110,7 @@ function deleteNode(flowID) {
 
 function createLinkRAW(from,to,color) {
 	var linkName = from + "->" + to;
-	flowLinks[linkName] = { "from": from, "to": to, "colour": color }
+	flowLinks[linkName] = { "from": from, "to": to, "color": color }
 	edges.add({ 
 		id: linkName,
 		from: flowObjects[from]["nodeID"], 
@@ -134,14 +134,16 @@ function createLinkRAW(from,to,color) {
 	nextId++;
 }
 
-function updateLink(from,to) {
+function updateLink(from,to,color) {
 	var linkName = from + "->" + to;
 	flowLinks[linkName]["from"] = from
 	flowLinks[linkName]["to"] = to
+	flowLinks[linkName]["color"] = color
 	edges.update({ 
 		id: linkName,
 		from: flowObjects[from]["nodeID"], 
-		to: flowObjects[to]["nodeID"]
+		to: flowObjects[to]["nodeID"],
+		color: color
 	});
 	return true;
 }
@@ -232,17 +234,7 @@ function updateFlowchartNonBlocking(blocking) {
 	// Link Creates
 	for (link in processlist["links"]["create"]) {
 		obj = processlist["links"]["create"][link]
-		switch (obj["logic"]){
-			case true:
-				var color = "#3dbeff"
-				break
-			case false:
-				var color = "#ff2c10"
-				break
-			default:
-				var color = "purple"
-		}
-		createLinkRAW(obj["from"],obj["to"],color)
+		createLinkRAW(obj["from"],obj["to"],obj["color"])
 		delete processlist["links"]["create"][link]
 		nonlock++
 		if ((!blocking) && (nonlock > 0)) {
@@ -253,7 +245,7 @@ function updateFlowchartNonBlocking(blocking) {
 	// Link Updates
 	for (link in processlist["links"]["update"]) {
 		obj = processlist["links"]["update"][link]
-		updateLink(obj["from"],obj["to"])
+		updateLink(obj["from"],obj["to"],obj["color"])
 		delete processlist["links"]["update"][link]
 		nonlock++
 		if ((!blocking) && (nonlock > 0)) {
@@ -281,7 +273,7 @@ function updateFlowchartNonBlocking(blocking) {
 function updateFlowchart() {
 	if ((processlist) || (processlist.length == 0)) {
 		var conductID = GetURLParameter("conductID")
-		$.ajax({url:"/conductEditor/"+conductID+"/", type:"POST", timeout: 2000, data: JSON.stringify({ lastPollTime : lastUpdatePollTime, operators: flowObjects, links: Object.keys(flowLinks), CSRF: CSRF }), contentType:"application/json", success: function ( responseData ) {
+		$.ajax({url:"/conductEditor/"+conductID+"/", type:"POST", timeout: 2000, data: JSON.stringify({ lastPollTime : lastUpdatePollTime, operators: flowObjects, links: flowLinks, CSRF: CSRF }), contentType:"application/json", success: function ( responseData ) {
 				processlist = responseData
 				setTimeout(updateFlowchart, 2500);
 				if (init == false) {
