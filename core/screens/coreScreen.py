@@ -80,6 +80,7 @@ class selectCore:
     def clearCache(self,args):
         if len(args) == 3:
             cache.globalCache.clearCache(args[2])
+            print("Cache Cleared!")
 
     def showCluster(self,args):
         self.apiEndpoint = "cluster/"
