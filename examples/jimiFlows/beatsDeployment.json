@@ -1,0 +1,243 @@
+{
+    'flow': [{
+        'flowID': '20b45f3a-8436-4dec-85f7-df07dea01b75',
+        'next': [{
+            'flowID': '84a1dab7-418d-4562-b51f-558e4a11b270',
+            'logic': True
+        }],
+        'type': 'trigger',
+        'subtype': 'testFireTrigger',
+        'triggerID': '5f2ff821103e7fc3cc0c8c50'
+    }, {
+        'flowID': '84a1dab7-418d-4562-b51f-558e4a11b270',
+        'next': [{
+            'flowID': 'e0726f73-5eeb-4092-8dc9-dbf316cd1207',
+            'logic': True
+        }, {
+            'flowID': '9d95d787-c5ad-44ec-9156-454eacfc65a9',
+            'logic': True
+        }],
+        'type': 'action',
+        'subtype': 'remoteConnectWindows',
+        'actionID': '5f2ff864103e7fc3cc0c8c58'
+    }, {
+        'flowID': '4026faea-40bf-4987-a45a-0f5c9243ba20',
+        'next': [{
+            'flowID': 'cfa9f0a2-a540-48fc-be35-988c6c5b8348',
+            'logic': True
+        }],
+        'type': 'action',
+        'subtype': 'remoteUpload',
+        'actionID': '5f2ff897103e7fc3cc0c8c61'
+    }, {
+        'flowID': 'cfa9f0a2-a540-48fc-be35-988c6c5b8348',
+        'next': [{
+            'flowID': 'f2cdb22f-6b93-4f40-8945-af41fe7e6f83',
+            'logic': True
+        }],
+        'type': 'action',
+        'subtype': 'remoteCommand',
+        'actionID': '5f3014b2103e7fc3cc0c8c8e'
+    }, {
+        'flowID': 'f2cdb22f-6b93-4f40-8945-af41fe7e6f83',
+        'type': 'action',
+        'next': [],
+        'actionID': '5f301965103e7fc3cc0c8ccc'
+    }, {
+        'flowID': 'e0726f73-5eeb-4092-8dc9-dbf316cd1207',
+        'type': 'action',
+        'next': [{
+            'flowID': '4026faea-40bf-4987-a45a-0f5c9243ba20',
+            'logic': True
+        }],
+        'actionID': '5f303770103e7fc3cc0c8ce2'
+    }, {
+        'flowID': '9d95d787-c5ad-44ec-9156-454eacfc65a9',
+        'type': 'action',
+        'next': [{
+            'flowID': 'e9d19eec-dc9e-4bbe-b86a-8bb3ae9d5dd9',
+            'logic': True
+        }],
+        'actionID': '5f303840103e7fc3cc0c8cf7'
+    }, {
+        'flowID': 'e9d19eec-dc9e-4bbe-b86a-8bb3ae9d5dd9',
+        'type': 'action',
+        'next': [{
+            'flowID': '3714e68c-739f-4b9a-8202-15be6b6b50df',
+            'logic': True
+        }],
+        'actionID': '5f303854103e7fc3cc0c8cfd'
+    }, {
+        'flowID': '3714e68c-739f-4b9a-8202-15be6b6b50df',
+        'type': 'action',
+        'next': [{
+            'flowID': 'd4be04ab-16c0-4919-bde6-d08449058d74',
+            'logic': True
+        }],
+        'actionID': '5f30387d103e7fc3cc0c8d04'
+    }, {
+        'flowID': 'd4be04ab-16c0-4919-bde6-d08449058d74',
+        'type': 'action',
+        'next': [],
+        'actionID': '5f3038a8103e7fc3cc0c8d0b'
+    }],
+    'action': {
+        '5f2ff864103e7fc3cc0c8c58': {
+            'className': 'remoteConnectWindows',
+            '_id': '5f2ff864103e7fc3cc0c8c58',
+            'comment': '',
+            'host': '%%data[event][host]%%',
+            'logicString': '',
+            'name': 'Connect to windows "host"',
+            'password': '',
+            'user': 'Administrator',
+            'varDefinitions': {}
+        },
+        '5f2ff897103e7fc3cc0c8c61': {
+            'className': 'remoteUpload',
+            '_id': '5f2ff897103e7fc3cc0c8c61',
+            'comment': '',
+            'localFile': 'data\\beats\\winlogbeat\\winlogbeat-7.8.1-windows-x86_64',
+            'logicString': '',
+            'name': 'Upload WinLogBeat',
+            'remoteFile': 'c$\\Program Files\\winlogbeat',
+            'varDefinitions': {}
+        },
+        '5f3014b2103e7fc3cc0c8c8e': {
+            'className': 'remoteCommand',
+            '_id': '5f3014b2103e7fc3cc0c8c8e',
+            'command': 'powershell.exe -nop -file "c:\\program files\\winlogbeat\\install-service-winlogbeat.ps1"',
+            'comment': '',
+            'logicString': '',
+            'name': 'Install winlogBeat',
+            'varDefinitions': {}
+        },
+        '5f301965103e7fc3cc0c8ccc': {
+            'className': 'remoteCommand',
+            '_id': '5f301965103e7fc3cc0c8ccc',
+            'command': 'net start winlogbeat',
+            'comment': '',
+            'logicString': '',
+            'name': 'Start WinLogBeat Service',
+            'varDefinitions': {}
+        },
+        '5f303770103e7fc3cc0c8ce2': {
+            'className': 'remoteCommand',
+            '_id': '5f303770103e7fc3cc0c8ce2',
+            'command': 'net stop winlogbeat',
+            'comment': '',
+            'logicString': '',
+            'name': 'Stop WinLogBeat Service',
+            'varDefinitions': {}
+        },
+        '5f303840103e7fc3cc0c8cf7': {
+            'className': 'remoteCommand',
+            '_id': '5f303840103e7fc3cc0c8cf7',
+            'command': 'net stop metricbeat',
+            'comment': '',
+            'logicString': '',
+            'name': 'Stop MetricBeat Service',
+            'varDefinitions': {}
+        },
+        '5f303854103e7fc3cc0c8cfd': {
+            'className': 'remoteUpload',
+            '_id': '5f303854103e7fc3cc0c8cfd',
+            'comment': '',
+            'localFile': 'data\\beats\\metricbeat\\metricbeat-7.8.1-windows-x86_64',
+            'logicString': '',
+            'name': 'Upload MetricBeat',
+            'remoteFile': 'c$\\Program Files\\metricbeat',
+            'varDefinitions': {}
+        },
+        '5f30387d103e7fc3cc0c8d04': {
+            'className': 'remoteCommand',
+            '_id': '5f30387d103e7fc3cc0c8d04',
+            'command': 'powershell.exe -nop -file "c:\\program files\\metricbeat\\install-service-metricbeat.ps1"',
+            'comment': '',
+            'logicString': '',
+            'name': 'Install MetricBeat',
+            'varDefinitions': {}
+        },
+        '5f3038a8103e7fc3cc0c8d0b': {
+            'className': 'remoteCommand',
+            '_id': '5f3038a8103e7fc3cc0c8d0b',
+            'command': 'net start metricbeat',
+            'comment': '',
+            'logicString': '',
+            'name': 'Start MetricBeat Service',
+            'varDefinitions': {}
+        }
+    },
+    'trigger': {
+        '5f2ff821103e7fc3cc0c8c50': {
+            'className': 'testFireTrigger',
+            '_id': '5f2ff821103e7fc3cc0c8c50',
+            'attemptCount': 0,
+            'autoRestartCount': 0,
+            'clusterSet': 0,
+            'comment': '',
+            'concurrency': 0,
+            'events': [{
+                'host': '192.168.8.113'
+            }],
+            'lastCheck': 1596996238.9299128,
+            'logicString': '',
+            'maxDuration': 0,
+            'name': 'Deploy to ws2019test',
+            'schedule': '',
+            'varDefinitions': {}
+        }
+    },
+    'ui': {
+        '20b45f3a-8436-4dec-85f7-df07dea01b75': {
+            'x': -1046,
+            'y': -405,
+            'title': 'Deploy to ws2019test'
+        },
+        '84a1dab7-418d-4562-b51f-558e4a11b270': {
+            'x': -1046,
+            'y': -102,
+            'title': 'Connect to windows "host"'
+        },
+        '4026faea-40bf-4987-a45a-0f5c9243ba20': {
+            'x': -545,
+            'y': -166,
+            'title': 'Upload WinLogBeat'
+        },
+        'cfa9f0a2-a540-48fc-be35-988c6c5b8348': {
+            'x': -313,
+            'y': -166,
+            'title': 'Install winlogBeat'
+        },
+        'f2cdb22f-6b93-4f40-8945-af41fe7e6f83': {
+            'x': -47,
+            'y': -165,
+            'title': 'Start WinLogBeat Service'
+        },
+        'e0726f73-5eeb-4092-8dc9-dbf316cd1207': {
+            'x': -779,
+            'y': -167,
+            'title': 'Stop WinLogBeat Service'
+        },
+        '9d95d787-c5ad-44ec-9156-454eacfc65a9': {
+            'x': -775,
+            'y': -31,
+            'title': 'Stop MetricBeat Service'
+        },
+        'e9d19eec-dc9e-4bbe-b86a-8bb3ae9d5dd9': {
+            'x': -542,
+            'y': -31,
+            'title': 'Upload MetricBeat'
+        },
+        '3714e68c-739f-4b9a-8202-15be6b6b50df': {
+            'x': -313,
+            'y': -31,
+            'title': 'Install MetricBeat'
+        },
+        'd4be04ab-16c0-4919-bde6-d08449058d74': {
+            'x': -47,
+            'y': -31,
+            'title': 'Start MetricBeat Service'
+        }
+    }
+}
