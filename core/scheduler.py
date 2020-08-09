@@ -140,7 +140,9 @@ if api.webServer:
                             events = [data["events"]]
                             # Ensure we run even if no event data was sent
                             if events == [""]:
-                                events = ["1"]
+                                class_.update(["startCheck","workerID"])
+                                class_.checkHandler()
+                                return { "result" : True }, 200
                         if type(events) != list:
                             events = [events]
                         class_.workerID = workers.workers.new("trigger:{0}".format(triggerID),class_.notify,(events,),maxDuration=maxDuration)
