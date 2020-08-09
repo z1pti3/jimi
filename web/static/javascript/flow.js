@@ -312,9 +312,9 @@ function updateFlowchart() {
 }
 
 function triggerFlowObject() {
-	nodes = network.getSelectedNodes()
-	if (nodes.length == 1) {
-		node = nodeObjects[nodes[0]]["flowID"]
+	node = network.getSelectedNodes()
+	if (node.length == 1) {
+		node = nodeObjects[node[0]]["flowID"]
 		createTriggerObjectPanel(node);
 	}
 }
