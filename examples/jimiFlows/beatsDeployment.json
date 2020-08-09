@@ -11,10 +11,10 @@
     }, {
         'flowID': '84a1dab7-418d-4562-b51f-558e4a11b270',
         'next': [{
-            'flowID': 'e0726f73-5eeb-4092-8dc9-dbf316cd1207',
+            'flowID': '9d95d787-c5ad-44ec-9156-454eacfc65a9',
             'logic': True
         }, {
-            'flowID': '9d95d787-c5ad-44ec-9156-454eacfc65a9',
+            'flowID': 'e93bfc39-4014-436c-8506-d6cbb7972024',
             'logic': True
         }],
         'type': 'action',
@@ -80,6 +80,46 @@
         'type': 'action',
         'next': [],
         'actionID': '5f3038a8103e7fc3cc0c8d0b'
+    }, {
+        'flowID': 'ecc61cbd-3b19-4da5-b86e-74ca69bfbc47',
+        'type': 'action',
+        'next': [{
+            'flowID': 'b5e55346-aea1-4350-9ed1-f2c4197e78a9',
+            'logic': True
+        }],
+        'actionID': '5f30418e103e7fc3cc0c8d41'
+    }, {
+        'flowID': 'b5e55346-aea1-4350-9ed1-f2c4197e78a9',
+        'type': 'action',
+        'next': [{
+            'flowID': 'da837838-c260-4071-a891-50923f025037',
+            'logic': True
+        }],
+        'actionID': '5f3041b9103e7fc3cc0c8d48'
+    }, {
+        'flowID': 'da837838-c260-4071-a891-50923f025037',
+        'type': 'action',
+        'next': [{
+            'flowID': '31a46a8e-4e1e-46c5-885a-2438dfd0fbdb',
+            'logic': True
+        }],
+        'actionID': '5f3041eb103e7fc3cc0c8d51'
+    }, {
+        'flowID': '31a46a8e-4e1e-46c5-885a-2438dfd0fbdb',
+        'type': 'action',
+        'next': [{
+            'flowID': 'e0726f73-5eeb-4092-8dc9-dbf316cd1207',
+            'logic': True
+        }],
+        'actionID': '5f304861103e7fc3cc0c8d82'
+    }, {
+        'flowID': 'e93bfc39-4014-436c-8506-d6cbb7972024',
+        'type': 'action',
+        'next': [{
+            'flowID': 'ecc61cbd-3b19-4da5-b86e-74ca69bfbc47',
+            'logic': True
+        }],
+        'actionID': '5f304dc4103e7fc3cc0c8dcc'
     }],
     'action': {
         '5f2ff864103e7fc3cc0c8c58': {
@@ -166,6 +206,53 @@
             'logicString': '',
             'name': 'Start MetricBeat Service',
             'varDefinitions': {}
+        },
+        '5f30418e103e7fc3cc0c8d41': {
+            'className': 'remoteUpload',
+            '_id': '5f30418e103e7fc3cc0c8d41',
+            'comment': '',
+            'localFile': 'data\\sysmon\\sysmon64.exe',
+            'logicString': '',
+            'name': 'Upload sysmon64.exe',
+            'remoteFile': 'c$\\Windows\\sysmon64.exe',
+            'varDefinitions': {}
+        },
+        '5f3041b9103e7fc3cc0c8d48': {
+            'className': 'remoteUpload',
+            '_id': '5f3041b9103e7fc3cc0c8d48',
+            'comment': '',
+            'localFile': 'data\\sysmon\\sysmonConfig.xml',
+            'logicString': '',
+            'name': 'Upload sysmonConfig.xml',
+            'remoteFile': 'c$\\windows\\sysmonConfig.xml',
+            'varDefinitions': {}
+        },
+        '5f3041eb103e7fc3cc0c8d51': {
+            'className': 'remoteCommand',
+            '_id': '5f3041eb103e7fc3cc0c8d51',
+            'command': 'c:\\windows\\sysmon64.exe -accepteula -i c:\\windows\\sysmonConfig.xml',
+            'comment': '',
+            'logicString': '',
+            'name': 'Install sysmon64',
+            'varDefinitions': {}
+        },
+        '5f304861103e7fc3cc0c8d82': {
+            'className': 'remoteCommand',
+            '_id': '5f304861103e7fc3cc0c8d82',
+            'command': 'net start sysmon64',
+            'comment': '',
+            'logicString': '',
+            'name': 'Start sysmon64 Service',
+            'varDefinitions': {}
+        },
+        '5f304dc4103e7fc3cc0c8dcc': {
+            'className': 'remoteCommand',
+            '_id': '5f304dc4103e7fc3cc0c8dcc',
+            'command': 'net stop sysmon64',
+            'comment': '',
+            'logicString': '',
+            'name': 'Stop sysmon64',
+            'varDefinitions': {}
         }
     },
     'trigger': {
@@ -180,7 +267,7 @@
             'events': [{
                 'host': '192.168.8.113'
             }],
-            'lastCheck': 1596996238.9299128,
+            'lastCheck': 1597001399.6851509,
             'logicString': '',
             'maxDuration': 0,
             'name': 'Deploy to ws2019test',
@@ -190,8 +277,8 @@
     },
     'ui': {
         '20b45f3a-8436-4dec-85f7-df07dea01b75': {
-            'x': -1046,
-            'y': -405,
+            'x': -1044,
+            'y': -364,
             'title': 'Deploy to ws2019test'
         },
         '84a1dab7-418d-4562-b51f-558e4a11b270': {
@@ -200,44 +287,69 @@
             'title': 'Connect to windows "host"'
         },
         '4026faea-40bf-4987-a45a-0f5c9243ba20': {
-            'x': -545,
-            'y': -166,
+            'x': 390,
+            'y': 107,
             'title': 'Upload WinLogBeat'
         },
         'cfa9f0a2-a540-48fc-be35-988c6c5b8348': {
-            'x': -313,
-            'y': -166,
+            'x': 622,
+            'y': 107,
             'title': 'Install winlogBeat'
         },
         'f2cdb22f-6b93-4f40-8945-af41fe7e6f83': {
-            'x': -47,
-            'y': -165,
+            'x': 888,
+            'y': 108,
             'title': 'Start WinLogBeat Service'
         },
         'e0726f73-5eeb-4092-8dc9-dbf316cd1207': {
-            'x': -779,
-            'y': -167,
+            'x': 146,
+            'y': 107,
             'title': 'Stop WinLogBeat Service'
         },
         '9d95d787-c5ad-44ec-9156-454eacfc65a9': {
-            'x': -775,
-            'y': -31,
+            'x': -782,
+            'y': -172,
             'title': 'Stop MetricBeat Service'
         },
         'e9d19eec-dc9e-4bbe-b86a-8bb3ae9d5dd9': {
-            'x': -542,
-            'y': -31,
+            'x': -549,
+            'y': -172,
             'title': 'Upload MetricBeat'
         },
         '3714e68c-739f-4b9a-8202-15be6b6b50df': {
-            'x': -313,
-            'y': -31,
+            'x': -320,
+            'y': -172,
             'title': 'Install MetricBeat'
         },
         'd4be04ab-16c0-4919-bde6-d08449058d74': {
-            'x': -47,
-            'y': -31,
+            'x': -54,
+            'y': -172,
             'title': 'Start MetricBeat Service'
+        },
+        'ecc61cbd-3b19-4da5-b86e-74ca69bfbc47': {
+            'x': -597,
+            'y': -43,
+            'title': 'Upload sysmon64.exe'
+        },
+        'b5e55346-aea1-4350-9ed1-f2c4197e78a9': {
+            'x': -364,
+            'y': -44,
+            'title': 'Upload sysmonConfig.xml'
+        },
+        'da837838-c260-4071-a891-50923f025037': {
+            'x': -109,
+            'y': -44,
+            'title': 'Install sysmon64'
+        },
+        '31a46a8e-4e1e-46c5-885a-2438dfd0fbdb': {
+            'x': 145,
+            'y': -45,
+            'title': 'Start sysmon64 Service'
+        },
+        'e93bfc39-4014-436c-8506-d6cbb7972024': {
+            'x': -805,
+            'y': -45,
+            'title': 'Stop sysmon64'
         }
     }
 }
