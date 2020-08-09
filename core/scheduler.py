@@ -3,6 +3,7 @@ import random
 import re
 import json
 import datetime
+import traceback
 
 import croniter
 
@@ -141,7 +142,12 @@ if api.webServer:
                             # Ensure we run even if no event data was sent
                             if events == [""]:
                                 class_.update(["startCheck","workerID"])
-                                class_.checkHandler()
+                                try:
+                                    class_.checkHandler()
+                                except Exception as e:
+                                    logging.debug("Forced trigger crashed, triggerID={0}, triggerName={1}".format(class_._id,class_.name))
+                                    systemTrigger.failedTrigger(None,"forcedTriggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)),triggerID=class_._id,triggerName=class_.name)
+                                    return { "result" : False }, 400
                                 return { "result" : True }, 200
                         if type(events) != list:
                             events = [events]
