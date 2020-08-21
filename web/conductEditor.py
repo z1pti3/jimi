@@ -285,7 +285,7 @@ def conductImportData(conductID):
                     for member in members:
                         if member in importData["action"][flow["actionID"]]:
                             if member not in blacklist:
-                                setattr(existingTrigger,member,importData["action"][flow["actionID"]][member])
+                                setattr(existingAction,member,importData["action"][flow["actionID"]][member])
                                 updateList.append(member)
                     existingAction.update(updateList,sessionData=api.g.sessionData)
                     flow["actionID"] = existingAction._id
