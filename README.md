@@ -11,6 +11,7 @@ A python based automation and scheduler platform, but can be used to acheive a n
 * Carry out remote tasks on servers
 * Monitor for threshold and raise alarms
 * Use playbooks to run once and/or on version changes
+* Software deployment
 
 Highly customizable using loops, if logic, variables, in-build functions and easily expandable using plugins
 
