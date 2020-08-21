@@ -120,8 +120,34 @@ function loadPropertiesPanel(flowID,panel) {
 					$cell.append($('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: JSON.stringify(result["formData"][objectItem]["textbox"]), key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
 					$cell.find('#properties_items'+result["formData"][objectItem]["schemaitem"]).val(JSON.stringify(result["formData"][objectItem]["textbox"]));
 					$row.append($cell);
-					
 				}
+				if (result["formData"][objectItem]["type"] == "script") {
+					var $cell = $('<td width="100px">');
+					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], class: "theme-panelLabel"}).text(result["formData"][objectItem]["schemaitem"]+":"));
+					$row.append($cell);
+					var $cell = $('<td>');
+					var $scriptTextArea = $('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: result["formData"][objectItem]["textbox"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"});
+					$scriptTextArea.keydown(function(e) {
+						if(e.keyCode === 9) { // tab was pressed
+							// get caret position/selection
+							var start = this.selectionStart;
+								end = this.selectionEnd;
+							var $this = $(this);
+							// set textarea value to: text before caret + tab + text after caret
+							$this.val($this.val().substring(0, start)
+										+ "\t"
+										+ $this.val().substring(end));
+							// put caret at right position again
+							this.selectionStart = this.selectionEnd = start + 1;
+							// prevent the focus lose
+							return false;
+						}
+					});
+					$cell.append($scriptTextArea);
+					$cell.find('#properties_items'+result["formData"][objectItem]["schemaitem"]).val(result["formData"][objectItem]["textbox"]);
+					$row.append($cell);
+				}
+
 				$table.append($row);
 			}
 			panel.find(".propertiesPanel-body").append($table);
