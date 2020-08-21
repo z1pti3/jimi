@@ -13,6 +13,8 @@
     `Y888888 '               8 8888           ,8'         `         `8.`8888.            8 8888
 ```
 
+![Screenshot](examples/screenshots/flow1.png)
+
 Simple yet powerfull
 
 A python based automation and scheduler platform, but can be used to acheive a number of things:
@@ -45,10 +47,17 @@ Checkout the wiki for more details and installation instructions
 
 https://github.com/z1pti3/jimi/wiki/Installation
 
-OLD Screenshot - now in dark mode!
+Multi-User:
+![Screenshot](examples/screenshots/login.png)
 
-![Screenshot](examples/screenshots/screenshot1.png)
+Powerfull UI Editor:
+![Screenshot](examples/screenshots/flowEditor.png)
 
-![Screenshot](examples/screenshots/screenshot2.png)
+Administrator Object Editor:
+![Screenshot](examples/screenshots/modelEditor.png)
 
-![Screenshot](examples/screenshots/screenshot3.png)
+Audit Logs:
+![Screenshot](examples/screenshots/auditLog.png)
+
+Dont like UI Run Flows as Code:
+![Screenshot](examples/screenshots/codify.png)
