@@ -1,17 +1,4 @@
-
-
-```
-           8 8888            8 8888                    ,8.       ,8.                     8 8888
-           8 8888            8 8888                   ,888.     ,888.                    8 8888
-           8 8888            8 8888                  .`8888.   .`8888.                   8 8888
-           8 8888            8 8888                 ,8.`8888. ,8.`8888.                  8 8888
-           8 8888            8 8888                ,8'8.`8888,8^8.`8888.                 8 8888
-           8 8888            8 8888               ,8' `8.`8888' `8.`8888.                8 8888
-88.        8 8888            8 8888              ,8'   `8.`88'   `8.`8888.               8 8888
-`88.       8 888'            8 8888             ,8'     `8.`'     `8.`8888.              8 8888
-  `88o.    8 88'             8 8888            ,8'       `8        `8.`8888.             8 8888
-    `Y888888 '               8 8888           ,8'         `         `8.`8888.            8 8888
-```
+![Screenshot](examples/screenshots/flow1.png)
 
 Simple yet powerfull
 
@@ -24,6 +11,7 @@ A python based automation and scheduler platform, but can be used to acheive a n
 * Carry out remote tasks on servers
 * Monitor for threshold and raise alarms
 * Use playbooks to run once and/or on version changes
+* Software deployment
 
 Highly customizable using loops, if logic, variables, in-build functions and easily expandable using plugins
 
@@ -45,10 +33,17 @@ Checkout the wiki for more details and installation instructions
 
 https://github.com/z1pti3/jimi/wiki/Installation
 
-OLD Screenshot - now in dark mode!
+Multi-User:
+![Screenshot](examples/screenshots/login.png)
 
-![Screenshot](examples/screenshots/screenshot1.png)
+Powerfull UI Editor:
+![Screenshot](examples/screenshots/flowEditor.png)
 
-![Screenshot](examples/screenshots/screenshot2.png)
+Administrator Object Editor:
+![Screenshot](examples/screenshots/modelEditor.png)
 
-![Screenshot](examples/screenshots/screenshot3.png)
+Audit Logs:
+![Screenshot](examples/screenshots/auditLog.png)
+
+Dont like UI Run Flows as Code:
+![Screenshot](examples/screenshots/codify.png)
