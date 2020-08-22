@@ -289,6 +289,24 @@ def workerPage():
 				return render_template("workers.html", content=content)
 	return {}, 403
 
+@api.webServer.route("/clearCache/", methods=["GET"])
+def clearCachePage():
+	content = ""
+	if api.g.sessionData:
+		if "admin" in api.g.sessionData:
+			if api.g.sessionData["admin"]:
+				apiEndpoint = "admin/clearCache/"
+				servers = cluster.getAll()
+				for host, port in servers:
+					content += "{0}:{1}".format(host,port)
+					url="http://{0}:{1}".format(host,port)
+					response = helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken,overrideURL=url)
+					if response.status_code != 200:
+						content += "<br>Failure<br>"
+					else:
+						content += "<br>Success<br>"
+	return render_template("workers.html", content=content)
+
 @api.webServer.route("/cluster/", methods=["GET"])
 def clusterPage():
 	if api.g.sessionData:

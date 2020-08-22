@@ -5,7 +5,7 @@ if __name__ == "__main__":
     api.createServer("jimi_core")
 
     # Core imports
-    from core import workers, plugin, scheduler, cluster, settings, screen, model, helpers, auth, flow
+    from core import workers, plugin, scheduler, cluster, settings, screen, model, helpers, auth, flow, admin
 
     api.startServer(debug=True, use_reloader=False, host=apiSettings["bind"], port=apiSettings["port"], threaded=True)
 
