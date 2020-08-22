@@ -108,6 +108,11 @@ def conductFlowchartPoll(conductID):
                                 if flow["actionID"] == a._id:
                                     name = a.name
                                     modeClass = cache.globalCache.get("modelCache",a.classID,model.getClassObject,sessionData=api.g.sessionData)[0]
+
+                                    #if modeClass.name == "action":
+                                    #    node["shape"] = "diamond"
+                                    #    node["size"] = 35
+
                                     color = None
                                     if a.enabled:
                                         color = "#0a0a0a"
