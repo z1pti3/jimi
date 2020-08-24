@@ -26,12 +26,13 @@ def failedTrigger(workerID,failureType,msg="",triggerID=None,triggerName=None):
                             worker_.startCheck = 0
                             worker_.update(["startCheck"])
                             events = [{"type" : "systemEvent", "eventType" : failureType, "workerID" : workerID, "triggerID" : worker_._id, "triggerName" : worker_.name, "msg" : msg, "autoRecover" : True }]
+                            audit._audit().add("Error",failureType,{"type" : "systemEvent", "eventType" : failureType, "workerID" : workerID, "triggerID" : worker_._id, "triggerName" : worker_.name, "msg" : msg, "autoRecover" : True })
                         else:
-                            events = [{"type" : "systemEvent", "eventType" : failureType, "workerID" : workerID, "triggerID" : worker_._id, "triggerName" : worker_.name, "msg" : msg}]
-                        audit._audit().add("Error",failureType,{"type" : "systemEvent", "eventType" : failureType, "workerID" : workerID, "triggerID" : worker_._id, "triggerName" : worker_.name, "msg" : msg, "autoRecover" : False })
+                            events = [{"type" : "systemEvent", "eventType" : failureType, "workerID" : workerID, "triggerID" : worker_._id, "triggerName" : worker_.name, "msg" : msg, "autoRecover" : False}]
+                            audit._audit().add("Error",failureType,{"type" : "systemEvent", "eventType" : failureType, "workerID" : workerID, "triggerID" : worker_._id, "triggerName" : worker_.name, "msg" : msg, "autoRecover" : False })
                         # Notify conducts that have a trigger failure trigger within flow
                         workers.workers.new("trigger:{0}".format(trigger_["_id"]),triggerClass.notify,(events,))
         else:
-            events = [{"type" : "systemEvent", "eventType" : failureType, "workerID" : workerID, "triggerID" : triggerID, "triggerName" : triggerName, "msg" : msg}]
+            events = [{"type" : "systemEvent", "eventType" : failureType, "workerID" : workerID, "triggerID" : triggerID, "triggerName" : triggerName, "msg" : msg, "autoRecover" : False}]
             audit._audit().add("Error",failureType,{"type" : "systemEvent", "eventType" : failureType, "workerID" : workerID, "triggerID" : triggerID, "triggerName" : triggerName, "msg" : msg, "autoRecover" : False })
             
