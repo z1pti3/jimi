@@ -2,6 +2,10 @@ import time
 
 from core import db
 
+class triggerConcurrentCrash(Exception):
+    """Trigger concurrent crash"""
+    pass
+
 # Model Class
 class _trigger(db._document):
     name = str()
@@ -85,7 +89,7 @@ class _trigger(db._document):
                         maxDuration = self.maxDuration
                     eventHandler = None
                     if self.concurrency > 0:
-                        eventHandler = workers.workerHandler(self.concurrency)
+                        eventHandler = workers.workerHandler(self.concurrency,cleanUp=False)
 
                     for index, event in enumerate(events):
                         first = True if index == 0 else False
@@ -111,6 +115,10 @@ class _trigger(db._document):
                     # Waiting for all jobs to complete
                     if eventHandler:
                         eventHandler.waitAll()
+                        if eventHandler.failureCount() > 0:
+                            logging.debug("Trigger concurrent crash: triggerID={0}".format(self._id),5)
+                            audit._audit().add("trigger","conccurent crash",{ "triggerID" : self._id, "name" : self.name })
+                            raise triggerConcurrentCrash
                         eventHandler.stop()
             else:
                 logging.debug("Error trigger has no conducts, automaticly disabling: triggerID={0}".format(self._id))
