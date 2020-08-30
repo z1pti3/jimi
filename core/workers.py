@@ -161,7 +161,8 @@ class workerHandler:
                 for worker in cleanupWorkers:
                     if worker.running != False:
                         worker.thread.kill()
-                    del self.workerList[self.workerList.index(worker)]
+                    if self.cleanUp:
+                        del self.workerList[self.workerList.index(worker)]
                 tick = now
 
             # CPU saver
@@ -251,6 +252,8 @@ class workerHandler:
 
     def stop(self):
         self.stopped = True
+        # Waiting 1 second for handler to finsh gracefuly otherwise force by systemExit
+        time.sleep(1)
         for runningJob in self.getActive():
             self.kill(runningJob.id)
         for job in self.getAll():
