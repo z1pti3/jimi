@@ -74,7 +74,20 @@ class _trigger(db._document):
         setattr(self,attr,value)
         return True
 
-    def notify(self,events=[],var=None,callingTriggerID=None):
+    def notify(self,events=[],var=None,callingTriggerID=None,dataTemplate=None):
+        if dataTemplate:
+            events = dataTemplate["events"]
+            del dataTemplate["events"]
+            print(events)
+            print(dataTemplate)
+        else:
+            dataTemplate = { "triggerID" : self._id, "triggerName" : self.name, "var" : {}, "plugin" : {} }
+            if var:
+                dataTemplate["var"] = var
+            if callingTriggerID != None:
+                if callingTriggerID != "":
+                    dataTemplate["callingTriggerID"] = callingTriggerID
+
         if events:
             notifyStartTime = time.time()
             if self.log:
@@ -95,15 +108,14 @@ class _trigger(db._document):
                         first = True if index == 0 else False
                         last = True if index == len(events) - 1 else False
 
-                        if var == None:
-                            data = { "event" : event, "eventStats" : { "first" : first, "current" : index, "total" : len(events), "last" : last }, "triggerID" : self._id, "var" : {}, "plugin" : {} }
-                        else: 
-                            data = { "event" : event, "eventStats" : { "first" : first, "current" : index, "total" : len(events), "last" : last }, "triggerID" : self._id, "var" : var, "plugin" : {} }
-                        if callingTriggerID != None:
-                            if callingTriggerID != "":
-                                data["callingTriggerID"] = callingTriggerID
+                        data = { "event" : event, "eventStats" : { "first" : first, "current" : index, "total" : len(events), "last" : last }, "conductID" : loadedConduct._id, "conductName" : loadedConduct.name }
+                        for key, value in dataTemplate.items():
+                            data[key] = value
+                        
+
                         if self.log and (first or last):
-                            audit._audit().add("trigger","notify call",{ "triggerID" : self._id, "conductID" : loadedConduct._id, "name" : self.name, "data" : data })
+                            audit._audit().add("trigger","notify call",{ "triggerID" : self._id, "conductID" : loadedConduct._id, "conductName" : loadedConduct.name, "name" : self.name, "data" : data })
+
                         if eventHandler:
                             eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerHandler,(self._id,data),maxDuration=maxDuration)
                         else:
@@ -141,13 +153,13 @@ class _trigger(db._document):
         self.checkHeader()
         self.check()
         self.checkFooter(startTime)
-        self.notify(self.result["events"])
+        self.notify(dataTemplate=self.result)
 
     def checkHeader(self):
         if self.log:
             audit._audit().add("trigger","check start",{ "triggerID" : self._id, "name" : self.name })
         logging.debug("Trigger check started, triggerID='{0}'".format(self._id),7)
-        self.result = { "events" : [], "triggerID" : self._id, "var" : {}, "data" : {} }
+        self.result = { "events" : [], "triggerID" : self._id, "var" : {}, "plugin" : {} }
 
     # Main function called to determine if a trigger is triggered
     def check(self):
