@@ -351,6 +351,16 @@ function deleteFlowObject() {
 	deleteSelected()
 }
 
+function exportConduct() {
+	var conductID = GetURLParameter("conductID")
+	window.open("/conductEditor/"+conductID+"/export/", "_blank");
+}
+
+function importConduct() {
+	var conductID = GetURLParameter("conductID")
+	window.open("/conductEditor/"+conductID+"/import/", "_blank");
+}
+
 function copyFlowObject() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {

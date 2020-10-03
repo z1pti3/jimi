@@ -136,6 +136,18 @@ html, body {
 .newModelObject {
 	position: absolute;
 	z-index: 1;
+	right: 150px;
+}
+
+.exportConductButton {
+	position: absolute;
+	z-index: 1;
+	right: 75px;
+}
+
+.importConductButton {
+	position: absolute;
+	z-index: 1;
 	right: 1px;
 }
 
