@@ -78,8 +78,6 @@ class _trigger(db._document):
         if dataTemplate:
             events = dataTemplate["events"]
             del dataTemplate["events"]
-            print(events)
-            print(dataTemplate)
         else:
             dataTemplate = { "triggerID" : self._id, "triggerName" : self.name, "var" : {}, "plugin" : {} }
             if var:
