@@ -29,7 +29,8 @@
 	<body class="theme-panelContainer">
 		<div class="container-fluid theme-panelContainer">
       Import Data:<br>
-      <textarea id="importData" class="inputFullWidth theme-panelTextArea" style="height: 150px;"></textarea></br>
+	  <textarea id="importData" class="inputFullWidth theme-panelTextArea" style="height: 150px;"></textarea></br>
+	  <input class="theme-panelCheckbox" type="checkbox" id="duplicateObjects"> Duplicate all objects</input></br>
       <button id="import" class="btn btn-primary theme-panelButton">Import</button></br>
 		</div>
 	</body>
@@ -41,7 +42,7 @@
 
 <script>
   $("#import").click(function () {
-    $.ajax({type:"POST", data:JSON.stringify({ importData: $('#importData').val(), CSRF: CSRF }), contentType:"application/json", success: function(result) {
+    $.ajax({type:"POST", data:JSON.stringify({ importData: $('#importData').val(), duplicateObjects: $("#duplicateObjects").is(":checked"), CSRF: CSRF }), contentType:"application/json", success: function(result) {
         alert("Imported!");
       } 
     });

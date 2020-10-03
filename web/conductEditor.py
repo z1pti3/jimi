@@ -235,7 +235,7 @@ def conductImportData(conductID):
         return { }, 404
     access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,conductObj.acl,"write")
     if access:
-        data = json.loads(api.request.data)
+        data = json.loads(api.request.data) 
         importData = helpers.typeCast(data["importData"])
         conductObj.flow = importData["flow"]
         for flow in importData["flow"]:
@@ -252,7 +252,9 @@ def conductImportData(conductID):
                 classObj = _class = model._model().getAsClass(api.g.sessionData,query={ "name" : importData["trigger"][flow["triggerID"]]["className"] })
                 if len(classObj) > 0:
                     classObj = classObj[0]
-                    existingTrigger = trigger._trigger().getAsClass(api.g.sessionData,query={ "name" : importData["trigger"][flow["triggerID"]]["name"], "classID" : classObj._id })
+                    existingTrigger = []
+                    if data["duplicateObjects"] == False:
+                        existingTrigger = trigger._trigger().getAsClass(api.g.sessionData,query={ "name" : importData["trigger"][flow["triggerID"]]["name"], "classID" : classObj._id })
                     if len(existingTrigger) > 0:
                         existingTrigger = existingTrigger[0]
                     else:
@@ -267,7 +269,10 @@ def conductImportData(conductID):
                     for member in members:
                         if member in importData["trigger"][flow["triggerID"]]:
                             if member not in blacklist:
-                                setattr(existingTrigger,member,importData["trigger"][flow["triggerID"]][member])
+                                if data["duplicateObjects"] and member == "name":
+                                    setattr(existingTrigger,member,"{0}-{1}".format(importData["trigger"][flow["triggerID"]][member],existingTrigger._id))
+                                else:
+                                    setattr(existingTrigger,member,importData["trigger"][flow["triggerID"]][member])
                                 updateList.append(member)
                     existingTrigger.update(updateList,sessionData=api.g.sessionData)
                     flow["triggerID"] = existingTrigger._id
@@ -275,7 +280,9 @@ def conductImportData(conductID):
                 classObj = _class = model._model().getAsClass(api.g.sessionData,query={ "name" : importData["action"][flow["actionID"]]["className"] })
                 if len(classObj) > 0:
                     classObj = classObj[0]
-                    existingAction = action._action().getAsClass(api.g.sessionData,query={ "name" : importData["action"][flow["actionID"]]["name"], "classID" : classObj._id })
+                    existingAction = []
+                    if data["duplicateObjects"] == False:
+                        existingAction = action._action().getAsClass(api.g.sessionData,query={ "name" : importData["action"][flow["actionID"]]["name"], "classID" : classObj._id })
                     if len(existingAction) > 0:
                         existingAction = existingAction[0]
                     else:
@@ -290,7 +297,10 @@ def conductImportData(conductID):
                     for member in members:
                         if member in importData["action"][flow["actionID"]]:
                             if member not in blacklist:
-                                setattr(existingAction,member,importData["action"][flow["actionID"]][member])
+                                if data["duplicateObjects"] and member == "name":
+                                    setattr(existingAction,member,"{0}-{1}".format(importData["action"][flow["actionID"]][member],existingAction._id))
+                                else:
+                                    setattr(existingAction,member,importData["action"][flow["actionID"]][member])
                                 updateList.append(member)
                     existingAction.update(updateList,sessionData=api.g.sessionData)
                     flow["actionID"] = existingAction._id
