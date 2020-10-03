@@ -134,30 +134,15 @@
 
         $.ajax({url:"/api/1.0/models/"+modelName+"/extra/", type:"GET", success: function ( result ) {
                 for ( resultItem in result["results"] ) {
-                    if ((modelName == "action") || (modelName == "trigger"))
+                    if (!result["results"][resultItem].hasOwnProperty("name"))
                     {
-                        if (!result["results"][resultItem].hasOwnProperty("name"))
-                        {
-                            result["results"][resultItem]["name"] = "";
-                        }
-                        if (!result["results"][resultItem].hasOwnProperty("lastUpdateTime"))
-                        {
-                            result["results"][resultItem]["lastUpdateTime"] = "";
-                        }
-                        table.row.add({ "_id" : result["results"][resultItem]["_id"], "name" : result["results"][resultItem]["name"], "options" : result["results"][resultItem]["_id"], "whereUsed" : JSON.stringify(result["results"][resultItem]["whereUsed"]), "lastUpdateTime" : result["results"][resultItem]["lastUpdateTime"] });
+                        result["results"][resultItem]["name"] = "";
                     }
-                    else
+                    if (!result["results"][resultItem].hasOwnProperty("lastUpdateTime"))
                     {
-                        if (!result["results"][resultItem].hasOwnProperty("name"))
-                        {
-                            result["results"][resultItem]["name"] = "";
-                        }
-                        if (!result["results"][resultItem].hasOwnProperty("lastUpdateTime"))
-                        {
-                            result["results"][resultItem]["lastUpdateTime"] = "";
-                        }
-                        table.row.add({ "_id" : result["results"][resultItem]["_id"], "name" : result["results"][resultItem]["name"], "options" : result["results"][resultItem]["_id"], "whereUsed" : "", "lastUpdateTime" : result["results"][resultItem]["lastUpdateTime"] });
+                        result["results"][resultItem]["lastUpdateTime"] = "";
                     }
+                    table.row.add({ "_id" : result["results"][resultItem]["_id"], "name" : result["results"][resultItem]["name"], "options" : result["results"][resultItem]["_id"], "whereUsed" : JSON.stringify(result["results"][resultItem]["whereUsed"]), "lastUpdateTime" : result["results"][resultItem]["lastUpdateTime"] });
                 }
                 table.draw();
             }
