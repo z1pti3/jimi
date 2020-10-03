@@ -25,7 +25,7 @@ class _conduct(db._document):
     # Override parent new to include name var, parent class new run after class var update
     def new(self,name=""):
         # Confirming that the given name is not alrady in use
-        results = self.query(query={"name" : self.name})["results"]
+        results = self.query(query={"name" : name})["results"]
         if len(results) == 0:
             # Run parent class function ( alternative to end decorator for the new function within a class )
             result = super(_conduct, self).new()
