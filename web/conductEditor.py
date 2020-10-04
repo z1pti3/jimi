@@ -394,6 +394,11 @@ def getConductFlowCodify(conductID):
         if flow["type"] == "trigger":
             flowCode+=generateFlow(flow,flowDict,triggers,actions)
     
+    data = request.args
+    if data:
+        if "json" in data:
+            return { "result" : flowCode, "CSRF" : api.g.sessionData["CSRF"] }, 200
+
     return render_template("blank.html",content=flowCode, CSRF=api.g.sessionData["CSRF"]), 200
 
 @api.webServer.route("/conductEditor/<conductID>/flow/<flowID>/", methods=["DELETE"])

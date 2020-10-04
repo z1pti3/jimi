@@ -5,10 +5,13 @@ var triggerObjectHTML = `
 		<label id="title"></label>
 	</div>
 	<div class="propertiesPanel-body theme-panelBody">
-		<textarea id="triggerValue" type="text" class="inputFullWidth theme-panelTextArea"></textarea>
+		Events:<br>
+		<textarea id="triggerValue" type="text" class="inputFullWidth theme-panelTextArea"></textarea><br>
+		Output:<br>
+		<textarea id="triggerOutput" readonly="true" type="text" class="inputFullWidth inputExpand theme-panelTextArea"></textarea>
 	</div>
 	<div class="propertiesPanel-footer theme-panelFooter">
-		<button id="trigger" class="btn btn-primary theme-panelButton">Trigger</button>
+		<button id="trigger" class="btn btn-primary theme-panelButton">Test</button>
 		<button id="close" class="btn btn-primary theme-panelButton">Close</button>
 	</div>
 </div>
@@ -18,10 +21,14 @@ var triggerExistingPanels = {}
 
 function triggerTriggerObjectPanel(panel,flowID) {
 	var conductID = GetURLParameter("conductID")
-	$.ajax({url: "/conduct/"+conductID+"/forceTrigger/"+flowID+"/", type:"POST", data:JSON.stringify({events: panel.find("#triggerValue").val(), CSRF: CSRF }), contentType:"application/json", success: function ( result ) {
-			dropdownAlert(panel,"success","Triggered",1000);
-		}
-	});
+	$('#triggerOutput').text("");
+	$.ajax({url: "/conductEditor/"+conductID+"/codify/?json=True", type:"GET", contentType:"application/json", success: function(result) {
+			$.ajax({url: "/codify/", type:"POST", data:JSON.stringify({ events: $('#triggerValue').val(), code: result["result"], CSRF: CSRF }), contentType:"application/json", success: function(result) {
+					$('#triggerOutput').text(result["result"]);
+				} 
+			});
+    	} 
+    });
 }
 
 function createTriggerObjectPanel(flowID) {

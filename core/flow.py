@@ -36,7 +36,7 @@ def flowLogicEval(data,logicVar):
 
 def getObjectFromCode(codeFunction):
     functionName = codeFunction.split("(")[0]
-    args = regexCommor.split(codeFunction[(len(functionName)+1):-1])
+    args = regexCommor.split(codeFunction.strip()[(len(functionName)+1):-1])
     classObject = model._model().getAsClass(query={ "name" : functionName })[0].classObject()
     classObject.enabled = True
     members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
@@ -109,12 +109,15 @@ def executeCodifyFlow(eventsData,codifyData):
             while True:
                 if currentObject:
                     if currentFlow["type"] == "trigger":
-                        outputText+="\nTRIGGER"
-                        outputText+="\n{0}".format(currentFlow["codeLine"])
-                        outputText+="\npre-data={0}".format(data)
+                        if currentObject.name == "":
+                            outputText+="\nTRIGGER"
+                        else:
+                            outputText+="\n(t) - {0}:".format(currentObject.name)
+                        outputText+="\n\t[function]\n\t\t{0}".format(currentFlow["codeLine"])
+                        outputText+="\n\t[pre-data]\n\t\t{0}".format(data)
                         objectContinue = True
                         if currentObject.logicString.startswith("if"):
-                            outputText+="\nChecking logic {0} = ".format(currentObject.logicString)
+                            outputText+="\n\t[logic]\n\t\t{0}\n\t\t".format(currentObject.logicString)
                             if logic.ifEval(currentObject.logicString,{ "data" : data}):
                                 outputText+="Pass"
                                 if currentObject.varDefinitions:
@@ -133,27 +136,30 @@ def executeCodifyFlow(eventsData,codifyData):
                                     passData = copy.deepcopy(data)
                                 processQueue.append({ "flow" : nextFlow, "data" : passData })
                                 passData = None
-                        outputText+="\npost-data={0}".format(data)
+                        outputText+="\n\t[post-data] - \n\t\t{0}".format(data)
                         outputText+="\n"
                     elif currentFlow["type"] == "action":
-                        outputText+="\nACTION"
+                        if currentObject.name == "":
+                            outputText+="\nACTION"
+                        else:
+                            outputText+="\n(a) - {0}:".format(currentObject.name)
                         if currentObject.enabled:
-                            outputText+="\n{0}".format(currentFlow["codeLine"])
-                            outputText+="\npre-data={0}".format(data)
+                            outputText+="\n\t[function]\n\t\t{0}".format(currentFlow["codeLine"])
+                            outputText+="\n\t[pre-data]\n\t\t{0}".format(data)
                             logic = currentFlow["logic"][5:]
-                            outputText+="\nChecking Flow logic {0} = ".format(logic)
+                            outputText+="\n\t[link logic]\n\t\t{0}\n\t\t".format(logic)
                             if flowLogicEval(data,helpers.typeCast(logic)):
                                 outputText+="Pass"
                                 debugText, data["action"] = currentObject.runHandler(data,persistentData,debug=True)
                                 if debugText != "":
-                                    outputText+="\n{0}".format(debugText)
+                                    outputText+="{0}".format(debugText)
                                 passData = data
                                 for nextFlow in currentFlow["next"]:
                                     if not passData:
                                         passData = copy.deepcopy(data)
                                     processQueue.append({ "flow" : nextFlow, "data" : passData })
                                     passData = None
-                                outputText+="\npost-data={0}".format(data)
+                                outputText+="\n\t[post-data]\n\t\t{0}".format(data)
                             else:
                                 outputText+="Failed"
                             outputText+="\n"

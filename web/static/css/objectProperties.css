@@ -44,6 +44,10 @@
 	width: 100%;
 }
 
+.inputExpand {
+	height: 80%;
+}
+
 .existingPropertiesPanel-SearchResults {
 	display: flex;
 	flex-wrap: wrap;

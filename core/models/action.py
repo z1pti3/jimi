@@ -61,10 +61,9 @@ class _action(db._document):
         actionResult = { "result" : False, "rc" : -1, "actionID" : self._id, "data" : {} }
         self.runHeader(data,persistentData,actionResult)
         if self.logicString.startswith("if"):
-            debugText="Checking logic ({0}) = ".format(self.logicString)
             if debug:
                 logicDebugText, logicResult = logic.ifEval(self.logicString, { "data" : data }, debug=True)
-                debugText+="{0}\nLogic Debug ({1})".format(logicResult,logicDebugText)
+                debugText+="\n\t[action logic]\n\t\t{0}\n\t\t{1}\n\t\t({2})".format(self.logicString,logicResult,logicDebugText)
             else:
                 logicResult = logic.ifEval(self.logicString, { "data" : data })
             if logicResult:
