@@ -390,6 +390,8 @@ def getConductFlowCodify(conductID):
                                 value="\"{0}\"".format(value)
                             elif type(value) == list:
                                 value="\"{0}\"".format(value)
+                            else:
+                                 value="{0}".format(value)
 
                             if type(value) in typeList:
                                 params.append("{0}={1}".format(member,value))
