@@ -7,7 +7,7 @@ import string
 from core import db
 
 # Current System Version
-systemVersion = 1.4
+systemVersion = 1.45
 
 # Initialize 
 dbCollectionName = "system"
@@ -179,11 +179,15 @@ def systemInstall():
 	if len(actions) < 1:
 		model.registerModel("forEach","_forEach","_action","system.models.forEach")
 
+	# Adding model for plugins
+	model.registerModel("plugins","_plugin","_document","core.plugin")
+
 	from core import auth
 
 	# Adding models for user and groups
 	model.registerModel("user","_user","_document","core.auth")
 	model.registerModel("group","_group","_document","core.auth")
+
 
 	# Adding default admin group
 	adminGroup = auth._group().getAsClass(query={ "name" : "admin" })
@@ -223,7 +227,19 @@ def systemUpgrade(currentVersion):
 				pluginClass = pluginClass[0]
 				pluginClass.upgradeHandler()
 		return True
+
+	if currentVersion < 1.45:
+		pluginModel = model._model().query(query={"className" : "_plugin"})["results"]
+		if len(pluginModel) == 1:
+			pluginModel = pluginModel[0]
+			for pluginClass in plugin._plugin().getAsClass():
+				pluginClass.classID = pluginModel["_id"]
+				pluginClass.acl = { "ids":[ { "accessID":"0","delete": True,"read": True,"write": True } ] }
+				pluginClass.update(["classID","acl"])
 	
+	if currentVersion < 1.42:
+		model.registerModel("plugins","_plugin","_document","core.plugin")
+
 	if currentVersion < 1.01:
 		# forEach
 		from core.models import action
