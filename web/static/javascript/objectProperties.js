@@ -100,43 +100,40 @@ function loadPropertiesPanel(flowID,panel) {
 				
 				if (result["formData"][objectItem]["type"] == "input") {
 					var $cell = $('<td width="100px">');
-					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], class: "theme-panelLabel"}).text(result["formData"][objectItem]["schemaitem"]+":"));
+					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], title : tooltip, class: "theme-panelLabel"}).text(result["formData"][objectItem]["schemaitem"]+":").tooltip());
 					$row.append($cell);
 					var $cell = $('<td>');
-					$cell.append($('<input class="inputFullWidth theme-panelTextbox">').attr({type: 'text', value: result["formData"][objectItem]["textbox"], current: result["formData"][objectItem]["textbox"], title : tooltip, id: "properties_items"+result["formData"][objectItem]["schemaitem"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
-					$cell.find('#properties_items'+result["formData"][objectItem]["schemaitem"]).tooltip();
+					$cell.append($('<input class="inputFullWidth theme-panelTextbox">').attr({type: 'text', value: result["formData"][objectItem]["textbox"], current: result["formData"][objectItem]["textbox"], id: "properties_items"+result["formData"][objectItem]["schemaitem"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
 					$row.append($cell);
 				}
 				if (result["formData"][objectItem]["type"] == "checkbox") {
 					var $cell = $('<td width="100px">');
-					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], class: "theme-panelLabel"}).text(result["formData"][objectItem]["schemaitem"]+":"));
+					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], title : tooltip, class: "theme-panelLabel"}).text(result["formData"][objectItem]["schemaitem"]+":").tooltip());
 					$row.append($cell);
 					var $cell = $('<td>');
 					if (result["formData"][objectItem]["checked"] == true) {
-						$cell.append($('<input class="theme-panelCheckbox">').attr({type: 'checkbox', id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: true, title : tooltip, checked: true, key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
+						$cell.append($('<input class="theme-panelCheckbox">').attr({type: 'checkbox', id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: true, checked: true, key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
 					}
 					else {
-						$cell.append($('<input class="theme-panelCheckbox">').attr({type: 'checkbox', id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: false, title : tooltip, key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
+						$cell.append($('<input class="theme-panelCheckbox">').attr({type: 'checkbox', id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: false, key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
 					}
-					$cell.find('#properties_items'+result["formData"][objectItem]["schemaitem"]).tooltip();
 					$row.append($cell);
 				}
 				if (result["formData"][objectItem]["type"] == "json-input") {
 					var $cell = $('<td width="100px">');
-					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], class: "theme-panelLabel"}).text(result["formData"][objectItem]["schemaitem"]+":"));
+					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], title : tooltip, class: "theme-panelLabel"}).text(result["formData"][objectItem]["schemaitem"]+":").tooltip());
 					$row.append($cell);
 					var $cell = $('<td>');
-					$cell.append($('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: JSON.stringify(result["formData"][objectItem]["textbox"]), title : tooltip, key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
+					$cell.append($('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: JSON.stringify(result["formData"][objectItem]["textbox"]), key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
 					$cell.find('#properties_items'+result["formData"][objectItem]["schemaitem"]).val(JSON.stringify(result["formData"][objectItem]["textbox"]));
-					$cell.find('#properties_items'+result["formData"][objectItem]["schemaitem"]).tooltip();
 					$row.append($cell);
 				}
 				if (result["formData"][objectItem]["type"] == "script") {
 					var $cell = $('<td width="100px">');
-					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], class: "theme-panelLabel"}).text(result["formData"][objectItem]["schemaitem"]+":"));
+					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], title : tooltip, class: "theme-panelLabel"}).text(result["formData"][objectItem]["schemaitem"]+":").tooltip());
 					$row.append($cell);
 					var $cell = $('<td>');
-					var $scriptTextArea = $('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: result["formData"][objectItem]["textbox"], title : tooltip, key: result["formData"][objectItem]["schemaitem"], tag: "formItem"});
+					var $scriptTextArea = $('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: result["formData"][objectItem]["textbox"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"});
 					$scriptTextArea.keydown(function(e) {
 						if(e.keyCode === 9) { // tab was pressed
 							// get caret position/selection
@@ -155,7 +152,6 @@ function loadPropertiesPanel(flowID,panel) {
 					});
 					$cell.append($scriptTextArea);
 					$cell.find('#properties_items'+result["formData"][objectItem]["schemaitem"]).val(result["formData"][objectItem]["textbox"]);
-					$cell.find('#properties_items'+result["formData"][objectItem]["schemaitem"]).tooltip();
 					$row.append($cell);
 				}
 
