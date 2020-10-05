@@ -30,7 +30,10 @@
 		<div class="container-fluid theme-panelContainer">
       Import Data:<br>
 	  <textarea id="importData" class="inputFullWidth theme-panelTextArea" style="height: 150px;"></textarea></br>
-	  <input class="theme-panelCheckbox" type="checkbox" id="duplicateObjects"> Duplicate all objects</input></br>
+	  <input class="theme-panelCheckbox" type="checkbox" id="appendObjects">Append</input></br>
+	  <input class="theme-panelCheckbox" type="checkbox" id="duplicateObjects">Duplicate all objects</input></br>
+	  Offset UI x by: <input class="theme-panelTextbox" value="0" id="offsetX"></input></br>
+	  Offset UI y by: <input class="theme-panelTextbox" value="0" id="offsetY"></input></br>
       <button id="import" class="btn btn-primary theme-panelButton">Import</button></br>
 		</div>
 	</body>
@@ -42,7 +45,7 @@
 
 <script>
   $("#import").click(function () {
-    $.ajax({type:"POST", data:JSON.stringify({ importData: $('#importData').val(), duplicateObjects: $("#duplicateObjects").is(":checked"), CSRF: CSRF }), contentType:"application/json", success: function(result) {
+    $.ajax({type:"POST", data:JSON.stringify({ importData: $('#importData').val(), duplicateObjects: $("#duplicateObjects").is(":checked"), appendObjects: $("#appendObjects").is(":checked"), offsetX : $('#offsetX').val(), offsetY : $('#offsetY').val(), CSRF: CSRF }), contentType:"application/json", success: function(result) {
         alert("Imported!");
       } 
     });
