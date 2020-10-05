@@ -66,7 +66,7 @@ def getObjectFromCode(codeFunction):
     return classObject()
 
 def executeCodifyFlow(eventsData,codifyData,eventCount=0):
-    outputText = ""
+    outputText = "Started At - {0}".format(time.time())
 
     # Build Flow
     flows = []
@@ -181,6 +181,7 @@ def executeCodifyFlow(eventsData,codifyData,eventCount=0):
                     if loops > cpuSaver["loopL"]:
                         loops = 0
                         time.sleep(cpuSaver["loopT"])
+    outputText += "\nEnded At - {0}".format(time.time())
     return outputText
 
 ######### --------- API --------- #########
