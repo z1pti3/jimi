@@ -40,12 +40,20 @@
 	background-color: #F0F0F0;
 }
 
+.propertiesPanelFullWidth {
+	width: 100%;
+}
+
+.propertiesPanelFullHeight {
+	height: 100%;
+}
+
 .inputFullWidth {
 	width: 100%;
 }
 
 .inputExpand {
-	height: 80%;
+	height: 100%;
 }
 
 .existingPropertiesPanel-SearchResults {

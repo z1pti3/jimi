@@ -1,10 +1,12 @@
 var triggerObjectHTML = `
-<div class="propertiesPanel theme-panelContainer">
+<div class="propertiesPanel propertiesPanelFullWidth propertiesPanelFullHeight theme-panelContainer">
 	<div class="propertiesPanel-header theme-panelHeader">
 		<span class="glyphicon glyphicon glyphicon-remove" id="close"></span>
 		<label id="title"></label>
 	</div>
 	<div class="propertiesPanel-body theme-panelBody">
+		Number of Events to Process:<br>
+		<input type='text' value="0" class="inputFullWidth theme-panelTextbox" id='triggerEventCount'><br>
 		Events:<br>
 		<textarea id="triggerValue" type="text" class="inputFullWidth theme-panelTextArea"></textarea><br>
 		Output:<br>
@@ -22,8 +24,8 @@ var triggerExistingPanels = {}
 function triggerTriggerObjectPanel(panel,flowID) {
 	var conductID = GetURLParameter("conductID")
 	$('#triggerOutput').text("");
-	$.ajax({url: "/conductEditor/"+conductID+"/codify/?json=True", type:"GET", contentType:"application/json", success: function(result) {
-			$.ajax({url: "/codify/", type:"POST", data:JSON.stringify({ events: $('#triggerValue').val(), code: result["result"], CSRF: CSRF }), contentType:"application/json", success: function(result) {
+	$.ajax({url: "/conductEditor/"+conductID+"/codify/?json=True&flowID="+flowID, type:"GET", contentType:"application/json", success: function(result) {
+			$.ajax({url: "/codify/", type:"POST", data:JSON.stringify({ events: $('#triggerValue').val(), eventCount: $('#triggerEventCount').val(), code: result["result"], CSRF: CSRF }), contentType:"application/json", success: function(result) {
 					$('#triggerOutput').text(result["result"]);
 				} 
 			});
@@ -39,10 +41,8 @@ function createTriggerObjectPanel(flowID) {
 		if (!triggerExistingPanels.hasOwnProperty(flowID)) {
 			triggerExistingPanels[flowID] = flowID;
 			var e = window.event;
-			var posX = e.clientX;
-			var posY = e.clientY;
 			var panel = $(triggerObjectHTML);
-			panel.css({top : posY, left : posX - 250});
+			panel.css({top : "10%", left : "10%"});
 			panel.draggable();
 			panel.resizable({
 				grid: 20

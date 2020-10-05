@@ -65,7 +65,7 @@ def getObjectFromCode(codeFunction):
                     break
     return classObject()
 
-def executeCodifyFlow(eventsData,codifyData):
+def executeCodifyFlow(eventsData,codifyData,eventCount=0):
     outputText = ""
 
     # Build Flow
@@ -96,7 +96,12 @@ def executeCodifyFlow(eventsData,codifyData):
     # Execute Flow
     for flow in flows:
         persistentData = {}
+        eventCounter = 0
         for event in flow["events"]:
+            if eventCount != 0 and eventCounter >= eventCount:
+                break
+            elif eventCount != 0:
+                eventCounter+=1
             outputText+="\n-----------------------------------------------------------------------------------"
             outputText+="\nNow Running For Event - {0}".format(event)
             outputText+="\n-----------------------------------------------------------------------------------"
@@ -184,5 +189,5 @@ if api.webServer:
         @api.webServer.route(api.base+"codify/run/", methods=["POST"])
         def codifyRun():
             data = json.loads(api.request.data)
-            result = executeCodifyFlow(data["events"],data["code"])
+            result = executeCodifyFlow(data["events"],data["code"],eventCount=int(data["eventCount"]))
             return { "result" : result }, 200

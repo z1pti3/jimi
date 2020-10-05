@@ -235,7 +235,7 @@ def conductImportData(conductID):
         return { }, 404
     access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,conductObj.acl,"write")
     if access:
-        data = json.loads(api.request.data) 
+        data = json.loads(api.request.data)
         importData = helpers.typeCast(data["importData"])
         conductObj.flow = importData["flow"]
         for flow in importData["flow"]:
@@ -371,6 +371,7 @@ def getConductFlowCodify(conductID):
                     currentFlow = None
         return flowCode
 
+    data = request.args
 
     conductObj = conduct._conduct().getAsClass(api.g.sessionData,id=conductID)
     if len(conductObj) == 1:
@@ -389,12 +390,21 @@ def getConductFlowCodify(conductID):
     actions = action._action().getAsClass(api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
     triggers = trigger._trigger().getAsClass(api.g.sessionData,query={ "_id" : { "$in" : flowTriggers } })
 
+    flowID = None
+    if data:
+        if "flowID" in data:
+            flowID = data["flowID"]
     flowCode = ""
     for flow in flows:
         if flow["type"] == "trigger":
-            flowCode+=generateFlow(flow,flowDict,triggers,actions)
+            if flowID:
+                if flowID == flow["flowID"]:
+                    flowCode+=generateFlow(flow,flowDict,triggers,actions)
+                    break
+            else:
+                flowCode+="\n{0}".format(generateFlow(flow,flowDict,triggers,actions))
     
-    data = request.args
+    flowCode=flowCode.strip()
     if data:
         if "json" in data:
             return { "result" : flowCode, "CSRF" : api.g.sessionData["CSRF"] }, 200
