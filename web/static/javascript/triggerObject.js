@@ -5,6 +5,7 @@ var triggerObjectHTML = `
 		<label id="title"></label>
 	</div>
 	<div class="propertiesPanel-body theme-panelBody">
+		For this action to complete the flow must execute and return within 60 seconds<br><br>
 		Number of Events to Process:<br>
 		<input type='text' value="0" class="inputFullWidth theme-panelTextbox" id='triggerEventCount'><br>
 		Events:<br>

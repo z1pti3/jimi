@@ -86,7 +86,7 @@ class _document():
     # Updated DB with latest values
     @mongoConnectionWrapper
     def update(self,fields,sessionData=None):
-        if self._id != "":
+        if self._id != "" or self._id != "000000000001010000000000":
             if sessionData:
                 for field in fields:
                     if not fieldACLAccess(sessionData,self.acl,field,"write"):

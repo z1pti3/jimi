@@ -2,7 +2,6 @@ import re
 import json
 import copy
 import time
-import uuid
 
 from core import api, helpers, model, settings
 from system import variable, logic
@@ -40,8 +39,10 @@ def getObjectFromCode(codeFunction):
     args = regexCommor.split(codeFunction.strip()[(len(functionName)+1):-1])
     classObject = model._model().getAsClass(query={ "name" : functionName })[0].classObject()
     classObject.enabled = True
+    classObject._id= "000000000001010000000000"
     members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
     for arg in args:
+        arg=arg.replace("\\n","\n").replace("\\t","\t")
         key = arg.split("=")[0]
         if len(arg[len(key)+1:]) > 2:
             if ((arg[len(key)+1:][1] == "[" or arg[len(key)+1:][1] == "{") and (arg[len(key)+1:][-2] == "]" or arg[len(key)+1:][-2] == "}")):
@@ -107,7 +108,7 @@ def executeCodifyFlow(eventsData,codifyData,eventCount=0):
             outputText+="\nNow Running For Event - {0}".format(event)
             outputText+="\n-----------------------------------------------------------------------------------"
             outputText+="\n"
-            data = { "event" : event, "eventStats" : { "first" : False, "current" : 0, "total" : 0, "last" : False }, "conductID" : "codify", "flowID" : "codify", "var" : {}, "plugin" : {}, "triggerID" : str(uuid.uuid4()) }
+            data = { "event" : event, "eventStats" : { "first" : False, "current" : 0, "total" : 0, "last" : False }, "conductID" : "codify", "flowID" : "codify", "var" : {}, "plugin" : {}, "triggerID" : "000000000001010000000000" }
             processQueue = []
             currentFlow = flow
             currentObject = currentFlow["classObject"]

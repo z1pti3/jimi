@@ -385,7 +385,7 @@ def getConductFlowCodify(conductID):
                         if member not in blacklist:
                             value = getattr(obj,member)
                             if type(value) == str:
-                                value="\"{0}\"".format(value.replace("\"","\\\""))
+                                value="\"{0}\"".format(value)
                             elif type(value) == dict:
                                 value="\"{0}\"".format(value)
                             elif type(value) == list:
@@ -394,6 +394,7 @@ def getConductFlowCodify(conductID):
                                  value="{0}".format(value)
 
                             if type(value) in typeList:
+                                value = value.replace("\n","\\n").replace("\t","\\t")
                                 params.append("{0}={1}".format(member,value))
                     
                     if currentFlow["type"] == "action":
