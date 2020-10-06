@@ -2,6 +2,7 @@ import re
 import json
 import copy
 import time
+import uuid
 
 from core import api, helpers, model, settings
 from system import variable, logic
@@ -106,7 +107,7 @@ def executeCodifyFlow(eventsData,codifyData,eventCount=0):
             outputText+="\nNow Running For Event - {0}".format(event)
             outputText+="\n-----------------------------------------------------------------------------------"
             outputText+="\n"
-            data = { "event" : event, "eventStats" : { "first" : False, "current" : 0, "total" : 0, "last" : False }, "conductID" : "codify", "flowID" : "codify", "var" : {}, "plugin" : {}, "triggerID" : "testTrigger" }
+            data = { "event" : event, "eventStats" : { "first" : False, "current" : 0, "total" : 0, "last" : False }, "conductID" : "codify", "flowID" : "codify", "var" : {}, "plugin" : {}, "triggerID" : str(uuid.uuid4()) }
             processQueue = []
             currentFlow = flow
             currentObject = currentFlow["classObject"]
