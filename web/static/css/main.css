@@ -118,7 +118,7 @@
 .header-panel {
     background: #111111;
     opacity:0.9;
-    height: 60px;
+    height: 80px;
     text-align: left;
     width: 100%;
     min-height: 0;
@@ -165,11 +165,11 @@
 }
 
 .content-frame {
-  border: none;
+  border: 0;
   height: 100%;
+  left: 0;
+  top: 0;
   width: 100%;
-  padding: 0;
-  margin: 0;
 }
 
 .disable-animations * {
@@ -188,4 +188,24 @@
   -moz-animation: none !important;
   -o-animation: none !important;
   animation: none !important;
+}
+
+.tab-body {
+  height:200px;
+  width:200px;
+  padding:15px;
+  border:1px solid black;
+  max-height:200px;
+}
+
+.tab-content>.tab-pane {
+display: block;
+width: 0;
+height: 0;
+}
+
+.tab-content>.active {
+display: block;
+width: initial;
+height: initial;
 }

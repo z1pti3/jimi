@@ -16,7 +16,7 @@
             <div id="sidebar-wrapper">
                 <ul class="sidebar-nav">
                     <div class="btn-group btn-block sidebar_item">
-                        <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/status/">Status</a>
+                        <a class="btn btn-primary btn-block theme-navButton" role="button" onclick="navigate('Status','/status/')">Status</a>
                         <div class="btn-group btn-block sidebar_item">
                             <button type="button" class="btn btn-primary btn-block dropdown-toggle theme-navButton" data-toggle="dropdown">
                                 Conducts Editor
@@ -28,7 +28,7 @@
                                 </div>
                             </ul>
                         </div>
-                        <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/codify/">Codify (BETA)</a>
+                        <a class="btn btn-primary btn-block theme-navButton" role="button" onclick="navigate('Codify (BETA)','/codify/')">Codify (BETA)</a>
                         {% if admin %}
                             <div class="btn-group btn-block sidebar_item">
                                 <button type="button" class="btn btn-primary btn-block dropdown-toggle theme-navButton" data-toggle="dropdown">
@@ -37,9 +37,9 @@
                                 </button>
                                 <ul class="dropdown-menu sidebar-dropdown-menu " role="menu">
                                     <div class="search-dropdown-menu-results">
-                                        <li><a target="content-frame" href="/model/">Object Editor</a></li>
-                                        <li><a target="content-frame" href="/admin/backups/">Backups</a></li>
-                                        <li><a target="content-frame" href="/clearCache/">Clear Cache (ALL)</a></li>
+                                        <li><a onclick="navigate('Object Editor','/model/')">Object Editor</a></li>
+                                        <li><a onclick="navigate('Backups','/admin/backups/')">Backups</a></li>
+                                        <li><a onclick="navigate('Clear Cache (ALL)','/clearCache/')">Clear Cache (ALL)</a></li>
                                     </div>
                                 </ul>
                             </div>
@@ -55,11 +55,11 @@
                             </ul>
                         </div>
                         {% if admin %}
-                            <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/cluster/">Cluster</a>
-                            <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/audit/">Audit</a>
-                            <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/workers/">Workers</a>
+                            <a class="btn btn-primary btn-block theme-navButton" role="button" onclick="navigate('Cluster','/cluster/')">Cluster</a>
+                            <a class="btn btn-primary btn-block theme-navButton" role="button" onclick="navigate('Audit','/audit/')">Audit</a>
+                            <a class="btn btn-primary btn-block theme-navButton" role="button" onclick="navigate('Workers','/workers/')">Workers</a>
                         {% endif %}
-                        <a class="btn btn-primary btn-block theme-navButton" role="button" target="content-frame" href="/myAccount/">My Account</a>
+                        <a class="btn btn-primary btn-block theme-navButton" role="button" onclick="navigate('My Account','/myAccount/')">My Account</a>
                         <a class="btn btn-primary btn-block theme-navButton" role="button" href="/api/1.0/auth/logout/">Logout</a>
                     </div>
                 </ul>
@@ -76,10 +76,15 @@
             <div id="page-content-wrapper">
                 <div class="container-fluid header-panel">
                     V{{ version }}, CodeName=Roll Over
+                    <ul class="nav nav-tabs" id="tabs">
+                        <li style="display: none"><a data-toggle="tab" href="#default1"></a></li>
+                    </ul>
                 </div>
                 <div class="container-fluid page-background">
                     <div class="container-fluid page-content theme-content">
-                        <iframe onload="this.contentWindow.focus()" name="content-frame" class="content-frame" focus()></iframe>
+                        <div class="tab-content">
+                            <div id="default1" class="tab-pane" style="display: none"> </div>
+                        </div>
                     </div>
                 </div>
                 <div class="container-fluid footer-panel">
@@ -89,6 +94,34 @@
         </div>
     </body>
 </html>
+
+<script>
+    function generateUUID() {
+        var d = new Date().getTime();
+        var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = (d + Math.random()*16)%16 | 0;
+            d = Math.floor(d/16);
+            return (c=='x' ? r : (r&0x3|0x8)).toString(16);
+        });
+        return uuid;
+    };
+
+    function navigate(name,url) { 
+        var id = generateUUID();
+		$('ul#tabs li:last-child').before('<li id="li' + id + '"><a href="#tab' + id + '" role="tab" data-toggle="tab">' + name + ' <button type="button" class="btn theme-navButton" onclick="removeTab(\'' + id + '\');">X</button></a>');
+        $('div.tab-content div:last-child').after('<div class="tab-pane" id="tab' + id + '"><iframe name="content-frame" class="content-frame" focus() src="'+ url +'"></iframe></div>');
+        $('ul#tabs > li').removeClass("active");
+        $('div.tab-content div').removeClass("active");
+        $('ul#tabs > li#li' + id).addClass("active");
+        $('div.tab-content div#tab' + id).addClass("active");
+    }
+    
+
+    function removeTab(liElem) { 
+        $('ul#tabs > li#li' + liElem).remove();
+        $('div.tab-content div#tab' + liElem).remove();
+    }
+</script>
 
 <script>
     $(document).ready(function(){
@@ -128,8 +161,9 @@
                 $("#conducts-list").empty()
                 for ( conduct in result["result"] ) {
                     listItem = $("<li>")
-                    address = $("<a target='content-frame'>")
-                    address.attr({"href":"/conductEditor/?conductID="+result["result"][conduct]["_id"]})
+                    address = $("<a>")
+                    address.attr({"onclick": "navigate('"+result["result"][conduct]["name"]+"','/conductEditor/?conductID="+result["result"][conduct]["_id"]+"')"});
+                    address.attr({"href":"#"})
                     address.text(result["result"][conduct]["name"])
                     listItem.append(address)
                     $("#conducts-list").append(listItem)
@@ -144,8 +178,9 @@
                 $("#plugins-list").empty()
                 for ( plugin in result["result"] ) {
                     listItem = $("<li>")
-                    address = $("<a target='content-frame'>")
-                    address.attr({"href":"/plugin/"+result["result"][plugin]})
+                    address = $("<a>")
+                    address.attr({"onclick": "navigate('"+result["result"][plugin]+"','/plugin/"+result["result"][plugin]+"')"});
+                    address.attr({"href":"#"})
                     address.text(result["result"][plugin])
                     listItem.append(address)
                     $("#plugins-list").append(listItem)
