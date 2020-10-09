@@ -269,7 +269,7 @@ if api.webServer:
                                 return {}, 403
                         api.g.type = "cookie"
                         # Confirm CSRF
-                        if api.request.method in ["POST","PUI","DELETE"]:
+                        if api.request.method in ["POST","PUT","DELETE"]:
                             try:
                                 try:
                                     data = json.loads(api.request.data)
