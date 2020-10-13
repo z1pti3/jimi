@@ -11,7 +11,7 @@ class _forEach(action._action):
 	mergeEvents = bool()
 
 	def __init__(self):
-		cache.globalCache.newCache("actionConductCache")
+		cache.globalCache.newCache("actionFlowConductCache")
 
 	def run(self,data,persistentData,actionResult):
 		if "skip" in data:
@@ -30,7 +30,7 @@ class _forEach(action._action):
 			else:
 				skip = self.skip
 			if type(events) is list:
-				foundConducts = cache.globalCache.get("actionConductCache",self._id,getConductObject)
+				foundConducts = cache.globalCache.get("actionFlowConductCache",self._id,getConductObject,data["flowID"])
 				cpuSaver = helpers.cpuSaver()
 				for event in events:
 					if self.mergeEvents:
@@ -47,5 +47,5 @@ class _forEach(action._action):
 		actionResult["rc"] = 200
 		return actionResult
 
-def getConductObject(actionID,sessionData):
-	return conduct._conduct().getAsClass(query={"flow.actionID" : actionID, "enabled" : True})
+def getConductObject(actionID,sessionData,flowID):
+	return conduct._conduct().getAsClass(query={"flow.actionID" : actionID, "enabled" : True, "flow.flowID" : flowID})
