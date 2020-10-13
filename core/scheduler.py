@@ -47,6 +47,8 @@ schedulerSettings = settings.config["scheduler"]
 # Get next run time from schedule string
 def getSchedule(scheduleString):
     if scheduleString:
+        if scheduleString == "now":
+            return int(time.time())
         if re.search("^([-\d]*)([mhs]{1})$",scheduleString):
             m = re.match("^([-\d]*)([mhs]{1})$",scheduleString)
             mesure=m.groups()[1]
