@@ -105,7 +105,7 @@ class _conduct(db._document):
     def flowHandler(self,currentFlow,flowDict,data,persistentData=None):
         processQueue = []
         if not persistentData:
-            persistentData = {}
+            persistentData = { "system" : { "conduct" : self } }
         data["conductID"] = self._id
         cpuSaver = helpers.cpuSaver()
         while True:
