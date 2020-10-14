@@ -113,15 +113,44 @@ function loadPropertiesPanel(flowID,panel) {
 					$row.append($cell);
 				}
 				if (result["formData"][objectItem]["type"] == "json-input") {
+					// output
+					// <label for="delay" class="theme-panelLabel">delay:</label>					
 					var $cell = $('<td width="100px">');
 					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], class: "theme-panelLabel"}).text(result["formData"][objectItem]["schemaitem"]+":"));
 					$row.append($cell);
+
+					// output
+					// <textarea class="inputFullWidth theme-panelTextArea" type="text" id="properties_itemsdelay" current="0" key="delay" tag="formItem"></textarea>
 					var $cell = $('<td>');
 					$cell.append($('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: JSON.stringify(result["formData"][objectItem]["textbox"]), key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
 					$cell.find('#properties_items'+result["formData"][objectItem]["schemaitem"]).val(JSON.stringify(result["formData"][objectItem]["textbox"]));
 					$row.append($cell);
 					
 				}
+				if (result["formData"][objectItem]["type"] == "dropdown") {
+
+					
+					var $cell = $('<td width="100px">');
+					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], class: "theme-panelLabel"}).text(result["formData"][objectItem]["schemaitem"]+":"));
+					$row.append($cell);
+
+
+					var $cell = $('<td>');
+					var $select =$('<select class="inputFullWidth theme-panelTextArea">').attr({type: 'dropdown', id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: JSON.stringify(result["formData"][objectItem]["dropdown"]), key: result["formData"][objectItem]["schemaitem"], tag: "formItem"});
+
+					for (var i=0; i< result["formData"][objectItem]["dropdown"].length;i++){
+						$select.append($('<option>').attr({value: result["formData"][objectItem]["dropdown"][i]}).text(result["formData"][objectItem]["dropdown"][i]));
+					}
+
+					// console.log(result["formData"][objectItem]["dropdown"].length)
+					// console.log(result["formData"][objectItem]["dropdown"])
+					
+
+
+					$cell.append($select);
+					$row.append($cell);
+					
+				}		
 				$table.append($row);
 			}
 			panel.find(".propertiesPanel-body").append($table);

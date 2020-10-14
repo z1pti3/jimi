@@ -40,16 +40,6 @@ class _properties():
     def generate(self,classObject):
         def validate(text):
             return text
-        def label(text):
-            return "<label>{0}</label>".format(text)
-        def textbox(id,value):
-            return "<input class='inputFullWidth' type='text' id='properties_items{0}' value='{1}'></input>".format(id,value)
-        def textarea(id,value):
-            return "<input class='inputFullWidth' type='textarea' id='properties_items{0}' value='{1}'></input>".format(id,value)
-        def checkbox(id,value):
-            if value:
-                return "<input type='checkbox' id='properties_items{0}' checked='{1}'></input>".format(id,value)
-            return "<input type='checkbox' id='properties_items{0}'></input>".format(id)
 
         formData = []
         blacklist = ["classID","workerID"]
