@@ -38,9 +38,6 @@ class _modelUI(db._document):
 # Class used to generate UI properties form
 class _properties():
     def generate(self,classObject):
-        def validate(text):
-            return text
-
         formData = []
         blacklist = ["classID","workerID"]
         members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]

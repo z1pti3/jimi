@@ -66,8 +66,8 @@ class _document():
 
     # Get objects and return list as loaded class
     @mongoConnectionWrapper
-    def getAsClass(self,sessionData=None,fields=[],query=None,id=None,limit=None,sort=None):
-        jsonResults = self.query(sessionData,fields,query,id,limit,sort)["results"]
+    def getAsClass(self,sessionData=None,fields=[],query=None,id=None,limit=None,sort=None,skip=None):
+        jsonResults = self.query(sessionData,fields,query,id,limit,sort,skip)["results"]
         return self.loadAsClass(jsonResults,sessionData=sessionData)
     
     # Get a object by ID
@@ -86,7 +86,7 @@ class _document():
     # Updated DB with latest values
     @mongoConnectionWrapper
     def update(self,fields,sessionData=None):
-        if self._id != "":
+        if self._id != "" or self._id != "000000000001010000000000":
             if sessionData:
                 for field in fields:
                     if not fieldACLAccess(sessionData,self.acl,field,"write"):
@@ -160,7 +160,7 @@ class _document():
 
     # API Calls - NONE LOADED CLASS OBJECTS <<<<<<<<<<<<<<<<<<<<<< Will need to support decorators to enable plugin support?
     @mongoConnectionWrapper
-    def query(self,sessionData=None,fields=[],query=None,id=None,limit=None,sort=None):
+    def query(self,sessionData=None,fields=[],query=None,id=None,limit=None,sort=None,skip=None):
         result = { "results" : [] }
         if fields is None:
             fields = []
@@ -204,7 +204,9 @@ class _document():
             docs.sort(sort)
         # Apply limits
         if limit:
-            docs.limit(limit)                        
+            docs.limit(limit)    
+        if skip:
+            docs.skip(skip)                    
         # Sort returned data into json API response
         for doc in docs:
             resultItem = {}
@@ -328,8 +330,24 @@ class _document():
             result[key] = type(value).__name__
         return result
 
-class _bulk():
+class _paged():
+    def __init__(self,dbClass,sessionData=None,fields=[],query=None,sort=None,maxResults=100):
+        self.dbClass = dbClass
+        self.sessionData = sessionData
+        self.fields = fields
+        self.query = query
+        self.sort = sort
+        self.maxResults = maxResults
+        self.total = self.count()
+        self.pages = int(self.total / self.maxResults)
+        
+    def count(self):
+        return self.dbClass().count(sessionData=self.sessionData,query=self.query)
 
+    def get(self,page=0):
+        return self.dbClass().getAsClass(sessionData=self.sessionData,query=self.query,sort=self.sort,limit=self.maxResults,skip=int(page*self.maxResults))
+
+class _bulk():
     def __init__(self,processPollTime=10):
         self.bulkOperatons = {}
         self.processPollTime = processPollTime

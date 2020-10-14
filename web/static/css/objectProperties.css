@@ -5,8 +5,7 @@
 	border-width: 1.2px;
 	position: absolute !important;
 	background-color: #FAFAFA;
-	min-width: 500px;
-	min-height: 30%;
+	min-width: 600px;
 	max-height: 80%;
 	max-width: 80%;
 	width: 300px;
@@ -41,8 +40,20 @@
 	background-color: #F0F0F0;
 }
 
+.propertiesPanelFullWidth {
+	width: 100%;
+}
+
+.propertiesPanelFullHeight {
+	height: 100%;
+}
+
 .inputFullWidth {
 	width: 100%;
+}
+
+.inputExpand {
+	height: 100%;
 }
 
 .existingPropertiesPanel-SearchResults {

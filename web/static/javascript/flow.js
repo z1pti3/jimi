@@ -48,7 +48,7 @@ function deleteSelected() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
 		node = nodeObjects[selectedNodes[0]]["flowID"]
-		if (confirm("Are you sure you want to delete object '"+ node +"'?")) {
+		if (confirm("Are you sure you want to remove object '"+ node +"' from this conduct?")) {
 			var conductID = GetURLParameter("conductID");
 			$.ajax({url:"/conductEditor/"+conductID+"/flow/"+node+"/", data: JSON.stringify({ CSRF: CSRF }), type:"DELETE", contentType:"application/json", success: function ( responseData ) {
 					deleteNode(node)
@@ -349,6 +349,30 @@ function editFlowACL() {
 
 function deleteFlowObject() {
 	deleteSelected()
+}
+
+function exportConduct() {
+	var conductID = GetURLParameter("conductID")
+	window.open("/conductEditor/"+conductID+"/export/", "_blank");
+}
+
+function exportFlowObject() {
+	selectedNodes = network.getSelectedNodes()
+	if (selectedNodes.length == 1) {
+		node = nodeObjects[selectedNodes[0]]["flowID"]
+		var conductID = GetURLParameter("conductID")
+		window.open("/conductEditor/"+conductID+"/export/?flowID="+node, "_blank");
+	}
+}
+
+function importConduct() {
+	var conductID = GetURLParameter("conductID")
+	window.open("/conductEditor/"+conductID+"/import/", "_blank");
+}
+
+function codifyConduct() {
+	var conductID = GetURLParameter("conductID")
+	window.open("/conductEditor/"+conductID+"/codify/", "_blank");
 }
 
 function copyFlowObject() {

@@ -20,6 +20,7 @@ class _plugin(db._document):
     # Override parent new to include name var, parent class new run after class var update
     def new(self,name):
         self.name = name
+        self.acl = { "ids":[ { "accessID":"0","delete": True,"read": True,"write": True } ] }
         return super(_plugin, self).new()
 
     # Override parent to support plugin dynamic classes

@@ -38,6 +38,7 @@ class workerHandler:
             self.duration = 0
             self.result = None
             self.running = None
+            self.crash = False
             self.args = args
             self.multiprocessing = multiprocessing
             if not self.multiprocessing:
@@ -66,15 +67,18 @@ class workerHandler:
                     raise SystemExit
 
                 if rc != 0:
+                    self.crash = True
                     logging.debug("Threaded process worker crashed, workerID={0}".format(self.id))
                     systemTrigger.failedTrigger(self.id,"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
 
                 # Ensure cache is updated with any new items
                 #cache.globalCache.sync(globalCacheObjects)
             except SystemExit:
+                self.crash = True
                 logging.debug("Threaded process worker killed, workerID={0}".format(self.id))
                 systemTrigger.failedTrigger(self.id,"triggerKilled")
             except Exception as e:
+                self.crash = True
                 logging.debug("Threaded worker crashed, workerID={0}".format(self.id))
                 systemTrigger.failedTrigger(self.id,"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
             finally:
@@ -98,9 +102,11 @@ class workerHandler:
                 else:
                     self.result = self.call()
             except SystemExit:
+                self.crash = True
                 logging.debug("Threaded worker killed, workerID={0}".format(self.id))
                 systemTrigger.failedTrigger(self.id,"triggerKilled")
             except Exception as e:
+                self.crash = True
                 logging.debug("Threaded worker crashed, workerID={0}".format(self.id))
                 systemTrigger.failedTrigger(self.id,"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
             logging.debug("Threaded worker completed, workerID={0}".format(self.id))
@@ -108,10 +114,11 @@ class workerHandler:
             self.endTime = int(time.time())
             self.duration = (self.endTime - self.startTime)
 
-    def __init__(self,concurrent=15,autoStart=True):
+    def __init__(self,concurrent=15,autoStart=True,cleanUp=True):
         self.concurrent = concurrent
         self.workerList = []
         self.stopped = False
+        self.cleanUp = cleanUp
         
         # Autostarting worker handler thread
         workerThread = self._worker("workerThread",self.handler,None,True,0,False)
@@ -154,7 +161,8 @@ class workerHandler:
                 for worker in cleanupWorkers:
                     if worker.running != False:
                         worker.thread.kill()
-                    del self.workerList[self.workerList.index(worker)]
+                    if self.cleanUp:
+                        del self.workerList[self.workerList.index(worker)]
                 tick = now
 
             # CPU saver
@@ -224,6 +232,10 @@ class workerHandler:
         workersRunning = [x for x in self.workerList if x.id != self.workerID and x.running == True]
         return len(workersRunning)
 
+    def failureCount(self):
+        crashedWorkers = [x for x in self.workerList if x.id != self.workerID and x.crash == True]
+        return len(crashedWorkers)
+
     def active(self):
         result = []
         workersRunning = [x for x in self.workerList if x.id != self.workerID and x.running == True]
@@ -240,6 +252,8 @@ class workerHandler:
 
     def stop(self):
         self.stopped = True
+        # Waiting 1 second for handler to finsh gracefuly otherwise force by systemExit
+        time.sleep(1)
         for runningJob in self.getActive():
             self.kill(runningJob.id)
         for job in self.getAll():

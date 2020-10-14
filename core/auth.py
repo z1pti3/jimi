@@ -209,7 +209,7 @@ def validateUser(username,password):
                 user.update(["passwordHashType","passwordHash"])
             user.failedLoginCount = 0
             user.update(["lastLoginAttempt","failedLoginCount"])
-            audit._audit().add("auth","login",{ "action" : "sucess", "src_ip" : api.request.remote_addr, "username" : username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" :user.primaryGroup, "admin" : isAdmin(user) })
+            audit._audit().add("auth","login",{ "action" : "success", "src_ip" : api.request.remote_addr, "username" : username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" :user.primaryGroup, "admin" : isAdmin(user) })
             return generateSession({ "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True })
         else:
             user.failedLoginCount+=1
@@ -269,7 +269,7 @@ if api.webServer:
                                 return {}, 403
                         api.g.type = "cookie"
                         # Confirm CSRF
-                        if api.request.method in ["POST","PUI","DELETE"]:
+                        if api.request.method in ["POST","PUT","DELETE"]:
                             try:
                                 try:
                                     data = json.loads(api.request.data)

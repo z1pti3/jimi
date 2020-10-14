@@ -108,6 +108,11 @@ def conductFlowchartPoll(conductID):
                                 if flow["actionID"] == a._id:
                                     name = a.name
                                     modeClass = cache.globalCache.get("modelCache",a.classID,model.getClassObject,sessionData=api.g.sessionData)[0]
+
+                                    #if modeClass.name == "action":
+                                    #    node["shape"] = "diamond"
+                                    #    node["size"] = 35
+
                                     color = None
                                     if a.enabled:
                                         color = "#0a0a0a"
@@ -177,11 +182,51 @@ def conductExport(conductID):
     else:
         return { }, 404
     flows = [ x for x in conductObj.flow ]
+    
+    # Apply filter to the flows if passed in GET
+    data = request.args
+    if "flowID" in data:
+        processQueue = []
+        currentFlowID = data["flowID"]
+        specifiedFlows = []
+        while True:
+            for flow in flows:
+                if flow["flowID"] == currentFlowID:
+                    specifiedFlows.append(flow["flowID"])
+                    for nextFlow in flow["next"]:
+                        processQueue.append(nextFlow["flowID"])
+            if len(processQueue) == 0:
+                break
+            else:
+                currentFlowID = processQueue[-1]
+                processQueue.pop()
+        poplist = []
+        for flow in flows:
+            if flow["flowID"] not in specifiedFlows:
+                poplist.append(flow)
+        for pop in poplist:
+            flows.remove(pop)
+
+    # Regenerate flowIDs
+    flowLookup = {}
+    flowLookupReverse = {}
+    for flow in flows:
+        if flow["flowID"] not in flowLookup:
+            flowLookup[flow["flowID"]] = str(uuid.uuid4())
+            flowLookupReverse[flowLookup[flow["flowID"]]] = flow["flowID"]
+        flow["flowID"] = flowLookup[flow["flowID"]]
+        for nextFlow in flow["next"]:
+            if nextFlow["flowID"] not in flowLookup:
+                flowLookup[nextFlow["flowID"]] = str(uuid.uuid4())
+                flowLookupReverse[flowLookup[nextFlow["flowID"]]] = nextFlow["flowID"]
+            nextFlow["flowID"] = flowLookup[nextFlow["flowID"]]
+
     flowTriggers = [ db.ObjectId(x["triggerID"]) for x in flows if x["type"] == "trigger" ]
     flowActions = [ db.ObjectId(x["actionID"]) for x in flows if x["type"] == "action" ]
     actions = action._action().getAsClass(api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
     triggers = trigger._trigger().getAsClass(api.g.sessionData,query={ "_id" : { "$in" : flowTriggers } })
-    result = { "flow" : conductObj.flow, "action" : {}, "trigger" : {}, "ui" : {} }
+    result = { "flow" : flows, "action" : {}, "trigger" : {}, "ui" : {} }
+
     for flow in flows:
         obj = None
         if flow["type"] == "trigger":
@@ -209,7 +254,7 @@ def conductExport(conductID):
                             result[flow["type"]][obj._id][member] = value
             if flow["flowID"] not in result["ui"]:
                 result["ui"][flow["flowID"]] = { "x" : 0, "y" : 0, "title" : "" }
-                flowUI = webui._modelUI().getAsClass(api.g.sessionData,query={ "flowID" : flow["flowID"], "conductID" : conductID })
+                flowUI = webui._modelUI().getAsClass(api.g.sessionData,query={ "flowID" : flowLookupReverse[flow["flowID"]], "conductID" : conductID })
                 if len(flowUI) > 0:
                     flowUI = flowUI[0]
                     result["ui"][flow["flowID"]]["x"] = flowUI.x
@@ -232,13 +277,16 @@ def conductImportData(conductID):
     if access:
         data = json.loads(api.request.data)
         importData = helpers.typeCast(data["importData"])
-        conductObj.flow = importData["flow"]
+        if data["appendObjects"]:
+            conductObj.flow = conductObj.flow + importData["flow"]
+        else:
+            conductObj.flow=importData["flow"]
         for flow in importData["flow"]:
             flowUI = webui._modelUI().getAsClass(api.g.sessionData,query={ "flowID" : flow["flowID"], "conductID" : conductID })
             if len(flowUI) > 0:
                 flowUI = flowUI[0]
-                flowUI.x = importData["ui"][flow["flowID"]]["x"]
-                flowUI.y = importData["ui"][flow["flowID"]]["y"]
+                flowUI.x = importData["ui"][flow["flowID"]]["x"] + int(data["offsetX"])
+                flowUI.y = importData["ui"][flow["flowID"]]["y"] + int(data["offsetY"])
                 flowUI.title = importData["ui"][flow["flowID"]]["title"]
                 flowUI.update(["x","y","title"])
             else:
@@ -247,7 +295,9 @@ def conductImportData(conductID):
                 classObj = _class = model._model().getAsClass(api.g.sessionData,query={ "name" : importData["trigger"][flow["triggerID"]]["className"] })
                 if len(classObj) > 0:
                     classObj = classObj[0]
-                    existingTrigger = trigger._trigger().getAsClass(api.g.sessionData,query={ "name" : importData["trigger"][flow["triggerID"]]["name"], "classID" : classObj._id })
+                    existingTrigger = []
+                    if data["duplicateObjects"] == False:
+                        existingTrigger = trigger._trigger().getAsClass(api.g.sessionData,query={ "name" : importData["trigger"][flow["triggerID"]]["name"], "classID" : classObj._id })
                     if len(existingTrigger) > 0:
                         existingTrigger = existingTrigger[0]
                     else:
@@ -262,7 +312,10 @@ def conductImportData(conductID):
                     for member in members:
                         if member in importData["trigger"][flow["triggerID"]]:
                             if member not in blacklist:
-                                setattr(existingTrigger,member,importData["trigger"][flow["triggerID"]][member])
+                                if data["duplicateObjects"] and member == "name":
+                                    setattr(existingTrigger,member,"{0}-{1}".format(importData["trigger"][flow["triggerID"]][member],existingTrigger._id))
+                                else:
+                                    setattr(existingTrigger,member,importData["trigger"][flow["triggerID"]][member])
                                 updateList.append(member)
                     existingTrigger.update(updateList,sessionData=api.g.sessionData)
                     flow["triggerID"] = existingTrigger._id
@@ -270,7 +323,9 @@ def conductImportData(conductID):
                 classObj = _class = model._model().getAsClass(api.g.sessionData,query={ "name" : importData["action"][flow["actionID"]]["className"] })
                 if len(classObj) > 0:
                     classObj = classObj[0]
-                    existingAction = action._action().getAsClass(api.g.sessionData,query={ "name" : importData["action"][flow["actionID"]]["name"], "classID" : classObj._id })
+                    existingAction = []
+                    if data["duplicateObjects"] == False:
+                        existingAction = action._action().getAsClass(api.g.sessionData,query={ "name" : importData["action"][flow["actionID"]]["name"], "classID" : classObj._id })
                     if len(existingAction) > 0:
                         existingAction = existingAction[0]
                     else:
@@ -285,7 +340,10 @@ def conductImportData(conductID):
                     for member in members:
                         if member in importData["action"][flow["actionID"]]:
                             if member not in blacklist:
-                                setattr(existingTrigger,member,importData["action"][flow["actionID"]][member])
+                                if data["duplicateObjects"] and member == "name":
+                                    setattr(existingAction,member,"{0}-{1}".format(importData["action"][flow["actionID"]][member],existingAction._id))
+                                else:
+                                    setattr(existingAction,member,importData["action"][flow["actionID"]][member])
                                 updateList.append(member)
                     existingAction.update(updateList,sessionData=api.g.sessionData)
                     flow["actionID"] = existingAction._id
@@ -327,13 +385,16 @@ def getConductFlowCodify(conductID):
                         if member not in blacklist:
                             value = getattr(obj,member)
                             if type(value) == str:
-                                value="\"{0}\"".format(value.replace("\"","\\\""))
+                                value="\"{0}\"".format(value)
                             elif type(value) == dict:
                                 value="\"{0}\"".format(value)
                             elif type(value) == list:
                                 value="\"{0}\"".format(value)
+                            else:
+                                 value="{0}".format(value)
 
                             if type(value) in typeList:
+                                value = value.replace("\n","\\n").replace("\t","\\t")
                                 params.append("{0}={1}".format(member,value))
                     
                     if currentFlow["type"] == "action":
@@ -356,6 +417,7 @@ def getConductFlowCodify(conductID):
                     currentFlow = None
         return flowCode
 
+    data = request.args
 
     conductObj = conduct._conduct().getAsClass(api.g.sessionData,id=conductID)
     if len(conductObj) == 1:
@@ -374,11 +436,25 @@ def getConductFlowCodify(conductID):
     actions = action._action().getAsClass(api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
     triggers = trigger._trigger().getAsClass(api.g.sessionData,query={ "_id" : { "$in" : flowTriggers } })
 
+    flowID = None
+    if data:
+        if "flowID" in data:
+            flowID = data["flowID"]
     flowCode = ""
     for flow in flows:
         if flow["type"] == "trigger":
-            flowCode+=generateFlow(flow,flowDict,triggers,actions)
+            if flowID:
+                if flowID == flow["flowID"]:
+                    flowCode+=generateFlow(flow,flowDict,triggers,actions)
+                    break
+            else:
+                flowCode+="\n{0}".format(generateFlow(flow,flowDict,triggers,actions))
     
+    flowCode=flowCode.strip()
+    if data:
+        if "json" in data:
+            return { "result" : flowCode, "CSRF" : api.g.sessionData["CSRF"] }, 200
+
     return render_template("blank.html",content=flowCode, CSRF=api.g.sessionData["CSRF"]), 200
 
 @api.webServer.route("/conductEditor/<conductID>/flow/<flowID>/", methods=["DELETE"])

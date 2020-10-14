@@ -108,9 +108,20 @@ if api.webServer:
                 if len(results) == 1:
                     results = results[0]
                     results = class_().query(api.g.sessionData,query={ "classID" : results["_id"] },fields=["_id","name","classType","lastUpdateTime"])["results"]
-                    if modelName == "action" or modelName == "trigger":
-                        for result in results:
-                            result["whereUsed"] = conduct._conduct().query(query={ "$or" : [ { "flow.triggerID" : { "$in" : [ result["_id"] ] } }, { "flow.actionID" : { "$in" : [ result["_id"] ] } } ] },fields=["_id","name"])["results"]
+                    ids = [ x["_id"] for x in results ]
+                    # Possible for ID trigger and action to be the same ( although unlikey but keep in mind this could be an issue in future )
+                    ConductsCache = conduct._conduct().query(query={ "$or" : [ { "flow.triggerID" : { "$in" : ids } }, { "flow.actionID" : { "$in" : ids } } ] },fields=["_id","name","flow"])["results"]
+                    for result in results:
+                        usedIn = []
+                        for ConductCache in ConductsCache:
+                            for flow in ConductCache["flow"]:
+                                if "triggerID" in flow:
+                                    if flow["triggerID"] == result["_id"]:
+                                        usedIn.append({ "conductID" :  ConductCache["_id"], "conductName" : ConductCache["name"] })
+                                if "actionID" in flow:
+                                    if flow["actionID"] == result["_id"]:
+                                        usedIn.append({ "conductID" :  ConductCache["_id"], "conductName" : ConductCache["name"] })
+                        result["whereUsed"] = usedIn
                     return { "results" : results }, 200
             return {}, 404
 

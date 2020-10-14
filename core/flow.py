@@ -36,11 +36,14 @@ def flowLogicEval(data,logicVar):
 
 def getObjectFromCode(codeFunction):
     functionName = codeFunction.split("(")[0]
-    args = regexCommor.split(codeFunction[(len(functionName)+1):-1])
-    classObject = model._model().getAsClass(query={ "name" : functionName })[0].classObject()
+    args = regexCommor.split(codeFunction.strip()[(len(functionName)+1):-1])
+    classObject = model._model().getAsClass(query={ "name" : functionName })[0].classObject()()
     classObject.enabled = True
+    classObject._id= "000000000001010000000000"
+    classObject.functionName = functionName
     members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
     for arg in args:
+        arg=arg.replace("\\n","\n").replace("\\t","\t")
         key = arg.split("=")[0]
         if len(arg[len(key)+1:]) > 2:
             if ((arg[len(key)+1:][1] == "[" or arg[len(key)+1:][1] == "{") and (arg[len(key)+1:][-2] == "]" or arg[len(key)+1:][-2] == "}")):
@@ -63,45 +66,57 @@ def getObjectFromCode(codeFunction):
                 elif type(getattr(classObject,member)) == int and type(value) == float:
                     setattr(classObject,member,int(value))
                     break
-    return classObject()
+    return classObject
 
-def executeCodifyFlow(eventsData,codifyData):
-    outputText = ""
+def executeCodifyFlow(eventsData,codifyData,eventCount=0,passedFlow=[],persistentData=None):
+    outputText = "Started At - {0}".format(time.time())
 
-    # Build Flow
-    flows = []
-    flowLevel = {}
-    for flow in codifyData.split("\n"):
-        if flow:
-            flowIndentLevel = len(flow.split("\t"))-1
-            flow = flow.replace("\t","")
-            if flowIndentLevel == 0:
-                events = helpers.typeCast(eventsData)
-                classObject = getObjectFromCode(flow)
-                if type(events) != list:
-                    classObject.checkHeader()
-                    classObject.check()
-                    events = classObject.result["events"]
-                flows.append({ "events": events, "classObject" : classObject, "type" : "trigger", "codeLine" : flow, "next" : [] })
-                flowLevel[flowIndentLevel] = flows[-1]
-            else:
-                if len(flow.split("->")) == 2:
-                    classObject = getObjectFromCode(flow.split("->")[1])
-                    flowLevel[flowIndentLevel-1]["next"].append({ "classObject" : classObject, "type" : "action", "codeLine" : flow.split("->")[1], "logic" : flow.split("->")[0], "next" : [] })
-                else:
+    if not persistentData:
+        persistentData = {}
+
+    if passedFlow == []:
+        # Build Flow
+        flows = []
+        flowLevel = {}
+        for flow in codifyData.split("\n"):
+            if flow:
+                flowIndentLevel = len(flow.split("\t"))-1
+                flow = flow.replace("\t","")
+                if flowIndentLevel == 0:
+                    events = helpers.typeCast(eventsData)
                     classObject = getObjectFromCode(flow)
-                    flowLevel[flowIndentLevel-1]["next"].append({ "classObject" : classObject, "type" : "action", "codeLine" : flow, "logic" : "logic(True)", "next" : [] })
-                flowLevel[flowIndentLevel] = flowLevel[flowIndentLevel-1]["next"][-1]
+                    if type(events) != list:
+                        classObject.checkHeader()
+                        classObject.check()
+                        events = classObject.result["events"]
+                    flows.append({ "events": events, "classObject" : classObject, "type" : "trigger", "codeLine" : flow, "next" : [] })
+                    flowLevel[flowIndentLevel] = flows[-1]
+                else:
+                    if len(flow.split("->")) == 2:
+                        classObject = getObjectFromCode(flow.split("->")[1])
+                        flowLevel[flowIndentLevel-1]["next"].append({ "classObject" : classObject, "type" : "action", "codeLine" : flow.split("->")[1], "logic" : flow.split("->")[0], "next" : [] })
+                    else:
+                        classObject = getObjectFromCode(flow)
+                        flowLevel[flowIndentLevel-1]["next"].append({ "classObject" : classObject, "type" : "action", "codeLine" : flow, "logic" : "logic(True)", "next" : [] })
+                    flowLevel[flowIndentLevel] = flowLevel[flowIndentLevel-1]["next"][-1]
+    else:
+        # Hack for forEach - need a longer term neater reusable fix for this
+        passedFlow["events"] = eventsData
+        flows = [passedFlow]
         
     # Execute Flow
     for flow in flows:
-        persistentData = {}
+        eventCounter = 0
         for event in flow["events"]:
+            if eventCount != 0 and eventCounter >= eventCount:
+                break
+            elif eventCount != 0:
+                eventCounter+=1
             outputText+="\n-----------------------------------------------------------------------------------"
             outputText+="\nNow Running For Event - {0}".format(event)
             outputText+="\n-----------------------------------------------------------------------------------"
             outputText+="\n"
-            data = { "event" : event, "eventStats" : { "first" : False, "current" : 0, "total" : 0, "last" : False }, "conductID" : "codify", "flowID" : "codify", "var" : {}, "plugin" : {} }
+            data = { "event" : event, "eventStats" : { "first" : False, "current" : 0, "total" : 0, "last" : False }, "conductID" : "codify", "flowID" : "codify", "var" : {}, "plugin" : {}, "triggerID" : "000000000001010000000000" }
             processQueue = []
             currentFlow = flow
             currentObject = currentFlow["classObject"]
@@ -109,12 +124,15 @@ def executeCodifyFlow(eventsData,codifyData):
             while True:
                 if currentObject:
                     if currentFlow["type"] == "trigger":
-                        outputText+="\nTRIGGER"
-                        outputText+="\n{0}".format(currentFlow["codeLine"])
-                        outputText+="\npre-data={0}".format(data)
+                        if currentObject.name == "":
+                            outputText+="\nTRIGGER"
+                        else:
+                            outputText+="\n(t) - {0}:".format(currentObject.name)
+                        outputText+="\n\t[function]\n\t\t{0}".format(currentFlow["codeLine"])
+                        outputText+="\n\t[pre-data]\n\t\t{0}".format(data)
                         objectContinue = True
                         if currentObject.logicString.startswith("if"):
-                            outputText+="\nChecking logic {0} = ".format(currentObject.logicString)
+                            outputText+="\n\t[logic]\n\t\t{0}\n\t\t".format(currentObject.logicString)
                             if logic.ifEval(currentObject.logicString,{ "data" : data}):
                                 outputText+="Pass"
                                 if currentObject.varDefinitions:
@@ -133,27 +151,50 @@ def executeCodifyFlow(eventsData,codifyData):
                                     passData = copy.deepcopy(data)
                                 processQueue.append({ "flow" : nextFlow, "data" : passData })
                                 passData = None
-                        outputText+="\npost-data={0}".format(data)
+                        outputText+="\n\t[post-data] - \n\t\t{0}".format(data)
                         outputText+="\n"
                     elif currentFlow["type"] == "action":
-                        outputText+="\nACTION"
+                        if currentObject.name == "":
+                            outputText+="\nACTION"
+                        else:
+                            outputText+="\n(a) - {0}:".format(currentObject.name)
                         if currentObject.enabled:
-                            outputText+="\n{0}".format(currentFlow["codeLine"])
-                            outputText+="\npre-data={0}".format(data)
-                            logic = currentFlow["logic"][5:]
-                            outputText+="\nChecking Flow logic {0} = ".format(logic)
-                            if flowLogicEval(data,helpers.typeCast(logic)):
+                            outputText+="\n\t[function]\n\t\t{0}".format(currentFlow["codeLine"])
+                            outputText+="\n\t[pre-data]\n\t\t{0}".format(data)
+                            flowLogic = currentFlow["logic"][5:]
+                            outputText+="\n\t[link logic]\n\t\t{0}\n\t\t".format(flowLogic)
+                            if flowLogicEval(data,helpers.typeCast(flowLogic)):
                                 outputText+="Pass"
-                                debugText, data["action"] = currentObject.runHandler(data,persistentData,debug=True)
+                                debugText=""
+                                # Special function handler - need better long term fix whereby the object class is not being bypassed
+                                if currentObject.functionName == "forEach":
+                                    try:
+                                        proceed = (currentObject != passedFlow["classObject"])
+                                    except:
+                                        proceed = True
+                                    if proceed:
+                                        logicResult = True
+                                        if currentObject.logicString.startswith("if"):
+                                            logicDebugText, logicResult = logic.ifEval(currentObject.logicString, { "data" : data }, debug=True)
+                                            debugText+="\n\t[action logic]\n\t\t{0}\n\t\t{1}\n\t\t({2})".format(currentObject.logicString,logicResult,logicDebugText)
+                                        if logicResult:
+                                            events = []
+                                            if currentObject.manual:
+                                                events = currentObject.events
+                                            else:
+                                                events = helpers.evalString(currentObject.eventsField,{"data" : data})
+                                            debugText = executeCodifyFlow(events,codifyData,eventCount=0,passedFlow=currentFlow,persistentData=persistentData)
+                                else:
+                                    debugText, data["action"] = currentObject.runHandler(data,persistentData,debug=True)
                                 if debugText != "":
-                                    outputText+="\n{0}".format(debugText)
+                                    outputText+="{0}".format(debugText)
                                 passData = data
                                 for nextFlow in currentFlow["next"]:
                                     if not passData:
                                         passData = copy.deepcopy(data)
                                     processQueue.append({ "flow" : nextFlow, "data" : passData })
                                     passData = None
-                                outputText+="\npost-data={0}".format(data)
+                                outputText+="\n\t[post-data]\n\t\t{0}".format(data)
                             else:
                                 outputText+="Failed"
                             outputText+="\n"
@@ -170,6 +211,7 @@ def executeCodifyFlow(eventsData,codifyData):
                     if loops > cpuSaver["loopL"]:
                         loops = 0
                         time.sleep(cpuSaver["loopT"])
+    outputText += "\nEnded At - {0}".format(time.time())
     return outputText
 
 ######### --------- API --------- #########
@@ -178,5 +220,5 @@ if api.webServer:
         @api.webServer.route(api.base+"codify/run/", methods=["POST"])
         def codifyRun():
             data = json.loads(api.request.data)
-            result = executeCodifyFlow(data["events"],data["code"])
+            result = executeCodifyFlow(data["events"],data["code"],eventCount=int(data["eventCount"]))
             return { "result" : result }, 200

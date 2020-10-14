@@ -1,14 +1,20 @@
 var triggerObjectHTML = `
-<div class="propertiesPanel theme-panelContainer">
+<div class="propertiesPanel propertiesPanelFullWidth propertiesPanelFullHeight theme-panelContainer">
 	<div class="propertiesPanel-header theme-panelHeader">
 		<span class="glyphicon glyphicon glyphicon-remove" id="close"></span>
 		<label id="title"></label>
 	</div>
 	<div class="propertiesPanel-body theme-panelBody">
-		<textarea id="triggerValue" type="text" class="inputFullWidth theme-panelTextArea"></textarea>
+		For this action to complete the flow must execute and return within 60 seconds<br><br>
+		Number of Events to Process:<br>
+		<input type='text' value="0" class="inputFullWidth theme-panelTextbox" id='triggerEventCount'><br>
+		Events:<br>
+		<textarea id="triggerValue" type="text" class="inputFullWidth theme-panelTextArea"></textarea><br>
+		Output:<br>
+		<textarea id="triggerOutput" readonly="true" type="text" class="inputFullWidth inputExpand theme-panelTextArea"></textarea>
 	</div>
 	<div class="propertiesPanel-footer theme-panelFooter">
-		<button id="trigger" class="btn btn-primary theme-panelButton">Trigger</button>
+		<button id="trigger" class="btn btn-primary theme-panelButton">Test</button>
 		<button id="close" class="btn btn-primary theme-panelButton">Close</button>
 	</div>
 </div>
@@ -18,10 +24,14 @@ var triggerExistingPanels = {}
 
 function triggerTriggerObjectPanel(panel,flowID) {
 	var conductID = GetURLParameter("conductID")
-	$.ajax({url: "/conduct/"+conductID+"/forceTrigger/"+flowID+"/", type:"POST", data:JSON.stringify({events: panel.find("#triggerValue").val(), CSRF: CSRF }), contentType:"application/json", success: function ( result ) {
-			dropdownAlert(panel,"success","Triggered",1000);
-		}
-	});
+	$('#triggerOutput').text("");
+	$.ajax({url: "/conductEditor/"+conductID+"/codify/?json=True&flowID="+flowID, type:"GET", contentType:"application/json", success: function(result) {
+			$.ajax({url: "/codify/", type:"POST", data:JSON.stringify({ events: $('#triggerValue').val(), eventCount: $('#triggerEventCount').val(), code: result["result"], CSRF: CSRF }), contentType:"application/json", success: function(result) {
+					$('#triggerOutput').text(result["result"]);
+				} 
+			});
+    	} 
+    });
 }
 
 function createTriggerObjectPanel(flowID) {
@@ -32,10 +42,8 @@ function createTriggerObjectPanel(flowID) {
 		if (!triggerExistingPanels.hasOwnProperty(flowID)) {
 			triggerExistingPanels[flowID] = flowID;
 			var e = window.event;
-			var posX = e.clientX;
-			var posY = e.clientY;
 			var panel = $(triggerObjectHTML);
-			panel.css({top : posY, left : posX - 250});
+			panel.css({top : "10%", left : "10%"});
 			panel.draggable();
 			panel.resizable({
 				grid: 20
