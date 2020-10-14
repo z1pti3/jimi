@@ -157,7 +157,7 @@ class _trigger(db._document):
         if self.log:
             audit._audit().add("trigger","check start",{ "triggerID" : self._id, "name" : self.name })
         logging.debug("Trigger check started, triggerID='{0}'".format(self._id),7)
-        self.result = { "events" : [], "triggerID" : self._id, "var" : {}, "plugin" : {} }
+        self.result = { "events" : [], "triggerID" : self._id, "triggerName" : self.name, "var" : {}, "plugin" : {} }
 
     # Main function called to determine if a trigger is triggered
     def check(self):

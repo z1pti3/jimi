@@ -323,3 +323,9 @@ def getObjectMemoryUsage(obj):
 def lower_dict(d):
     new_dict = dict((k.lower(), v) for k, v in d.items())
     return new_dict
+
+def dictValue(d,value):
+    try:
+        return d[value]
+    except:
+        return None

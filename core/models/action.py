@@ -84,7 +84,8 @@ class _action(db._document):
 
     def runHeader(self,data,persistentData,actionResult):
         if self.log:
-            audit._audit().add("action","action start",{ "actionID" : self._id, "actionName" : self.name, "var" : data["var"], "event" : data["event"], "actionResult" : actionResult })
+            # Used helpers.dictValue as cant ensure new data is passed by all plugins such as forEach / Subflow - this should be removed once these are updated to include the required template
+            audit._audit().add("action","action start",{ "conductID" : helpers.dictValue(data,"conductID"), "conductName" : helpers.dictValue(data,"conductName"), "triggerName" : helpers.dictValue(data,"triggerName"), "triggerID" : helpers.dictValue(data,"triggerID"), "actionID" : self._id, "actionName" : self.name, "var" : helpers.dictValue(data,"var"), "event" : helpers.dictValue(data,"event"), "actionResult" : actionResult })
         logging.debug("Action run started, actionID='{0}', data='{1}'".format(self._id,data),7)
 
     def run(self,data,persistentData,actionResult):
@@ -93,7 +94,8 @@ class _action(db._document):
 
     def runFooter(self,data,persistentData,actionResult,startTime):
         if self.log:
-            audit._audit().add("action","action end",{ "actionID" : self._id, "actionName" : self.name, "var" : data["var"], "event" : data["event"], "actionResult" : actionResult, "duration" : (time.time() - startTime) })
+            # Used helpers.dictValue as cant ensure new data is passed by all plugins such as forEach / Subflow - this should be removed once these are updated to include the required template
+            audit._audit().add("action","action end",{ "conductID" : helpers.dictValue(data,"conductID"), "conductName" : helpers.dictValue(data,"conductName"), "triggerName" : helpers.dictValue(data,"triggerName"), "triggerID" : helpers.dictValue(data,"triggerID"), "actionID" : self._id, "actionName" : self.name, "var" : helpers.dictValue(data,"var"), "event" : helpers.dictValue(data,"event"), "actionResult" : actionResult, "duration" : (time.time() - startTime) })
         logging.debug("Action run complete, actionID='{0}', data='{1}'".format(self._id,data),7)
 
     def postRun(self):
