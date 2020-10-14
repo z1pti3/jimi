@@ -37,7 +37,7 @@ def flowLogicEval(data,logicVar):
 def getObjectFromCode(codeFunction):
     functionName = codeFunction.split("(")[0]
     args = regexCommor.split(codeFunction.strip()[(len(functionName)+1):-1])
-    classObject = model._model().getAsClass(query={ "name" : functionName })[0].classObject()
+    classObject = model._model().getAsClass(query={ "name" : functionName })[0].classObject()()
     classObject.enabled = True
     classObject._id= "000000000001010000000000"
     members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
@@ -65,7 +65,7 @@ def getObjectFromCode(codeFunction):
                 elif type(getattr(classObject,member)) == int and type(value) == float:
                     setattr(classObject,member,int(value))
                     break
-    return classObject()
+    return classObject
 
 def executeCodifyFlow(eventsData,codifyData,eventCount=0):
     outputText = "Started At - {0}".format(time.time())
