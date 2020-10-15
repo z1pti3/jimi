@@ -3,8 +3,6 @@ name: jimi_core
 on:
   push:
     branches: [ v1.4 ]
-  pull_request:
-    branches: [ v1.4 ]
 
 jobs:
   build:
