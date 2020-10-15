@@ -1,4 +1,4 @@
-name: jimi_core
+name: jimi
 
 on:
   push:
@@ -26,10 +26,17 @@ jobs:
         pip install -r requirements.txt
         mkdir data
         cd data
+        mkdir log
         wget https://raw.githubusercontent.com/z1pti3/jimi/v1.4/.github/workflows/settings.json
         wget https://raw.githubusercontent.com/z1pti3/jimi/v1.4/.github/workflows/sessionPub.pem
         wget https://raw.githubusercontent.com/z1pti3/jimi/v1.4/.github/workflows/sessionPriv.pem
         cd ..
-    - name: Start jimiCore
+        mkdir plugins
+    - name: Start jimi
       run: |
-        python jimi_core.py
+        python jimi_core.py &
+        python jimi_web.py &
+    - name: Tests
+      run: |
+        curl http://127.0.0.1:5000/
+        curl http://127.0.0.1:5002/
