@@ -35,10 +35,10 @@ jobs:
     - name: Start jimi
       run: |
         screen -dmS jimi_core python jimi_core.py  
-        sleep 3s
+        sleep 1s
         screen -dmS jimi_web python jimi_web.py
+        sleep 1s
     - name: Tests
       run: |
-        ps -aux
         curl http://127.0.0.1:5000/
         curl http://127.0.0.1:5002/
