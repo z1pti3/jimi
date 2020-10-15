@@ -34,10 +34,9 @@ jobs:
         mkdir plugins
     - name: Start jimi
       run: |
-        script /dev/null
-        screen -S jimi_core python jimi_core.py  
+        screen -dmS jimi_core python jimi_core.py  
         sleep 3s
-        screen -S jimi_web python jimi_web.py
+        screen -dmS jimi_web python jimi_web.py
     - name: Tests
       run: |
         ps -aux
