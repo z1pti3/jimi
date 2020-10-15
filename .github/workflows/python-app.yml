@@ -23,9 +23,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         mkdir data
-        wget https://raw.githubusercontent.com/z1pti3/jimi/v1.4/.github/workflows/settings.json data/settings.json
-        wget https://raw.githubusercontent.com/z1pti3/jimi/v1.4/.github/workflows/sessionPub.pem data/sessionPub.pem
-        wget https://raw.githubusercontent.com/z1pti3/jimi/v1.4/.github/workflows/sessionPriv.pem data/sessionPriv.pem 
+        cd data
+        wget https://raw.githubusercontent.com/z1pti3/jimi/v1.4/.github/workflows/settings.json
+        wget https://raw.githubusercontent.com/z1pti3/jimi/v1.4/.github/workflows/sessionPub.pem
+        wget https://raw.githubusercontent.com/z1pti3/jimi/v1.4/.github/workflows/sessionPriv.pem
+        cd ..
     - name: Start jimiCore
       run: |
         python jimi_core.py
