@@ -34,6 +34,7 @@ Checkout the wiki for more details and installation instructions
 https://github.com/z1pti3/jimi/wiki/Installation
 
 Step by Step Guide:
+
 https://jimiproject.wixsite.com/website
 
 Multi-User:
