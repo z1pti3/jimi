@@ -394,7 +394,7 @@ def getConductFlowCodify(conductID):
                                  value="{0}".format(value)
 
                             if type(value) in typeList:
-                                value = value.replace("\n","\\n").replace("\t","\\t")
+                                value = value.replace("\n","(\)n").replace("\t","(\)t")
                                 params.append("{0}={1}".format(member,value))
                     
                     if currentFlow["type"] == "action":

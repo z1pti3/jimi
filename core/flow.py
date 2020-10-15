@@ -43,9 +43,7 @@ def getObjectFromCode(codeFunction):
     classObject.functionName = functionName
     members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
     for arg in args:
-        arg=arg.replace("\n","(\)n").replace("\t","(\)t")
-        arg=arg.replace("\\n","\n").replace("\\t","\t")
-        arg=arg.replace("(\)n","\\n").replace("(\)t","\\t")
+        arg=arg.replace("(\)n","\n").replace("(\)t","\t")
         key = arg.split("=")[0]
         if len(arg[len(key)+1:]) > 2:
             if ((arg[len(key)+1:][1] == "[" or arg[len(key)+1:][1] == "{") and (arg[len(key)+1:][-2] == "]" or arg[len(key)+1:][-2] == "}")):
