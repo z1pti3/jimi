@@ -466,20 +466,23 @@ def deleteFlow(conductID,flowID):
         return { }, 404
     access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,conductObj.acl,"write")
     if access:
-        flow = [ x for x in conductObj.flow if x["flowID"] ==  flowID]
-        if len(flow) == 1:
-            flow = flow[0]
-            for flowItemsValue in conductObj.flow:
-                for nextflowValue in flowItemsValue["next"]:
-                    if nextflowValue["flowID"] == flowID:
-                        conductObj.flow[conductObj.flow.index(flowItemsValue)]["next"].remove(nextflowValue)
-            conductObj.flow.remove(flow)
-            if "_id" in api.g.sessionData:
-                audit._audit().add("flow","delete",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID })
-            else:
-                audit._audit().add("flow","delete",{ "user" : "system", "conductID" : conductID, "flowID" : flowID })
-            conductObj.update(["flow"],sessionData=api.g.sessionData)
-        return { }, 200
+        if db.fieldACLAccess(api.g.sessionData,conductObj.acl,"flow","delete"):
+            flow = [ x for x in conductObj.flow if x["flowID"] ==  flowID]
+            if len(flow) == 1:
+                flow = flow[0]
+                for flowItemsValue in conductObj.flow:
+                    for nextflowValue in flowItemsValue["next"]:
+                        if nextflowValue["flowID"] == flowID:
+                            conductObj.flow[conductObj.flow.index(flowItemsValue)]["next"].remove(nextflowValue)
+                conductObj.flow.remove(flow)
+                if "_id" in api.g.sessionData:
+                    audit._audit().add("flow","delete",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID })
+                else:
+                    audit._audit().add("flow","delete",{ "user" : "system", "conductID" : conductID, "flowID" : flowID })
+                conductObj.update(["flow"],sessionData=api.g.sessionData)
+            return { }, 200
+        else:
+            return { }, 404
     else:
         return { }, 404
 
