@@ -226,7 +226,7 @@ if api.webServer:
                             for dataKey, dataValue in data.items():
                                 fieldAccessPermitted = True
                                 # Checking if sessionData is permitted field level access
-                                if _class.acl and not adminBypass:
+                                if _class.acl != {} and not adminBypass:
                                     fieldAccessPermitted = db.fieldACLAccess(api.g.sessionData,_class.acl,dataKey,"write")
 
                                 if fieldAccessPermitted:

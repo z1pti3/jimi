@@ -190,7 +190,7 @@ class _document():
             if not adminBypass:
                 accessIDs = sessionData["accessIDs"]
                 # Adds ACL check to provided query to ensure requester is authorised and had read acess
-                aclQuery = { "$or" : [ { "acl.ids.accessID" : { "$in" : accessIDs }, "acl.ids.read" : True }, { "acl" : { "$exists" : False } }, { "acl" : {} } ] }
+                aclQuery = { "$or" : [ { "acl.ids.accessID" : { "$in" : accessIDs }, "acl.ids.read" : True }, { "acl.fields.ids.accessID" : { "$in" : accessIDs } }, { "acl" : { "$exists" : False } }, { "acl" : {} } ] }
                 if "$and" in query:
                     query["$and"].append(aclQuery)
                 elif "$or" in query:
@@ -215,7 +215,7 @@ class _document():
                     if field in doc:
                         fieldAccessPermitted = True
                         # Checking if sessionData is permitted field level access
-                        if "acl" in doc and not adminBypass and sessionData and authSettings["enabled"]:
+                        if "acl" in doc and not adminBypass and sessionData and authSettings["enabled"] and field not in ["classID","_id","acl"]:
                             fieldAccessPermitted = fieldACLAccess(sessionData,doc["acl"],field)
                         # Allow field data to be returned if access is permitted
                         if fieldAccessPermitted:
@@ -227,7 +227,7 @@ class _document():
                 for field in list(doc):
                     fieldAccessPermitted = True
                     # Checking if sessionData is permitted field level access
-                    if "acl" in doc and not adminBypass and sessionData and authSettings["enabled"]:
+                    if "acl" in doc and not adminBypass and sessionData and authSettings["enabled"] and field not in ["classID","_id","acl"]:
                         fieldAccessPermitted = fieldACLAccess(sessionData,doc["acl"],field)
                     # Allow field data to be returned if access is permitted
                     if fieldAccessPermitted:
@@ -411,6 +411,8 @@ def list_collection_names():
 
 # Checks if access to a field is permitted by the object ACL
 def fieldACLAccess(sessionData,acl,field,accessType="read"):
+    if not acl:
+        return False
     if not authSettings["enabled"]:
         return True
     accessIDs= []
@@ -425,14 +427,19 @@ def fieldACLAccess(sessionData,acl,field,accessType="read"):
         if not adminBypass:
             accessIDs = sessionData["accessIDs"]
         if "fields" in acl:
-            fieldAcls = [ x for x in acl["fields"] if field == x["field"] ]
+            fieldAcls = []
+            for fieldAcl in acl["fields"]:
+                for aclId in fieldAcl["ids"]:
+                    if aclId["accessID"] in accessIDs:
+                        fieldAcls.append(fieldAcl)        
             if len(fieldAcls) == 0:
                 return True
             # Checking if the sessionData permits access to the given ACL
             for fieldAcl in fieldAcls:
-                for accessID in fieldAcl["ids"]:
-                    if accessID["accessID"] in accessIDs and accessID[accessType]:
-                        return True
+                if fieldAcl["field"] == field:
+                    for accessID in fieldAcl["ids"]:
+                        if accessID["accessID"] in accessIDs and accessID[accessType]:
+                            return True
         else:
             access, accessIDs, adminBypass = ACLAccess(sessionData,acl,accessType)
             return access
