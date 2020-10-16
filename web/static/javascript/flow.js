@@ -198,14 +198,12 @@ function updateFlowchartNonBlocking(blocking) {
 	nonlock = 0
 	// Operator Updates
 	for (operator in processlist["operators"]["update"]) {
-		if (selectedObject != operator) {
-			updateNode(processlist["operators"]["update"][operator]);
-			delete processlist["operators"]["update"][operator]
-			nonlock++
-			if ((!blocking) && (nonlock > 0)) {
-				setTimeout(function() { updateFlowchartNonBlocking() }, 10);
-				return
-			}
+		updateNode(processlist["operators"]["update"][operator]);
+		delete processlist["operators"]["update"][operator]
+		nonlock++
+		if ((!blocking) && (nonlock > 0)) {
+			setTimeout(function() { updateFlowchartNonBlocking() }, 10);
+			return
 		}
 	}
 	// Operator Creates
@@ -220,15 +218,13 @@ function updateFlowchartNonBlocking(blocking) {
 	}
 	// Operator Deletions
 	for (operator in processlist["operators"]["delete"]) {
-		if (selectedObject != operator) {
-			obj = processlist["operators"]["delete"][operator]
-			deleteNode(obj["flowID"]);
-			delete processlist["operators"]["delete"][operator]
-			nonlock++
-			if ((!blocking) && (nonlock > 0)) {
-				setTimeout(function() { updateFlowchartNonBlocking() }, 10);
-				return
-			}
+		obj = processlist["operators"]["delete"][operator]
+		deleteNode(obj["flowID"]);
+		delete processlist["operators"]["delete"][operator]
+		nonlock++
+		if ((!blocking) && (nonlock > 0)) {
+			setTimeout(function() { updateFlowchartNonBlocking() }, 10);
+			return
 		}
 	}
 	// Link Creates
@@ -439,11 +435,20 @@ function setupFlowchart() {
 	});
 
 	network.on("click", function(params) {
+		if (selectedObject != null)
+		{
+			if (selectedObject[1].hasOwnProperty("deselect")) {
+				selectedObject[1]["deselect"]()
+			}
+		}
 		if (params["nodes"].length == 1) {
 			if (cKeyState) {
-				createLink(selectedObject,nodeObjects[params["nodes"][0]]["flowID"],"#3dbeff",true);
+				if (selectedObject[0] == "flowObject")
+				{
+					createLink(selectedObject[1],nodeObjects[params["nodes"][0]]["flowID"],"#3dbeff",true);
+				}
 			}
-			selectedObject = nodeObjects[params["nodes"][0]]["flowID"]
+			selectedObject = ["flowObject",nodeObjects[params["nodes"][0]]["flowID"]]
 		} else {
 			selectedObject = null;
 		}

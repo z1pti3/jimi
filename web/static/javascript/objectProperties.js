@@ -22,7 +22,21 @@ $(document).ready(function () {
 			switch (String.fromCharCode(event.which).toLowerCase()) {
 			case 's':
 				event.preventDefault();
+				if (selectedObject != null)
+				{
+					if (selectedObject[0] == "objectProperties") {
+						savePropertiesPanel(selectedObject[1]["flowID"],selectedObject[1]["panel"]);
+					}
+				}
 				break;
+			}
+		} else if (event.keyCode == 27) {
+			if (selectedObject != null)
+			{
+				if (selectedObject[0] == "objectProperties") {
+					delete openPanels[selectedObject[1]["flowID"]];
+					selectedObject[1]["panel"].remove();
+				}
 			}
 		}
 	})
@@ -91,7 +105,6 @@ function loadPropertiesPanel(flowID,panel) {
 			var $table = $('<table width="100%">');
 			for (objectItem in result["formData"]) {
 				var $row = $('<tr>');
-
 				// Tooltips
 				var tooltip = "";
 				if (result["formData"][objectItem].hasOwnProperty("tooltip")) {
@@ -171,15 +184,41 @@ function createPropertiesPanel(flowID) {
 		var posY = e.clientY;
 		var panel = $(panelPropertiesHTML);
 		panel.css({top : posY, left : posX + 35});
-		panel.draggable();
+		panel.draggable({
+			start: function(e, ui) {
+				if (selectedObject != null)
+				{
+					if (selectedObject[1].hasOwnProperty("deselect")) {
+						selectedObject[1]["deselect"]()
+					}
+				}
+				$('.ui-main').find(".propertiesPanel").css("z-index", 1);
+				panel.find(".propertiesPanel-header").addClass("theme-panelHeader-Active");
+				panel.css("z-index", 2);
+				selectedObject = ["objectProperties",{"panel" : panel, "flowID" : flowID, "deselect" :function(){ panel.find(".propertiesPanel-header").removeClass("theme-panelHeader-Active"); }}]
+			}
+		});
 		panel.resizable({
 			grid: 20
 		});
 
+		// Select the new panel
+		$('.ui-main').find(".propertiesPanel").css("z-index", 1);
+		panel.find(".propertiesPanel-header").addClass("theme-panelHeader-Active");
+		selectedObject = ["objectProperties",panel,flowID];
+
 		// Events
 		panel.click(function () {
+			if (selectedObject != null)
+			{
+				if (selectedObject[1].hasOwnProperty("deselect")) {
+					selectedObject[1]["deselect"]()
+				}
+			}
 			$('.ui-main').find(".propertiesPanel").css("z-index", 1);
-			$(this).css("z-index", 2);
+			panel.find(".propertiesPanel-header").addClass("theme-panelHeader-Active");
+			panel.css("z-index", 2);
+			selectedObject = ["objectProperties",{"panel" : panel, "flowID" : flowID, "deselect" : function(){ panel.find(".propertiesPanel-header").removeClass("theme-panelHeader-Active"); }}]
 		})
 
 		panel.find("#close").click(function () { 
@@ -194,32 +233,6 @@ function createPropertiesPanel(flowID) {
 		panel.find("#refresh").click(function () { 
 			loadPropertiesPanel(flowID,panel);
 		})
-
-		panel.bind("keydown", function (event) { 
-			if (event.ctrlKey || event.metaKey) {
-                switch (String.fromCharCode(event.which).toLowerCase()) {
-				case 's':
-					event.preventDefault();
-					savePropertiesPanel(flowID,panel);
-					break;
-				}
-			}
-		})
-
-		// panel.find("#title").focusout(function () {
-		// 	var title = panel.find("#title");
-		// 	var conductID = GetURLParameter("conductID")
-		// 	if (title.attr("current") != title.val()) {
-		// 		$.ajax({url:"/conductEditor/"+conductID+"/flow/"+flowID+"/", type:"POST", data: JSON.stringify({action: "update", title : title.val() }), contentType:"application/json", success: function( responseData ) {
-		// 				dropdownAlert(panel,"success","Title Updated",1000);
-		// 				var $flowchart = $('.flowchart');
-		// 				var operatorData = $flowchart.flowchart("getOperatorData", flowID);
-		// 				operatorData["properties"]["title"] = title.val()
-		// 				$flowchart.flowchart("setOperatorData", flowID, operatorData);
-		// 			}
-		// 		});
-		// 	}
-		// })
 
 		// Loading properties form
 		loadPropertiesPanel(flowID,panel);
