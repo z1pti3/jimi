@@ -34,10 +34,10 @@ def flowLogicEval(data,logicVar):
                 return True
     return False
 
-def getObjectFromCode(codeFunction):
+def getObjectFromCode(sessionData,codeFunction):
     functionName = codeFunction.split("(")[0]
     args = regexCommor.split(codeFunction.strip()[(len(functionName)+1):-1])
-    classObject = model._model().getAsClass(query={ "name" : functionName })[0].classObject()()
+    classObject = model._model().getAsClass(sessionData=sessionData,query={ "name" : functionName })[0].classObject()()
     classObject.enabled = True
     classObject._id= "000000000001010000000000"
     classObject.functionName = functionName
@@ -68,7 +68,7 @@ def getObjectFromCode(codeFunction):
                     break
     return classObject
 
-def executeCodifyFlow(eventsData,codifyData,eventCount=0,passedFlow=[],persistentData=None):
+def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,passedFlow=[],persistentData=None):
     outputText = "Started At - {0}".format(time.time())
 
     if not persistentData:
@@ -84,7 +84,7 @@ def executeCodifyFlow(eventsData,codifyData,eventCount=0,passedFlow=[],persisten
                 flow = flow.replace("\t","")
                 if flowIndentLevel == 0:
                     events = helpers.typeCast(eventsData)
-                    classObject = getObjectFromCode(flow)
+                    classObject = getObjectFromCode(sessionData,flow)
                     if type(events) != list:
                         classObject.checkHeader()
                         classObject.check()
@@ -93,10 +93,10 @@ def executeCodifyFlow(eventsData,codifyData,eventCount=0,passedFlow=[],persisten
                     flowLevel[flowIndentLevel] = flows[-1]
                 else:
                     if len(flow.split("->")) == 2:
-                        classObject = getObjectFromCode(flow.split("->")[1])
+                        classObject = getObjectFromCode(sessionData,flow.split("->")[1])
                         flowLevel[flowIndentLevel-1]["next"].append({ "classObject" : classObject, "type" : "action", "codeLine" : flow.split("->")[1], "logic" : flow.split("->")[0], "next" : [] })
                     else:
-                        classObject = getObjectFromCode(flow)
+                        classObject = getObjectFromCode(sessionData,flow)
                         flowLevel[flowIndentLevel-1]["next"].append({ "classObject" : classObject, "type" : "action", "codeLine" : flow, "logic" : "logic(True)", "next" : [] })
                     flowLevel[flowIndentLevel] = flowLevel[flowIndentLevel-1]["next"][-1]
     else:
@@ -183,7 +183,7 @@ def executeCodifyFlow(eventsData,codifyData,eventCount=0,passedFlow=[],persisten
                                                 events = currentObject.events
                                             else:
                                                 events = helpers.evalString(currentObject.eventsField,{"data" : data})
-                                            debugText = executeCodifyFlow(events,codifyData,eventCount=0,passedFlow=currentFlow,persistentData=persistentData)
+                                            debugText = executeCodifyFlow(sessionData,events,codifyData,eventCount=0,passedFlow=currentFlow,persistentData=persistentData)
                                 else:
                                     debugText, data["action"] = currentObject.runHandler(data,persistentData,debug=True)
                                 if debugText != "":
@@ -220,5 +220,5 @@ if api.webServer:
         @api.webServer.route(api.base+"codify/run/", methods=["POST"])
         def codifyRun():
             data = json.loads(api.request.data)
-            result = executeCodifyFlow(data["events"],data["code"],eventCount=int(data["eventCount"]))
+            result = executeCodifyFlow(data["sessionData"],data["events"],data["code"],eventCount=int(data["eventCount"]))
             return { "result" : result }, 200

@@ -94,7 +94,7 @@ if api.webServer:
         def getModel(modelName):
             class_ = loadModel(modelName).classObject()
             if class_:
-                results = _model().query(query={ "className" : class_.__name__ })["results"]
+                results = _model().query(api.g.sessionData,query={ "className" : class_.__name__ })["results"]
                 if len(results) == 1:
                     results = results[0]
                     return class_().query(api.g.sessionData,query={ "classID" : results["_id"] },fields=["_id","name","classType"]), 200
@@ -104,7 +104,7 @@ if api.webServer:
         def getModelExtra(modelName):
             class_ = loadModel(modelName).classObject()
             if class_:
-                results = _model().query(query={ "className" : class_.__name__ })["results"]
+                results = _model().query(api.g.sessionData,query={ "className" : class_.__name__ })["results"]
                 if len(results) == 1:
                     results = results[0]
                     results = class_().query(api.g.sessionData,query={ "classID" : results["_id"] },fields=["_id","name","classType","lastUpdateTime"])["results"]
@@ -130,11 +130,11 @@ if api.webServer:
             class_ = loadModel(modelName).classObject()
             classIDs = []
             if class_:
-                results = _model().query(query={ "className" : class_.__name__ })["results"]
+                results = _model().query(api.g.sessionData,query={ "className" : class_.__name__ })["results"]
                 if len(results) == 1:
                     results = results[0]
                     classIDs.append(results["_id"])
-                    results = _model().query(query={ "classType" : results["className"] })["results"]
+                    results = _model().query(api.g.sessionData,query={ "classType" : results["className"] })["results"]
                     for result in results:
                         classIDs.append(result["_id"])
 

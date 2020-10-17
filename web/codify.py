@@ -10,22 +10,16 @@ from core.models import trigger, action, conduct, webui
 
 @api.webServer.route("/codify/", methods=["GET"])
 def codify():
-    if api.g.sessionData:
-        if "admin" in api.g.sessionData:
-            if api.g.sessionData["admin"]:
-                return render_template("codify.html", CSRF=api.g.sessionData["CSRF"])
+    return render_template("codify.html", CSRF=api.g.sessionData["CSRF"])
 
 
 @api.webServer.route("/codify/", methods=["POST"])
 def codifyRun():
-    if api.g.sessionData:
-        if "admin" in api.g.sessionData:
-            if api.g.sessionData["admin"]:
-                data = json.loads(api.request.data)
-                apiEndpoint = "codify/run/"
-                try:
-                    apiContent = helpers.apiCall("POST",apiEndpoint,jsonData=data,token=api.g.sessionToken,timeout=60).text
-                except:
-                    return { "result" : "An error happend - Maybe the flow has taken too long to respond for codify?" }, 200
-                return json.loads(apiContent), 200
-    return {"result": " "}, 200
+    data = json.loads(api.request.data)
+    data["sessionData"] = api.g.sessionData
+    apiEndpoint = "codify/run/"
+    try:
+        apiContent = helpers.apiCall("POST",apiEndpoint,jsonData=data,token=api.g.sessionToken,timeout=60).text
+    except:
+        return { "result" : "An error happend - Maybe the flow has taken too long to respond for codify?" }, 200
+    return json.loads(apiContent), 200
