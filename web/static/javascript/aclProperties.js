@@ -5,7 +5,12 @@ var panelACLHTML = `
 		<label id="title"></label>
 	</div>
 	<div class="propertiesPanel-body theme-panelBody">
+	object ACL:<br>
 	<textarea id="propertiesPanelACLValue" class="inputFullWidth theme-panelTextArea"></textarea>
+	<br>
+	<br>
+	Flow UI ACL:<br>
+	<textarea id="propertiesPanelUiACLValue" class="inputFullWidth theme-panelTextArea"></textarea>
 	</div>
 	<div class="propertiesPanel-footer theme-panelFooter">
 		<button id="save" class="btn btn-primary theme-panelButton">Save</button>
@@ -34,6 +39,7 @@ function saveACLValuesPanel(panel) {
 	var objectJson = {};
 	selectedNodes = network.getSelectedNodes()
 	node = nodeObjects[selectedNodes[0]]["flowID"]
+	objectJson["uiAcl"] = panel.find("#propertiesPanelUiACLValue").val();
 	objectJson["acl"] = panel.find("#propertiesPanelACLValue").val();
 	objectJson["CSRF"] = CSRF
 	$.ajax({ url: "/conduct/"+conductID+"/editACL/"+node, type : "POST", data:JSON.stringify(objectJson), contentType:"application/json", success: function(result) {
@@ -45,10 +51,11 @@ function saveACLValuesPanel(panel) {
 function loadACLValuesPanel(panel) {
 	// Building properties form
 	var conductID = GetURLParameter("conductID")
-	panel.find("#title").text("come back to this");
+	panel.find("#title").text("Security Settings");
 	selectedNodes = network.getSelectedNodes()
 	node = nodeObjects[selectedNodes[0]]["flowID"]
 	$.ajax({ url: "/conduct/"+conductID+"/editACL/"+node, type : "GET", success: function( flowData ) {
+			panel.find("#propertiesPanelUiACLValue").val(JSON.stringify(flowData["uiAcl"]));
 			panel.find("#propertiesPanelACLValue").val(JSON.stringify(flowData["acl"]));
 		}
 	});

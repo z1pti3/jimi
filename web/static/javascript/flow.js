@@ -335,7 +335,7 @@ function editFlowObject() {
 	}
 }
 
-function editFlowACL() {
+function editACL() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
 		node = nodeObjects[selectedNodes[0]]["flowID"]

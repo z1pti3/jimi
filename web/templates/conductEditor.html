@@ -26,7 +26,7 @@
 		<script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
 		<script src="{{ url_for('static', filename='javascript/existingObject.js') }}"></script>
 		<script src="{{ url_for('static', filename='javascript/triggerObject.js') }}"></script>
-		<script src="{{ url_for('static', filename='javascript/uiACLProperties.js') }}"></script>
+		<script src="{{ url_for('static', filename='javascript/aclProperties.js') }}"></script>
 
 		<link rel="stylesheet" href="{{ url_for('static', filename='css/conductEditor.css') }}">
 		<link rel="stylesheet" href="{{ url_for('static', filename='css/objectProperties.css') }}">
@@ -53,7 +53,7 @@
 					<li class="divider"></li>
 					<li><a tabindex="-1" onclick="triggerFlowObject()">Test Trigger</a></li>
 					<li class="divider"></li>
-					<li><a tabindex="-1" onclick="editFlowACL()">Modify UI ACL</a></li>
+					<li><a tabindex="-1" onclick="editACL()">Security Settings</a></li>
 					<li class="divider"></li>
 					<li><a tabindex="-1" onclick="deleteFlowObject()">Delete</a></li>
 				</ul>

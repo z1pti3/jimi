@@ -770,29 +770,90 @@ def deleteFlowLink(conductID,fromFlowID,toFlowID):
 
 @api.webServer.route("/conduct/<conductID>/editACL/<flowID>", methods=["GET"])
 def getACL(conductID,flowID):
-    webObj = webui._modelUI().getAsClass(api.g.sessionData,query={"conductID" : conductID, "flowID" : flowID})
-    if len(webObj) == 1:
-        webObj = webObj[0]
-        return {"acl":webObj.acl}, 200
+    conductObj = conduct._conduct().getAsClass(api.g.sessionData,id=conductID)
+    if len(conductObj) == 1:
+        conductObj = conductObj[0]
     else:
         return { }, 404
 
-@api.webServer.route("/conduct/<conductID>/editACL/<flowID>", methods=["POST"])
-def editACL(conductID,flowID):
+    flow = [ x for x in conductObj.flow if x["flowID"] == flowID]
+    if len(flow) == 1:
+        flow = flow[0]
+        if "type" in flow:
+            if flow["type"] == "trigger":
+                modelFlowObject = trigger._trigger().getAsClass(api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                if len(modelFlowObject) == 1:
+                    modelFlowObject = modelFlowObject[0]
+            if flow["type"] == "action":
+                modelFlowObject = action._action().getAsClass(api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                if len(modelFlowObject) == 1:
+                    modelFlowObject = modelFlowObject[0]
+    acl = None
+    if modelFlowObject:
+        acl = modelFlowObject.acl
+
+    uiAcl = None
     webObj = webui._modelUI().getAsClass(api.g.sessionData,query={"conductID" : conductID, "flowID" : flowID})
     if len(webObj) == 1:
         webObj = webObj[0]
+        uiAcl = webObj.acl
+
+    return {"acl":acl, "uiAcl" : uiAcl}, 200
+
+@api.webServer.route("/conduct/<conductID>/editACL/<flowID>", methods=["POST"])
+def editACL(conductID,flowID):
+    conductObj = conduct._conduct().getAsClass(api.g.sessionData,id=conductID)
+    if len(conductObj) == 1:
+        conductObj = conductObj[0]
     else:
         return { }, 404
-    access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,webObj.acl,"write")
-    if access:
-        data = json.loads(api.request.data)
-        webObj.acl = json.loads(data["acl"])
-        if "_id" in api.g.sessionData:
-            audit._audit().add("flow","update",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID, "acl" : data["acl"] })
-        else:
-            audit._audit().add("flow","update",{ "user" : "system", "conductID" : conductID, "flowID" : flowID, "acl" : data["acl"] })
-        webObj.update(["acl"])
-        return { }, 200
-    else:
-        return {}, 403        
+
+    data = json.loads(api.request.data)
+
+    flow = [ x for x in conductObj.flow if x["flowID"] == flowID]
+    if len(flow) == 1:
+        flow = flow[0]
+        if "type" in flow:
+            if flow["type"] == "trigger":
+                modelFlowObject = trigger._trigger().getAsClass(api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                if len(modelFlowObject) == 1:
+                    modelFlowObject = modelFlowObject[0]
+            if flow["type"] == "action":
+                modelFlowObject = action._action().getAsClass(api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                if len(modelFlowObject) == 1:
+                    modelFlowObject = modelFlowObject[0]
+
+    objectResult = True
+    if modelFlowObject:
+        acl = json.loads(data["acl"])
+        if acl != modelFlowObject.acl:
+            if db.fieldACLAccess(api.g.sessionData,modelFlowObject.acl,"acl","write"):
+                modelFlowObject.acl = acl
+                if "_id" in api.g.sessionData:
+                    audit._audit().add("flow","update",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID, "acl" : data["acl"] })
+                else:
+                    audit._audit().add("flow","update",{ "user" : "system", "conductID" : conductID, "flowID" : flowID, "acl" : data["acl"] })
+                modelFlowObject.update(["acl"])
+            else:
+                objectResult=False
+            
+    uiResult = True
+    webObj = webui._modelUI().getAsClass(api.g.sessionData,query={"conductID" : conductID, "flowID" : flowID})
+    if len(webObj) == 1:
+        webObj = webObj[0]
+        uiAcl = json.loads(data["uiAcl"])
+        if webObj.acl != uiAcl:
+            if db.fieldACLAccess(api.g.sessionData,webObj.acl,"acl","write"):
+                webObj.acl = uiAcl
+                if "_id" in api.g.sessionData:
+                    audit._audit().add("flow","update",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID, "uiAcl" : data["uiAcl"] })
+                else:
+                    audit._audit().add("flow","update",{ "user" : "system", "conductID" : conductID, "flowID" : flowID, "uiAcl" : data["uiAcl"] })
+                webObj.update(["acl"])
+            else:
+                uiResult = False
+
+    if not objectResult or not uiResult:
+        return { }, 403
+
+    return { }, 200   
