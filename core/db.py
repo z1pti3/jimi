@@ -411,8 +411,6 @@ def list_collection_names():
 
 # Checks if access to a field is permitted by the object ACL
 def fieldACLAccess(sessionData,acl,field,accessType="read"):
-    if not acl:
-        return False
     if not authSettings["enabled"]:
         return True
     accessIDs= []
@@ -441,6 +439,8 @@ def fieldACLAccess(sessionData,acl,field,accessType="read"):
                         if accessID["accessID"] in accessIDs and accessID[accessType]:
                             return True
         else:
+            if not acl and not adminBypass:
+                return False
             access, accessIDs, adminBypass = ACLAccess(sessionData,acl,accessType)
             return access
     return False
@@ -461,12 +461,11 @@ def ACLAccess(sessionData,acl,accessType="read"):
         if not adminBypass:
             accessIDs = sessionData["accessIDs"]
             if acl:
-                for aclItem in acl["ids"]:
-                    for accessID in accessIDs:
-                        if aclItem["accessID"] == accessID:
-                            access = aclItem[accessType]
-            else:
-                access = True
+                if "ids" in acl:
+                    for aclItem in acl["ids"]:
+                        for accessID in accessIDs:
+                            if aclItem["accessID"] == accessID:
+                                access = aclItem[accessType]
     return [ access, accessIDs, adminBypass ]
 
 
