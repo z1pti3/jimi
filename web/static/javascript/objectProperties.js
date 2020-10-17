@@ -229,7 +229,7 @@ function createPropertiesPanel(flowID) {
 		// Select the new panel
 		$('.ui-main').find(".propertiesPanel").css("z-index", 1);
 		panel.find(".propertiesPanel-header").addClass("theme-panelHeader-Active");
-		selectedObject = ["objectProperties",panel,flowID];
+		selectedObject = ["objectProperties",{"panel" : panel, "flowID" : flowID, "deselect" :function(){ panel.find(".propertiesPanel-header").removeClass("theme-panelHeader-Active"); }}]
 
 		// Events
 		panel.click(function () {
