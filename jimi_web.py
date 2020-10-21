@@ -55,7 +55,7 @@ def mainPage():
 @api.webServer.route("/plugins/")
 def loadPluginPages():
 	userPlugins = []
-	userModels = model._model().getAsClass(sessionData=api.g.sessionData,query={ "name" : { "$in" : pluginPages } })
+	userModels = plugin._plugin().getAsClass(sessionData=api.g.sessionData,query={ "name" : { "$in" : pluginPages } })
 	for userModel in userModels:
 		if userModel.name in pluginPages:
 			userPlugins.append(userModel.name)
