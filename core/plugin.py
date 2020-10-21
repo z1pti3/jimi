@@ -197,6 +197,13 @@ def updatePluginDB():
     for listedPlugin in listedPlugins:
         plugins = _plugin().api_delete(query={ "name" : listedPlugin["name"] })
 
+def loadPluginAPIExtensions():
+    plugins = os.listdir("plugins")
+    for plugin in plugins:
+        if os.path.isfile(Path("plugins/{0}/api/{0}.py".format(plugin))):
+            mod = __import__("plugins.{0}.api.{0}".format(plugin), fromlist=["pluginPages"])
+            api.webServer.register_blueprint(mod.pluginPages,url_prefix='/plugin')
+
 # Cleans all object references for non-existent plugin models
 def cleanPluginDB():
     pass

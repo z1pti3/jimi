@@ -88,6 +88,7 @@ def setup():
 			sys.exit("Unable to complete upgrade")
 
 	plugin.updatePluginDB()
+	plugin.loadPluginAPIExtensions()
 
 # Set startCheck to 0 so that all triggers start
 def resetTriggers():
