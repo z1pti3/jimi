@@ -35,23 +35,14 @@ def flowLogicEval(data,logicVar):
     return False
 
 def getObjectFromCode(sessionData,codeFunction):
-    functionName = codeFunction.split("(")[0]
-    args = regexCommor.split(codeFunction.strip()[(len(functionName)+1):-1])
+    functionName = codeFunction.split("{")[0]
+    args = json.loads(codeFunction.strip()[(len(functionName)):])
     classObject = model._model().getAsClass(sessionData=sessionData,query={ "name" : functionName })[0].classObject()()
     classObject.enabled = True
     classObject._id= "000000000001010000000000"
     classObject.functionName = functionName
     members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
-    for arg in args:
-        arg=arg.replace("(\)n","\n").replace("(\)t","\t")
-        key = arg.split("=")[0]
-        if len(arg[len(key)+1:]) > 2:
-            if ((arg[len(key)+1:][1] == "[" or arg[len(key)+1:][1] == "{") and (arg[len(key)+1:][-2] == "]" or arg[len(key)+1:][-2] == "}")):
-                value = helpers.typeCast(arg[len(key)+1:][1:-1])
-            else:
-                value = helpers.typeCast(arg[len(key)+1:])
-        else:
-            value = helpers.typeCast(arg[len(key)+1:])
+    for key, value in args.items():
         for member in members:
             if key == member:
                 if type(getattr(classObject,member)) == type(value):

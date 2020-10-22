@@ -380,30 +380,20 @@ def getConductFlowCodify(conductID):
                     blacklist = ["_id","acl","classID","workerID","startCheck","nextCheck","lastUpdateTime","lastCheck","clusterSet","concurrency","creationTime","schedule","systemID"]
                     typeList = [str,int,float,dict,list]
                     members = [attr for attr in dir(obj) if not callable(getattr(obj, attr)) and not "__" in attr and attr ]
-                    params=[]
+                    params={}
                     for member in members:
                         if member not in blacklist:
                             value = getattr(obj,member)
-                            if type(value) == str:
-                                value="\"{0}\"".format(value)
-                            elif type(value) == dict:
-                                value="\"{0}\"".format(value)
-                            elif type(value) == list:
-                                value="\"{0}\"".format(value)
-                            else:
-                                 value="{0}".format(value)
-
                             if type(value) in typeList:
-                                value = value.replace("\n","(\)n").replace("\t","(\)t")
-                                params.append("{0}={1}".format(member,value))
+                                params[member] = value
                     
                     if currentFlow["type"] == "action":
-                        flowCode+="\r\n{0}logic({1})->{2}({3})".format(("\t"*indentLevel),logic,classObj.name,",".join(params))
+                        flowCode+="\r\n{0}logic({1})->{2}{3}".format(("\t"*indentLevel),logic,classObj.name,json.dumps(params))
                     else:
                         if len(flowCode) > 0:
-                            flowCode+="\r\n{0}{1}({2})".format(("\t"*indentLevel),classObj.name,",".join(params))
+                            flowCode+="\r\n{0}{1}{2}".format(("\t"*indentLevel),classObj.name,json.dumps(params))
                         else:
-                            flowCode="{0}({1})".format(classObj.name,",".join(params))
+                            flowCode="{0}{1}".format(classObj.name,json.dumps(params))
             if len(processQueue) == 0:
                 break
             else:
