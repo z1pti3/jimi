@@ -127,27 +127,71 @@ def typeCast(varString,dicts={},functionSafeList=functionSafeList):
         elif regexFunction.search(varString):
             functionName = varString.split("(")[0]
             if functionName in functionSafeList:
+                functionValue = varString[(len(functionName)+1):-1]
+
                 functionArgs = []
-                # Cast type from string for function arguments
-                functionFound = None
-                for functionArg in regexCommor.split(varString[(len(functionName)+1):-1]):
-                    if not functionFound:
-                        if regexFunctionOpen.search(functionArg):
-                            functionFound = functionArg
-                            if functionFound.endswith(")"):
-                                functionArg = functionFound
-                                functionFound = None
+
+                tempArg = ""
+                index = 0
+                # Decoding string function arguments to single arguments for typeCasting
+                while index <= len(functionValue)-1:
+                    if functionValue[index] == "\"":
+                        tempArg += functionValue[index]
+                        index += 1
+                        while index <= len(functionValue)-1:
+                            if functionValue[index] != "\"":
+                                tempArg += functionValue[index]
+                                index += 1
+                            else:
+                                tempArg += functionValue[index]
+                                if functionValue[index-1] != "\\" and functionValue[index-2] != "\\":
+                                    break
+                                index += 1
+                    elif functionValue[index] == "[":
+                        while index <= len(functionValue)-1:
+                            if functionValue[index] != "]":
+                                tempArg += functionValue[index]
+                                index += 1
+                            else:
+                                tempArg += functionValue[index]
+                                index += 1
+                                break
                     else:
-                        functionFound+=",{0}".format(functionArg)
-                        if functionFound.endswith(")"):
-                            functionArg = functionFound
-                            functionFound = None
-                    if not functionFound:
-                        value = typeCast(functionArg.strip(),dicts,functionSafeList)
+                        functionFound = 0
+                        inQuote = False
+                        while index <= len(functionValue)-1:
+                            if functionFound > 0:
+                                if functionValue[index] == "\"":
+                                    if functionValue[index-1] != "\\" and functionValue[index-2] != "\\":
+                                       inQuote = not inQuote
+                                if not inQuote: 
+                                    if functionValue[index] == "(":
+                                        functionFound += 1
+                                    elif functionValue[index] == ")":
+                                        functionFound -= 1
+                                        if functionFound == 0:
+                                            tempArg += functionValue[index]
+                                            index += 1
+                                            break
+                                tempArg += functionValue[index]
+                                index += 1
+                            elif functionValue[index] == "(":
+                                tempArg += functionValue[index]
+                                index += 1
+                                if regexFunctionOpen.search(tempArg):
+                                    functionFound += 1
+                            elif functionValue[index] != "," and functionValue[index] != ")":
+                                tempArg += functionValue[index]
+                                index += 1
+                            else:
+                                break
+                    
+                    if tempArg != "":
+                        value = typeCast(tempArg.strip(),dicts,functionSafeList)
                         functionArgs.append(value)
-                if functionFound:
-                    value = typeCast(functionArg.strip(),dicts,functionSafeList)
-                    functionArgs.append(value)
+                        tempArg = ""
+                    index+=1
+
                 # Catch any execution errors within functions
                 try:
                     if len(functionArgs) > 0:
