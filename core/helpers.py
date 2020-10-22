@@ -133,7 +133,7 @@ def typeCast(varString,dicts={},functionSafeList=functionSafeList):
 
                 tempArg = ""
                 index = 0
-                # Decoding string function arguments to single arguments for typeCasting
+                # Decoding string function arguments to single arguments for typeCasting - Regex maybe faster but has to handle encaspulation of " \" [ ' (, old search regex only worked with "
                 while index <= len(functionValue)-1:
                     if functionValue[index] == "\"":
                         tempArg += functionValue[index]
