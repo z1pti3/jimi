@@ -67,6 +67,10 @@ function savePropertiesPanel(flowID,panel) {
 				jsonData[resultItem] = formItem.is(":checked");
 			}
 		}
+		if (formItem.attr("type") == "dropdown")
+		{
+			jsonData[resultItem] = formItem.val();
+		}
 	})
 	// Posting
 	$.ajax({url:"/api/1.0/models/"+modelType+"/"+modelID+"/", type:"POST", data: JSON.stringify({ action : "update", data: jsonData, CSRF: CSRF }), contentType:"application/json", success: function ( result ) {
