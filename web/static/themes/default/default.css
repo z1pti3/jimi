@@ -62,19 +62,23 @@
     background-color: #0f0f0f;
     min-height: 75px;
     color: #ddd;
+    border: none;
 }
 
 .theme-panelTextbox {
     background-color: #0f0f0f; 
     color: #ddd;
+    border: none;
 }
 
 .theme-panelSelect {
     background-color: #0f0f0f; 
+    border: none;
 }
 
 .theme-panelCheckbox {
     background-color: #0f0f0f;
+    border: none;
 }
 
 .theme-table {
@@ -123,4 +127,44 @@
 
 .theme-jsonnull {
     color: #9b9b9b;
+}
+
+
+/* selectbox */
+.select2-container--theme-panelSelect .select2-selection--single {
+    background-color: #0f0f0f;
+    border: none;
+    height: 20px;
+}
+
+/* item hover */
+.select2-container--theme-panelSelect .select2-results__option[aria-selected=true] {
+    background-color: #220433;
+    color: #ddd;
+}
+
+/* search box */
+.select2-container--theme-panelSelect .select2-search--dropdown .select2-search__field {
+    background-color: #0f0f0f;
+    color: #ddd;
+    border: none;
+}
+
+.select2-container--theme-panelSelect .select2-search--dropdown {
+    border: none;
+    outline: 0;
+    box-shadow: none;
+    outline: 0;
+    padding: 0;
+}
+
+/* search results */
+.select2-container--theme-panelSelect .select2-results {
+    background-color: #0f0f0f;
+    color: #ddd;
+}
+
+.select2-container--theme-panelSelect .select2-results > .select2-results__options {
+    max-height: 200px;
+    overflow-y: auto; 
 }

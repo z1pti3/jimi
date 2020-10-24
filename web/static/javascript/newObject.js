@@ -5,7 +5,7 @@ var newObjectHTML = `
 		<label id="title">Create New Object</label>
 	</div>
 	<div class="propertiesPanel-body theme-panelBody">
-		<select class="inputFullWidth theme-panelSelect" id="newObjectPanel-objectType"></select>
+		<select class="inputFullWidth theme-panelSelect" id="newObjectPanel-objectType" style="width: 100%"></select>
 	</div>
 	<div class="propertiesPanel-footer theme-panelFooter">
 		<button id="save" class="btn btn-primary theme-panelButton">Create</button>
@@ -94,6 +94,9 @@ function createNewObjectPanel() {
 
 		// Loading properties form
 		loadNewObjectPanel(panel);
+
+		// Setting searchable
+		panel.find("#newObjectPanel-objectType").select2({ theme : "theme-panelSelect" });
 
 		// Applying object to UI
 		$('.ui-main').append(panel);
