@@ -4,6 +4,8 @@ import hashlib
 import time
 import json
 import jwt
+import hmac
+import math
 import functools
 from pathlib import Path
 from Crypto.Cipher import AES, PKCS1_OAEP # pycryptodome
@@ -163,6 +165,31 @@ def generatePasswordHash(password,salt,hType="j1"):
     if hType == "j1":
         hash = base64.b64encode(hashlib.pbkdf2_hmac("sha512", password.encode(), salt.encode(), 100000))
     return [hType,hash.decode()]
+
+def generateSharedSecret():
+    return secrets.token_hex(16)
+
+def generateTOTP(sharedKey, length=6):
+    nowInSeconds = math.floor(time.time())
+    steps = 30
+    timeStep = math.floor(nowInSeconds / steps)
+    hash = hmac.new(
+        bytes(sharedKey, encoding="utf-8"),
+        timeStep.to_bytes(length=8, byteorder="big"),
+        hashlib.sha256
+    )
+    return dynamicTruncation(hash, length)   
+
+def dynamicTruncation(rawKey,length):
+    bitstring = bin(int(rawKey.hexdigest(), base=16))
+    lastFourBits = bitstring[-4:]
+    offset = int(lastFourBits, base=2)
+    chosen32Bits = bitstring[offset * 8 : offset * 8 + 32]
+    fullTOTP = str(int(chosen32Bits, base=2))
+    return fullTOTP[-length:]
+
+def validateTOTP(totp,sharedKey):
+    return totp == generateTOTP(sharedKey)    
 
 def generateSession(dataDict):
     dataDict["expiry"] = time.time() + authSettings["sessionTimeout"]
