@@ -7,7 +7,7 @@ import string
 from core import db
 
 # Current System Version
-systemVersion = 1.5
+systemVersion = 1.51
 
 # Initialize 
 dbCollectionName = "system"
@@ -89,7 +89,7 @@ def setup():
 
 	# Loading functions
 	function.load()
-	
+
 	# Initialize plugins
 	plugin.load()
 
