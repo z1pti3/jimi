@@ -88,21 +88,18 @@ class _cache:
         if authedCacheName == None:
             return
         now = time.time()
-        if authedCacheName not in self.objects:
-            self.newCache(authedCacheName)
         if not forceUpdate:
             try:
                 objectCache = self.objects[authedCacheName]["objects"][uid]
                 if ((objectCache["cacheExpiry"] > now) or (extendCacheTime)):
-                    objectCache["accessCount"] += 1
                     if extendCacheTime:
-                        if customCacheTime == None:
+                        if not customCacheTime:
                             objectCache["cacheFor"] = ( now + self.objects[authedCacheName]["cacheExpiry"] )
                         else:
                             objectCache["cacheFor"] = ( now + customCacheTime )
                     return objectCache["objectValue"]
             except KeyError:
-                pass
+                self.newCache(authedCacheName)
         if not dontCheck:
             cache, objectValue = self.getObjectValue(cacheName,uid,setFunction,*args,sessionData=sessionData)
             if cache and ( objectValue or nullUpdate ):

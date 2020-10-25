@@ -26,6 +26,7 @@ regexFunctionOpen = re.compile("^([a-zA-Z0-9]*)\(.*")
 regexCommor = re.compile(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")
 regexInt = re.compile("^[0-9]*$")
 regexFloat = re.compile("^[0-9]*\.[0-9]*$")
+regexString = re.compile("^\".*\"$")
 
 class cpuSaver:
     loops = 0
@@ -105,7 +106,7 @@ def getDictValue(varString,dicts={}):
         if dictName in dicts:
             dictKeys = []
             for key in regexDictKeys.findall(varString):
-                dictKeys.append(typeCast(key[1]))
+                dictKeys.append(key[1])
             return typeCast(nested_dict_get(dicts[dictName],dictKeys))
     return None
 
@@ -113,18 +114,31 @@ def getDictValue(varString,dicts={}):
 def typeCast(varString,dicts={},functionSafeList=functionSafeList):
     if type(varString) == str:
         # String defined
-        if varString.startswith("\"") and varString.endswith("\""):
+        if regexString.search(varString):
             return str(varString[1:-1])
-        # Attempt to cast
-        try:
-            return ast.literal_eval(varString)
-        except Exception as e:
-            pass
-        # dict
+        # Int
+        if regexInt.search(varString): 
+            return int(varString)
+        # Float
+        if regexFloat.search(varString):
+            return float(varString)
+        # Bool
+        lower = varString.lower()
+        if lower == "true":
+            return True
+        if lower == "false":
+            return False
+        # Dict
         if regexDict.search(varString):
             return getDictValue(varString,dicts)
+        # Attempt to cast dict and list
+        if varString.startswith("{") or varString.startswith("["):
+            try:
+                return ast.literal_eval(varString)
+            except Exception as e:
+                pass
         # Function
-        elif regexFunction.search(varString):
+        if regexFunction.search(varString):
             functionName = varString.split("(")[0]
             if functionName in functionSafeList:
                 functionValue = varString[(len(functionName)+1):-1]
@@ -163,7 +177,7 @@ def typeCast(varString,dicts={},functionSafeList=functionSafeList):
                             if functionFound > 0:
                                 if functionValue[index] == "\"":
                                     if functionValue[index-1] != "\\" and functionValue[index-2] != "\\":
-                                       inQuote = not inQuote
+                                        inQuote = not inQuote
                                 if not inQuote: 
                                     if functionValue[index] == "(":
                                         functionFound += 1
