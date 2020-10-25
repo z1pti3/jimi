@@ -40,7 +40,8 @@ class _document():
             self._id = result.inserted_id
             return result
         else:
-            logging.debug("Cannot create new document className='{0}' not found".format(self.__class__.__name__),3)
+            if logging.debugEnabled:
+                logging.debug("Cannot create new document className='{0}' not found".format(self.__class__.__name__),3)
             return False
 
     def bulkNew(self,bulkClass,sessionData=None):
@@ -52,7 +53,8 @@ class _document():
             bulkClass.newBulkOperaton(self._dbCollection.name,"insert",self)
             return self
         else:
-            logging.debug("Cannot create new document className='{0}' not found".format(self.__class__.__name__),3)
+            if logging.debugEnabled:
+                logging.debug("Cannot create new document className='{0}' not found".format(self.__class__.__name__),3)
             return None
 
     # Converts jsonList into class - Seperate function to getAsClass so it can be overridden to support plugin loading for child classes
@@ -176,7 +178,8 @@ class _document():
             try:
                 query = { "_id" : ObjectId(id) }
             except Exception as e:
-                logging.debug("Error {0}".format(e))
+                if logging.debugEnabled:
+                    logging.debug("Error {0}".format(e))
                 return result
         if not query:
             query = {}
@@ -246,7 +249,8 @@ class _document():
             try:
                 query = { "_id" : ObjectId(id) }
             except Exception as e:
-                logging.debug("Error {0}".format(e))
+                if logging.debugEnabled:
+                    logging.debug("Error {0}".format(e))
                 return result
         if not query:
             query = {}
@@ -289,14 +293,16 @@ class _document():
                 if result.deleted_count == 1:
                     return { "result" : True, "count" : result.deleted_count }
             except Exception as e:
-                logging.debug("Error {0}".format(e))
+                if logging.debugEnabled:
+                    logging.debug("Error {0}".format(e))
         elif query and not id:
             try:
                 result = self._dbCollection.delete_many(query)
                 if result.deleted_count > 0:
                     return { "result" : True, "count" : result.deleted_count }
             except Exception as e:
-                logging.debug("Error {0}".format(e))
+                if logging.debugEnabled:
+                    logging.debug("Error {0}".format(e))
         return { "result" : False, "count" : 0 }
 
     @mongoConnectionWrapper
@@ -305,7 +311,8 @@ class _document():
             try:
                 query["_id"] = ObjectId(query["_id"])
             except Exception as e:
-                logging.debug("Error {0}".format(e))
+                if logging.debugEnabled:
+                    logging.debug("Error {0}".format(e))
         result = self._dbCollection.update_many(query,update)
         return { "result" : True, "count" :  result.modified_count }
 

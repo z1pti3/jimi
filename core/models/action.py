@@ -55,13 +55,16 @@ class _action(db._document):
         setattr(self,attr,value)
         return True
 
+
     def runHandler(self,data,persistentData,debug=False):
-        startTime = time.time()
-        debugText=""
-        actionResult = { "result" : False, "rc" : -1, "actionID" : self._id, "data" : {} }
+        startTime = 0
+        if self.log:
+            startTime = time.time()
+        actionResult = { "result" : False, "rc" : -1, "actionID" : self._id }
         self.runHeader(data,persistentData,actionResult)
-        if self.logicString.startswith("if"):
+        if self.logicString:
             if debug:
+                debugText=""
                 logicDebugText, logicResult = logic.ifEval(self.logicString, { "data" : data }, debug=True)
                 debugText+="\n\t[action logic]\n\t\t{0}\n\t\t{1}\n\t\t({2})".format(self.logicString,logicResult,logicDebugText)
             else:
@@ -79,6 +82,8 @@ class _action(db._document):
                 data["var"] = variable.varEval(self.varDefinitions,data["var"],{ "data" : data, "action" : actionResult})
         self.runFooter(data,persistentData,actionResult,startTime)
         if debug:
+            if not debugText:
+                debugText=""
             return (debugText, actionResult)
         return actionResult
 
@@ -86,80 +91,23 @@ class _action(db._document):
         if self.log:
             # Used helpers.dictValue as cant ensure new data is passed by all plugins such as forEach / Subflow - this should be removed once these are updated to include the required template
             audit._audit().add("action","action start",{ "conductID" : helpers.dictValue(data,"conductID"), "conductName" : helpers.dictValue(data,"conductName"), "triggerName" : helpers.dictValue(data,"triggerName"), "triggerID" : helpers.dictValue(data,"triggerID"), "actionID" : self._id, "actionName" : self.name, "var" : helpers.dictValue(data,"var"), "event" : helpers.dictValue(data,"event"), "actionResult" : actionResult })
-        logging.debug("Action run started, actionID='{0}', data='{1}'".format(self._id,data),7)
+        if logging.debugEnabled:
+            logging.debug("Action run started, actionID='{0}', data='{1}'".format(self._id,data),7)
 
     def run(self,data,persistentData,actionResult):
         actionResult["result"] = True
         actionResult["rc"] = 0
+        return actionResult
 
     def runFooter(self,data,persistentData,actionResult,startTime):
         if self.log:
             # Used helpers.dictValue as cant ensure new data is passed by all plugins such as forEach / Subflow - this should be removed once these are updated to include the required template
             audit._audit().add("action","action end",{ "conductID" : helpers.dictValue(data,"conductID"), "conductName" : helpers.dictValue(data,"conductName"), "triggerName" : helpers.dictValue(data,"triggerName"), "triggerID" : helpers.dictValue(data,"triggerID"), "actionID" : self._id, "actionName" : self.name, "var" : helpers.dictValue(data,"var"), "event" : helpers.dictValue(data,"event"), "actionResult" : actionResult, "duration" : (time.time() - startTime) })
-        logging.debug("Action run complete, actionID='{0}', data='{1}'".format(self._id,data),7)
+        if logging.debugEnabled:
+            logging.debug("Action run complete, actionID='{0}', data='{1}'".format(self._id,data),7)
 
     def postRun(self):
         pass
-
-    def logicEval(self, logicString, data):
-        def logicProcess(statement):
-            try:
-                if statement[2] == "==":
-                    return (statement[0] == statement[1])
-                elif statement[2] == "!=":
-                    return (statement[0] != statement[1])
-                elif statement[2] == ">":
-                    return (statement[0] > statement[1])
-                elif statement[2] == ">=":
-                    return (statement[0] >= statement[1])
-                elif statement[2] == "<":
-                    return (statement[0] < statement[1])
-                elif statement[2] == "<=":
-                    return (statement[0] <= statement[1])
-                elif statement[2] == "in":
-                    return (statement[0] in statement[1])
-                elif statement[2] == "not in":
-                    return (statement[0] not in statement[1])
-                elif statement[2].startswith("match"):
-                    statement[1] = statement[2].split("\"")[1]
-                    if re.search(statement[1],statement[0]):
-                        return True
-                    else:
-                        return False
-                elif statement[2].startswith("not match"):
-                    statement[1] = statement[2].split("\"")[1]
-                    if re.search(statement[1],statement[0]):
-                        return False
-                    else:
-                        return True
-            except:
-                logging.debug("Action logicEval process failed, statement='{0}'".format(statement),5)
-                return False
-
-        logging.debug("Action logicEval started, actionID='{0}', logicString='{1}'".format(self._id,logicString),9)
-
-        if "if" == logicString[:2]:
-            tempLogic = logicString[2:]
-            logicMatches = regexIf.finditer(tempLogic)
-            for index, logicMatch in enumerate(logicMatches, start=1):
-                statement = [logicMatch.group(1).strip(),logicMatch.group(14).strip(),logicMatch.group(13).strip()]
-                # Cast typing statement vars
-                for x in range(0,2):
-                    statement[x] = helpers.typeCast(statement[x],{"data" : data})
-
-                tempLogic = tempLogic.replace(logicMatch.group(0),str(logicProcess(statement)))
-
-            # Checking that result only includes True, False, ( ), or, and,
-            if regexLogic.search(tempLogic):
-                result = eval(tempLogic) # Can be an unsafe call be very careful with this!
-                logging.debug("Action logicEval completed, result='{0}'".format(result),10)
-                return result
-            else:
-                logging.debug("Action logicEval tempLogic contains unsafe items, tempLogic='{0}'".format(tempLogic),3)
-
-        logging.debug("Action logicEval completed, result='{0}'".format(False),10)
-        return False
-
 
 from core import helpers, logging, model, audit
 from system.functions import network

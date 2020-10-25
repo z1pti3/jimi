@@ -22,7 +22,8 @@ class _threading(threading.Thread):
         thread_id = self.get_id() 
         res = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id), ctypes.py_object(SystemExit))
         if res == 0:
-            logging.debug("Exception raise failure - invalid thread ID")
+            if logging.debugEnabled:
+                logging.debug("Exception raise failure - invalid thread ID")
         if res > 1: 
             ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id), 0)
 
@@ -54,7 +55,8 @@ class workerHandler:
         def multiprocessingThreadCall(self):
             self.startTime = int(time.time())
             self.running = True
-            logging.debug("Threaded process worker started, workerID={0}".format(self.id))
+            if logging.debugEnabled:
+                logging.debug("Threaded process worker started, workerID={0}".format(self.id))
 
             Q = Queue()
             p = Process(target=multiprocessingThreadStart, args=(Q,self.call,self.args)) # Taking an entire copy of cache is not effient review bug
@@ -68,25 +70,29 @@ class workerHandler:
 
                 if rc != 0:
                     self.crash = True
-                    logging.debug("Threaded process worker crashed, workerID={0}".format(self.id))
+                    if logging.debugEnabled:
+                        logging.debug("Threaded process worker crashed, workerID={0}".format(self.id))
                     systemTrigger.failedTrigger(self.id,"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
 
                 # Ensure cache is updated with any new items
                 #cache.globalCache.sync(globalCacheObjects)
             except SystemExit:
                 self.crash = True
-                logging.debug("Threaded process worker killed, workerID={0}".format(self.id))
+                if logging.debugEnabled:
+                    logging.debug("Threaded process worker killed, workerID={0}".format(self.id))
                 systemTrigger.failedTrigger(self.id,"triggerKilled")
             except Exception as e:
                 self.crash = True
-                logging.debug("Threaded worker crashed, workerID={0}".format(self.id))
+                if logging.debugEnabled:
+                    logging.debug("Threaded worker crashed, workerID={0}".format(self.id))
                 systemTrigger.failedTrigger(self.id,"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
             finally:
                 if p.exitcode == None:
                     p.terminate()
                 #Q.close()
             
-            logging.debug("Threaded process worker completed, workerID={0}".format(self.id))
+            if logging.debugEnabled:
+                logging.debug("Threaded process worker completed, workerID={0}".format(self.id))
             self.running = False
             self.endTime = int(time.time())
             self.duration = (self.endTime - self.startTime)
@@ -94,7 +100,8 @@ class workerHandler:
         def threadCall(self):
             self.startTime = int(time.time())
             self.running = True
-            logging.debug("Threaded worker started, workerID={0}".format(self.id))
+            if logging.debugEnabled:
+                logging.debug("Threaded worker started, workerID={0}".format(self.id))
             # Handle thread raise exception kill
             try:
                 if self.args:
@@ -103,13 +110,16 @@ class workerHandler:
                     self.result = self.call()
             except SystemExit:
                 self.crash = True
-                logging.debug("Threaded worker killed, workerID={0}".format(self.id))
+                if logging.debugEnabled:
+                    logging.debug("Threaded worker killed, workerID={0}".format(self.id))
                 systemTrigger.failedTrigger(self.id,"triggerKilled")
             except Exception as e:
                 self.crash = True
-                logging.debug("Threaded worker crashed, workerID={0}".format(self.id))
+                if logging.debugEnabled:
+                    logging.debug("Threaded worker crashed, workerID={0}".format(self.id))
                 systemTrigger.failedTrigger(self.id,"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
-            logging.debug("Threaded worker completed, workerID={0}".format(self.id))
+            if logging.debugEnabled:
+                logging.debug("Threaded worker completed, workerID={0}".format(self.id))
             self.running = False
             self.endTime = int(time.time())
             self.duration = (self.endTime - self.startTime)
@@ -149,7 +159,8 @@ class workerHandler:
                         workersWaiting = workersWaiting[0:underConcurrent]
                     # Start all workers possible up to the concurrent limit
                     for workerWaiting in workersWaiting:
-                        logging.debug("Starting threaded worker, workerID={0}".format(workerWaiting.id))
+                        if logging.debugEnabled:
+                            logging.debug("Starting threaded worker, workerID={0}".format(workerWaiting.id))
                         workerWaiting.start()
                         underConcurrent-=1
                         del workersStillWaiting[workersStillWaiting.index(workerWaiting)]
@@ -177,14 +188,16 @@ class workerHandler:
     def new(self, name, call, args=None, delete=True, maxDuration=60, multiprocessing=False):
         workerThread = self._worker(name, call, args, delete, maxDuration, multiprocessing)
         self.workerList.append(workerThread)
-        logging.debug("Created new worker, workerID={0}".format(workerThread.id))
+        if logging.debugEnabled:
+            logging.debug("Created new worker, workerID={0}".format(workerThread.id))
         return workerThread.id
 
     def get(self, id):
         worker = [x for x in self.workerList if x.id == id]
         if worker:
             worker = worker[0]
-        logging.debug("Got data for worker, workerID={0}".format(id))
+        if logging.debugEnabled:
+            logging.debug("Got data for worker, workerID={0}".format(id))
         return worker
 
     def getAll(self):
@@ -204,29 +217,34 @@ class workerHandler:
         worker = [x for x in self.workerList if x.id == id]
         if worker:
             worker = worker[0]
-            logging.debug("Deleted worker, workerID={0}".format(id))
+            if logging.debugEnabled:
+                logging.debug("Deleted worker, workerID={0}".format(id))
             del worker
         else:
-            logging.debug("Unable to locate worker, workerID={0}".format(id))
+            if logging.debugEnabled:
+                logging.debug("Unable to locate worker, workerID={0}".format(id))
 
     def kill(self, id):
         worker = [x for x in self.workerList if x.id == id]
         if worker:
             worker = worker[0]
             worker.thread.kill()
-            logging.debug("Killed worker, workerID={0}".format(id))
+            if logging.debugEnabled:
+                logging.debug("Killed worker, workerID={0}".format(id))
         else:
-            logging.debug("Unable to locate worker, workerID={0}".format(id))
+            if logging.debugEnabled:
+                logging.debug("Unable to locate worker, workerID={0}".format(id))
 
     def wait(self, jid):
         worker = [x for x in self.workerList if x.id == id][0]
-        logging.debug("Waiting for worker, workerID={0}".format(id))
+        if logging.debugEnabled:
+            logging.debug("Waiting for worker, workerID={0}".format(id))
         while (worker.running != False ):
             time.sleep(0.1)
 
     def waitAll(self):
         while (self.queue() > 0 or len(self.active()) > 0):
-            time.sleep(0.5)
+            time.sleep(0.1)
 
     def activeCount(self):
         workersRunning = [x for x in self.workerList if x.id != self.workerID and x.running == True]
@@ -299,12 +317,14 @@ def start():
     try:
         if workers:
             workers.kill(workers.workerID)
-            logging.debug("Workers start requested, Existing thread kill attempted, workerID='{0}'".format(workers.workerID),6)
+            if logging.debugEnabled:
+                logging.debug("Workers start requested, Existing thread kill attempted, workerID='{0}'".format(workers.workerID),6)
             workers = None
     except NameError:
         pass
     workers = workerHandler(workerSettings["concurrent"])
-    logging.debug("Workers started, workerID='{0}'".format(workers.workerID),6)
+    if logging.debugEnabled:
+        logging.debug("Workers started, workerID='{0}'".format(workers.workerID),6)
     return True
 
 def multiprocessingThreadStart(Q,threadCall,args):

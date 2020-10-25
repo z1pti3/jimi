@@ -32,7 +32,8 @@ class _plugin(db._document):
             if _class:
                 result.append(helpers.jsonToClass(_class(),jsonItem))
             else:
-                logging.debug("Error unable to locate plugin class, pluginName={0}".format(jsonItem["name"]))
+                if logging.debugEnabled:
+                    logging.debug("Error unable to locate plugin class, pluginName={0}".format(jsonItem["name"]))
         return result
 
     def installHandler(self):

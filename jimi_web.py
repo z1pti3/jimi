@@ -40,8 +40,9 @@ from core import logging, db
 
 # Installing
 if "webui" not in db.list_collection_names():
-    logging.debug("DB Collection webui Not Found : Creating...")
-    model.registerModel("flowData","_flowData","_document","core.models.webui")
+	if logging.debugEnabled:
+		logging.debug("DB Collection webui Not Found : Creating...")
+	model.registerModel("flowData","_flowData","_document","core.models.webui")
 
 from core import audit, helpers, plugin, auth
 

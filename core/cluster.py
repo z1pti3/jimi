@@ -75,14 +75,17 @@ class _clusterMember(db._document):
             # Reset systemID for all non-active systems
             result = trigger._trigger().api_update(query={ "systemID" : { "$nin" : active } },update={ "$set" : { "systemID" : None } })
             if result:
-                logging.debug("Reset {0} triggers from inactive cluster members".format(result["count"]),6)
+                if logging.debugEnabled:
+                    logging.debug("Reset {0} triggers from inactive cluster members".format(result["count"]),6)
             else:
-                logging.debug("Unable to reset triggers from inactive cluster members - active='{0}'".format(active),2)
+                if logging.debugEnabled:
+                    logging.debug("Unable to reset triggers from inactive cluster members - active='{0}'".format(active),2)
 
             if len(active) > 0:
                 inactiveTriggers = trigger._trigger().getAsClass(query={ "systemID" : { "$nin" : active }, "enabled" : True })
                 if len(inactiveTriggers) > 0:
-                    logging.debug("Moving triggers from inactive cluster member to active members",2)
+                    if logging.debugEnabled:
+                        logging.debug("Moving triggers from inactive cluster member to active members",2)
                     clusterMembersDetails = {}
                     for activeMember in active:
                         count = trigger._trigger().getAsClass(query={ "systemID" : activeMember, "enabled" : True })
@@ -105,7 +108,8 @@ class _clusterMember(db._document):
                         inactiveTrigger.startCheck = 0
                         inactiveTrigger.update(["systemID","startCheck"])
                         clusterMembersDetails[str(member)]["count"]+=1
-                        logging.debug("Set triggerID='{0}' triggers to systemID='{1}', new trigger count='{2}'".format(inactiveTrigger._id,member,clusterMembersDetails[str(member)]["count"]),6)
+                        if logging.debugEnabled:
+                            logging.debug("Set triggerID='{0}' triggers to systemID='{1}', new trigger count='{2}'".format(inactiveTrigger._id,member,clusterMembersDetails[str(member)]["count"]),6)
                         audit._audit().add("cluster","set trigger",{ "triggerID" : inactiveTrigger._id, "triggerName" : inactiveTrigger.name, "systemID" : member, "clusterSet" : inactiveTrigger.clusterSet, "masterID" : self.systemID, "masterUID" : self.systemUID })
 
         return True
@@ -181,15 +185,18 @@ def start():
                 # Creating instance of cluster
                 if cluster:
                     workers.workers.kill(cluster.workerID)
-                    logging.debug("Cluster start requested, Existing thread kill attempted, workerID='{0}'".format(cluster.workerID),6)
+                    if logging.debugEnabled:
+                        logging.debug("Cluster start requested, Existing thread kill attempted, workerID='{0}'".format(cluster.workerID),6)
                     cluster = None
             except NameError:
                 pass
             cluster = _cluster()
-            logging.debug("Cluster started, workerID='{0}'".format(cluster.workerID),6)
+            if logging.debugEnabled:
+                logging.debug("Cluster started, workerID='{0}'".format(cluster.workerID),6)
             return True
     except AttributeError:
-        logging.debug("Cluster start requested, No valid worker class loaded",4)
+        if logging.debugEnabled:
+            logging.debug("Cluster start requested, No valid worker class loaded",4)
         return False
 
 

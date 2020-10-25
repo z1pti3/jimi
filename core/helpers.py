@@ -39,8 +39,8 @@ class cpuSaver:
             if runAfter > 0:
                 if self.loops > runAfter:
                     sleep = True
-                elif self.loops > self.cpuSaver["loopL"]:
-                    sleep = True
+            elif self.loops > self.cpuSaver["loopL"]:
+                sleep = True
             if sleep:
                 if sleepFor > 0:
                     time.sleep(sleepFor)
@@ -373,3 +373,4 @@ def dictValue(d,value):
         return d[value]
     except:
         return None
+ 
