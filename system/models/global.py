@@ -27,6 +27,7 @@ class _globalSet(action._action):
 				var.globalValue = globalValue
 				var.update(["globalValue"])
 		except:
+			# Possible race condition could mean more than one DB entry - we should handel this and delete or prevent duplicates
 			_global().new(self.acl,globalName,globalValue)
 		data["var"]["global."+globalName] = helpers.typeCast(globalValue,{ "data" : data })
 		actionResult["result"] = True
