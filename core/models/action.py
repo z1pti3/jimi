@@ -62,7 +62,7 @@ class _action(db._document):
             startTime = time.time()
         if debug:
             debugText=""
-        actionResult = { "result" : False, "rc" : -1, "actionID" : self._id }
+        actionResult = { "result" : False, "rc" : -1, "actionID" : self._id, "data" : {} }
         self.runHeader(data,persistentData,actionResult)
         if self.logicString:
             if debug:
