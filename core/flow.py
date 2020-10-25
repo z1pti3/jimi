@@ -152,7 +152,7 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,passedFlow=
                         if currentObject.enabled:
                             outputText+="\n\t[function]\n\t\t{0}".format(currentFlow["codeLine"])
                             outputText+="\n\t[pre-data]\n\t\t{0}".format(data)
-                            flowLogic = currentFlow["logic"][5:]
+                            flowLogic = currentFlow["logic"][6:-1]
                             outputText+="\n\t[link logic]\n\t\t{0}\n\t\t".format(flowLogic)
                             if flowLogicEval(data,helpers.typeCast(flowLogic)):
                                 outputText+="Pass"

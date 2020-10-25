@@ -112,7 +112,7 @@ def getDictValue(varString,dicts={}):
 
 # Type cast string into varible types, includes dict and function calls
 def typeCast(varString,dicts={},functionSafeList=functionSafeList):
-    if type(varString) == str:
+    if type(varString) == str and varString != "":
         # String defined
         if regexString.search(varString):
             return str(varString[1:-1])

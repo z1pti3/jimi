@@ -60,6 +60,8 @@ class _action(db._document):
         startTime = 0
         if self.log:
             startTime = time.time()
+        if debug:
+            debugText=""
         actionResult = { "result" : False, "rc" : -1, "actionID" : self._id }
         self.runHeader(data,persistentData,actionResult)
         if self.logicString:
@@ -82,8 +84,6 @@ class _action(db._document):
                 data["var"] = variable.varEval(self.varDefinitions,data["var"],{ "data" : data, "action" : actionResult})
         self.runFooter(data,persistentData,actionResult,startTime)
         if debug:
-            if not debugText:
-                debugText=""
             return (debugText, actionResult)
         return actionResult
 
