@@ -7,7 +7,7 @@ import string
 from core import db
 
 # Current System Version
-systemVersion = 1.51
+systemVersion = 1.52
 
 # Initialize 
 dbCollectionName = "system"
@@ -185,7 +185,7 @@ def systemInstall():
 	# global
 	model.registerModel("global","_global","_document","system.models.global")
 	model.registerModel("globalSet","_globalSet","_action","system.models.global")
-	model.registerModel("globalGet","_globalSet","_action","system.models.global")
+	model.registerModel("globalGet","_globalGet","_action","system.models.global")
 
 	# Adding model for plugins
 	model.registerModel("plugins","_plugin","_document","core.plugin")
@@ -236,10 +236,10 @@ def systemUpgrade(currentVersion):
 				pluginClass.upgradeHandler()
 		return True
 
-	if currentVersion < 1.5:
+	if currentVersion < 1.52:
 		model.registerModel("global","_global","_document","system.models.global")
 		model.registerModel("globalSet","_globalSet","_action","system.models.global")
-		model.registerModel("globalGet","_globalSet","_action","system.models.global")
+		model.registerModel("globalGet","_globalGet","_action","system.models.global")
 
 	if currentVersion < 1.45:
 		pluginModel = model._model().query(query={"className" : "_plugin"})["results"]
