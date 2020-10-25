@@ -217,10 +217,11 @@ def loadPluginFunctionExtensions():
         if os.path.isdir(Path("plugins/{0}/functions".format(plugin))):
             listedFunctionFiles = os.listdir(Path("plugins/{0}/functions".format(plugin)))
             for listedFunctionFile in listedFunctionFiles:
-                mod = importlib.import_module("plugins.{0}.functions.{1}".format(plugin,listedFunctionFile[:-3]))
-                for func in dir(mod):
-                    if func.startswith("__") == False and func.endswith("__") == False:
-                        function.systemFunctions[func] = getattr(mod, func) 
+                if listedFunctionFile[-3:] == ".py":                
+                    mod = importlib.import_module("plugins.{0}.functions.{1}".format(plugin,listedFunctionFile[:-3]))
+                    for func in dir(mod):
+                        if func.startswith("__") == False and func.endswith("__") == False:
+                            function.systemFunctions[func] = getattr(mod, func) 
 
 # Cleans all object references for non-existent plugin models
 def cleanPluginDB():
