@@ -45,11 +45,11 @@ class _properties():
             if member not in blacklist:
                 value = getattr(classObject,member)
                 if type(value) == str or type(value) == int or type(value) == float:
-                    formData.append({"type" : "input", "schemaitem" : member, "textbox" : value})
+                    formData.append({"type" : "input", "schemaitem" : member, "textbox" : value, "label" : member})
                 elif type(value) == bool:
-                    formData.append({"type" : "checkbox", "schemaitem" : member, "checked" : value})
+                    formData.append({"type" : "checkbox", "schemaitem" : member, "checked" : value, "label" : member})
                 elif type(value) == dict or type(value) == list:
-                    formData.append({"type" : "json-input", "schemaitem" : member, "textbox" : value})
+                    formData.append({"type" : "json-input", "schemaitem" : member, "textbox" : value, "label" : member})
         return formData
 
 from core import helpers, logging
