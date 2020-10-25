@@ -25,7 +25,7 @@ class _system(db._document):
 		result = self._dbCollection.insert_one({ "name" : name })
 		return result
 
-from core import db, logging, model, settings, plugin
+from core import db, logging, model, settings, plugin, function
 
 systemSettings = settings.config["system"]
 
@@ -87,8 +87,11 @@ def setup():
 		else:
 			sys.exit("Unable to complete upgrade")
 
-	plugin.updatePluginDB()
-	plugin.loadPluginAPIExtensions()
+	# Loading functions
+	function.load()
+	
+	# Initialize plugins
+	plugin.load()
 
 # Set startCheck to 0 so that all triggers start
 def resetTriggers():
@@ -179,6 +182,10 @@ def systemInstall():
 	actions = action._action().query(query={"name" : "forEach"})["results"]
 	if len(actions) < 1:
 		model.registerModel("forEach","_forEach","_action","system.models.forEach")
+	# global
+	model.registerModel("global","_global","_document","system.models.global")
+	model.registerModel("globalSet","_globalSet","_action","system.models.global")
+	model.registerModel("globalGet","_globalSet","_action","system.models.global")
 
 	# Adding model for plugins
 	model.registerModel("plugins","_plugin","_document","core.plugin")
@@ -228,6 +235,11 @@ def systemUpgrade(currentVersion):
 				pluginClass = pluginClass[0]
 				pluginClass.upgradeHandler()
 		return True
+
+	if currentVersion < 1.5:
+		model.registerModel("global","_global","_document","system.models.global")
+		model.registerModel("globalSet","_globalSet","_action","system.models.global")
+		model.registerModel("globalGet","_globalSet","_action","system.models.global")
 
 	if currentVersion < 1.45:
 		pluginModel = model._model().query(query={"className" : "_plugin"})["results"]
