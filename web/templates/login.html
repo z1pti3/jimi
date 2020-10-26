@@ -62,11 +62,20 @@
 		<div class="login-form">
 			<form id="loginForm">
 				<h2 class="text-center">Please Login</h2>
-        		<div class="form-group">
+				<div class="form-group">
 					<input id="username" type="text" class="form-control" placeholder="Username" required="required" autofocus>
 				</div>
 				<div class="form-group">
 					<input id="password" type="password" class="form-control" placeholder="Password" required="required">
+				</div>
+				<div class="form-group">
+					<input type="submit" class="btn btn-primary btn-block" value="Login"></input>
+				</div>
+			</form>
+			<form id="otpForm" style="display: none;">
+				<h2 class="text-center">Please Enter OTP</h2>
+				<div class="form-group">
+					<input id="otp" type="text" class="form-control" required="required">
 				</div>
 				<div class="form-group">
 					<input type="submit" class="btn btn-primary btn-block" value="Login"></input>
@@ -84,11 +93,28 @@
 	$('#loginForm').submit(function(e){
 		e.preventDefault();
 		$.ajax({url:"/api/1.0/auth/", type:"POST", data:JSON.stringify({username: $('#username').val(), password: $('#password').val() }), contentType:"application/json", success: function ( result ) {
+				//window.location.replace(getReturn());
+				document.getElementById("loginForm").style.display = "none";
+				document.getElementById("otpForm").style.display = "block";
+			},
+			error: function ( result ) {
+				var panel = $("#loginForm");
+				dropdownAlert(panel,"error","Login Failure",1000);
+			}
+		});
+	});
+
+	$('#otpForm').submit(function(e){
+		e.preventDefault();
+		$.ajax({url:"/api/1.0/auth/", type:"POST", data:JSON.stringify({username: $('#username').val(), password: $('#password').val(), otp: $('#otp').val() }), contentType:"application/json", success: function ( result ) {
 				window.location.replace(getReturn());
 			},
 			error: function ( result ) {
 				var panel = $("#loginForm");
 				dropdownAlert(panel,"error","Login Failure",1000);
+				document.getElementById("loginForm").style.display = "block";
+				document.getElementById("otpForm").style.display = "none";
+				document.getElementById("otp").value = ""
 			}
 		});
 	});
