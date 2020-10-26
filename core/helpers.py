@@ -19,7 +19,7 @@ from core import settings, function
 functionSafeList = function.systemFunctions
 
 regexEvalString = re.compile("(\%\%([^%]*)\%\%)")
-regexDict = re.compile("^([a-zA-Z]*)\[.*\]")
+regexDict = re.compile("^([a-zA-Z]+)\[.*\]")
 regexDictKeys = re.compile("(\[\"?([^\]\"]*)\"?\])")
 regexFunction = re.compile("^([a-zA-Z0-9]*)\(.*\)")
 regexFunctionOpen = re.compile("^([a-zA-Z0-9]*)\(.*")

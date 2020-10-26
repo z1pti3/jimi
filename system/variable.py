@@ -10,13 +10,11 @@ def varEval(varDict,currentVarDict,dicts={}):
     functionSafeList = function.systemFunctions
     for key, value in varDict.items():
         logicResult = True
-        try:
+        if "if" in value:
             logicResult = logic.ifEval(value["if"],dicts)
-        except KeyError:
-            pass
         if logicResult:
             # Checking that supplied dictionary contains key value
-            try:
+            if "value" in value:
                 if type(value["value"]) is str:
                     currentVarDict[key] = helpers.evalString(value["value"],dicts,functionSafeList)
                 elif type(value["value"]) is dict:
@@ -26,7 +24,5 @@ def varEval(varDict,currentVarDict,dicts={}):
                         currentVarDict[key] = helpers.evalDict(value["value"],dicts,functionSafeList)
                 else:
                     currentVarDict[key] = value["value"]
-            except KeyError:
-                pass
     return currentVarDict
 
