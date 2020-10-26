@@ -25,6 +25,7 @@ class _user(db._document):
     passwordHashType = str()
     failedLoginCount = int()
     lastLoginAttempt = int()
+    totpSecret = str()
     apiTokens = list()
     primaryGroup = str()
 
@@ -167,7 +168,7 @@ def generatePasswordHash(password,salt,hType="j1"):
     return [hType,hash.decode()]
 
 def generateSharedSecret():
-    return secrets.token_hex(16)
+    return base64.b32encode(secrets.token_bytes(10))
 
 def generateTOTP(sharedKey, length=6):
     nowInSeconds = math.floor(time.time())
@@ -401,4 +402,24 @@ if api.webServer:
                 userProps["name"] = user.getAttribute("name",sessionData=api.g.sessionData)
                 userProps["passwordHash"] = user.getAttribute("passwordHash",sessionData=api.g.sessionData)
                 return { "results" : [ userProps ] }, 200
+            return { }, 404
+
+        @api.webServer.route(api.base+"auth/regenerateOTP/", methods=["GET"])
+        def api_regenerateOTP():
+            user = _user().getAsClass(id=api.g.sessionData["_id"])
+            if len(user) == 1:
+                user = user[0]
+                user.setAttribute("totpSecret",generateSharedSecret(),sessionData=api.g.sessionData)
+                user.update(["totpSecret"])
+                return { }, 200
+            return { }, 404
+
+        @api.webServer.route(api.base+"auth/viewOTP/", methods=["GET"])
+        def api_viewOTP():
+            user = _user().getAsClass(id=api.g.sessionData["_id"])
+            if len(user) == 1:
+                user = user[0]
+                totpSecret = user.getAttribute("totpSecret",sessionData=api.g.sessionData)
+                if totpSecret != "":
+                    return { "otp" : "otpauth://totp/JIMI:{}?secret={}&issuer=JIMI".format(user.username,totpSecret) }, 200
             return { }, 404

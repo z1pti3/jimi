@@ -8,6 +8,7 @@
 <script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
 <script src="{{ url_for('static', filename='includes/visjs/js/moment.js') }}"></script>
 <script src="{{ url_for('static', filename='includes/datatables/js/datetime.moment.js') }}"></script>
+<script src="{{ url_for('static', filename='includes/qrcodejs/qrcode.js') }}"></script>
 
 <script src="{{ url_for('static', filename='javascript/hotkeys.js') }}"></script>
 
@@ -34,6 +35,9 @@
             <tbody class="theme-tableBody">
             </tbody>
         </table>
+        <td><button class="btn btn-primary theme-panelButton" id="regenerateOTP">Regenerate OTP</button></td>
+        <td><button class="btn btn-primary theme-panelButton" id="viewOTP">View OTP</button></td>
+        <div id="qrcode"></div>
     </body>
 </html>
 
@@ -117,5 +121,32 @@
     $(document).ready(function () {
         var alert = $(".alert-container");
         getAccount();
+    });
+
+    $('#viewOTP').on('click', function(e){
+        e.preventDefault();
+		$.ajax({url:"/api/1.0/auth/viewOTP/", type:"GET", contentType:"application/json", success: function ( result ) {
+                var qr = qrcode(4, "L"); 
+                qr.addData(result);
+                qr.make();
+                document.getElementById("qrcode").innerHTML = qr.createImgTag();
+			},
+			error: function ( result ) {
+				var panel = $("#loginForm");
+				dropdownAlert(panel,"error","Failed to Retrieve OTP",1000);
+			}
+		});
+    })
+    
+    $('#regenerateOTP').on('click', function(e){
+        e.preventDefault();
+		$.ajax({url:"/api/1.0/auth/regenerateOTP/", type:"GET", contentType:"application/json", success: function ( result ) {
+                alertNow("OTP Regenerated!");
+			},
+			error: function ( result ) {
+				var panel = $("#loginForm");
+				dropdownAlert(panel,"error","Failed to regenerate OTP",1000);
+			}
+		});
     });
 </script>
