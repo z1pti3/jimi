@@ -175,6 +175,7 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,passedFlow=
                                             else:
                                                 events = helpers.evalString(currentObject.eventsField,{"data" : data})
                                             debugText = executeCodifyFlow(sessionData,events,codifyData,eventCount=0,passedFlow=currentFlow,persistentData=persistentData)
+                                    data["action"] = { "result" : False, "rc" : 200 }
                                 else:
                                     debugText, data["action"] = currentObject.runHandler(data,persistentData,debug=True)
                                 if debugText != "":
