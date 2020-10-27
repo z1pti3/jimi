@@ -109,6 +109,9 @@ class _action(db._document):
     def postRun(self):
         pass
 
+    def __del__(self):
+        self.postRun()
+
 from core import helpers, logging, model, audit
 from system.functions import network
 from system import logic, variable
