@@ -56,6 +56,13 @@ class _cache:
         if uid in self.objects[authedCacheName]["objects"]:
             del self.objects[authedCacheName]["objects"][uid]
 
+    def update(self,cacheName,uid,objectValue,sessionData=None):
+        authedCacheName = self.checkSessionData(cacheName,sessionData)
+        if authedCacheName == None:
+            return
+        if uid in self.objects[authedCacheName]["objects"]:
+            self.objects[authedCacheName]["objects"][uid]["objectValue"] = objectValue
+
     def insert(self,cacheName,uid,objectValue,sessionData=None,customCacheTime=None):
         authedCacheName = self.checkSessionData(cacheName,sessionData)
         if authedCacheName == None:
