@@ -7,6 +7,7 @@ import jwt
 import hmac
 import math
 import functools
+import onetimepass
 from pathlib import Path
 from Crypto.Cipher import AES, PKCS1_OAEP # pycryptodome
 from Crypto.PublicKey import RSA
@@ -168,29 +169,7 @@ def generatePasswordHash(password,salt,hType="j1"):
     return [hType,hash.decode()]
 
 def generateSharedSecret():
-    return base64.b32encode(secrets.token_bytes(10))
-
-def generateTOTP(sharedKey, length=6):
-    nowInSeconds = math.floor(time.time())
-    steps = 30
-    timeStep = math.floor(nowInSeconds / steps)
-    hash = hmac.new(
-        bytes(sharedKey, encoding="utf-8"),
-        timeStep.to_bytes(length=8, byteorder="big"),
-        hashlib.sha256
-    )
-    return dynamicTruncation(hash, length)   
-
-def dynamicTruncation(rawKey,length):
-    bitstring = bin(int(rawKey.hexdigest(), base=16))
-    lastFourBits = bitstring[-4:]
-    offset = int(lastFourBits, base=2)
-    chosen32Bits = bitstring[offset * 8 : offset * 8 + 32]
-    fullTOTP = str(int(chosen32Bits, base=2))
-    return fullTOTP[-length:]
-
-def validateTOTP(totp,sharedKey):
-    return totp == generateTOTP(sharedKey)    
+    return base64.b32encode(secrets.token_bytes(10)).decode("UTF-8")
 
 def generateSession(dataDict):
     dataDict["expiry"] = time.time() + authSettings["sessionTimeout"]
@@ -216,7 +195,7 @@ def validateSession(sessionToken):
         pass
     return None
 
-def validateUser(username,password):
+def validateUser(username,password,otp=None):
     user = _user().getAsClass(query={ "username" : username })
     if len(user) == 1:
         user = user[0]
@@ -228,7 +207,10 @@ def validateUser(username,password):
 
         user.lastLoginAttempt = time.time()
         passwordHash = generatePasswordHash(password, username, user.passwordHashType)
-        if passwordHash[1] == user.passwordHash:
+        validOTP = True
+        if otp is not None:
+            validOTP = onetimepass.valid_totp(otp, user.totpSecret)
+        if passwordHash[1] == user.passwordHash and validOTP:
             # If user password hash does not meet the required standard update
             if user.passwordHashType != requiredhType:
                 passwordHash = generatePasswordHash(password,username)
@@ -352,7 +334,20 @@ if api.webServer:
         def api_validateUser():
             response = api.make_response()
             data = json.loads(api.request.data)
-            userSession = validateUser(data["username"],data["password"])
+            #check if OTP has been passed
+            #if invalid user or user requires OTP, return 200 but request OTP
+            if "otp" not in data:
+                user = _user().getAsClass(query={ "username" : data["username"] })
+                if len(user) == 1:
+                    user = user[0]
+                    if user.totpSecret != "":
+                        return "otp_required", 200
+                    else:
+                        userSession = validateUser(data["username"],data["password"])
+                else:
+                    return "otp_required", 200
+            else:
+                userSession = validateUser(data["username"],data["password"],data["otp"])
             if userSession:
                 response.set_cookie("jimiAuth", value=userSession, max_age=600) # Need to add secure=True before production
                 return response, 200
@@ -421,5 +416,5 @@ if api.webServer:
                 user = user[0]
                 totpSecret = user.getAttribute("totpSecret",sessionData=api.g.sessionData)
                 if totpSecret != "":
-                    return { "otp" : "otpauth://totp/JIMI:{}?secret={}&issuer=JIMI".format(user.username,totpSecret) }, 200
+                    return "otpauth://totp/JIMI:{}?secret={}&issuer=JIMI".format(user.username,totpSecret), 200
             return { }, 404

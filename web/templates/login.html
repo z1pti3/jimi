@@ -93,9 +93,13 @@
 	$('#loginForm').submit(function(e){
 		e.preventDefault();
 		$.ajax({url:"/api/1.0/auth/", type:"POST", data:JSON.stringify({username: $('#username').val(), password: $('#password').val() }), contentType:"application/json", success: function ( result ) {
-				//window.location.replace(getReturn());
-				document.getElementById("loginForm").style.display = "none";
-				document.getElementById("otpForm").style.display = "block";
+				if (result == "otp_required"){
+					document.getElementById("loginForm").style.display = "none";
+					document.getElementById("otpForm").style.display = "block";
+				}
+				else {
+					window.location.replace(getReturn());
+				}
 			},
 			error: function ( result ) {
 				var panel = $("#loginForm");
