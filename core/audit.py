@@ -56,7 +56,7 @@ class _audit(db._document):
                     filename = "{0}{1}{2}.txt".format(datetime.date.today().day,datetime.date.today().month,datetime.date.today().year)
                     logFile = Path("{0}/{1}".format(auditSettings["file"]["logdir"],filename))
                     with open(logFile, "a") as logFile:
-                        logLine = "{0}\r\n".format(json.loads(json_util.dumps(auditData))).replace(": True",": true").replace(": False",": false")
+                        logLine = "{0}\r\n".format(json.loads(json_util.dumps(auditData))).replace(": True",": true").replace(": False",": false").replace(": None",": null")
                         logFile.write(logLine)
         except KeyError:
             pass
