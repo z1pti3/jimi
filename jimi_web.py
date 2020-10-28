@@ -395,6 +395,47 @@ def statusPage():
 		actionsContent.append(a)
 	return render_template("status.html", triggers=triggersContent, actions=actionsContent)
 
+
+@api.webServer.route("/cleanup/", methods=["GET","DELETE"])
+def cleanupPage():
+	if api.g.sessionData:
+		if "admin" in api.g.sessionData:
+			if api.g.sessionData["admin"]:
+				actions = action._action().query(api.g.sessionData,query={ },fields=["_id","name","lastUpdateTime"])["results"]
+				triggers = trigger._trigger().query(api.g.sessionData,query={ },fields=["_id","name","lastUpdateTime"])["results"]
+				actionids = [ x["_id"] for x in actions ]
+				triggerids = [ x["_id"] for x in triggers ]
+				conducts = conduct._conduct().query(query={ "$or" : [ { "flow.triggerID" : { "$in" : triggerids } }, { "flow.actionID" : { "$in" : actionids } } ] },fields=["_id","name","flow"])["results"]
+				for c in conducts:
+					for flow in c["flow"]:
+						if "actionID" in flow:
+							if flow["actionID"] in actionids:
+								actionids.remove(flow["actionID"])
+						if "triggerID" in flow:
+							if flow["triggerID"] in triggerids:
+								triggerids.remove(flow["triggerID"])
+				unusedActionObjects = []
+				unusedActionObjectsIds = []
+				for actionid in actionids:
+					a = [ x for x in actions if x["_id"] == actionid ]
+					if a:
+						unusedActionObjects.append({ "name" : a[0]["name"], "_id" : a[0]["_id"] })
+						unusedActionObjectsIds.append(db.ObjectId(a[0]["_id"]))
+				unusedTriggerObjects = []
+				unusedTriggerObjectsIds = []
+				for triggerid in triggerids:
+					t= [ x for x in triggers if x["_id"] == triggerid ]
+					if t:
+						unusedTriggerObjects.append({ "name" : t[0]["name"], "_id" : t[0]["_id"] })
+						unusedTriggerObjectsIds.append(db.ObjectId(t[0]["_id"]))
+				if request.method == "DELETE":
+					action._action().api_delete(query={ "_id" : { "$in" : unusedActionObjectsIds } })
+					trigger._trigger().api_delete(query={ "_id" : { "$in" : unusedTriggerObjectsIds } })
+					return { },200
+				return render_template("cleanupObjects.html", unusedActionObjects=unusedActionObjects, unusedTriggerObjects=unusedTriggerObjects, CSRF=api.g.sessionData["CSRF"])
+	return { }, 404
+	
+
 api.startServer(debug=True, use_reloader=False, host=apiSettings["bind"], port=apiSettings["port"], threaded=True)
 
 while True:
