@@ -371,3 +371,4 @@ plugins-available
 docker-compose.yml
 .dockerignore
 jimi.code-workspace
+*.code-workspace
