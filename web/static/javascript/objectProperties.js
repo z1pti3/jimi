@@ -49,11 +49,16 @@ function savePropertiesPanel(flowID,panel) {
 
 	var jsonData = {};
 	var newName = null;
+	var requiredMet = true;
 	panel.find("[tag=formItem]").each(function() {
 		formItem = $(this)
 		resultItem = $(this).attr("key")
 		if (formItem.attr("type") == "text")
 		{
+			if (formItem.attr("required") && formItem.val() == "") {
+				dropdownAlert(panel,"error","Dont forget the required fields!",1000);
+				requiredMet = false;
+			}
 			if (formItem.attr("current") != formItem.val()) {
 				if (resultItem == "name") {
 					newName = formItem.val();
@@ -72,6 +77,9 @@ function savePropertiesPanel(flowID,panel) {
 			jsonData[resultItem] = formItem.val();
 		}
 	})
+	if (!requiredMet) {
+		return;
+	}
 	// Posting
 	$.ajax({url:"/api/1.0/models/"+modelType+"/"+modelID+"/", type:"POST", data: JSON.stringify({ action : "update", data: jsonData, CSRF: CSRF }), contentType:"application/json", success: function ( result ) {
 			// Telling UI it has had some changes made
@@ -119,13 +127,22 @@ function loadPropertiesPanel(flowID,panel) {
 				if (result["formData"][objectItem].hasOwnProperty("label")) {
 					label = result["formData"][objectItem]["label"]
 				}
+
+				// Required
+				var required = false;
+				if (result["formData"][objectItem].hasOwnProperty("required")) {
+					required = result["formData"][objectItem]["required"]
+					if (required) {
+						label = label+"*";
+					}
+				}
 				
 				if (result["formData"][objectItem]["type"] == "input") {
 					var $cell = $('<td width="100px">');
 					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], title : tooltip, class: "theme-panelLabel"}).text(label+":").tooltip());
 					$row.append($cell);
 					var $cell = $('<td>');
-					$cell.append($('<input class="inputFullWidth theme-panelTextbox">').attr({type: 'text', value: result["formData"][objectItem]["textbox"], current: result["formData"][objectItem]["textbox"], id: "properties_items"+result["formData"][objectItem]["schemaitem"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
+					$cell.append($('<input class="inputFullWidth theme-panelTextbox">').attr({type: 'text', value: result["formData"][objectItem]["textbox"], current: result["formData"][objectItem]["textbox"], required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
 					$row.append($cell);
 				}
 				if (result["formData"][objectItem]["type"] == "checkbox") {
@@ -134,10 +151,10 @@ function loadPropertiesPanel(flowID,panel) {
 					$row.append($cell);
 					var $cell = $('<td>');
 					if (result["formData"][objectItem]["checked"] == true) {
-						$cell.append($('<input class="theme-panelCheckbox">').attr({type: 'checkbox', id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: true, checked: true, key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
+						$cell.append($('<input class="theme-panelCheckbox">').attr({type: 'checkbox', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: true, checked: true, key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
 					}
 					else {
-						$cell.append($('<input class="theme-panelCheckbox">').attr({type: 'checkbox', id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: false, key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
+						$cell.append($('<input class="theme-panelCheckbox">').attr({type: 'checkbox', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: false, key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
 					}
 					$row.append($cell);
 				}
@@ -151,7 +168,7 @@ function loadPropertiesPanel(flowID,panel) {
 					// output
 					// <textarea class="inputFullWidth theme-panelTextArea" type="text" id="properties_itemsdelay" current="0" key="delay" tag="formItem"></textarea>
 					var $cell = $('<td>');
-					$cell.append($('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: JSON.stringify(result["formData"][objectItem]["textbox"]), key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
+					$cell.append($('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: JSON.stringify(result["formData"][objectItem]["textbox"]), key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
 					$cell.find('#properties_items'+result["formData"][objectItem]["schemaitem"]).val(JSON.stringify(result["formData"][objectItem]["textbox"]));
 					$row.append($cell);
 				}
@@ -162,7 +179,7 @@ function loadPropertiesPanel(flowID,panel) {
 					$row.append($cell);
 
 					var $cell = $('<td>');
-					var $select =$('<select class="inputFullWidth theme-panelTextArea">').attr({type: 'dropdown', id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: JSON.stringify(result["formData"][objectItem]["dropdown"]), key: result["formData"][objectItem]["schemaitem"], tag: "formItem"});
+					var $select =$('<select class="inputFullWidth theme-panelTextArea">').attr({type: 'dropdown', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: JSON.stringify(result["formData"][objectItem]["dropdown"]), key: result["formData"][objectItem]["schemaitem"], tag: "formItem"});
 
 					for (var i=0; i< result["formData"][objectItem]["dropdown"].length;i++){
 						$select.append($('<option>').attr({value: result["formData"][objectItem]["dropdown"][i]}).text(result["formData"][objectItem]["dropdown"][i]));
@@ -180,7 +197,7 @@ function loadPropertiesPanel(flowID,panel) {
 					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], title : tooltip, class: "theme-panelLabel"}).text(label+":").tooltip());
 					$row.append($cell);
 					var $cell = $('<td>');
-					var $scriptTextArea = $('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: result["formData"][objectItem]["textbox"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"});
+					var $scriptTextArea = $('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: result["formData"][objectItem]["textbox"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"});
 					$scriptTextArea.keydown(function(e) {
 						if(e.keyCode === 9) { // tab was pressed
 							// get caret position/selection
