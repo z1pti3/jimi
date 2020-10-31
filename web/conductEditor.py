@@ -207,20 +207,6 @@ def conductExport(conductID):
         for pop in poplist:
             flows.remove(pop)
 
-    # Regenerate flowIDs
-    flowLookup = {}
-    flowLookupReverse = {}
-    for flow in flows:
-        if flow["flowID"] not in flowLookup:
-            flowLookup[flow["flowID"]] = str(uuid.uuid4())
-            flowLookupReverse[flowLookup[flow["flowID"]]] = flow["flowID"]
-        flow["flowID"] = flowLookup[flow["flowID"]]
-        for nextFlow in flow["next"]:
-            if nextFlow["flowID"] not in flowLookup:
-                flowLookup[nextFlow["flowID"]] = str(uuid.uuid4())
-                flowLookupReverse[flowLookup[nextFlow["flowID"]]] = nextFlow["flowID"]
-            nextFlow["flowID"] = flowLookup[nextFlow["flowID"]]
-
     flowTriggers = [ db.ObjectId(x["triggerID"]) for x in flows if x["type"] == "trigger" ]
     flowActions = [ db.ObjectId(x["actionID"]) for x in flows if x["type"] == "action" ]
     actions = action._action().getAsClass(api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
@@ -254,7 +240,7 @@ def conductExport(conductID):
                             result[flow["type"]][obj._id][member] = value
             if flow["flowID"] not in result["ui"]:
                 result["ui"][flow["flowID"]] = { "x" : 0, "y" : 0, "title" : "" }
-                flowUI = webui._modelUI().getAsClass(api.g.sessionData,query={ "flowID" : flowLookupReverse[flow["flowID"]], "conductID" : conductID })
+                flowUI = webui._modelUI().getAsClass(api.g.sessionData,query={ "flowID" : flow["flowID"], "conductID" : conductID })
                 if len(flowUI) > 0:
                     flowUI = flowUI[0]
                     result["ui"][flow["flowID"]]["x"] = flowUI.x
@@ -277,8 +263,23 @@ def conductImportData(conductID):
     if access:
         data = json.loads(api.request.data)
         importData = helpers.typeCast(data["importData"])
+
         if data["appendObjects"]:
             conductObj.flow = conductObj.flow + importData["flow"]
+            # Regenerate flowIDs
+            flowLookup = {}
+            flowLookupReverse = {}
+            flows = importData["flow"]
+            for flow in flows:
+                if flow["flowID"] not in flowLookup:
+                    flowLookup[flow["flowID"]] = str(uuid.uuid4())
+                    flowLookupReverse[flowLookup[flow["flowID"]]] = flow["flowID"]
+                flow["flowID"] = flowLookup[flow["flowID"]]
+                for nextFlow in flow["next"]:
+                    if nextFlow["flowID"] not in flowLookup:
+                        flowLookup[nextFlow["flowID"]] = str(uuid.uuid4())
+                        flowLookupReverse[flowLookup[nextFlow["flowID"]]] = nextFlow["flowID"]
+                    nextFlow["flowID"] = flowLookup[nextFlow["flowID"]]
         else:
             conductObj.flow=importData["flow"]
         for flow in importData["flow"]:
@@ -290,7 +291,7 @@ def conductImportData(conductID):
                 flowUI.title = importData["ui"][flow["flowID"]]["title"]
                 flowUI.update(["x","y","title"])
             else:
-                webui._modelUI().new(conductObj._id,conductObj.acl,flow["flowID"],importData["ui"][flow["flowID"]]["x"],importData["ui"][flow["flowID"]]["y"],importData["ui"][flow["flowID"]]["title"])
+                webui._modelUI().new(conductObj._id,conductObj.acl,flow["flowID"],importData["ui"][flowLookupReverse[flow["flowID"]]]["x"],importData["ui"][flowLookupReverse[flow["flowID"]]]["y"],importData["ui"][flowLookupReverse[flow["flowID"]]]["title"])
             if flow["type"] == "trigger":
                 classObj = _class = model._model().getAsClass(api.g.sessionData,query={ "name" : importData["trigger"][flow["triggerID"]]["className"] })
                 if len(classObj) > 0:
