@@ -174,6 +174,8 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,passedFlow=
                                                 events = currentObject.events
                                             else:
                                                 events = helpers.evalString(currentObject.eventsField,{"data" : data})
+                                            if currentObject.limit > 0:
+                                                events = events[:currentObject.limit]
                                             debugText = executeCodifyFlow(sessionData,events,codifyData,eventCount=0,passedFlow=currentFlow,persistentData=persistentData)
                                             data["action"] = { "result" : False, "rc" : 200 }
                                 else:
