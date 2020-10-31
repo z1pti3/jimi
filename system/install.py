@@ -7,7 +7,7 @@ import string
 from core import db
 
 # Current System Version
-systemVersion = 1.52
+systemVersion = 1.53
 
 # Initialize 
 dbCollectionName = "system"
@@ -187,6 +187,9 @@ def systemInstall():
 	model.registerModel("globalSet","_globalSet","_action","system.models.global")
 	model.registerModel("globalGet","_globalGet","_action","system.models.global")
 
+	# Sleep
+	model.registerModel("sleep","_sleep","_action","system.models.sleep")
+
 	# Adding model for plugins
 	model.registerModel("plugins","_plugin","_document","core.plugin")
 
@@ -235,6 +238,9 @@ def systemUpgrade(currentVersion):
 				pluginClass = pluginClass[0]
 				pluginClass.upgradeHandler()
 		return True
+
+	if currentVersion < 1.53:
+		model.registerModel("sleep","_sleep","_action","system.models.sleep")
 
 	if currentVersion < 1.52:
 		model.registerModel("global","_global","_document","system.models.global")
