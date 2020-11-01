@@ -12,6 +12,7 @@ from gc import get_referents
 import json
 import ast
 import time
+import datetime
 
 from bson.objectid import ObjectId 
 from core import settings, function
@@ -62,6 +63,8 @@ def defineVars(varDefinitions,dicts={},functionSafeList=functionSafeList):
 def evalString(varString,dicts={},functionSafeList=functionSafeList):
     results = varString
     evalMatches = regexEvalString.findall(varString)
+    if len(evalMatches) == 0:
+        results = typeCast(varString)
     for evalMatch in evalMatches:
         if results is not None:
             results = typeCast(results.replace(evalMatch[0],str(typeCast(evalMatch[1],dicts,functionSafeList))))
@@ -388,3 +391,8 @@ def dictValue(d,value):
     except:
         return None
  
+def roundTime(dt=None, roundTo=60):
+   if dt == None : dt = datetime.datetime.now()
+   seconds = (dt.replace(tzinfo=None) - dt.min).seconds
+   rounding = (seconds+roundTo/2) // roundTo * roundTo
+   return dt + datetime.timedelta(0,rounding-seconds,-dt.microsecond)
