@@ -120,6 +120,32 @@ class _document():
             update["$set"][field] = getattr(self,field)
 
         bulkClass.newBulkOperaton(self._dbCollection.name,"update",{"_id" : self._id, "update" : update})
+
+        # Updated DB with latest values
+    @mongoConnectionWrapper
+    def bulkUpsert(self,query,fields,bulkClass,sessionData=None,customUpdate=False):
+        result = cache.globalCache.get("dbModelCache",self.__class__.__name__,getClassByName,sessionData=sessionData,extendCacheTime=True)
+        if len(result) == 1:
+            result = result[0]
+            self.classID = result["_id"]
+        else:
+            return False
+        if sessionData:
+            for field in fields:
+                if not fieldACLAccess(sessionData,self.acl,field,"write"):
+                    return False
+
+        if not customUpdate:
+            # Appending last update time to every update
+            fields.append("lastUpdateTime")
+            self.lastUpdateTime = time.time()
+            update = { "$set" : {} }
+            for field in fields:
+                update["$set"][field] = getattr(self,field)
+        else:
+            update = fields
+
+        bulkClass.newBulkOperaton(self._dbCollection.name,"upsert",[query,update])
         
     # Parse class into json dict
     def parse(self,hidden=False):
@@ -393,12 +419,20 @@ class _bulk():
                     cpuSaver.tick()
                 bulkUpdate.execute()
                 bulkOperatonMethod["insert"] = []
+            # Upsert
+            if len(bulkOperatonMethod["upsert"]) > 0:
+                upsertArray = []
+                for upsert in bulkOperatonMethod["upsert"]:
+                    upsertArray.append(pymongo.UpdateOne(upsert[0], upsert[1],upsert=True))
+                    cpuSaver.tick()
+                bulkUpdate = db[bulkOperatonCollection].bulk_write(upsertArray)
+                bulkOperatonMethod["upsert"] = []
         self.lock.release()
 
     def newBulkOperaton(self,collection,method,value):
         self.lock.acquire()
         if collection not in self.bulkOperatons:
-            self.bulkOperatons[collection] = { "insert" : [], "update" : [] }
+            self.bulkOperatons[collection] = { "insert" : [], "update" : [], "upsert" : [] }
         self.bulkOperatons[collection][method].append(value)
         self.lock.release()
 
