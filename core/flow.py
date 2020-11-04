@@ -42,6 +42,7 @@ def getObjectFromCode(sessionData,codeFunction):
     args = json.loads(codeFunction.strip()[(len(functionName)):])
     classObject = model._model().getAsClass(sessionData=sessionData,query={ "name" : functionName })[0].classObject()()
     classObject.enabled = True
+    classObject.log = True
     classObject._id= "000000000001010000000000"
     classObject.functionName = functionName
     members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
@@ -97,6 +98,7 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
     tempConduct = conduct._conduct()
     tempConduct._id = "000000000001010000000000"
     tempConduct.flow = conductFlow
+    tempConduct.log = True
     for flow in flows:
         tempData = conduct.flowDataTemplate(conduct=tempConduct,trigger=flow["classObject"])
         for index, event in enumerate(events):
