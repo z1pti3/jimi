@@ -16,6 +16,7 @@ class _forEach(action._action):
 			formData = []
 			formData.append({"type" : "input", "schemaitem" : "_id", "textbox" : classObject._id})
 			formData.append({"type" : "input", "schemaitem" : "name", "textbox" : classObject.name})
+			formData.append({"type" : "input", "schemaitem" : "eventsField", "textbox" : classObject.eventsField, "tooltip" : "Data within flow to use as a list source"})
 			formData.append({"type" : "checkbox", "schemaitem" : "mergeEvents", "checked" : classObject.mergeEvents, "tooltip" : "When selected existng event will be merged with defined events being looped"})
 			formData.append({"type" : "checkbox", "schemaitem" : "manual", "checked" : classObject.manual, "tooltip" : "Check to enable events list to take affect"})
 			formData.append({"type" : "json-input", "schemaitem" : "events", "textbox" : classObject.events, "tooltip" : "Define a set of events for looping, manual MUST be checked for this to take affect"})

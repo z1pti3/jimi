@@ -175,7 +175,7 @@ class _conduct(db._document):
                             if class_:
                                 if len(class_) > 0:
                                     class_ = class_[0]
-                                    class_.postRun()
+                                    class_.postRun(data,persistentData)
                                     actionList.append(class_._id)
 
 from core import helpers, logging, model, audit, settings, cache
