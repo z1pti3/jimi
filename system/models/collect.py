@@ -28,22 +28,24 @@ class _collect(action._action):
 			return actionResult
 		else:
 			self.events.append(data["event"])
+			self.persistentData = persistentData
+			self.data = data
 			if self.limit != 0 and self.limit < len(self.events):
-				self.continueFlow(data,persistentData)
+				self.continueFlow()
 
 		# Returning false to stop flow continue
 		actionResult["result"] = False
 		actionResult["rc"] = 9
 		return actionResult
 
-	def continueFlow(self,data,persistentData):
+	def continueFlow(self):
 		if self.events:
-			tempDataCopy = conduct.copyFlowData(data)
+			tempDataCopy = conduct.copyFlowData(self.data)
 			tempDataCopy["event"] = self.events
 			tempDataCopy["skip"] = 1
 			self.events = []
 			tempDataCopy["eventStats"] = { "first" : True, "current" : 0, "total" : 1, "last" : True }
-			persistentData["system"]["conduct"].triggerHandler(data["flowID"],tempDataCopy,flowIDType=True)
+			self.persistentData["system"]["conduct"].triggerHandler(self.data["flowID"],tempDataCopy,flowIDType=True)
 
-	def postRun(self,data,persistentData):
-		self.continueFlow(data,persistentData)
+	def postRun(self):
+		self.continueFlow()

@@ -108,12 +108,18 @@ class _conduct(db._document):
             persistentData = { "system" : { "conduct" : self } }
         data["conductID"] = self._id
         data["action"] = { "result" : True, "rc" : 7337 }
+        flowObjectsUsed = []
+        codifyFlow = True if "classObject" in currentFlow else False
         cpuSaver = helpers.cpuSaver()
         while True:
             if currentFlow:
+                flowObjectsUsed.append(currentFlow["flowID"])
                 if currentFlow["type"] == "trigger":
                     try:
-                        currentTrigger = cache.globalCache.get("triggerCache",currentFlow["triggerID"],getTrigger)[0]
+                        if not codifyFlow:
+                            currentTrigger = cache.globalCache.get("triggerCache",currentFlow["triggerID"]+currentFlow["flowID"],getTrigger,currentFlow)[0]
+                        else:
+                            currentTrigger = currentFlow["classObject"]
                         # Logic and var defintion
                         triggerContinue = True
                         if currentTrigger.logicString:
@@ -138,7 +144,10 @@ class _conduct(db._document):
                         pass
                 elif currentFlow["type"] == "action":
                     try:
-                        class_ = cache.globalCache.get("actionCache",currentFlow["actionID"],getAction)[0]
+                        if not codifyFlow:
+                            class_ = cache.globalCache.get("actionCache",currentFlow["actionID"]+currentFlow["flowID"],getAction,currentFlow)[0]
+                        else:
+                            class_ = currentFlow["classObject"]
                         if class_.enabled:
                             data["flowID"] = currentFlow["flowID"]
                             data["action"] = class_.runHandler(data,persistentData)
@@ -164,19 +173,19 @@ class _conduct(db._document):
                     currentFlow = None
             # CPU saver
             cpuSaver.tick()
-        # Post processing for all event postRun actions, **bug as class within cache could get cleared before this is run!!!!
-        actionList = []
+        # Post processing for all event postRun actions
         if "eventStats" in data:
             if data["eventStats"]["last"]:
                 for flow in flowDict:
-                    if flowDict[flow]["type"] == "action":
-                        if flowDict[flow]["actionID"] not in actionList:
-                            class_ = cache.globalCache.get("actionCache",flowDict[flow]["actionID"],getAction)
-                            if class_:
-                                if len(class_) > 0:
-                                    class_ = class_[0]
-                                    class_.postRun(data,persistentData)
-                                    actionList.append(class_._id)
+                    if flowDict[flow]["type"] == "action" and flowDict[flow]["flowID"] in flowObjectsUsed:
+                        if not codifyFlow:
+                            class_ = cache.globalCache.get("actionCache",flowDict[flow]["actionID"]+flowDict[flow]["flowID"],getAction,flowDict[flow],dontCheck=True)
+                        else:
+                            class_ = [flowDict[flow]["classObject"]]
+                        if class_:
+                            if len(class_) > 0:
+                                class_ = class_[0]
+                                class_.postRun()
 
 from core import helpers, logging, model, audit, settings, cache
 from core.models import action, trigger
@@ -218,11 +227,11 @@ def copyFlowData(data):
         copyOfData["plugin"] = {}
     return copyOfData
 
-def getAction(actionID,sessionData):
-    return action._action().getAsClass(id=actionID)
+def getAction(match,sessionData,currentflow):
+    return action._action().getAsClass(id=currentflow["actionID"])
 
-def getTrigger(triggerID,sessionData):
-    return trigger._trigger().getAsClass(id=triggerID)
+def getTrigger(match,sessionData,currentflow):
+    return trigger._trigger().getAsClass(id=currentflow["triggerID"])
 
 def getTriggeredFlowTriggers(triggerID,sessionData,flowData):
     return [ x for x in flowData if "triggerID" in x and x["triggerID"] == triggerID and x["type"] == "trigger" ]
@@ -231,10 +240,18 @@ def getTriggeredFlowActions(actionID,sessionData,flowData):
     return [ x for x in flowData if "actionID" in x and x["actionID"] == actionID and x["type"] == "action" ]
 
 def getTriggeredFlowFlows(flowID,sessionData,flowData):
-    return [ x for x in flowData if "flowID" in x and x["flowID"] == flowID and x["type"] == "action" ]
+    try:
+        classObject = flowData[0]["classObject"]
+        return (False, [ x for x in flowData if "flowID" in x and x["flowID"] == flowID ])
+    except:
+        return [ x for x in flowData if "flowID" in x and x["flowID"] == flowID ]
 
 def getFlowDict(uid,sessionData,flowData):
     result = {}
     for flow in flowData:
         result[flow["flowID"]] = flow
-    return result
+    try:
+        classObject = flowData[0]["classObject"]
+        return (False, result)
+    except:
+        return result

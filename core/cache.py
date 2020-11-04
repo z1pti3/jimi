@@ -137,6 +137,8 @@ class _cache:
             newObject = setFunction(uid,sessionData,*args)
         else:
             newObject = setFunction(uid,sessionData)
+        if type(newObject) is tuple:
+            return (False, newObject[1])
         return (True, newObject)
 
     def reduceSize(self,cacheName,amountToFree,sessionData=None):

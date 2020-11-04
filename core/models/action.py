@@ -106,11 +106,11 @@ class _action(db._document):
         if logging.debugEnabled:
             logging.debug("Action run complete, actionID='{0}', data='{1}'".format(self._id,data),7)
 
-    def postRun(self,data,persistentData):
+    def postRun(self):
         pass
 
     def __del__(self):
-        self.postRun(None,None)
+        self.postRun()
 
 from core import helpers, logging, model, audit
 from system.functions import network
