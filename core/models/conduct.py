@@ -107,7 +107,7 @@ class _conduct(db._document):
         if not persistentData:
             persistentData = { "system" : { "conduct" : self } }
         data["conductID"] = self._id
-        data["action"] = { "result" : True, "rc" : 7337 }
+        data["action"] = { "result" : True, "rc" : 1337 }
         flowObjectsUsed = []
         codifyFlow = True if "classObject" in currentFlow else False
         cpuSaver = helpers.cpuSaver()
@@ -240,6 +240,7 @@ def getTriggeredFlowActions(actionID,sessionData,flowData):
     return [ x for x in flowData if "actionID" in x and x["actionID"] == actionID and x["type"] == "action" ]
 
 def getTriggeredFlowFlows(flowID,sessionData,flowData):
+    # prevent cache when running as testTrigger
     try:
         classObject = flowData[0]["classObject"]
         return (False, [ x for x in flowData if "flowID" in x and x["flowID"] == flowID ])
@@ -250,6 +251,7 @@ def getFlowDict(uid,sessionData,flowData):
     result = {}
     for flow in flowData:
         result[flow["flowID"]] = flow
+    # prevent cache when running as testTrigger
     try:
         classObject = flowData[0]["classObject"]
         return (False, result)
