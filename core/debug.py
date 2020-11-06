@@ -12,24 +12,3 @@ def fn_timer(function):
                )
         return result
     return function_timer
-
-@fn_timer
-def test():
-    a = { "test" : 1 }
-    for x in range(0,1000000):
-        try:
-            b = a["test"]
-        except KeyError:
-            b = 1
-
-@fn_timer
-def test2():
-    a = { "test" : 1 }
-    for x in range(0,1000000):
-        if "test" in a:
-            b = a["test"]
-        else:
-            b = 1
-
-test()
-test2()
