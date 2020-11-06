@@ -60,15 +60,12 @@ class _action(db._document):
         startTime = 0
         if self.log:
             startTime = time.time()
-        if debug:
-            debugText=""
         actionResult = { "result" : False, "rc" : -1, "actionID" : self._id, "data" : {} }
         self.runHeader(data,persistentData,actionResult)
         if self.logicString:
-            if debug:
-                debugText=""
+            if self.log:
                 logicDebugText, logicResult = logic.ifEval(self.logicString, { "data" : data }, debug=True)
-                debugText+="\n\t[action logic]\n\t\t{0}\n\t\t{1}\n\t\t({2})".format(self.logicString,logicResult,logicDebugText)
+                audit._audit().add("action","logic",{ "conductID" : helpers.dictValue(data,"conductID"), "conductName" : helpers.dictValue(data,"conductName"), "triggerName" : helpers.dictValue(data,"triggerName"), "triggerID" : helpers.dictValue(data,"triggerID"),  "flowD" : helpers.dictValue(data,"flowID"), "actionID" : self._id, "actionName" : self.name, "data" : data,  "logicString" : self.logicString, "logicResult" : logicResult, "logicData" : logicDebugText })
             else:
                 logicResult = logic.ifEval(self.logicString, { "data" : data })
             if logicResult:
@@ -83,14 +80,12 @@ class _action(db._document):
             if self.varDefinitions:
                 data["var"] = variable.varEval(self.varDefinitions,data["var"],{ "data" : data, "action" : actionResult})
         self.runFooter(data,persistentData,actionResult,startTime)
-        if debug:
-            return (debugText, actionResult)
         return actionResult
 
     def runHeader(self,data,persistentData,actionResult):
         if self.log:
             # Used helpers.dictValue as cant ensure new data is passed by all plugins such as forEach / Subflow - this should be removed once these are updated to include the required template
-            audit._audit().add("action","action start",{ "conductID" : helpers.dictValue(data,"conductID"), "conductName" : helpers.dictValue(data,"conductName"), "triggerName" : helpers.dictValue(data,"triggerName"), "triggerID" : helpers.dictValue(data,"triggerID"), "actionID" : self._id, "actionName" : self.name, "var" : helpers.dictValue(data,"var"), "event" : helpers.dictValue(data,"event"), "actionResult" : actionResult })
+            audit._audit().add("action","action start",{ "conductID" : helpers.dictValue(data,"conductID"), "conductName" : helpers.dictValue(data,"conductName"), "triggerName" : helpers.dictValue(data,"triggerName"), "triggerID" : helpers.dictValue(data,"triggerID"), "flowD" : helpers.dictValue(data,"flowID"), "actionID" : self._id, "actionName" : self.name, "data" : data, "actionResult" : actionResult })
         if logging.debugEnabled:
             logging.debug("Action run started, actionID='{0}', data='{1}'".format(self._id,data),7)
 
@@ -102,7 +97,7 @@ class _action(db._document):
     def runFooter(self,data,persistentData,actionResult,startTime):
         if self.log:
             # Used helpers.dictValue as cant ensure new data is passed by all plugins such as forEach / Subflow - this should be removed once these are updated to include the required template
-            audit._audit().add("action","action end",{ "conductID" : helpers.dictValue(data,"conductID"), "conductName" : helpers.dictValue(data,"conductName"), "triggerName" : helpers.dictValue(data,"triggerName"), "triggerID" : helpers.dictValue(data,"triggerID"), "actionID" : self._id, "actionName" : self.name, "var" : helpers.dictValue(data,"var"), "event" : helpers.dictValue(data,"event"), "actionResult" : actionResult, "duration" : (time.time() - startTime) })
+            audit._audit().add("action","action end",{ "conductID" : helpers.dictValue(data,"conductID"), "conductName" : helpers.dictValue(data,"conductName"), "triggerName" : helpers.dictValue(data,"triggerName"), "triggerID" : helpers.dictValue(data,"triggerID"), "flowD" : helpers.dictValue(data,"flowID"), "actionID" : self._id, "actionName" : self.name, "data" : data, "actionResult" : actionResult, "duration" : (time.time() - startTime) })
         if logging.debugEnabled:
             logging.debug("Action run complete, actionID='{0}', data='{1}'".format(self._id,data),7)
 

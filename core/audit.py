@@ -40,7 +40,9 @@ class _audit(db._document):
                 if "eventSources" in auditSettings["db"]:
                     if eventSource not in auditSettings["db"]["eventSources"]:
                         writeLog = False
-
+                # Override for testTrigger
+                if "000000000001010000000000" in eventData["conductID"]:
+                    writeLog = True
                 if writeLog:
                     result = self._dbCollection.insert_one(auditData)
         except KeyError:

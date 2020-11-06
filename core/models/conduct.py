@@ -128,6 +128,8 @@ class _conduct(db._document):
                                     data["var"] = variable.varEval(currentTrigger.varDefinitions,data["var"],{ "data" : data})
                             else:
                                 triggerContinue = False
+                                if self.log:
+                                    audit._audit().add("conduct","logic",{ "conductID" : self._id, "conductName" : self.name, "data" : data, "logicString" : currentTrigger.logicString, "LogicResult" : False })
                         else:
                             if currentTrigger.varDefinitions:
                                 data["var"] = variable.varEval(currentTrigger.varDefinitions,data["var"],{ "data" : data})
@@ -157,6 +159,9 @@ class _conduct(db._document):
                                     passData = copyFlowData(data)
                                 if self.flowLogicEval(data,nextFlow["logic"]):
                                     processQueue.append({ "flowID" : nextFlow["flowID"], "data" : passData })
+                                else:
+                                    if self.log:
+                                        audit._audit().add("conduct","link-logic",{ "conductID" : self._id, "conductName" : self.name, "data" : data, "linkLogic" : nextFlow["logic"], "linkLogicResult" : False })
                                 passData = None
                     except IndexError:
                         pass

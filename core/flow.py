@@ -4,7 +4,7 @@ import copy
 import time
 import uuid
 
-from core import api, helpers, model, settings
+from core import api, helpers, model, settings, audit
 from system import variable, logic
 
 from core.models import conduct
@@ -41,10 +41,6 @@ def getObjectFromCode(sessionData,codeFunction):
     functionName = codeFunction.split("{")[0]
     args = json.loads(codeFunction.strip()[(len(functionName)):])
     classObject = model._model().getAsClass(sessionData=sessionData,query={ "name" : functionName })[0].classObject()()
-    classObject.enabled = True
-    classObject.log = True
-    classObject._id= "000000000001010000000000"
-    classObject.functionName = functionName
     members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
     for key, value in args.items():
         for member in members:
@@ -61,6 +57,11 @@ def getObjectFromCode(sessionData,codeFunction):
                 elif type(getattr(classObject,member)) == int and type(value) == float:
                     setattr(classObject,member,int(value))
                     break
+    classObject.enabled = True
+    classObject.log = True
+    classObject._id= "000000000001010000000000-" + str(uuid.uuid4())
+    classObject.functionName = functionName
+    classObject.functionArgs = args
     return classObject
 
 def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentData=None):
@@ -82,6 +83,8 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
                     classObject.checkHeader()
                     classObject.check()
                     events = classObject.result["events"]
+                    if eventCount>0:
+                        events = events[:eventCount]
                 flows.append({ "events": events, "classObject" : classObject, "flowID" : str(uuid.uuid4()), "triggerID" : classObject._id, "type" : "trigger", "codeLine" : flow, "next" : [] })
                 flowLevel[flowIndentLevel] = flows[-1]
                 conductFlow.append(flowLevel[flowIndentLevel])
@@ -96,7 +99,7 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
                 conductFlow.append(flowLevel[flowIndentLevel-1]["next"][-1])
 
     tempConduct = conduct._conduct()
-    tempConduct._id = "000000000001010000000000"
+    tempConduct._id = "000000000001010000000000-" + str(uuid.uuid4())
     tempConduct.flow = conductFlow
     tempConduct.log = True
     for flow in flows:
@@ -112,6 +115,37 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
             tempDataCopy["eventStats"] = eventStat
 
             tempConduct.triggerHandler(flow["flowID"],tempDataCopy,flowIDType=True)
+
+    flowDict = {}
+    for flow in tempConduct.flow:
+        flowDict[flow["flowID"]] = flow
+        if "triggerID" in flow:
+            flowDict[flow["triggerID"]] = flow
+        if "actionID" in flow:
+            flowDict[flow["actionID"]] = flow
+    # Getting Result From DB
+    auditData = audit._audit().query(query={ "data.conductID" : tempConduct._id },fields=["_id","time","source","type","data","systemID"])["results"]
+    output = ""
+    for auditItem in auditData:
+        if "time" in auditItem:
+            auditItem["time"] = time.strftime('%d/%m/%Y %H:%M:%S', time.gmtime(auditItem["time"]))
+            if auditItem["source"] == "conduct":
+                if auditItem["type"] == "trigger start":
+                    output+="{0} - Start\n\t{1}\n\tEvent: {2}\n\tPre-Data: {3}\n".format(flowDict[auditItem["data"]["triggerID"]]["classObject"].functionName,flowDict[auditItem["data"]["triggerID"]]["classObject"].functionArgs,auditItem["data"]["data"]["event"],auditItem["data"]["data"])
+                elif auditItem["type"] == "logic":
+                    output+="\tLogic String: {0}\n\tLogic Result: {1}\n".format(auditItem["data"]["logicString"],auditItem["data"]["LogicResult"])
+                elif auditItem["type"] == "trigger end":
+                    output+="\tPost-Data: {1}\n{0} - End\n\n".format(flowDict[auditItem["data"]["triggerID"]]["classObject"].functionName,auditItem["data"]["data"])
+            if auditItem["source"] == "action":
+                if auditItem["type"] == "action start":
+                     output+="\t\t{0} - Start\n\t\t\t{1}\n\t\t\tPre-Data: {2}\n".format(flowDict[auditItem["data"]["actionID"]]["classObject"].functionName,flowDict[auditItem["data"]["actionID"]]["classObject"].functionArgs,auditItem["data"]["data"])
+                elif auditItem["type"] == "logic":
+                    output+="\t\t\tLogic String: {0}\n\t\t\tLogic Result: {1}\n".format(auditItem["data"]["logicString"],auditItem["data"]["LogicResult"])
+                elif auditItem["type"] == "link-logic":
+                    output+="\t\t\tLink-logic String: {0}\n\t\t\tLink-logic Result: {1}\n".format(auditItem["data"]["linkLogic"],auditItem["data"]["linkLogicResult"])
+                elif auditItem["type"] == "action end":
+                     output+="\t\t\tPost-Data: {1}\n\t\t{0} - End\n".format(flowDict[auditItem["data"]["actionID"]]["classObject"].functionName,auditItem["data"]["data"])
+    return output
 
 ######### --------- API --------- #########
 if api.webServer:
