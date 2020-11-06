@@ -223,7 +223,7 @@ def typeCast(varString,dicts={},functionSafeList=functionSafeList):
     return varString
 
 def handelTypes(_object):
-        # Handle none native json types
+    # Handle none native json types
     if type(_object) is ObjectId:
         return str(_object)
     else:
