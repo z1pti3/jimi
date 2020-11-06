@@ -98,6 +98,8 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
                 flowLevel[flowIndentLevel] = flowLevel[flowIndentLevel-1]["next"][-1]
                 conductFlow.append(flowLevel[flowIndentLevel-1]["next"][-1])
 
+    startTime = time.time()
+    output = "Started @ {0}\n\n".format(startTime)
     tempConduct = conduct._conduct()
     tempConduct._id = "000000000001010000000000-" + str(uuid.uuid4())
     tempConduct.flow = conductFlow
@@ -125,7 +127,6 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
             flowDict[flow["actionID"]] = flow
     # Getting Result From DB
     auditData = audit._audit().query(query={ "data.conductID" : tempConduct._id },fields=["_id","time","source","type","data","systemID"])["results"]
-    output = ""
     for auditItem in auditData:
         if "time" in auditItem:
             auditItem["time"] = time.strftime('%d/%m/%Y %H:%M:%S', time.gmtime(auditItem["time"]))
@@ -145,6 +146,11 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
                     output+="\t\t\tLink-logic String: {0}\n\t\t\tLink-logic Result: {1}\n".format(auditItem["data"]["linkLogic"],auditItem["data"]["linkLogicResult"])
                 elif auditItem["type"] == "action end":
                      output+="\t\t\tPost-Data: {1}\n\t\t{0} - End\n".format(flowDict[auditItem["data"]["actionID"]]["classObject"].functionName,auditItem["data"]["data"])
+
+    endTime = time.time()
+    output += "\nEnded @ {0}\n".format(endTime)
+    output += "Duration @ {0}".format(endTime-startTime)
+
     return output
 
 ######### --------- API --------- #########
