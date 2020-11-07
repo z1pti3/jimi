@@ -129,6 +129,28 @@
     color: #9b9b9b;
 }
 
+.theme-dropdown-menu {
+    background-color: #222222;
+    border-color: #2e6da4;
+    border-width: 1px;
+    border-style: solid;
+}
+
+.theme-dropdown-menu > li > a {
+    color: #ddd;
+}
+
+.theme-dropdown-menu > li:hover > a {
+    background-color: #220433;
+    color: #ddd;
+}
+
+.theme-dropdown-menu-divider {
+    border-color: #2e6da4;
+    border-style: solid;
+    border-width: 1px;
+}
+
 
 /* selectbox */
 .select2-container--theme-panelSelect .select2-selection--single {
