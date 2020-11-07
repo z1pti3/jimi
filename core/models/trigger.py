@@ -64,12 +64,8 @@ class _trigger(db._document):
         return result
 
     def setAttribute(self,attr,value,sessionData=None):
-        if attr == "name":
-            results = self.query(query={"name" : value, "_id" : { "$ne" :  db.ObjectId(self._id) }})["results"]
-            if len(results) != 0:
-                return False
         # Resets startCheck to 0 each time a trigger is enabled
-        elif attr == "enabled" and value == True and self.enabled == False:
+        if attr == "enabled" and value == True and self.enabled == False:
             self.startCheck = 0
             self.update(["startCheck"])
         setattr(self,attr,value)

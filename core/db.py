@@ -12,6 +12,7 @@ class _document():
     acl = dict()
     lastUpdateTime = int()
     creationTime = int()
+    createdBy = str()
 
     def __init__(self):
         cache.globalCache.newCache("dbModelCache")
@@ -36,6 +37,8 @@ class _document():
             result = result[0]
             self.classID = result["_id"]
             self.creationTime = int(time.time())
+            if sessionData:
+                self.createdBy = sessionData["_id"]
             result = self._dbCollection.insert_one(self.parse())
             self._id = result.inserted_id
             return result
