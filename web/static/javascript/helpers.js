@@ -47,3 +47,16 @@ function sanitize(string) {
         return '<span class="theme-json' + cls + '">' + match + '</span>';
     });
 }
+
+function getMenuPosition(mouse, direction, scrollDir, menu) {
+    var win = $(window)[direction](),
+        scroll = $(window)[scrollDir](),
+        menu = menu[direction](),
+        position = mouse + scroll;
+                
+    // opening menu would pass the side of the page
+    if (mouse + menu > win && menu < mouse) 
+        position -= menu;
+    
+    return position;
+}    

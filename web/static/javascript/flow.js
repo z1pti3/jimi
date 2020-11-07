@@ -361,6 +361,15 @@ function exportFlowObject() {
 	}
 }
 
+function CodifyFlowObject() {
+	selectedNodes = network.getSelectedNodes()
+	if (selectedNodes.length == 1) {
+		node = nodeObjects[selectedNodes[0]]["flowID"]
+		var conductID = GetURLParameter("conductID")
+		window.open("/conductEditor/"+conductID+"/codify/?flowID="+node, "_blank");
+	}
+}
+
 function importConduct() {
 	var conductID = GetURLParameter("conductID")
 	window.open("/conductEditor/"+conductID+"/import/", "_blank");
@@ -451,6 +460,34 @@ function setupFlowchart() {
 			selectedObject = ["flowObject",nodeObjects[params["nodes"][0]]["flowID"]]
 		} else {
 			selectedObject = null;
+		}
+		return true;
+	});
+
+	network.on("oncontext", function(params) {
+		nodeID = (network.getNodeAt({ "x" : params["pointer"]["DOM"]["x"], "y" : params["pointer"]["DOM"]["y"] }));
+		if (nodeID) {
+			network.setSelection({ "nodes" : [nodeID] });
+			if (flowObjects[nodeObjects[nodeID]["flowID"]]["flowType"] == "trigger") {
+				var menuHTML = ".contextMenuTrigger";
+			} else {
+				$(".contextMenuTrigger").hide();
+			}
+			if (flowObjects[nodeObjects[nodeID]["flowID"]]["flowType"] == "action") {
+				var menuHTML = ".contextMenuAction";
+			} else {
+				$(".contextMenuAction").hide();
+			}
+			var $menu = $(menuHTML).show()
+				.css({
+					position: "absolute",
+					left: getMenuPosition(params["pointer"]["DOM"]["x"], 'width', 'scrollLeft', $(menuHTML)),
+					top: getMenuPosition(params["pointer"]["DOM"]["y"], 'height', 'scrollTop',$(menuHTML))
+				})
+				.off('click')
+				.on('click', 'a', function (e) {
+					$menu.hide();
+			});
 		}
 		return true;
 	});
