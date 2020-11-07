@@ -759,7 +759,7 @@ def deleteFlowLink(conductID,fromFlowID,toFlowID):
         return {}, 403
 
 
-@api.webServer.route("/conduct/<conductID>/editACL/<flowID>", methods=["GET"])
+@api.webServer.route("/conductEditor/<conductID>/editACL/<flowID>", methods=["GET"])
 def getACL(conductID,flowID):
     conductObj = conduct._conduct().getAsClass(api.g.sessionData,id=conductID)
     if len(conductObj) == 1:
@@ -791,7 +791,7 @@ def getACL(conductID,flowID):
 
     return {"acl":acl, "uiAcl" : uiAcl}, 200
 
-@api.webServer.route("/conduct/<conductID>/editACL/<flowID>", methods=["POST"])
+@api.webServer.route("/conductEditor/<conductID>/editACL/<flowID>", methods=["POST"])
 def editACL(conductID,flowID):
     conductObj = conduct._conduct().getAsClass(api.g.sessionData,id=conductID)
     if len(conductObj) == 1:
@@ -847,4 +847,14 @@ def editACL(conductID,flowID):
     if not objectResult or not uiResult:
         return { }, 403
 
-    return { }, 200   
+    return { }, 200
+
+@api.webServer.route("/conductEditor/existingObjects/triggers/", methods=["GET"])
+def getExistingObjectsTriggers():
+    triggers = trigger._trigger().query(sessionData=api.g.sessionData,query={ "scope" : { "$gt" : 0 } })["results"]
+    return { "results" : triggers}, 200
+
+@api.webServer.route("/conductEditor/existingObjects/actions/", methods=["GET"])
+def getExistingObjectsActions():
+    actions = action._action().query(sessionData=api.g.sessionData,query={ "scope" : { "$gt" : 0 } })["results"]
+    return { "results" : actions}, 200

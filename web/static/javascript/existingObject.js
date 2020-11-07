@@ -19,7 +19,7 @@ var openExistingPanels = {}
 
 function loadExistingObjectPanel(panel) {
 	panel.find("#existingPropertiesPanel-SearchResults").empty();
-	$.ajax({url:"/api/1.0/models/action/all/", type:"GET", success: function ( result ) {
+	$.ajax({url:"/conductEditor/existingObjects/triggers/", type:"GET", success: function ( result ) {
 			for ( resultItem in result["results"] ) {
 				var $div = $('<div class="draggable_operator ui-draggable ui-draggable-handle ListName">');
 				$div.attr("data-name",result["results"][resultItem]["name"])
@@ -51,7 +51,7 @@ function loadExistingObjectPanel(panel) {
 			}
 		}
 	});
-	$.ajax({url:"/api/1.0/models/trigger/all/", type:"GET", success: function ( result ) {
+	$.ajax({url:"/conductEditor/existingObjects/actions/", type:"GET", success: function ( result ) {
 			for ( resultItem in result["results"] ) {
 				var $div = $('<div class="draggable_operator ui-draggable ui-draggable-handle ListName">');
 				$div.attr("data-name",result["results"][resultItem]["name"])

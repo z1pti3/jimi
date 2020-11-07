@@ -26,6 +26,7 @@ class _trigger(db._document):
     threaded = bool()
     attemptCount = int()
     autoRestartCount = int()
+    scope = int()
 
     _dbCollection = db.db["triggers"]
 

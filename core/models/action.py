@@ -15,6 +15,7 @@ class _action(db._document):
     comment = str()
     logicString = str()
     varDefinitions = dict()
+    scope = int()
 
     _dbCollection = db.db["actions"]
 
