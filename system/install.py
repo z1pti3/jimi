@@ -7,7 +7,7 @@ import string
 from core import db
 
 # Current System Version
-systemVersion = 1.6
+systemVersion = 1.62
 
 # Initialize 
 dbCollectionName = "system"
@@ -150,7 +150,7 @@ def systemInstall():
 
 	# System - failedTriggers
 	from core.models import trigger
-	triggers = trigger._trigger().query(query={"name" : "failedTriggers"})["results"]
+	triggers = trigger._trigger().getAsClass(query={"name" : "failedTriggers"})
 	if len(triggers) < 1:
 		from system.models import trigger as systemTrigger
 		model.registerModel("failedTriggers","_failedTriggers","_trigger","system.models.trigger")
@@ -166,7 +166,7 @@ def systemInstall():
 	# System - Actions
 	from core.models import action
 	# resetTrigger
-	actions = action._action().query(query={"name" : "resetTrigger"})["results"]
+	actions = action._action().getAsClass(query={"name" : "resetTrigger"})
 	if len(actions) < 1:
 		from system.models import action as systemAction
 		model.registerModel("resetTrigger","_resetTrigger","_action","system.models.action")
@@ -241,6 +241,26 @@ def systemUpgrade(currentVersion):
 				pluginClass = pluginClass[0]
 				pluginClass.upgradeHandler()
 		return True
+
+	if currentVersion < 1.62:
+		from core.models import trigger
+		from core.models import action
+		failedTriggers = trigger._trigger().getAsClass(query={"name" : "failedTriggers"})
+		if len(failedTriggers) == 1:
+			failedTriggers = failedTriggers[0]
+			failedTriggers.scope = 3
+			failedTriggers.update(["scope"])
+		else:
+			from system.models import trigger as systemTrigger
+			systemTrigger._failedTriggers().new("failedTriggers")
+		restTrigger = action._action().getAsClass(query={"name" : "resetTrigger"})
+		if len(restTrigger) == 1:
+			restTrigger = restTrigger[0]
+			restTrigger.scope = 3
+			restTrigger.update(["scope"])
+		else:
+			from system.models import action as systemAction
+			systemAction._resetTrigger().new("resetTrigger")
 
 	if currentVersion < 1.54:
 		model.registerModel("collect","_collect","_action","system.models.collect")

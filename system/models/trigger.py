@@ -3,6 +3,7 @@ from core.models import webui
 
 class _failedTriggers(trigger._trigger):
     enabled = True
+    scope = 3
 
 from core import model, audit, workers
 

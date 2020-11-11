@@ -3,6 +3,7 @@ from core.models import trigger
 
 class _resetTrigger(action._action):
     enabled = True
+    scope = 3
 
     def run(self,data,persistentData,actionResult):
         try:
