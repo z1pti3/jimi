@@ -141,7 +141,7 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
                 if auditItem["type"] == "action start":
                      output+="\t\t{0} - Start\n\t\t\t{1}\n\t\t\tPre-Data: {2}\n".format(flowDict[auditItem["data"]["actionID"]]["classObject"].functionName,flowDict[auditItem["data"]["actionID"]]["classObject"].functionArgs,auditItem["data"]["data"])
                 elif auditItem["type"] == "logic":
-                    output+="\t\t\tLogic String: {0}\n\t\t\tLogic Result: {1}\n".format(auditItem["data"]["logicString"],auditItem["data"]["LogicResult"])
+                    output+="\t\t\tLogic String: {0}\n\t\t\tLogic Result: {1}\n".format(auditItem["data"]["logicString"],auditItem["data"]["logicResult"])
                 elif auditItem["type"] == "link-logic":
                     output+="\t\t\tLink-logic String: {0}\n\t\t\tLink-logic Result: {1}\n".format(auditItem["data"]["linkLogic"],auditItem["data"]["linkLogicResult"])
                 elif auditItem["type"] == "action end":
