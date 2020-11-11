@@ -166,9 +166,14 @@ if api.webServer:
         def getModelObject(modelName,objectID):
             class_ = loadModel(modelName).classObject()
             if class_:
-                result = class_().query(api.g.sessionData,id=objectID)
-                if result["results"]:
-                    return result, 200
+                classObject = class_().getAsClass(api.g.sessionData,id=objectID)
+                if classObject:
+                    classObject = classObject[0]
+                    members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
+                    result = {}
+                    for member in members:
+                        result[member] = getattr(classObject,member)
+                    return { "results" : [result]}, 200
                 else:
                     return {}, 404
             else:
