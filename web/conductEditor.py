@@ -266,22 +266,32 @@ def conductImportData(conductID):
 
         if data["appendObjects"]:
             conductObj.flow = conductObj.flow + importData["flow"]
-            # Regenerate flowIDs
-            flowLookup = {}
-            flowLookupReverse = {}
-            flows = importData["flow"]
-            for flow in flows:
-                if flow["flowID"] not in flowLookup:
-                    flowLookup[flow["flowID"]] = str(uuid.uuid4())
-                    flowLookupReverse[flowLookup[flow["flowID"]]] = flow["flowID"]
-                flow["flowID"] = flowLookup[flow["flowID"]]
-                for nextFlow in flow["next"]:
-                    if nextFlow["flowID"] not in flowLookup:
-                        flowLookup[nextFlow["flowID"]] = str(uuid.uuid4())
-                        flowLookupReverse[flowLookup[nextFlow["flowID"]]] = nextFlow["flowID"]
-                    nextFlow["flowID"] = flowLookup[nextFlow["flowID"]]
         else:
             conductObj.flow=importData["flow"]
+
+        # Build lookup and regen IDs if appending
+        flowLookup = {}
+        flowLookupReverse = {}
+        flows = importData["flow"]
+        for flow in flows:
+            if flow["flowID"] not in flowLookup:
+                # Regen IDs for appends
+                if data["appendObjects"]:
+                    flowLookup[flow["flowID"]] = str(uuid.uuid4())
+                else:
+                    flowLookup[flow["flowID"]] = flow["flowID"]
+                flowLookupReverse[flowLookup[flow["flowID"]]] = flow["flowID"]
+            flow["flowID"] = flowLookup[flow["flowID"]]
+            for nextFlow in flow["next"]:
+                if nextFlow["flowID"] not in flowLookup:
+                    # Regen IDs for appends
+                    if data["appendObjects"]:
+                        flowLookup[nextFlow["flowID"]] = str(uuid.uuid4())
+                    else:
+                        flowLookup[nextFlow["flowID"]] = nextFlow["flowID"]
+                    flowLookupReverse[flowLookup[nextFlow["flowID"]]] = nextFlow["flowID"]
+                nextFlow["flowID"] = flowLookup[nextFlow["flowID"]]
+ 
         for flow in importData["flow"]:
             flowUI = webui._modelUI().getAsClass(api.g.sessionData,query={ "flowID" : flow["flowID"], "conductID" : conductID })
             if len(flowUI) > 0:
