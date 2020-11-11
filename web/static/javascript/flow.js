@@ -466,7 +466,7 @@ function setupFlowchart() {
 
 	network.on("oncontext", function(params) {
 		nodeID = (network.getNodeAt({ "x" : params["pointer"]["DOM"]["x"], "y" : params["pointer"]["DOM"]["y"] }));
-		if (nodeID) {
+		if ((nodeID) || (nodeID == 0)) {
 			network.setSelection({ "nodes" : [nodeID] });
 			if (flowObjects[nodeObjects[nodeID]["flowID"]]["flowType"] == "trigger") {
 				var menuHTML = ".contextMenuTrigger";
