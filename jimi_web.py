@@ -401,8 +401,8 @@ def cleanupPage():
 	if api.g.sessionData:
 		if "admin" in api.g.sessionData:
 			if api.g.sessionData["admin"]:
-				actions = action._action().query(api.g.sessionData,query={ },fields=["_id","name","lastUpdateTime"])["results"]
-				triggers = trigger._trigger().query(api.g.sessionData,query={ },fields=["_id","name","lastUpdateTime"])["results"]
+				actions = action._action().query(api.g.sessionData,query={ "name" : { "$nin" : ["resetTrigger","failedTriggers"] } },fields=["_id","name","lastUpdateTime"])["results"]
+				triggers = trigger._trigger().query(api.g.sessionData,query={ "name" : { "$nin" : ["resetTrigger","failedTriggers"] } },fields=["_id","name","lastUpdateTime"])["results"]
 				actionids = [ x["_id"] for x in actions ]
 				triggerids = [ x["_id"] for x in triggers ]
 				conducts = conduct._conduct().query(query={ "$or" : [ { "flow.triggerID" : { "$in" : triggerids } }, { "flow.actionID" : { "$in" : actionids } } ] },fields=["_id","name","flow"])["results"]
