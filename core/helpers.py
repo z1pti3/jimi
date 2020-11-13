@@ -29,6 +29,8 @@ regexInt = re.compile("^(-|)[0-9]*$")
 regexFloat = re.compile("^[0-9]*\.[0-9]*$")
 regexString = re.compile("^\".*\"$")
 
+systemProperties = ["classID","workerID","acl","scope","lastUpdateTime","creationTime","createdBy","attemptCount","autoRestartCount","clusterSet","systemID","startCheck","scope"]
+
 class cpuSaver:
     loops = 0
 
