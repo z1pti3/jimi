@@ -3,6 +3,7 @@ import json
 import copy
 import time
 import uuid
+import traceback
 
 from core import api, helpers, model, settings, audit
 from system import variable, logic
@@ -116,7 +117,10 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
             tempDataCopy["event"] = event
             tempDataCopy["eventStats"] = eventStat
 
-            tempConduct.triggerHandler(flow["flowID"],tempDataCopy,flowIDType=True)
+            try:
+                tempConduct.triggerHandler(flow["flowID"],tempDataCopy,flowIDType=True)
+            except Exception as e:
+                output = "\n\n***ERROR Start***\n{0}***ERROR End***\n\n".format(''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
 
     flowDict = {}
     for flow in tempConduct.flow:
