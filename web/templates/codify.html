@@ -30,6 +30,8 @@
 	</head>
 	<body class="theme-panelContainer">
 		<div class="container-fluid theme-panelContainer">
+      Number of Events to Process:<br>
+		  <input type='text' value="0" class="inputFullWidth theme-panelTextbox" id='triggerEventCount'><br>
       Events:<br>
       <textarea id="events" class="inputFullWidth theme-panelTextArea" style="height: 150px;"></textarea></br>
       Codify Flow:<br>
@@ -48,7 +50,7 @@
 <script>
   $("#run").click(function () {
     $('#output').text("Running...")
-    $.ajax({url: "/codify/", type:"POST", data:JSON.stringify({ events: $('#events').val(), code: $('#codeEditor').val(), CSRF: CSRF }), contentType:"application/json", success: function(result) {
+    $.ajax({url: "/codify/", type:"POST", data:JSON.stringify({ events: $('#events').val(), eventCount: $('#triggerEventCount').val(), code: $('#codeEditor').val(), CSRF: CSRF }), contentType:"application/json", success: function(result) {
         $('#output').text(result["result"])
       } 
     });
