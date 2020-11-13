@@ -39,7 +39,7 @@ https://jimiproject.wixsite.com/website
 
 Help Pages:
 
-https://z1pti3.github.io/jimiDoc
+https://z1pti3.github.io/jimiDocs
 
 Multi-User:
 ![Screenshot](examples/screenshots/login.png)
