@@ -83,7 +83,6 @@ def getClassObject(classID,sessionData):
 
 ######### --------- API --------- #########
 if api.webServer:
-    returnableTypes = [str,int,bool,list,dict,float]
     if not api.webServer.got_first_request:
         @api.webServer.route(api.base+"models/", methods=["GET"])
         def getModels():
@@ -170,13 +169,8 @@ if api.webServer:
                 classObject = class_().getAsClass(api.g.sessionData,id=objectID)
                 if classObject:
                     classObject = classObject[0]
-                    members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
-                    result = {}
-                    for member in members:
-                        memberAttribute = getattr(classObject,member)
-                        if type(memberAttribute) in returnableTypes:
-                            result[member] = memberAttribute
-                    return { "results" : [result]}, 200
+                    members = helpers.classToJson(classObject)
+                    return { "results" : [members]}, 200
                 else:
                     return {}, 404
             else:
