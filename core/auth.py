@@ -360,7 +360,7 @@ if api.webServer:
                 user = _user().getAsClass(query={ "apiTokens" : { "$in" : [ api.request.headers.get("x-api-key") ] } } )
                 if len(user) == 1:
                     user = user[0]  
-                    return { "x-api-token" : generateSession({ "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True })}
+                    return { "x-api-token" : generateSession({ "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True }).decode()}, 200
             return {}, 404
 
         @api.webServer.route(api.base+"auth/poll/", methods=["GET"])
