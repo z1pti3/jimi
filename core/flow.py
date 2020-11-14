@@ -149,7 +149,7 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
                 elif auditItem["type"] == "link-logic":
                     output+="\t\t\tLink-logic String: {0}\n\t\t\tLink-logic Result: {1}\n".format(auditItem["data"]["linkLogic"],auditItem["data"]["linkLogicResult"])
                 elif auditItem["type"] == "action end":
-                     output+="\t\t\tPost-Data: {1}\n\t\t{0} - End\n".format(flowDict[auditItem["data"]["actionID"]]["classObject"].functionName,auditItem["data"]["data"])
+                     output+="\t\t\tPost-Data: {1}\n\t\t\tResult-Data: {2}\n\t\t{0} - End\n".format(flowDict[auditItem["data"]["actionID"]]["classObject"].functionName,auditItem["data"]["data"],auditItem["data"]["actionResult"])
 
     endTime = time.time()
     output += "\nEnded @ {0}\n".format(endTime)
