@@ -7,7 +7,7 @@ import string
 from core import db
 
 # Current System Version
-systemVersion = 1.62
+systemVersion = 1.7
 
 # Initialize 
 dbCollectionName = "system"
