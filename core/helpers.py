@@ -25,8 +25,8 @@ regexDictKeys = re.compile("(\[\"?([^\]\"]*)\"?\])")
 regexFunction = re.compile("^([a-zA-Z0-9]*)\(.*\)")
 regexFunctionOpen = re.compile("^([a-zA-Z0-9]*)\(.*")
 regexCommor = re.compile(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")
-regexInt = re.compile("^(-|)[0-9]*$")
-regexFloat = re.compile("^[0-9]*\.[0-9]*$")
+regexInt = re.compile("^(-|)[0-9]+$")
+regexFloat = re.compile("^[0-9]+\.[0-9]+$")
 regexString = re.compile("^\".*\"$")
 
 systemProperties = ["classID","workerID","acl","scope","lastUpdateTime","creationTime","createdBy","attemptCount","autoRestartCount","clusterSet","systemID","startCheck","scope"]
