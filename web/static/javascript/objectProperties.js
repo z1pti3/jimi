@@ -185,9 +185,28 @@ function loadPropertiesPanel(flowID,panel) {
 						$select.append($('<option>').attr({value: result["formData"][objectItem]["dropdown"][i]}).text(result["formData"][objectItem]["dropdown"][i]));
 					}
 
+					$select.val(result["formData"][objectItem]["current"])
 					// console.log(result["formData"][objectItem]["dropdown"].length)
 					// console.log(result["formData"][objectItem]["dropdown"])
 					
+					$cell.append($select);
+					$row.append($cell);
+					
+				}
+				if (result["formData"][objectItem]["type"] == "unit-input") {
+          
+					var $cell = $('<td width="100px">');
+					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], class: "theme-panelLabel"}).text(label+":"));
+					$row.append($cell);
+
+					var $cell = $('<td>');
+					$cell.append($('<input class="inputFullWidth theme-panelTextbox-34">').attr({type: 'text', value: result["formData"][objectItem]["textbox"], current: result["formData"][objectItem]["textbox"], required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
+					var $select =$('<select class="inputFullWidth theme-panelTextArea-14">').attr({type: 'dropdown', required: required, id: "properties_items"+result["formData"][objectItem]["selectedunit"], key: result["formData"][objectItem]["unitschema"], tag: "formItem"});
+
+					for (var i=0; i< result["formData"][objectItem]["units"].length;i++){
+						$select.append($('<option>').attr({value: result["formData"][objectItem]["units"][i]}).text(result["formData"][objectItem]["units"][i]));
+					}
+					$select.val(result["formData"][objectItem]["currentunit"])
 					$cell.append($select);
 					$row.append($cell);
 					

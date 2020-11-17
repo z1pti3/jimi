@@ -73,10 +73,38 @@ p {
     border: none;
 }
 
+.theme-panelTextArea-half {
+    background-color: #0f0f0f;
+    color: #ddd;
+    border: none;
+    width: 50%;
+}
+
+.theme-panelTextArea-14 {
+    background-color: #0f0f0f;
+    color: #ddd;
+    border: none;
+    width: 25%;
+}
+
 .theme-panelTextbox {
     background-color: #0f0f0f; 
     color: #ddd;
     border: none;
+}
+
+.theme-panelTextbox-half {
+    background-color: #0f0f0f; 
+    color: #ddd;
+    border: none;
+    width: 50%;
+}
+
+.theme-panelTextbox-34 {
+    background-color: #0f0f0f; 
+    color: #ddd;
+    border: none;
+    width: 75%;
 }
 
 .theme-panelSelect {
