@@ -180,11 +180,10 @@ function loadPropertiesPanel(flowID,panel) {
 
 					var $cell = $('<td>');
 					var $select =$('<select class="inputFullWidth theme-panelTextArea">').attr({type: 'dropdown', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: JSON.stringify(result["formData"][objectItem]["dropdown"]), key: result["formData"][objectItem]["schemaitem"], tag: "formItem"});
-
-					for (var i=0; i< result["formData"][objectItem]["dropdown"].length;i++){
+					
+          for (var i=0; i< result["formData"][objectItem]["dropdown"].length;i++){
 						$select.append($('<option>').attr({value: result["formData"][objectItem]["dropdown"][i]}).text(result["formData"][objectItem]["dropdown"][i]));
 					}
-
 					$select.val(result["formData"][objectItem]["current"])
 					// console.log(result["formData"][objectItem]["dropdown"].length)
 					// console.log(result["formData"][objectItem]["dropdown"])

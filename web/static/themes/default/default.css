@@ -1,5 +1,5 @@
 body {
-    background: #0a0a0a;
+    background: #111111;
 }
 
 p {
@@ -15,7 +15,7 @@ p {
 }
 
 .theme-content {
-    background-color: #0a0a0a;
+    background-color: #111111;
     border: none;
     color: #ddd;
 }
