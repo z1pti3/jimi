@@ -2,6 +2,7 @@ import time
 import json
 import os
 from pathlib import Path
+import importlib
 
 from core import db
 
@@ -32,7 +33,8 @@ class _plugin(db._document):
             if _class:
                 result.append(helpers.jsonToClass(_class(),jsonItem))
             else:
-                logging.debug("Error unable to locate plugin class, pluginName={0}".format(jsonItem["name"]))
+                if logging.debugEnabled:
+                    logging.debug("Error unable to locate plugin class, pluginName={0}".format(jsonItem["name"]))
         return result
 
     def installHandler(self):
@@ -89,7 +91,7 @@ class _plugin(db._document):
         pass
 
 
-from core import api, logging, model, helpers
+from core import api, logging, model, helpers, function
 
 # API
 if api.webServer:
@@ -157,6 +159,11 @@ if api.webServer:
                             return { }, 200
             return { }, 404
 
+def load():
+    updatePluginDB()
+    loadPluginAPIExtensions()
+    loadPluginFunctionExtensions()
+
 def loadPluginClass(pluginName):
     try:
         mod = __import__("plugins.{0}.{0}".format(pluginName), fromlist=["_{0}".format(pluginName)])
@@ -203,6 +210,18 @@ def loadPluginAPIExtensions():
         if os.path.isfile(Path("plugins/{0}/api/{0}.py".format(plugin))):
             mod = __import__("plugins.{0}.api.{0}".format(plugin), fromlist=["pluginPages"])
             api.webServer.register_blueprint(mod.pluginPages,url_prefix='/plugin')
+
+def loadPluginFunctionExtensions():
+    plugins = os.listdir("plugins")
+    for plugin in plugins:
+        if os.path.isdir(Path("plugins/{0}/functions".format(plugin))):
+            listedFunctionFiles = os.listdir(Path("plugins/{0}/functions".format(plugin)))
+            for listedFunctionFile in listedFunctionFiles:
+                if listedFunctionFile[-3:] == ".py":                
+                    mod = importlib.import_module("plugins.{0}.functions.{1}".format(plugin,listedFunctionFile[:-3]))
+                    for func in dir(mod):
+                        if func.startswith("__") == False and func.endswith("__") == False:
+                            function.systemFunctions[func] = getattr(mod, func) 
 
 # Cleans all object references for non-existent plugin models
 def cleanPluginDB():

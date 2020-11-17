@@ -86,15 +86,18 @@ def start():
                 # Creating instance of scheduler
                 if scheduler:
                     workers.workers.kill(scheduler.workerID)
-                    logging.debug("Scheduler start requested, Existing thread kill attempted, workerID='{0}'".format(scheduler.workerID),6)
+                    if logging.debugEnabled:
+                        logging.debug("Scheduler start requested, Existing thread kill attempted, workerID='{0}'".format(scheduler.workerID),6)
                     scheduler = None
             except NameError:
                 pass
             scheduler = _scheduler()
-            logging.debug("Scheduler started, workerID='{0}'".format(scheduler.workerID),6)
+            if logging.debugEnabled:
+                logging.debug("Scheduler started, workerID='{0}'".format(scheduler.workerID),6)
             return True
     except AttributeError:
-        logging.debug("Scheduler start requested, No valid worker class loaded",4)
+        if logging.debugEnabled:
+            logging.debug("Scheduler start requested, No valid worker class loaded",4)
         return False
 
 # Creating instance of scheduler
@@ -147,7 +150,8 @@ if api.webServer:
                                 try:
                                     class_.checkHandler()
                                 except Exception as e:
-                                    logging.debug("Forced trigger crashed, triggerID={0}, triggerName={1}".format(class_._id,class_.name))
+                                    if logging.debugEnabled:
+                                        logging.debug("Forced trigger crashed, triggerID={0}, triggerName={1}".format(class_._id,class_.name))
                                     systemTrigger.failedTrigger(None,"forcedTriggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)),triggerID=class_._id,triggerName=class_.name)
                                     return { "result" : False }, 400
                                 return { "result" : True }, 200
@@ -157,10 +161,12 @@ if api.webServer:
                         class_.update(["startCheck","workerID"])
                         return { "result" : True }, 200
                     else:
-                        logging.debug("Error unable to force trigger, triggerID={0} as it is already running.".format(triggerID))
+                        if logging.debugEnabled:
+                            logging.debug("Error unable to force trigger, triggerID={0} as it is already running.".format(triggerID))
                         return { "result" : False, "reason" : "Trigger already running" }, 403
                 else:
-                    logging.debug("Error unable to force trigger, triggerID={0} as its triggerID cannot be loaded.".format(triggerID))
+                    if logging.debugEnabled:
+                        logging.debug("Error unable to force trigger, triggerID={0} as its triggerID cannot be loaded.".format(triggerID))
                     return { "result" : False, "reason" : "triggerID could not be loaded" }, 404
             else:
                 return {}, 404

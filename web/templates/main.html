@@ -39,6 +39,7 @@
                                     <div class="search-dropdown-menu-results">
                                         <li><a onclick="navigate('Object Editor','/model/')">Object Editor</a></li>
                                         <li><a onclick="navigate('Backups','/admin/backups/')">Backups</a></li>
+                                        <li><a onclick="navigate('Cleanup - Objects','/cleanup/')">Cleanup - Objects</a></li>
                                         <li><a onclick="navigate('Clear Cache (ALL)','/clearCache/')">Clear Cache (ALL)</a></li>
                                     </div>
                                 </ul>
@@ -113,18 +114,23 @@
         var id = generateUUID();
 		$('ul#tabs li:last-child').before('<li id="li' + id + '"><a href="#tab' + id + '" role="tab" data-toggle="tab">' + name + ' <button type="button" class="btn theme-navButton" onclick="removeTab(\'' + id + '\');">X</button></a>');
         $('div.tab-content div:last-child').after('<div class="tab-pane" id="tab' + id + '"><iframe name="content-frame" class="content-frame" focus() src="'+ url +'"></iframe></div>');
-        $('ul#tabs > li').click(function() { 
+        $('ul#tabs > li#li' + id).click(function() { 
             if (currentTab != null) {
-                lastTab = currentTab;
+                if (lastTab != currentTab) {
+                    lastTab = currentTab;
+                }
             }
             currentTab = id
+            console.log(id)
         });
         $('ul#tabs > li').removeClass("active");
         $('div.tab-content div').removeClass("active");
         $('ul#tabs > li#li' + id).addClass("active");
         $('div.tab-content div#tab' + id).addClass("active");
         if (currentTab != null) {
-            lastTab = currentTab;
+            if (lastTab != currentTab) {
+                lastTab = currentTab;
+            }
         }
         currentTab = id
     }

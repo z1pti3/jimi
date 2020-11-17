@@ -12,6 +12,7 @@ class _document():
     acl = dict()
     lastUpdateTime = int()
     creationTime = int()
+    createdBy = str()
 
     def __init__(self):
         cache.globalCache.newCache("dbModelCache")
@@ -36,11 +37,14 @@ class _document():
             result = result[0]
             self.classID = result["_id"]
             self.creationTime = int(time.time())
+            if sessionData:
+                self.createdBy = sessionData["_id"]
             result = self._dbCollection.insert_one(self.parse())
             self._id = result.inserted_id
             return result
         else:
-            logging.debug("Cannot create new document className='{0}' not found".format(self.__class__.__name__),3)
+            if logging.debugEnabled:
+                logging.debug("Cannot create new document className='{0}' not found".format(self.__class__.__name__),3)
             return False
 
     def bulkNew(self,bulkClass,sessionData=None):
@@ -52,7 +56,8 @@ class _document():
             bulkClass.newBulkOperaton(self._dbCollection.name,"insert",self)
             return self
         else:
-            logging.debug("Cannot create new document className='{0}' not found".format(self.__class__.__name__),3)
+            if logging.debugEnabled:
+                logging.debug("Cannot create new document className='{0}' not found".format(self.__class__.__name__),3)
             return None
 
     # Converts jsonList into class - Seperate function to getAsClass so it can be overridden to support plugin loading for child classes
@@ -86,7 +91,7 @@ class _document():
     # Updated DB with latest values
     @mongoConnectionWrapper
     def update(self,fields,sessionData=None):
-        if self._id != "" or self._id != "000000000001010000000000":
+        if self._id != "" and "000000000001010000000000" not in str(self._id):
             if sessionData:
                 for field in fields:
                     if not fieldACLAccess(sessionData,self.acl,field,"write"):
@@ -118,6 +123,32 @@ class _document():
             update["$set"][field] = getattr(self,field)
 
         bulkClass.newBulkOperaton(self._dbCollection.name,"update",{"_id" : self._id, "update" : update})
+
+        # Updated DB with latest values
+    @mongoConnectionWrapper
+    def bulkUpsert(self,query,fields,bulkClass,sessionData=None,customUpdate=False):
+        result = cache.globalCache.get("dbModelCache",self.__class__.__name__,getClassByName,sessionData=sessionData,extendCacheTime=True)
+        if len(result) == 1:
+            result = result[0]
+            self.classID = result["_id"]
+        else:
+            return False
+        if sessionData:
+            for field in fields:
+                if not fieldACLAccess(sessionData,self.acl,field,"write"):
+                    return False
+
+        if not customUpdate:
+            # Appending last update time to every update
+            fields.append("lastUpdateTime")
+            self.lastUpdateTime = time.time()
+            update = { "$set" : {} }
+            for field in fields:
+                update["$set"][field] = getattr(self,field)
+        else:
+            update = fields
+
+        bulkClass.newBulkOperaton(self._dbCollection.name,"upsert",[query,update])
         
     # Parse class into json dict
     def parse(self,hidden=False):
@@ -176,7 +207,8 @@ class _document():
             try:
                 query = { "_id" : ObjectId(id) }
             except Exception as e:
-                logging.debug("Error {0}".format(e))
+                if logging.debugEnabled:
+                    logging.debug("Error {0}".format(e))
                 return result
         if not query:
             query = {}
@@ -246,7 +278,8 @@ class _document():
             try:
                 query = { "_id" : ObjectId(id) }
             except Exception as e:
-                logging.debug("Error {0}".format(e))
+                if logging.debugEnabled:
+                    logging.debug("Error {0}".format(e))
                 return result
         if not query:
             query = {}
@@ -289,14 +322,16 @@ class _document():
                 if result.deleted_count == 1:
                     return { "result" : True, "count" : result.deleted_count }
             except Exception as e:
-                logging.debug("Error {0}".format(e))
+                if logging.debugEnabled:
+                    logging.debug("Error {0}".format(e))
         elif query and not id:
             try:
                 result = self._dbCollection.delete_many(query)
                 if result.deleted_count > 0:
                     return { "result" : True, "count" : result.deleted_count }
             except Exception as e:
-                logging.debug("Error {0}".format(e))
+                if logging.debugEnabled:
+                    logging.debug("Error {0}".format(e))
         return { "result" : False, "count" : 0 }
 
     @mongoConnectionWrapper
@@ -305,7 +340,8 @@ class _document():
             try:
                 query["_id"] = ObjectId(query["_id"])
             except Exception as e:
-                logging.debug("Error {0}".format(e))
+                if logging.debugEnabled:
+                    logging.debug("Error {0}".format(e))
         result = self._dbCollection.update_many(query,update)
         return { "result" : True, "count" :  result.modified_count }
 
@@ -386,12 +422,20 @@ class _bulk():
                     cpuSaver.tick()
                 bulkUpdate.execute()
                 bulkOperatonMethod["insert"] = []
+            # Upsert
+            if len(bulkOperatonMethod["upsert"]) > 0:
+                upsertArray = []
+                for upsert in bulkOperatonMethod["upsert"]:
+                    upsertArray.append(pymongo.UpdateOne(upsert[0], upsert[1],upsert=True))
+                    cpuSaver.tick()
+                bulkUpdate = db[bulkOperatonCollection].bulk_write(upsertArray)
+                bulkOperatonMethod["upsert"] = []
         self.lock.release()
 
     def newBulkOperaton(self,collection,method,value):
         self.lock.acquire()
         if collection not in self.bulkOperatons:
-            self.bulkOperatons[collection] = { "insert" : [], "update" : [] }
+            self.bulkOperatons[collection] = { "insert" : [], "update" : [], "upsert" : [] }
         self.bulkOperatons[collection][method].append(value)
         self.lock.release()
 

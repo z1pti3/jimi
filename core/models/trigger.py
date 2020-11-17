@@ -26,6 +26,7 @@ class _trigger(db._document):
     threaded = bool()
     attemptCount = int()
     autoRestartCount = int()
+    scope = int()
 
     _dbCollection = db.db["triggers"]
 
@@ -57,38 +58,24 @@ class _trigger(db._document):
                 if _class:
                     result.append(helpers.jsonToClass(_class(),jsonItem))
                 else:
-                    logging.debug("Error unable to locate class, disabling trigger: triggerID={0} classID={1}, models={2}".format(jsonItem["_id"],jsonItem["classID"],[_trigger,db._document]))
+                    if logging.debugEnabled:
+                        logging.debug("Error unable to locate class, disabling trigger: triggerID={0} classID={1}, models={2}".format(jsonItem["_id"],jsonItem["classID"],[_trigger,db._document]))
                     _trigger().api_update(query={ "_id" : db.ObjectId(jsonItem["_id"]) },update={ "$set" : { "enabled" : False } } )
                     systemTrigger.failedTrigger(None,"noTriggerClass")
         return result
 
     def setAttribute(self,attr,value,sessionData=None):
-        if attr == "name":
-            results = self.query(query={"name" : value, "_id" : { "$ne" :  db.ObjectId(self._id) }})["results"]
-            if len(results) != 0:
-                return False
         # Resets startCheck to 0 each time a trigger is enabled
-        elif attr == "enabled" and value == True and self.enabled == False:
+        if attr == "enabled" and value == True and self.enabled == False:
             self.startCheck = 0
             self.update(["startCheck"])
         setattr(self,attr,value)
         return True
 
-    def notify(self,events=[],var=None,callingTriggerID=None,dataTemplate=None):
-        if dataTemplate:
-            events = dataTemplate["events"]
-            del dataTemplate["events"]
-        else:
-            dataTemplate = { "triggerID" : self._id, "triggerName" : self.name, "var" : {}, "plugin" : {} }
-            if var:
-                dataTemplate["var"] = var
-            if callingTriggerID != None:
-                if callingTriggerID != "":
-                    dataTemplate["callingTriggerID"] = callingTriggerID
-
+    def notify(self,events=[],var=None,plugin=None,callingTriggerID=None):
         if events:
-            notifyStartTime = time.time()
             if self.log:
+                notifyStartTime = time.time()
                 audit._audit().add("trigger","notify start",{ "triggerID" : self._id, "name" : self.name })
 
             conducts = cache.globalCache.get("conductCache",self._id,getTriggerConducts)
@@ -102,15 +89,18 @@ class _trigger(db._document):
                     if self.concurrency > 0:
                         eventHandler = workers.workerHandler(self.concurrency,cleanUp=False)
 
+                    tempData = conduct.flowDataTemplate(conduct=loadedConduct,trigger=self,var=var,plugin=plugin)
+                    if callingTriggerID:
+                        tempData["callingTriggerID"] = callingTriggerID
+
                     for index, event in enumerate(events):
                         first = True if index == 0 else False
                         last = True if index == len(events) - 1 else False
+                        eventStats = { "first" : first, "current" : index, "total" : len(events), "last" : last }
 
-                        data = { "event" : event, "eventStats" : { "first" : first, "current" : index, "total" : len(events), "last" : last }, "conductID" : loadedConduct._id, "conductName" : loadedConduct.name }
-                        for key, value in dataTemplate.items():
-                            data[key] = value
-                        
-
+                        data = conduct.copyFlowData(tempData)
+                        data["event"] = event
+                        data["eventStats"] = eventStats
                         if self.log and (first or last):
                             audit._audit().add("trigger","notify call",{ "triggerID" : self._id, "conductID" : loadedConduct._id, "conductName" : loadedConduct.name, "name" : self.name, "data" : data })
 
@@ -126,18 +116,21 @@ class _trigger(db._document):
                     if eventHandler:
                         eventHandler.waitAll()
                         if eventHandler.failureCount() > 0:
-                            logging.debug("Trigger concurrent crash: triggerID={0}".format(self._id),5)
+                            if logging.debugEnabled:
+                                logging.debug("Trigger concurrent crash: triggerID={0}".format(self._id),5)
                             audit._audit().add("trigger","conccurent crash",{ "triggerID" : self._id, "name" : self.name })
                             raise triggerConcurrentCrash
                         eventHandler.stop()
             else:
-                logging.debug("Error trigger has no conducts, automaticly disabling: triggerID={0}".format(self._id))
+                if logging.debugEnabled:
+                    logging.debug("Error trigger has no conducts, automaticly disabling: triggerID={0}".format(self._id))
                 audit._audit().add("trigger","autho disable",{ "triggerID" : self._id, "name" : self.name })
                 self.enabled = False
                 self.update(["enabled"])
-
-            notifyEndTime = time.time()
+            
+            
             if self.log:
+                notifyEndTime = time.time()
                 audit._audit().add("trigger","notify end",{ "triggerID" : self._id, "name" : self.name, "duration" : (notifyEndTime-notifyStartTime) })
 
         self.startCheck = 0
@@ -147,28 +140,30 @@ class _trigger(db._document):
         self.update(["startCheck","lastCheck","nextCheck","attemptCount"])
 
     def checkHandler(self):
-        startTime = time.time()
+        startTime = 0
+        if self.log:
+            startTime = time.time()
         self.checkHeader()
         self.check()
         self.checkFooter(startTime)
-        self.notify(dataTemplate=self.result)
+        self.notify(events=self.result["events"],var=self.result["var"],plugin=self.result["plugin"])
 
     def checkHeader(self):
         if self.log:
             audit._audit().add("trigger","check start",{ "triggerID" : self._id, "name" : self.name })
-        logging.debug("Trigger check started, triggerID='{0}'".format(self._id),7)
-        self.result = { "events" : [], "triggerID" : self._id, "triggerName" : self.name, "var" : {}, "plugin" : {} }
+        if logging.debugEnabled:
+            logging.debug("Trigger check started, triggerID='{0}'".format(self._id),7)
+        self.result = { "events" : [], "var" : {}, "plugin" : {} }
 
     # Main function called to determine if a trigger is triggered
     def check(self):
         self.result["events"].append({ "tick" : True })
 
     def checkFooter(self,startTime):
-        self.lastCheck = time.time()
-        self.update(["lastCheck"])
         if self.log:
-            audit._audit().add("trigger","check end",{ "triggerID" : self._id, "name" : self.name, "duration" : (self.lastCheck-startTime) })
-        logging.debug("Trigger check complete, triggerID='{0}'".format(self._id),7)
+            audit._audit().add("trigger","check end",{ "triggerID" : self._id, "name" : self.name, "duration" : (time.time()-startTime) })
+        if logging.debugEnabled:
+            logging.debug("Trigger check complete, triggerID='{0}'".format(self._id),7)
 
 from core import helpers, logging, model, audit, workers, scheduler, cache, settings, helpers
 from core.models import conduct

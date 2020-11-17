@@ -4,7 +4,10 @@ import hashlib
 import time
 import json
 import jwt
+import hmac
+import math
 import functools
+import onetimepass
 from pathlib import Path
 from Crypto.Cipher import AES, PKCS1_OAEP # pycryptodome
 from Crypto.PublicKey import RSA
@@ -23,6 +26,7 @@ class _user(db._document):
     passwordHashType = str()
     failedLoginCount = int()
     lastLoginAttempt = int()
+    totpSecret = str()
     apiTokens = list()
     primaryGroup = str()
 
@@ -164,6 +168,9 @@ def generatePasswordHash(password,salt,hType="j1"):
         hash = base64.b64encode(hashlib.pbkdf2_hmac("sha512", password.encode(), salt.encode(), 100000))
     return [hType,hash.decode()]
 
+def generateSharedSecret():
+    return base64.b32encode(secrets.token_bytes(10)).decode("UTF-8")
+
 def generateSession(dataDict):
     dataDict["expiry"] = time.time() + authSettings["sessionTimeout"]
     if "CSRF" not in dataDict:
@@ -188,7 +195,7 @@ def validateSession(sessionToken):
         pass
     return None
 
-def validateUser(username,password):
+def validateUser(username,password,otp=None):
     user = _user().getAsClass(query={ "username" : username })
     if len(user) == 1:
         user = user[0]
@@ -200,7 +207,10 @@ def validateUser(username,password):
 
         user.lastLoginAttempt = time.time()
         passwordHash = generatePasswordHash(password, username, user.passwordHashType)
-        if passwordHash[1] == user.passwordHash:
+        validOTP = True
+        if otp is not None:
+            validOTP = onetimepass.valid_totp(otp, user.totpSecret)
+        if passwordHash[1] == user.passwordHash and validOTP:
             # If user password hash does not meet the required standard update
             if user.passwordHashType != requiredhType:
                 passwordHash = generatePasswordHash(password,username)
@@ -324,7 +334,20 @@ if api.webServer:
         def api_validateUser():
             response = api.make_response()
             data = json.loads(api.request.data)
-            userSession = validateUser(data["username"],data["password"])
+            #check if OTP has been passed
+            #if invalid user or user requires OTP, return 200 but request OTP
+            if "otp" not in data:
+                user = _user().getAsClass(query={ "username" : data["username"] })
+                if len(user) == 1:
+                    user = user[0]
+                    if user.totpSecret != "":
+                        return "otp_required", 200
+                    else:
+                        userSession = validateUser(data["username"],data["password"])
+                else:
+                    return "otp_required", 200
+            else:
+                userSession = validateUser(data["username"],data["password"],data["otp"])
             if userSession:
                 response.set_cookie("jimiAuth", value=userSession, max_age=600) # Need to add secure=True before production
                 return response, 200
@@ -337,7 +360,7 @@ if api.webServer:
                 user = _user().getAsClass(query={ "apiTokens" : { "$in" : [ api.request.headers.get("x-api-key") ] } } )
                 if len(user) == 1:
                     user = user[0]  
-                    return { "x-api-token" : generateSession({ "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True })}
+                    return { "x-api-token" : generateSession({ "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True }).decode()}, 200
             return {}, 404
 
         @api.webServer.route(api.base+"auth/poll/", methods=["GET"])
@@ -374,4 +397,24 @@ if api.webServer:
                 userProps["name"] = user.getAttribute("name",sessionData=api.g.sessionData)
                 userProps["passwordHash"] = user.getAttribute("passwordHash",sessionData=api.g.sessionData)
                 return { "results" : [ userProps ] }, 200
+            return { }, 404
+
+        @api.webServer.route(api.base+"auth/regenerateOTP/", methods=["GET"])
+        def api_regenerateOTP():
+            user = _user().getAsClass(id=api.g.sessionData["_id"])
+            if len(user) == 1:
+                user = user[0]
+                user.setAttribute("totpSecret",generateSharedSecret(),sessionData=api.g.sessionData)
+                user.update(["totpSecret"])
+                return { }, 200
+            return { }, 404
+
+        @api.webServer.route(api.base+"auth/viewOTP/", methods=["GET"])
+        def api_viewOTP():
+            user = _user().getAsClass(id=api.g.sessionData["_id"])
+            if len(user) == 1:
+                user = user[0]
+                totpSecret = user.getAttribute("totpSecret",sessionData=api.g.sessionData)
+                if totpSecret != "":
+                    return "otpauth://totp/JIMI:{}?secret={}&issuer=JIMI".format(user.username,totpSecret), 200
             return { }, 404

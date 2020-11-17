@@ -14,7 +14,8 @@ class _cache:
                 cacheName = "{0},-,{1}".format(userID,cacheName)
         if cacheName not in self.objects:
             self.objects[cacheName] = { "objects" : {}, "maxSize" : maxSize, "cacheExpiry" : cacheExpiry, "userID" : userID }
-            logging.debug("New cache store created, name={0}, maxSize={1}, cacheExpry={2}, userID={3}".format(cacheName,maxSize,cacheExpiry,userID),20)
+            if logging.debugEnabled:
+                logging.debug("New cache store created, name={0}, maxSize={1}, cacheExpry={2}, userID={3}".format(cacheName,maxSize,cacheExpiry,userID),20)
 
     def clearCache(self,cacheName,sessionData=None):
         authedCacheName = self.checkSessionData(cacheName,sessionData)
@@ -25,7 +26,8 @@ class _cache:
                 self.objects[cacheName]["objects"].clear()
         elif authedCacheName in self.objects:
             self.objects[authedCacheName]["objects"].clear()
-            logging.debug("Cache store cleared, name={0}".format(authedCacheName),20)
+            if logging.debugEnabled:
+                logging.debug("Cache store cleared, name={0}".format(authedCacheName),20)
         
     # BUG this function does not check for size so it would be possibel to go over the defined max memory size -- Add this at a later date
     def sync(self,objects):
@@ -54,6 +56,13 @@ class _cache:
         if uid in self.objects[authedCacheName]["objects"]:
             del self.objects[authedCacheName]["objects"][uid]
 
+    def update(self,cacheName,uid,objectValue,sessionData=None):
+        authedCacheName = self.checkSessionData(cacheName,sessionData)
+        if authedCacheName == None:
+            return
+        if uid in self.objects[authedCacheName]["objects"]:
+            self.objects[authedCacheName]["objects"][uid]["objectValue"] = objectValue
+
     def insert(self,cacheName,uid,objectValue,sessionData=None,customCacheTime=None):
         authedCacheName = self.checkSessionData(cacheName,sessionData)
         if authedCacheName == None:
@@ -64,14 +73,6 @@ class _cache:
         cacheExpiry = self.objects[authedCacheName]["cacheExpiry"]
         if customCacheTime != None:
             cacheExpiry = customCacheTime
-
-        # newObjectSize = helpers.getObjectMemoryUsage(objectValue)
-        # currentCacheSzie = helpers.getObjectMemoryUsage(self.objects[authedCacheName]["objects"])
-        # memoryNeeded = (currentCacheSzie + newObjectSize) - self.objects[authedCacheName]["maxSize"]
-        # if memoryNeeded > 0:
-        #     if not self.reduceSize(cacheName,memoryNeeded,sessionData=sessionData):
-        #         logging.debug("ERROR - Cache store full and unable to free enough space for new object, name={0}".format(authedCacheName),1)
-        #         return False
         self.objects[authedCacheName]["objects"][uid] = { "objectValue" : objectValue, "accessCount" : 0, "cacheExpiry" : (now + cacheExpiry) }
         return True
 
@@ -94,17 +95,18 @@ class _cache:
         if authedCacheName == None:
             return
         now = time.time()
-        if authedCacheName not in self.objects:
-            self.newCache(authedCacheName)
-        if ((uid in self.objects[authedCacheName]["objects"]) and (not forceUpdate)):
-            if ((self.objects[authedCacheName]["objects"][uid]["cacheExpiry"] > now) or (extendCacheTime)):
-                self.objects[authedCacheName]["objects"][uid]["accessCount"] += 1
-                if extendCacheTime:
-                    if customCacheTime == None:
-                        self.objects[authedCacheName]["objects"][uid]["cacheFor"] =  ( now + self.objects[authedCacheName]["cacheExpiry"] )
-                    else:
-                        self.objects[authedCacheName]["objects"][uid]["cacheFor"] =  ( now + customCacheTime )
-                return self.objects[authedCacheName]["objects"][uid]["objectValue"]
+        if not forceUpdate:
+            try:
+                objectCache = self.objects[authedCacheName]["objects"][uid]
+                if ((objectCache["cacheExpiry"] > now) or (extendCacheTime)):
+                    if extendCacheTime:
+                        if not customCacheTime:
+                            objectCache["cacheFor"] = ( now + self.objects[authedCacheName]["cacheExpiry"] )
+                        else:
+                            objectCache["cacheFor"] = ( now + customCacheTime )
+                    return objectCache["objectValue"]
+            except KeyError:
+                self.newCache(authedCacheName)
         if not dontCheck:
             cache, objectValue = self.getObjectValue(cacheName,uid,setFunction,*args,sessionData=sessionData)
             if cache and ( objectValue or nullUpdate ):
@@ -112,9 +114,10 @@ class _cache:
                 if customCacheTime != None:
                     cacheExpiry = customCacheTime
                 if uid in self.objects[authedCacheName]["objects"]:
-                    self.objects[authedCacheName]["objects"][uid]["objectValue"] = objectValue
-                    self.objects[authedCacheName]["objects"][uid]["cacheExpiry"] = (now + cacheExpiry)
-                    self.objects[authedCacheName]["objects"][uid]["accessCount"] += 1
+                    objectCache = self.objects[authedCacheName]["objects"][uid]
+                    objectCache["objectValue"] = objectValue
+                    objectCache["cacheExpiry"] = (now + cacheExpiry)
+                    objectCache["accessCount"] += 1
                 else:
                     self.objects[authedCacheName]["objects"][uid] = { "objectValue" : objectValue, "accessCount" : 0, "cacheExpiry" : (now + cacheExpiry) }
             if objectValue:
@@ -126,28 +129,24 @@ class _cache:
 
     def getObjectValue(self,cacheName,uid,setFunction,*args,sessionData=None):
         authedCacheName = self.checkSessionData(cacheName,sessionData)
+        if authedCacheName == None:
+            return
         if cacheName == None:
             return
         if len(args) > 0:
             newObject = setFunction(uid,sessionData,*args)
         else:
             newObject = setFunction(uid,sessionData)
-
-        # if newObject != None:
-            # newObjectSize = helpers.getObjectMemoryUsage(newObject)
-            # currentCacheSzie = helpers.getObjectMemoryUsage(self.objects[authedCacheName]["objects"])
-            # memoryNeeded = (currentCacheSzie + newObjectSize) - self.objects[authedCacheName]["maxSize"]
-            # if memoryNeeded > 0:
-            #     if not self.reduceSize(cacheName,memoryNeeded,sessionData=sessionData):
-            #         logging.debug("ERROR - Cache store full and unable to free enough space for new object, name={0}".format(authedCacheName),1)
-            #         return (False, newObject)
+        if type(newObject) is tuple:
+            return (False, newObject[1])
         return (True, newObject)
 
     def reduceSize(self,cacheName,amountToFree,sessionData=None):
         authedCacheName = self.checkSessionData(cacheName,sessionData)
         if authedCacheName == None:
             return
-        logging.debug("Cache store attempting to reduce memory, name={0}, amount={1}".format(authedCacheName,amountToFree),20)
+        if logging.debugEnabled:
+            logging.debug("Cache store attempting to reduce memory, name={0}, amount={1}".format(authedCacheName,amountToFree),20)
         # No objects to clear
         if len(self.objects[authedCacheName]["objects"]) == 0:
             return False
@@ -193,7 +192,8 @@ class _cache:
             if sessionData["_id"] == self.objects[authedCacheName]["userID"]:
                 return authedCacheName
             else:
-                logging.debug("ERROR - Cache store access denied due to mismatched ID, name={0}, userID={1}".format(cacheName,sessionData["_id"]),5)
+                if logging.debugEnabled:
+                    logging.debug("ERROR - Cache store access denied due to mismatched ID, name={0}, userID={1}".format(cacheName,sessionData["_id"]),5)
                 return None
         else:
             return cacheName

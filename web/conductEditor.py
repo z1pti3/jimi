@@ -207,20 +207,6 @@ def conductExport(conductID):
         for pop in poplist:
             flows.remove(pop)
 
-    # Regenerate flowIDs
-    flowLookup = {}
-    flowLookupReverse = {}
-    for flow in flows:
-        if flow["flowID"] not in flowLookup:
-            flowLookup[flow["flowID"]] = str(uuid.uuid4())
-            flowLookupReverse[flowLookup[flow["flowID"]]] = flow["flowID"]
-        flow["flowID"] = flowLookup[flow["flowID"]]
-        for nextFlow in flow["next"]:
-            if nextFlow["flowID"] not in flowLookup:
-                flowLookup[nextFlow["flowID"]] = str(uuid.uuid4())
-                flowLookupReverse[flowLookup[nextFlow["flowID"]]] = nextFlow["flowID"]
-            nextFlow["flowID"] = flowLookup[nextFlow["flowID"]]
-
     flowTriggers = [ db.ObjectId(x["triggerID"]) for x in flows if x["type"] == "trigger" ]
     flowActions = [ db.ObjectId(x["actionID"]) for x in flows if x["type"] == "action" ]
     actions = action._action().getAsClass(api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
@@ -254,7 +240,7 @@ def conductExport(conductID):
                             result[flow["type"]][obj._id][member] = value
             if flow["flowID"] not in result["ui"]:
                 result["ui"][flow["flowID"]] = { "x" : 0, "y" : 0, "title" : "" }
-                flowUI = webui._modelUI().getAsClass(api.g.sessionData,query={ "flowID" : flowLookupReverse[flow["flowID"]], "conductID" : conductID })
+                flowUI = webui._modelUI().getAsClass(api.g.sessionData,query={ "flowID" : flow["flowID"], "conductID" : conductID })
                 if len(flowUI) > 0:
                     flowUI = flowUI[0]
                     result["ui"][flow["flowID"]]["x"] = flowUI.x
@@ -277,10 +263,35 @@ def conductImportData(conductID):
     if access:
         data = json.loads(api.request.data)
         importData = helpers.typeCast(data["importData"])
+
         if data["appendObjects"]:
             conductObj.flow = conductObj.flow + importData["flow"]
         else:
             conductObj.flow=importData["flow"]
+
+        # Build lookup and regen IDs if appending
+        flowLookup = {}
+        flowLookupReverse = {}
+        flows = importData["flow"]
+        for flow in flows:
+            if flow["flowID"] not in flowLookup:
+                # Regen IDs for appends
+                if data["appendObjects"]:
+                    flowLookup[flow["flowID"]] = str(uuid.uuid4())
+                else:
+                    flowLookup[flow["flowID"]] = flow["flowID"]
+                flowLookupReverse[flowLookup[flow["flowID"]]] = flow["flowID"]
+            flow["flowID"] = flowLookup[flow["flowID"]]
+            for nextFlow in flow["next"]:
+                if nextFlow["flowID"] not in flowLookup:
+                    # Regen IDs for appends
+                    if data["appendObjects"]:
+                        flowLookup[nextFlow["flowID"]] = str(uuid.uuid4())
+                    else:
+                        flowLookup[nextFlow["flowID"]] = nextFlow["flowID"]
+                    flowLookupReverse[flowLookup[nextFlow["flowID"]]] = nextFlow["flowID"]
+                nextFlow["flowID"] = flowLookup[nextFlow["flowID"]]
+ 
         for flow in importData["flow"]:
             flowUI = webui._modelUI().getAsClass(api.g.sessionData,query={ "flowID" : flow["flowID"], "conductID" : conductID })
             if len(flowUI) > 0:
@@ -290,7 +301,7 @@ def conductImportData(conductID):
                 flowUI.title = importData["ui"][flow["flowID"]]["title"]
                 flowUI.update(["x","y","title"])
             else:
-                webui._modelUI().new(conductObj._id,conductObj.acl,flow["flowID"],importData["ui"][flow["flowID"]]["x"],importData["ui"][flow["flowID"]]["y"],importData["ui"][flow["flowID"]]["title"])
+                webui._modelUI().new(conductObj._id,conductObj.acl,flow["flowID"],importData["ui"][flowLookupReverse[flow["flowID"]]]["x"],importData["ui"][flowLookupReverse[flow["flowID"]]]["y"],importData["ui"][flowLookupReverse[flow["flowID"]]]["title"])
             if flow["type"] == "trigger":
                 classObj = _class = model._model().getAsClass(api.g.sessionData,query={ "name" : importData["trigger"][flow["triggerID"]]["className"] })
                 if len(classObj) > 0:
@@ -378,32 +389,22 @@ def getConductFlowCodify(conductID):
                     classObj = _class = model._model().getAsClass(api.g.sessionData,id=obj.classID)
                     classObj = classObj[0]
                     blacklist = ["_id","acl","classID","workerID","startCheck","nextCheck","lastUpdateTime","lastCheck","clusterSet","concurrency","creationTime","schedule","systemID"]
-                    typeList = [str,int,float,dict,list]
+                    typeList = [str,int,float,dict,list,bool]
                     members = [attr for attr in dir(obj) if not callable(getattr(obj, attr)) and not "__" in attr and attr ]
-                    params=[]
+                    params={}
                     for member in members:
                         if member not in blacklist:
                             value = getattr(obj,member)
-                            if type(value) == str:
-                                value="\"{0}\"".format(value)
-                            elif type(value) == dict:
-                                value="\"{0}\"".format(value)
-                            elif type(value) == list:
-                                value="\"{0}\"".format(value)
-                            else:
-                                 value="{0}".format(value)
-
                             if type(value) in typeList:
-                                value = value.replace("\n","(\)n").replace("\t","(\)t")
-                                params.append("{0}={1}".format(member,value))
+                                params[member] = value
                     
                     if currentFlow["type"] == "action":
-                        flowCode+="\r\n{0}logic({1})->{2}({3})".format(("\t"*indentLevel),logic,classObj.name,",".join(params))
+                        flowCode+="\r\n{0}logic({1})->{2}{3}".format(("\t"*indentLevel),logic,classObj.name,json.dumps(params))
                     else:
                         if len(flowCode) > 0:
-                            flowCode+="\r\n{0}{1}({2})".format(("\t"*indentLevel),classObj.name,",".join(params))
+                            flowCode+="\r\n{0}{1}{2}".format(("\t"*indentLevel),classObj.name,json.dumps(params))
                         else:
-                            flowCode="{0}({1})".format(classObj.name,",".join(params))
+                            flowCode="{0}{1}".format(classObj.name,json.dumps(params))
             if len(processQueue) == 0:
                 break
             else:
@@ -768,7 +769,7 @@ def deleteFlowLink(conductID,fromFlowID,toFlowID):
         return {}, 403
 
 
-@api.webServer.route("/conduct/<conductID>/editACL/<flowID>", methods=["GET"])
+@api.webServer.route("/conductEditor/<conductID>/editACL/<flowID>", methods=["GET"])
 def getACL(conductID,flowID):
     conductObj = conduct._conduct().getAsClass(api.g.sessionData,id=conductID)
     if len(conductObj) == 1:
@@ -800,7 +801,7 @@ def getACL(conductID,flowID):
 
     return {"acl":acl, "uiAcl" : uiAcl}, 200
 
-@api.webServer.route("/conduct/<conductID>/editACL/<flowID>", methods=["POST"])
+@api.webServer.route("/conductEditor/<conductID>/editACL/<flowID>", methods=["POST"])
 def editACL(conductID,flowID):
     conductObj = conduct._conduct().getAsClass(api.g.sessionData,id=conductID)
     if len(conductObj) == 1:
@@ -856,4 +857,14 @@ def editACL(conductID,flowID):
     if not objectResult or not uiResult:
         return { }, 403
 
-    return { }, 200   
+    return { }, 200
+
+@api.webServer.route("/conductEditor/existingObjects/triggers/", methods=["GET"])
+def getExistingObjectsTriggers():
+    triggers = trigger._trigger().query(sessionData=api.g.sessionData,query={ "scope" : { "$gt" : 0 } })["results"]
+    return { "results" : triggers}, 200
+
+@api.webServer.route("/conductEditor/existingObjects/actions/", methods=["GET"])
+def getExistingObjectsActions():
+    actions = action._action().query(sessionData=api.g.sessionData,query={ "scope" : { "$gt" : 0 } })["results"]
+    return { "results" : actions}, 200

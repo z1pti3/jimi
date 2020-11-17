@@ -26,11 +26,14 @@ def dateBetween(startDateStr, endDateStr, dateStr=None):
     date = datetime.datetime.strptime(dateStr, '%H:%M %d-%m-%Y')
     return startDate < date < endDate
 
-def timeBetween(startDateStr, endDateStr, dateStr=None):
-    if dateStr == None:
-        dateStr = datetime.datetime.now().strftime('%H:%M')
-    startDate = datetime.datetime.strptime(startDateStr, '%H:%M')
-    endDate = datetime.datetime.strptime(endDateStr, '%H:%M')
-    date = datetime.datetime.strptime(dateStr, '%H:%M')
-    return startDate < date < endDate
+def timeBetween(startTimeStr, endTimeStr, timeStr=None):
+    if timeStr == None:
+        timeStr = datetime.datetime.now().strftime('%H:%M')
+    startTime = datetime.datetime.strptime(startTimeStr, '%H:%M')
+    endTime = datetime.datetime.strptime(endTimeStr, '%H:%M')
+    time = datetime.datetime.strptime(timeStr, '%H:%M')
+    if startTime > endTime:
+        return time >= startTime or time <= endTime
+    else:
+        return startTime <= time <= endTime
 

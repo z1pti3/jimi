@@ -30,7 +30,8 @@ class _model(db._document):
         try:
             mod = __import__("{0}".format(self.location), fromlist=["{0}".format(self.className)])
         except ModuleNotFoundError:
-            logging.debug("Error unable to find class='{0}', className='{1}', classType='{2}', location='{3}'".format(self.classID,self.className,self.classType,self.location),2)
+            if logging.debugEnabled:
+                logging.debug("Error unable to find class='{0}', className='{1}', classType='{2}', location='{3}'".format(self.classID,self.className,self.classType,self.location),2)
             return None
         class_ = getattr(mod, "{0}".format(self.className))
         return class_
@@ -45,7 +46,8 @@ def registerModel(name,className,classType,location,hidden=False):
     if len(results) == 0:
         return _model().new(name,className,classType,location,hidden)
     else:
-        logging.debug("Register model failed as it already exists modelName='{0}', className='{1}', classType='{2}', location='{3}'".format(name,className,classType,location),4)
+        if logging.debugEnabled:
+            logging.debug("Register model failed as it already exists modelName='{0}', className='{1}', classType='{2}', location='{3}'".format(name,className,classType,location),4)
 
 def deregisterModel(name,className,classType,location):
     loadModels = _model().query(query={ "name" : name})["results"]
@@ -58,7 +60,8 @@ def deregisterModel(name,className,classType,location):
         results = _model().api_delete(query={ "name" : name, "classType" : classType })
         if results["result"]:
             return True
-    logging.debug("deregister model failed modelName='{0}', className='{1}', classType='{2}', location='{3}'".format(name,className,classType,location),4)
+    if logging.debugEnabled:
+        logging.debug("deregister model failed modelName='{0}', className='{1}', classType='{2}', location='{3}'".format(name,className,classType,location),4)
 
 def getClassID(name):
     loadModels = _model().query(query={ "name" : name})["results"]
@@ -163,9 +166,11 @@ if api.webServer:
         def getModelObject(modelName,objectID):
             class_ = loadModel(modelName).classObject()
             if class_:
-                result = class_().query(api.g.sessionData,id=objectID)
-                if result["results"]:
-                    return result, 200
+                classObject = class_().getAsClass(api.g.sessionData,id=objectID)
+                if classObject:
+                    classObject = classObject[0]
+                    members = helpers.classToJson(classObject)
+                    return { "results" : [members]}, 200
                 else:
                     return {}, 404
             else:

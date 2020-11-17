@@ -19,39 +19,7 @@ var openExistingPanels = {}
 
 function loadExistingObjectPanel(panel) {
 	panel.find("#existingPropertiesPanel-SearchResults").empty();
-	$.ajax({url:"/api/1.0/models/action/all/", type:"GET", success: function ( result ) {
-			for ( resultItem in result["results"] ) {
-				var $div = $('<div class="draggable_operator ui-draggable ui-draggable-handle ListName">');
-				$div.attr("data-name",result["results"][resultItem]["name"])
-				$div.attr("data-id",result["results"][resultItem]["_id"])
-				$div.attr("id",result["results"][resultItem]["_id"])
-				var $row = $('<tr>');
-				var $cell = $('<td width="100px">');
-				var $b = $('<b>');
-				$b.text(result["results"][resultItem]["name"])
-				$cell.append($b)
-				$cell.append("</br>")
-				$cell.append($('<id>').text(result["results"][resultItem]["_id"]))
-				$cell.append("</br>")
-				$row.append($cell);
-				$div.append($row)
-				panel.find("#existingPropertiesPanel-SearchResults").append($div);
-				// Make draggableOperators
-				$div.dblclick(function(e){
-					pos = network.getViewPosition()
-					var x = pos["x"]
-					var y = pos["y"]
-					var conductID = GetURLParameter("conductID")
-					var $this = $(this);
-					$.ajax({url:"/conductEditor/"+conductID+"/flow/", type:"POST", data:JSON.stringify({action: "drop", flowType: "action", _id: $this.attr("id"), x: x, y: y, CSRF: CSRF}), contentType:"application/json", success: function ( result ) {
-						// Drop sucessfull
-						}
-					});
-				})
-			}
-		}
-	});
-	$.ajax({url:"/api/1.0/models/trigger/all/", type:"GET", success: function ( result ) {
+	$.ajax({url:"/conductEditor/existingObjects/triggers/", type:"GET", success: function ( result ) {
 			for ( resultItem in result["results"] ) {
 				var $div = $('<div class="draggable_operator ui-draggable ui-draggable-handle ListName">');
 				$div.attr("data-name",result["results"][resultItem]["name"])
@@ -76,6 +44,38 @@ function loadExistingObjectPanel(panel) {
 					var conductID = GetURLParameter("conductID")
 					var $this = $(this);
 					$.ajax({url:"/conductEditor/"+conductID+"/flow/", type:"POST", data:JSON.stringify({action: "drop", flowType: "trigger", _id: $this.attr("id"), x: x, y: y, CSRF: CSRF}), contentType:"application/json", success: function ( result ) {
+						// Drop sucessfull
+						}
+					});
+				})
+			}
+		}
+	});
+	$.ajax({url:"/conductEditor/existingObjects/actions/", type:"GET", success: function ( result ) {
+			for ( resultItem in result["results"] ) {
+				var $div = $('<div class="draggable_operator ui-draggable ui-draggable-handle ListName">');
+				$div.attr("data-name",result["results"][resultItem]["name"])
+				$div.attr("data-id",result["results"][resultItem]["_id"])
+				$div.attr("id",result["results"][resultItem]["_id"])
+				var $row = $('<tr>');
+				var $cell = $('<td width="100px">');
+				var $b = $('<b>');
+				$b.text(result["results"][resultItem]["name"])
+				$cell.append($b)
+				$cell.append("</br>")
+				$cell.append($('<id>').text(result["results"][resultItem]["_id"]))
+				$cell.append("</br>")
+				$row.append($cell);
+				$div.append($row)
+				panel.find("#existingPropertiesPanel-SearchResults").append($div);
+				// Make draggableOperators
+				$div.dblclick(function(e){
+					pos = network.getViewPosition()
+					var x = pos["x"]
+					var y = pos["y"]
+					var conductID = GetURLParameter("conductID")
+					var $this = $(this);
+					$.ajax({url:"/conductEditor/"+conductID+"/flow/", type:"POST", data:JSON.stringify({action: "drop", flowType: "action", _id: $this.attr("id"), x: x, y: y, CSRF: CSRF}), contentType:"application/json", success: function ( result ) {
 						// Drop sucessfull
 						}
 					});

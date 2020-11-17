@@ -42,7 +42,7 @@ function saveACLValuesPanel(panel) {
 	objectJson["uiAcl"] = panel.find("#propertiesPanelUiACLValue").val();
 	objectJson["acl"] = panel.find("#propertiesPanelACLValue").val();
 	objectJson["CSRF"] = CSRF
-	$.ajax({ url: "/conduct/"+conductID+"/editACL/"+node, type : "POST", data:JSON.stringify(objectJson), contentType:"application/json", success: function(result) {
+	$.ajax({ url: "/conductEditor/"+conductID+"/editACL/"+node, type : "POST", data:JSON.stringify(objectJson), contentType:"application/json", success: function(result) {
 			dropdownAlert(panel,"success","Save Successful",1000);
 		}
 	});
@@ -54,7 +54,7 @@ function loadACLValuesPanel(panel) {
 	panel.find("#title").text("Security Settings");
 	selectedNodes = network.getSelectedNodes()
 	node = nodeObjects[selectedNodes[0]]["flowID"]
-	$.ajax({ url: "/conduct/"+conductID+"/editACL/"+node, type : "GET", success: function( flowData ) {
+	$.ajax({ url: "/conductEditor/"+conductID+"/editACL/"+node, type : "GET", success: function( flowData ) {
 			panel.find("#propertiesPanelUiACLValue").val(JSON.stringify(flowData["uiAcl"]));
 			panel.find("#propertiesPanelACLValue").val(JSON.stringify(flowData["acl"]));
 		}

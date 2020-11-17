@@ -1,53 +1,52 @@
-![Screenshot](examples/screenshots/flow1.png)
 
-Simple yet powerfull
+```
+           8 8888            8 8888                    ,8.       ,8.                     8 8888
+           8 8888            8 8888                   ,888.     ,888.                    8 8888
+           8 8888            8 8888                  .`8888.   .`8888.                   8 8888
+           8 8888            8 8888                 ,8.`8888. ,8.`8888.                  8 8888
+           8 8888            8 8888                ,8'8.`8888,8^8.`8888.                 8 8888
+           8 8888            8 8888               ,8' `8.`8888' `8.`8888.                8 8888
+88.        8 8888            8 8888              ,8'   `8.`88'   `8.`8888.               8 8888
+`88.       8 888'            8 8888             ,8'     `8.`'     `8.`8888.              8 8888
+  `88o.    8 88'             8 8888            ,8'       `8        `8.`8888.             8 8888
+    `Y888888 '               8 8888           ,8'         `         `8.`8888.            8 8888
+```
+jimi Orchestration, Automation and Response
 
-A python based automation and scheduler platform, but can be used to acheive a number of things:
-* Security incident detection by polling event management solutions
-* IT ticket automation, open, close and update tickets
-* Automated incident response across IT and security
-* Network and vulnerability scanning
-* Reduce repetitive tasks
-* Carry out remote tasks on servers
-* Monitor for threshold and raise alarms
-* Use playbooks to run once and/or on version changes
-* Software deployment
+Describing exactly what jimi is difficult as jimi is and means different things depending on the user and use case. Simply put jimi is a graphical expandable IT orchestration and automation platform.
 
-Highly customizable using loops, if logic, variables, in-build functions and easily expandable using plugins
+jimi takes a no/low code approach to IT and security operations allowing users with no programming experience to build, deploy and understand automated workflows.
 
-https://github.com/topics/jimiplugin
+![Screenshot](https://github.com/z1pti3/jimi/raw/v1.5/examples/screenshots/flowEditor.png)
 
-Other Features:
-* Multi-user and group
+## Enterprise Ready
+* Multi-user
+* 2FA
 * Object and field level ACL
-* Cluster support with active/active and automatic failover
-* Secure secret storage
-* CLI for debugging
-* Audit logging
-* Logic within object and connecting lines
-* Pass variables
-* Threading and concurrency options
-* Expandable using plugins
+* Password vault
+* Clustering for 2 or more jimi nodes with automatic failover and recovery
+* Self monitoring
 
-Checkout the wiki for more details and installation instructions
+## Common Uses by Role: 
+We have provided just a few examples but with jimi the limit is your imagination.
 
-https://github.com/z1pti3/jimi/wiki/Installation
+### IT Security Analyst
+* SOAR
+* SIEM
+* Event enrichment
+* Security product integration
 
-Step by Step Guide:
+### IT Administrator
+* Asset management
+* Software deployment
+* ITIL ticket automation
+* Workflow automation
+* Server performance monitoring
 
-https://jimiproject.wixsite.com/website
+### Network Engineer
+* Network monitoring
+* Automated diagnostics and remediation
+* Backups
+* Configuration management
 
-Multi-User:
-![Screenshot](examples/screenshots/login.png)
-
-Powerfull UI Editor:
-![Screenshot](examples/screenshots/flowEditor.png)
-
-Administrator Object Editor:
-![Screenshot](examples/screenshots/modelEditor.png)
-
-Audit Logs:
-![Screenshot](examples/screenshots/auditLog.png)
-
-Dont like UI Run Flows as Code:
-![Screenshot](examples/screenshots/codify.png)
+If you do something more than once then use jimi to reduce repetitive tasks!

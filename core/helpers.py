@@ -12,6 +12,7 @@ from gc import get_referents
 import json
 import ast
 import time
+import datetime
 
 from bson.objectid import ObjectId 
 from core import settings, function
@@ -19,13 +20,16 @@ from core import settings, function
 functionSafeList = function.systemFunctions
 
 regexEvalString = re.compile("(\%\%([^%]*)\%\%)")
-regexDict = re.compile("^([a-zA-Z]*)\[.*\]")
+regexDict = re.compile("^([a-zA-Z]+)\[.*\]")
 regexDictKeys = re.compile("(\[\"?([^\]\"]*)\"?\])")
 regexFunction = re.compile("^([a-zA-Z0-9]*)\(.*\)")
 regexFunctionOpen = re.compile("^([a-zA-Z0-9]*)\(.*")
 regexCommor = re.compile(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")
-regexInt = re.compile("^[0-9]*$")
-regexFloat = re.compile("^[0-9]*\.[0-9]*$")
+regexInt = re.compile("^(-|)[0-9]+$")
+regexFloat = re.compile("^[0-9]+\.[0-9]+$")
+regexString = re.compile("^\".*\"$")
+
+systemProperties = ["classID","workerID","acl","scope","lastUpdateTime","creationTime","createdBy","attemptCount","autoRestartCount","clusterSet","systemID","startCheck","scope"]
 
 class cpuSaver:
     loops = 0
@@ -39,8 +43,8 @@ class cpuSaver:
             if runAfter > 0:
                 if self.loops > runAfter:
                     sleep = True
-                elif self.loops > self.cpuSaver["loopL"]:
-                    sleep = True
+            elif self.loops > self.cpuSaver["loopL"]:
+                sleep = True
             if sleep:
                 if sleepFor > 0:
                     time.sleep(sleepFor)
@@ -61,6 +65,8 @@ def defineVars(varDefinitions,dicts={},functionSafeList=functionSafeList):
 def evalString(varString,dicts={},functionSafeList=functionSafeList):
     results = varString
     evalMatches = regexEvalString.findall(varString)
+    if len(evalMatches) == 0:
+        results = typeCast(varString)
     for evalMatch in evalMatches:
         if results is not None:
             results = typeCast(results.replace(evalMatch[0],str(typeCast(evalMatch[1],dicts,functionSafeList))))
@@ -105,49 +111,106 @@ def getDictValue(varString,dicts={}):
         if dictName in dicts:
             dictKeys = []
             for key in regexDictKeys.findall(varString):
-                dictKeys.append(typeCast(key[1]))
+                dictKeys.append(key[1])
             return typeCast(nested_dict_get(dicts[dictName],dictKeys))
     return None
 
 # Type cast string into varible types, includes dict and function calls
 def typeCast(varString,dicts={},functionSafeList=functionSafeList):
-    if type(varString) == str:
+    if type(varString) == str and varString != "":
         # String defined
-        if varString.startswith("\"") and varString.endswith("\""):
+        if regexString.search(varString):
             return str(varString[1:-1])
-        # Attempt to cast
-        try:
-            return ast.literal_eval(varString)
-        except Exception as e:
-            pass
-        # dict
+        # Int
+        if regexInt.search(varString): 
+            return int(varString)
+        # Float
+        if regexFloat.search(varString):
+            return float(varString)
+        # Bool
+        lower = varString.lower()
+        if lower == "true":
+            return True
+        if lower == "false":
+            return False
+        # Dict
         if regexDict.search(varString):
             return getDictValue(varString,dicts)
+        # Attempt to cast dict and list
+        if varString.startswith("{") or varString.startswith("["):
+            try:
+                return ast.literal_eval(varString)
+            except Exception as e:
+                pass
         # Function
-        elif regexFunction.search(varString):
+        if regexFunction.search(varString):
             functionName = varString.split("(")[0]
             if functionName in functionSafeList:
+                functionValue = varString[(len(functionName)+1):-1]
+
                 functionArgs = []
-                # Cast type from string for function arguments
-                functionFound = None
-                for functionArg in regexCommor.split(varString[(len(functionName)+1):-1]):
-                    if not functionFound:
-                        if regexFunctionOpen.search(functionArg):
-                            functionFound = functionArg
-                            if functionFound.endswith(")"):
-                                functionArg = functionFound
-                                functionFound = None
+
+                tempArg = ""
+                index = 0
+                # Decoding string function arguments to single arguments for typeCasting - Regex maybe faster but has to handle encaspulation of " \" [ ' (, old search regex only worked with "
+                while index <= len(functionValue)-1:
+                    if functionValue[index] == "\"":
+                        tempArg += functionValue[index]
+                        index += 1
+                        while index <= len(functionValue)-1:
+                            if functionValue[index] != "\"":
+                                tempArg += functionValue[index]
+                                index += 1
+                            else:
+                                tempArg += functionValue[index]
+                                if functionValue[index-1] != "\\" and functionValue[index-2] != "\\":
+                                    break
+                                index += 1
+                    elif functionValue[index] == "[":
+                        while index <= len(functionValue)-1:
+                            if functionValue[index] != "]":
+                                tempArg += functionValue[index]
+                                index += 1
+                            else:
+                                tempArg += functionValue[index]
+                                index += 1
+                                break
                     else:
-                        functionFound+=",{0}".format(functionArg)
-                        if functionFound.endswith(")"):
-                            functionArg = functionFound
-                            functionFound = None
-                    if not functionFound:
-                        value = typeCast(functionArg.strip(),dicts,functionSafeList)
+                        functionFound = 0
+                        inQuote = False
+                        while index <= len(functionValue)-1:
+                            if functionFound > 0:
+                                if functionValue[index] == "\"":
+                                    if functionValue[index-1] != "\\" and functionValue[index-2] != "\\":
+                                        inQuote = not inQuote
+                                if not inQuote: 
+                                    if functionValue[index] == "(":
+                                        functionFound += 1
+                                    elif functionValue[index] == ")":
+                                        functionFound -= 1
+                                        if functionFound == 0:
+                                            tempArg += functionValue[index]
+                                            index += 1
+                                            break
+                                tempArg += functionValue[index]
+                                index += 1
+                            elif functionValue[index] == "(":
+                                tempArg += functionValue[index]
+                                index += 1
+                                if regexFunctionOpen.search(tempArg):
+                                    functionFound += 1
+                            elif functionValue[index] != "," and functionValue[index] != ")":
+                                tempArg += functionValue[index]
+                                index += 1
+                            else:
+                                break
+                    
+                    if tempArg != "":
+                        value = typeCast(tempArg.strip(),dicts,functionSafeList)
                         functionArgs.append(value)
-                if functionFound:
-                    value = typeCast(functionArg.strip(),dicts,functionSafeList)
-                    functionArgs.append(value)
+                        tempArg = ""
+                    index+=1
+
                 # Catch any execution errors within functions
                 try:
                     if len(functionArgs) > 0:
@@ -162,7 +225,7 @@ def typeCast(varString,dicts={},functionSafeList=functionSafeList):
     return varString
 
 def handelTypes(_object):
-        # Handle none native json types
+    # Handle none native json types
     if type(_object) is ObjectId:
         return str(_object)
     else:
@@ -329,3 +392,9 @@ def dictValue(d,value):
         return d[value]
     except:
         return None
+ 
+def roundTime(dt=None, roundTo=60):
+   if dt == None : dt = datetime.datetime.now()
+   seconds = (dt.replace(tzinfo=None) - dt.min).seconds
+   rounding = (seconds+roundTo/2) // roundTo * roundTo
+   return dt + datetime.timedelta(0,rounding-seconds,-dt.microsecond)

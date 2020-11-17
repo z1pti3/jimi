@@ -7,7 +7,7 @@ import string
 from core import db
 
 # Current System Version
-systemVersion = 1.5
+systemVersion = 1.7
 
 # Initialize 
 dbCollectionName = "system"
@@ -25,7 +25,7 @@ class _system(db._document):
 		result = self._dbCollection.insert_one({ "name" : name })
 		return result
 
-from core import db, logging, model, settings, plugin
+from core import db, logging, model, settings, plugin, function
 
 systemSettings = settings.config["system"]
 
@@ -87,8 +87,11 @@ def setup():
 		else:
 			sys.exit("Unable to complete upgrade")
 
-	plugin.updatePluginDB()
-	plugin.loadPluginAPIExtensions()
+	# Loading functions
+	function.load()
+
+	# Initialize plugins
+	plugin.load()
 
 # Set startCheck to 0 so that all triggers start
 def resetTriggers():
@@ -147,7 +150,7 @@ def systemInstall():
 
 	# System - failedTriggers
 	from core.models import trigger
-	triggers = trigger._trigger().query(query={"name" : "failedTriggers"})["results"]
+	triggers = trigger._trigger().getAsClass(query={"name" : "failedTriggers"})
 	if len(triggers) < 1:
 		from system.models import trigger as systemTrigger
 		model.registerModel("failedTriggers","_failedTriggers","_trigger","system.models.trigger")
@@ -163,7 +166,7 @@ def systemInstall():
 	# System - Actions
 	from core.models import action
 	# resetTrigger
-	actions = action._action().query(query={"name" : "resetTrigger"})["results"]
+	actions = action._action().getAsClass(query={"name" : "resetTrigger"})
 	if len(actions) < 1:
 		from system.models import action as systemAction
 		model.registerModel("resetTrigger","_resetTrigger","_action","system.models.action")
@@ -179,6 +182,16 @@ def systemInstall():
 	actions = action._action().query(query={"name" : "forEach"})["results"]
 	if len(actions) < 1:
 		model.registerModel("forEach","_forEach","_action","system.models.forEach")
+	# global
+	model.registerModel("global","_global","_document","system.models.global")
+	model.registerModel("globalSet","_globalSet","_action","system.models.global")
+	model.registerModel("globalGet","_globalGet","_action","system.models.global")
+
+	# Sleep
+	model.registerModel("sleep","_sleep","_action","system.models.sleep")
+
+	# Collect
+	model.registerModel("collect","_collect","_action","system.models.collect")
 
 	# Adding model for plugins
 	model.registerModel("plugins","_plugin","_document","core.plugin")
@@ -228,6 +241,37 @@ def systemUpgrade(currentVersion):
 				pluginClass = pluginClass[0]
 				pluginClass.upgradeHandler()
 		return True
+
+	if currentVersion < 1.62:
+		from core.models import trigger
+		from core.models import action
+		failedTriggers = trigger._trigger().getAsClass(query={"name" : "failedTriggers"})
+		if len(failedTriggers) == 1:
+			failedTriggers = failedTriggers[0]
+			failedTriggers.scope = 3
+			failedTriggers.update(["scope"])
+		else:
+			from system.models import trigger as systemTrigger
+			systemTrigger._failedTriggers().new("failedTriggers")
+		restTrigger = action._action().getAsClass(query={"name" : "resetTrigger"})
+		if len(restTrigger) == 1:
+			restTrigger = restTrigger[0]
+			restTrigger.scope = 3
+			restTrigger.update(["scope"])
+		else:
+			from system.models import action as systemAction
+			systemAction._resetTrigger().new("resetTrigger")
+
+	if currentVersion < 1.54:
+		model.registerModel("collect","_collect","_action","system.models.collect")
+
+	if currentVersion < 1.53:
+		model.registerModel("sleep","_sleep","_action","system.models.sleep")
+
+	if currentVersion < 1.52:
+		model.registerModel("global","_global","_document","system.models.global")
+		model.registerModel("globalSet","_globalSet","_action","system.models.global")
+		model.registerModel("globalGet","_globalGet","_action","system.models.global")
 
 	if currentVersion < 1.45:
 		pluginModel = model._model().query(query={"className" : "_plugin"})["results"]
