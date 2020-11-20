@@ -175,13 +175,13 @@ function loadPropertiesPanel(flowID,panel) {
 				if (result["formData"][objectItem]["type"] == "dropdown") {
           
 					var $cell = $('<td width="100px">');
-					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], class: "theme-panelLabel"}).text(label+":"));
+					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], class: "theme-panelLabel"}).text(label+":").tooltip());
 					$row.append($cell);
 
 					var $cell = $('<td>');
 					var $select =$('<select class="inputFullWidth theme-panelTextArea">').attr({type: 'dropdown', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: JSON.stringify(result["formData"][objectItem]["dropdown"]), key: result["formData"][objectItem]["schemaitem"], tag: "formItem"});
 					
-          for (var i=0; i< result["formData"][objectItem]["dropdown"].length;i++){
+          			for (var i=0; i< result["formData"][objectItem]["dropdown"].length;i++){
 						$select.append($('<option>').attr({value: result["formData"][objectItem]["dropdown"][i]}).text(result["formData"][objectItem]["dropdown"][i]));
 					}
 					$select.val(result["formData"][objectItem]["current"])
@@ -195,7 +195,7 @@ function loadPropertiesPanel(flowID,panel) {
 				if (result["formData"][objectItem]["type"] == "unit-input") {
           
 					var $cell = $('<td width="100px">');
-					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], class: "theme-panelLabel"}).text(label+":"));
+					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], class: "theme-panelLabel"}).text(label+":").tooltip());
 					$row.append($cell);
 
 					var $cell = $('<td>');
@@ -210,9 +210,22 @@ function loadPropertiesPanel(flowID,panel) {
 					$row.append($cell);
 					
 				}		
+				if (result["formData"][objectItem]["type"] == "break") {
+					if (result["formData"][objectItem]["start"] == true){
+						var $cell = $('<td colspan="2" width="100%">');
+						$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], class: "theme-panelBreakTitle"}).text(label));
+						$row.append($cell);
+					}
+					else 
+					{
+						var $cell = $('<td colspan="2" width="100%">');
+						$cell.append($('<label>').attr({class: "theme-panelBreakLine"}));
+						$row.append($cell);
+					}
+				}
 				if (result["formData"][objectItem]["type"] == "script") {
 					var $cell = $('<td width="100px">');
-					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], title : tooltip, class: "theme-panelLabel"}).text(label+":").tooltip());
+					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], title : tooltip, class: "theme-panelBreak"}).text(label+":").tooltip());
 					$row.append($cell);
 					var $cell = $('<td>');
 					var $scriptTextArea = $('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: result["formData"][objectItem]["textbox"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"});

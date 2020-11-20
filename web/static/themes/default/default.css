@@ -66,6 +66,22 @@ p {
 .theme-panelLabel {
 }
 
+.theme-panelBreakTitle {
+    text-align: center;
+    width: 100%;
+    display:inline-block
+}
+
+.theme-panelBreakLine {
+    height: 1px;
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 1em 0;
+    padding: 0;
+    width: 100%;
+    display:inline-block
+}
+
 .theme-panelTextArea {
     background-color: #0f0f0f;
     min-height: 75px;
