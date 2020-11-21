@@ -18,8 +18,12 @@ def codifyRun():
     data = json.loads(api.request.data)
     data["sessionData"] = api.g.sessionData
     apiEndpoint = "codify/run/"
+    timeout = 60
+    if "timeout" in data:
+        timeout = int(data["timeout"])
+        del data["timeout"]
     try:
-        apiContent = helpers.apiCall("POST",apiEndpoint,jsonData=data,token=api.g.sessionToken,timeout=60).text
+        apiContent = helpers.apiCall("POST",apiEndpoint,jsonData=data,token=api.g.sessionToken,timeout=timeout).text
     except:
         return { "result" : "An error happend - Maybe the flow has taken too long to respond for codify?" }, 200
     return json.loads(apiContent), 200

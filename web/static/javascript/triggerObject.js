@@ -5,7 +5,8 @@ var triggerObjectHTML = `
 		<label id="title"></label>
 	</div>
 	<div class="propertiesPanel-body theme-panelBody">
-		For this action to complete the flow must execute and return within 60 seconds<br><br>
+		Timeout:<br>
+		<input type='text' value="60" class="inputFullWidth theme-panelTextbox" id='codifyTimeout'><br>
 		Number of Events to Process:<br>
 		<input type='text' value="0" class="inputFullWidth theme-panelTextbox" id='triggerEventCount'><br>
 		Events:<br>
@@ -26,7 +27,7 @@ function triggerTriggerObjectPanel(panel,flowID) {
 	var conductID = GetURLParameter("conductID")
 	$('#triggerOutput').text("");
 	$.ajax({url: "/conductEditor/"+conductID+"/codify/?json=True&flowID="+flowID, type:"GET", contentType:"application/json", success: function(result) {
-			$.ajax({url: "/codify/", type:"POST", data:JSON.stringify({ events: $('#triggerValue').val(), eventCount: $('#triggerEventCount').val(), code: result["result"], CSRF: CSRF }), contentType:"application/json", success: function(result) {
+			$.ajax({url: "/codify/", type:"POST", data:JSON.stringify({ events: $('#triggerValue').val(), eventCount: $('#triggerEventCount').val(), code: result["result"], timeout : $('#codifyTimeout').val(), CSRF: CSRF }), contentType:"application/json", success: function(result) {
 					$('#triggerOutput').text(result["result"]);
 				} 
 			});
