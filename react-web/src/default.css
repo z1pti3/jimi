@@ -1,0 +1,19 @@
+:root {
+    /* Main */
+    --mainBackgroundColor: #222222;
+    --textColor: #ddd;
+    --hoverColor: #220433;
+
+    /* Panel */
+    --panelBackgroundColor: #333333;
+    --panelBorderColor: #000;
+    --panelShadowColor1: rgba(0, 0, 0, 0.12);
+    --panelShadowColor2: rgba(0, 0, 0, 0.24);
+    --panelComponentBackground: #111111;
+    --panelComponentBackground-Focus: #020202;
+    --panelComponentBorder: #2e6da4;
+    --panelComponentBorder-Focus: #167bff;
+
+    /* Alerts */
+    --errorBackgroundColor: #bd2727;
+}

@@ -1,0 +1,33 @@
+.textbox {
+    background-color: var(--panelComponentBackground); 
+    color: var(--textColor);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--panelComponentBorder);
+}
+
+.textbox:focus {
+    background-color: var(--panelComponentBackground-Focus); 
+    color: var(--textColor);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--panelComponentBorder);
+}
+
+.textbox:hover {
+    background-color: var(--panelComponentBackground-Focus); 
+    color: var(--textColor);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--panelComponentBorder);
+}
+
+.button {
+    background-color: var(--panelComponentBackground);
+    border-color: var(--panelComponentBorder);
+    color: var(--textColor);
+}
+
+.button:hover {
+    background-color: var(--panelComponentBackground-Focus);
+}

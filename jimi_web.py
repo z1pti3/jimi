@@ -14,7 +14,9 @@ import os
 from core import api, settings
 apiSettings = settings.config["api"]["web"]
 
-api.createServer("jimi_web",template_folder=str(Path("web","templates")),static_folder=str(Path("web","static")))
+api.createServer("jimi_web",template_folder=str(Path("react-web","build")),static_folder=str(Path("react-web","build","static")))
+
+#api.createServer("jimi_web",template_folder=str(Path("web","templates")),static_folder=str(Path("web","static")))
 
 from core import model, cluster
 
@@ -48,6 +50,11 @@ from core import audit, helpers, plugin, auth
 
 from core.models import conduct, action, trigger, webui
 
+@api.webServer.route("/index")
+def indexPage():
+	from system import install
+	return render_template("index.html")
+
 @api.webServer.route("/")
 def mainPage():
 	from system import install
@@ -68,7 +75,7 @@ def loadConducts():
 
 @api.webServer.route("/login")
 def loginPage():
-	return render_template("login.html")
+	return render_template("index.html")
 
 @api.webServer.route("/conduct/PropertyTypes/", methods=["GET"])
 def getConductPropertyTypes():

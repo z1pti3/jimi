@@ -1,0 +1,78 @@
+.outer {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    text-align: left;
+    height: auto;
+    width: auto;
+}
+
+.inner {
+    width: 450px;
+    margin: auto;
+    background: var(--panelBackgroundColor);
+    box-shadow: 0 1px 6px var(--panelShadowColor1), 0 1px 4px var(--panelShadowColor2);
+    color: var(--textColor);
+    border-style: solid;
+    border-color: var(--panelBorderColor);
+    border-width: 1px;
+    padding: 30px 30px 45px 30px;
+    border-radius: 15px;
+    transition: all .3s;
+}
+
+.outer .form-control:focus {
+    border-color: var(--panelComponentBorder-Focus);
+    box-shadow: none;
+}
+
+.outer h3 {
+    text-align: center;
+    margin: 0;
+    line-height: 1;
+    padding-bottom: 45px;
+}
+
+.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: var(--mainBackgroundColor);
+}
+
+.fullscreen h1 {
+    text-align: center;
+    margin: 0;
+    line-height: 1;
+    font-size: 100px;
+    padding-bottom: 50px;
+    color: var(--textColor);
+}
+
+.failedLoginAlert {
+    display: inline-block;
+    margin: 0 auto;
+    padding: 3px;
+    text-align: center;
+    width: 350px;
+    background-color: var(--errorBackgroundColor);
+    box-shadow: 0 1px 6px var(--panelShadowColor1), 0 1px 4px var(--panelShadowColor2);
+    border-style: solid;
+    border-color: var(--panelBorderColor);
+    border-width: 1px;
+    padding: 5px 5px 5px 5px;
+    border-radius: 15px;
+    transition: all .3s;
+    color: var(--textColor);
+}
+
+.failedLoginAlertContainer {
+    text-align: center;
+    position: fixed;
+    width: 100%;
+    z-index: 1;
+    top: 215px;
+}
