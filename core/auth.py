@@ -325,6 +325,8 @@ if api.webServer:
             if api.request.endpoint != "static": 
                 response.headers['Cache-Control'] = 'no-cache, no-store'
                 response.headers['Pragma'] = 'no-cache'
+            # Permit CORS when web and web API ( Flask ) are seperated
+            response.headers['Access-Control-Allow-Origin'] = "http://localhost:3000"
             # ClickJacking
             response.headers['X-Frame-Options'] = 'SAMEORIGIN'
             return response
@@ -341,11 +343,11 @@ if api.webServer:
                 if len(user) == 1:
                     user = user[0]
                     if user.totpSecret != "":
-                        return "otp_required", 200
+                        return response, 403
                     else:
                         userSession = validateUser(data["username"],data["password"])
                 else:
-                    return "otp_required", 200
+                    return response, 403
             else:
                 userSession = validateUser(data["username"],data["password"],data["otp"])
             if userSession:

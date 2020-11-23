@@ -60,10 +60,9 @@
 
 .shake {
     animation: shake 0.25s;
-    animation-iteration-count: 2;
+    animation-iteration-count: 1;
 }
 
-  
 @keyframes shake {
     0% { transform: translate(1px, 1px) rotate(0deg); }
     10% { transform: translate(-1px, -2px) rotate(-1deg); }

@@ -1,5 +1,7 @@
 import React, { Component } from "react";
 
+import configData from "./../config/config.json";
+
 import { setUserSession } from './../utils/common';
 
 import "./html.component.css"
@@ -11,6 +13,8 @@ export default class Login extends Component {
         this.state = {
             username: null,
             password: null,
+            otpRequired: false,
+            otp: null,
             failedLogin: false
         }
         this.submit = this.submit.bind(this);
@@ -21,20 +25,39 @@ export default class Login extends Component {
         event.preventDefault();
         this.setState({ failedLogin: false });
 
-        const requestOptions = {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({ username: this.state.username, password: this.state.password })
-        };
-        fetch('http://127.0.0.1:5002/api/1.0/auth/', requestOptions).then(response => {
-            if (response.ok) return response.json();
-            throw response;
-        }).then(response => {
-            this.props.history.push('/index'); 
-        }).catch(error => { 
-
-            this.setState({ failedLogin: true });
-        });
+        if (!this.state.otpRequired) {
+            const requestOptions = {
+                method: 'POST',
+                mode: configData.cosMode,
+                body: JSON.stringify({ username: this.state.username, password: this.state.password })
+            };
+            fetch(configData.url+configData.uri+'auth/', requestOptions).then(response => {
+                if (response.ok) return response;
+                throw response;
+            }).then(response => {
+                this.setState({ failedLogin: false });
+                this.props.history.push('/index'); 
+            }).catch(error => { 
+                this.setState({ failedLogin: false });
+                this.setState({ otpRequired: true });
+            });
+        } else {
+            const requestOptions = {
+                method: 'POST',
+                mode: configData.cosMode,
+                body: JSON.stringify({ username: this.state.username, password: this.state.password, otp: this.state.otp })
+            };
+            fetch(configData.url+configData.uri+'auth/', requestOptions).then(response => {
+                if (response.ok) return response;
+                throw response;
+            }).then(response => {
+                this.setState({ failedLogin: false });
+                this.props.history.push('/index'); 
+            }).catch(error => { 
+                this.setState({ otpRequired: false });
+                this.setState({ failedLogin: true });
+            });
+        }
     }
 
     change(event) {
@@ -68,6 +91,12 @@ export default class Login extends Component {
                             <div className="form-group">
                                 <input type="password" name="password" className="form-control textbox" placeholder="password" autoComplete="off" onChange={this.change} />
                             </div>
+
+                            {this.state.otpRequired &&
+                                <div className="form-group">
+                                    <input type="text" name="otp" className="form-control textbox" placeholder="One Time Password" autoComplete="off" onChange={this.change} />
+                                </div>
+                            }
 
                             <button type="submit" className="btn btn-primary btn-block button">Login</button>
                         </form>
