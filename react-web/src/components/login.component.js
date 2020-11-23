@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import Alert from 'react-bootstrap/Alert'
 
 import { setUserSession } from './../utils/common';
 
@@ -57,11 +56,11 @@ export default class Login extends Component {
         return (
             <div className="fullscreen">
                 <h1>jimi</h1>
-                {this.state.failedLogin && <div className="failedLoginAlertContainer"><Alert className="failedLoginAlert">Login details appear to be invalid</Alert></div> }
                 <div className="outer">
-                    <div className="inner">
+                    <div className={`inner ${!this.state.failedLogin ? "" : "shake"}`}>
                         <form onSubmit={this.submit}>
                             <h3>Login</h3>
+                            {this.state.failedLogin ? <p className="failedLoginAlert"><b>Login details appear to be invalid!</b></p> : <p className="failedLoginAlert"><b>&#160;</b></p> }
                             <div className="form-group">
                                 <input type="text" name="username" className="form-control textbox" placeholder="Username" autoComplete="off" onChange={this.change} />
                             </div>

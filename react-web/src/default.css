@@ -15,5 +15,6 @@
     --panelComponentBorder-Focus: #167bff;
 
     /* Alerts */
-    --errorBackgroundColor: #bd2727;
+    --errorBackgroundColor: #ffffff;
+    --errorColor: #ec0e0e;
 }
