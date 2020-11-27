@@ -35,10 +35,8 @@ export default class Login extends Component {
                 if (response.ok) return response;
                 throw response;
             }).then(response => {
-                this.setState({ failedLogin: false });
                 this.props.history.push('/index'); 
             }).catch(error => { 
-                this.setState({ failedLogin: false });
                 this.setState({ otpRequired: true });
             });
         } else {
@@ -51,7 +49,6 @@ export default class Login extends Component {
                 if (response.ok) return response;
                 throw response;
             }).then(response => {
-                this.setState({ failedLogin: false });
                 this.props.history.push('/index'); 
             }).catch(error => { 
                 this.setState({ otpRequired: false });
