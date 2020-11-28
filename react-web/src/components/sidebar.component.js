@@ -1,13 +1,25 @@
 import React from "react";
+import {Nav} from "react-bootstrap";
+
 import './sidebar.component.css'
 
 function Sidebar(props) {   
     return (
-        <nav class="navbar navbar-light sticky-top bg-custom-2">
-            <div class="container">
-                <a class="navbar-brand" href="#a">jimi</a>
-            </div>
-        </nav>
+      <Nav id="sidebar">
+        <div class="sidebar-header">
+            <h3>Bootstrap Sidebar</h3>
+        </div>
+        <br/>
+        <ul class="list-unstyled components">
+            <p>Dummy Heading</p>
+            <li>
+                <a href="#">Portfolio</a>
+            </li>
+            <li>
+                <a href="#">Contact</a>
+            </li>
+        </ul>
+      </Nav>
     );
   }
    

@@ -3,7 +3,7 @@ import './topbar.component.css'
 
 function Topbar(props) {   
     return (
-        <nav class="navbar navbar-light sticky-top bg-custom-2">
+        <nav class="navbar navbar-light sticky-top bg-custom-2" id="topbar">
             <div class="container">
                 <a class="navbar-brand" href="">jimi</a>
             </div>

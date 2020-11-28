@@ -1,22 +1,30 @@
 import React from 'react';
-import { BrowserRouter, Switch, Route, NavLink } from 'react-router-dom';
+import {Container, Row, Col } from "react-bootstrap";
 
 import './app.css';
 
-import PrivateRoute from './utils/privateRoute';
-import PublicRoute from './utils/publicRoute';
- 
-import Login from './components/login.component';
 import Topbar from './components/topbar.component';
 import Sidebar from './components/sidebar.component';
-import Home from './home';
+import Tab from './components/tab.component';
  
 function App() {
   return (
-    <BrowserRouter>
-      <Topbar />
-      
-  </BrowserRouter>
+    <Container fluid>
+      <Row>
+        <Col>
+        <Topbar />
+        </Col>
+      </Row>
+      <Row>
+        <Col xs={2} id="sidebar-wrapper">
+          <Sidebar />
+        </Col>
+        <Col xs={10} id="pageContent-wrapper">
+          <Tab />
+          this
+        </Col> 
+      </Row>
+    </Container>
   );
 }
  
