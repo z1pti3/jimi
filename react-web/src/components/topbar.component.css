@@ -1,6 +1,23 @@
 #topbar {
     position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1;
     width: 100%;
-    height: 50px;
+    max-width: 100%;
+    background-color: var(--panelBackgroundColor);
+    height: 40px;
+    box-shadow: 0 1px 6px var(--panelShadowColor1), 0 1px 4px var(--panelShadowColor2);
+    border-style: solid;
+    border-color: var(--panelBorderColor);
+    border-width: 1px;
+    color: var(--textColor);
 }
 
+.link {
+    padding: 10px;
+}
+
+.active {
+    color: gray;
+}
