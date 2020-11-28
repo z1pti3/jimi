@@ -506,7 +506,6 @@ function setupFlowchart() {
 	});
 
 	updateFlowchart();
-	autoupdate();
 }
 
 

@@ -97,7 +97,7 @@ def conductFlowchartPoll(conductID):
                                         node["label"] = label
                                         node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : color } }
                                     else:
-                                        if color != flowchartOperators[flowID]["node"]["color"]:
+                                        if color != flowchartOperators[flowID]["node"]["color"]["background"]:
                                             node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : color } }
                                         if label != flowchartOperators[flowID]["node"]["label"]:
                                             node["label"] = label
@@ -124,7 +124,7 @@ def conductFlowchartPoll(conductID):
                                         node["label"] = label
                                         node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : color } }
                                     else:
-                                        if color != flowchartOperators[flowID]["node"]["color"]:
+                                        if color != flowchartOperators[flowID]["node"]["color"]["background"]:
                                             node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : color } }
                                         if label != flowchartOperators[flowID]["node"]["label"]:
                                             node["label"] = label
