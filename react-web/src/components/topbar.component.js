@@ -9,7 +9,9 @@ import './topbar.component.css'
 function Topbar(props) {   
     return (
             <div class="container" id="topbar">
-                jimi
+                <h4>
+                    jimi
+                </h4>
                 <BrowserRouter>
                     <NavLink exact className="link" activeClassName="active" to="/conducts">Conducts</NavLink>
                     <NavLink exact className="link" activeClassName="active" to="/administrator">Administrator</NavLink>

@@ -12,12 +12,39 @@
     border-color: var(--panelBorderColor);
     border-width: 1px;
     color: var(--textColor);
+    padding-left: 10px;
+    display: flex;
 }
 
 .link {
-    padding: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: center;
+    vertical-align: bottom;
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    justify-content: flex-end;
 }
 
-.active {
+.link:hover {
+    background-color: tomato;
+}
+
+.link:focus, .active {
     color: gray;
+}
+
+h4 {
+    padding-left: 10px;
+    padding-right: 30px;
+    vertical-align: middle;
+    text-align: center;
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    justify-content: center;
+    line-height: unset;
+    font-weight: 600;
+    font-size: 35px;
 }
