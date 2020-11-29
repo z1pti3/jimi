@@ -1,16 +1,11 @@
 import React from 'react';
 import {Container, Row, Col } from "react-bootstrap";
 
-import './app.css';
-
-import PublicRoute from './utils/publicRoute';
-import Login from './components/login.component';
-
-
 import Topbar from './components/topbar.component';
-import Sidebar from './components/sidebar.component';
 import Tab from './components/tab.component';
  
+import './app.css';
+
 function App() {
   return (
     <Container fluid>
