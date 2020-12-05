@@ -3,13 +3,28 @@ import { useHistory } from 'react-router-dom';
 
 import configData from "./../config/config.json";
 
-import { setUserSession, removeUserSession } from './../utils/common';
+import { setSession, removeSession } from './../utils/common';
 
 import "./html.component.css"
 import "./login.component.css"
 
+export function PollAuth(props) {
+    const requestOptions = {
+        method: 'GET',
+        credentials: 'include',
+        mode: configData.cosMode
+    };
+    return fetch(configData.url+configData.uri+'auth/poll/', requestOptions).then(response => {
+        if (response.ok) {
+            return true
+        } else {
+            return false;
+        }
+    });
+}
+
 export function Logout(props) {   
-    removeUserSession();
+    removeSession();
     const history = useHistory()
     setTimeout(() => { history.push('/login'); }, 2500);
     return (
@@ -52,7 +67,7 @@ export class Login extends Component {
                 if (response.ok) return response;
                 throw response;
             }).then(response => {
-                setUserSession("1", "test");
+                setSession();
                 this.props.history.push('/'); 
             }).catch(error => { 
                 this.setState({ otpRequired: true });

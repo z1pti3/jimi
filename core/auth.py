@@ -233,7 +233,7 @@ def requireAuthentication(func):
         if "jimiAuth" in api.request.cookies:
             validSession = validateSession(api.request.cookies["jimiAuth"])
             if not validSession:
-                return api.redirect("/login", code=302)
+                return {}, 403
         return func(*args, **kwargs)
     return decorated_function
 
@@ -274,7 +274,7 @@ if api.webServer:
                         if not validSession:
                             redirectEndPoints = ["api_sessionPolling","mainPage","statusPage"]
                             if api.request.endpoint in redirectEndPoints:
-                                return api.redirect("/login?return={0}".format(api.request.full_path), code=302)
+                                return {}, 403
                             else:
                                 return {}, 403
                         api.g.type = "cookie"
@@ -304,7 +304,7 @@ if api.webServer:
                         #    return {}, 403
                         api.g.type = "x-api-token"
                     else: 
-                        return api.redirect("/login?return={0}".format(api.request.full_path), code=302)
+                        return {}, 403
                     # Data that is returned to the Flask request handler function
                     api.g.sessionData = validSession["sessionData"]
                     api.g.sessionToken = validSession["sessionToken"]
@@ -327,6 +327,7 @@ if api.webServer:
                 response.headers['Pragma'] = 'no-cache'
             # Permit CORS when web and web API ( Flask ) are seperated
             response.headers['Access-Control-Allow-Origin'] = "http://localhost:3000"
+            response.headers['Access-Control-Allow-Credentials'] = "true"
             # ClickJacking
             response.headers['X-Frame-Options'] = 'SAMEORIGIN'
             return response
@@ -371,10 +372,10 @@ if api.webServer:
 
         @api.webServer.route(api.base+"auth/logout/", methods=["GET"])
         def api_logout():
-            response = api.make_response(api.redirect("/login?return=/?"))
+            response = api.make_response()
             response.set_cookie("jimiAuth", value="")
-            audit._audit().add("auth","logout",{ "action" : "sucess", "_id" : api.g.sessionData["_id"] })
-            return response, 302
+            audit._audit().add("auth","logout",{ "action" : "success", "_id" : api.g.sessionData["_id"] })
+            return response, 403
 
         # Checks that username and password are a match
         @api.webServer.route(api.base+"auth/myAccount/", methods=["POST"])
