@@ -5,7 +5,7 @@ import time
 import uuid
 import traceback
 
-from core import api, helpers, model, settings, audit
+from core import api, helpers, model, settings, audit, workers
 from system import variable, logic
 
 from core.models import conduct
@@ -65,7 +65,7 @@ def getObjectFromCode(sessionData,codeFunction):
     classObject.functionArgs = args
     return classObject
 
-def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentData=None):
+def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentData=None,maxDuration=60):
     if not persistentData:
         persistentData = {}
 
@@ -118,7 +118,8 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
             tempDataCopy["eventStats"] = eventStat
 
             try:
-                tempConduct.triggerHandler(flow["flowID"],tempDataCopy,flowIDType=True)
+                jid = workers.workers.new("testFire:{0}".format(tempConduct._id),tempConduct.triggerHandler,(flow["flowID"],tempDataCopy,False,True),maxDuration=maxDuration)
+                workers.workers.wait(jid)
             except Exception as e:
                 output = "\n\n***ERROR Start***\n{0}***ERROR End***\n\n".format(''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
 
@@ -163,5 +164,5 @@ if api.webServer:
         @api.webServer.route(api.base+"codify/run/", methods=["POST"])
         def codifyRun():
             data = json.loads(api.request.data)
-            result = executeCodifyFlow(data["sessionData"],data["events"],data["code"],eventCount=int(data["eventCount"]))
+            result = executeCodifyFlow(data["sessionData"],data["events"],data["code"],eventCount=int(data["eventCount"]),maxDuration=int(data["timeout"]))
             return { "result" : result }, 200

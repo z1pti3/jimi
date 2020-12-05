@@ -21,7 +21,6 @@ def codifyRun():
     timeout = 60
     if "timeout" in data:
         timeout = int(data["timeout"])
-        del data["timeout"]
     try:
         apiContent = helpers.apiCall("POST",apiEndpoint,jsonData=data,token=api.g.sessionToken,timeout=timeout).text
     except:
