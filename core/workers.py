@@ -236,11 +236,12 @@ class workerHandler:
                 logging.debug("Unable to locate worker, workerID={0}".format(id))
 
     def wait(self, jid):
-        worker = [x for x in self.workerList if x.id == id][0]
+        worker = [x for x in self.workerList if x.id == jid][0]
         if logging.debugEnabled:
             logging.debug("Waiting for worker, workerID={0}".format(id))
-        while (worker.running != False ):
-            time.sleep(0.1)
+        if worker:
+            while (worker.running != False ):
+                time.sleep(0.1)
 
     def waitAll(self):
         while (self.queue() > 0 or len(self.active()) > 0):
