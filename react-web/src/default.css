@@ -2,6 +2,7 @@
     /* Main */
     --mainBackgroundColor: #222222;
     --textColor: #ddd;
+    --textDisabledColor: #615f5f;
     --hoverColor: #220433;
 
     /* Panel */
@@ -17,4 +18,6 @@
     /* Alerts */
     --errorBackgroundColor: #ffffff;
     --errorColor: #ec0e0e;
+    --alertBackgroundColor: #ffffff;
+    --alertColor: #15b438;
 }

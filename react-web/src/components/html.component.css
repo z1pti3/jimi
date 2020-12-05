@@ -4,6 +4,15 @@
     border-style: solid;
     border-width: 1px;
     border-color: var(--panelComponentBorder);
+    display:inline
+}
+
+.textbox:disabled {
+    background-color: var(--panelComponentBackground); 
+    color: var(--textDisabledColor);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--panelComponentBorder);
 }
 
 .textbox:focus {
@@ -26,8 +35,13 @@
     background-color: var(--panelComponentBackground);
     border-color: var(--panelComponentBorder);
     color: var(--textColor);
+    display:inline
 }
 
 .button:hover {
     background-color: var(--panelComponentBackground-Focus);
+}
+
+.small {
+    width: 100px;
 }

@@ -8,15 +8,9 @@ import './app.css';
 
 function App() {
   return (
-    <Container fluid>
-      <Row>
-      </Row>
-      <Row>
-        <Col id="pageContent-wrapper">
-          <Topbar />
-        </Col> 
-      </Row>
-    </Container>
+    <div id="pageContent-wrapper">
+      <Topbar />
+    </div>
   );
 }
  

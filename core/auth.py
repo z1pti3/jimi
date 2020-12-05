@@ -380,26 +380,39 @@ if api.webServer:
         # Checks that username and password are a match
         @api.webServer.route(api.base+"auth/myAccount/", methods=["POST"])
         def api_updateMyAccount():
-            user = _user().getAsClass(id=api.g.sessionData["_id"])
-            if len(user) == 1:
-                user = user[0]
-                data = json.loads(api.request.data)
-                user.setAttribute("passwordHash",data["data"]["passwordHash"],sessionData=api.g.sessionData)
-                user.setAttribute("name",data["data"]["name"],sessionData=api.g.sessionData)
-                user.update(["name","passwordHash","apiTokens"])
+            if authSettings["enabled"]:
+                user = _user().getAsClass(id=api.g.sessionData["_id"])
+                if len(user) == 1:
+                    user = user[0]
+                    data = json.loads(api.request.data)
+                    if "password" in data:
+                        if getENCFromPassword(data["password"]) == user.passwordHash:
+                            user.setAttribute("passwordHash",data["password1"],sessionData=api.g.sessionData)
+                        else:
+                            return { "msg" : "Current password does not match" }, 400
+                    user.setAttribute("name",data["name"],sessionData=api.g.sessionData)
+                    user.update(["name","passwordHash","apiTokens"])
+                    return {}, 200
+            else:
                 return {}, 200
             return {}, 403
 
         # Called by API systems to request an x-api-token string from x-api-key provided
         @api.webServer.route(api.base+"auth/myAccount/", methods=["GET"])
         def api_getMyAccount():
-            user = _user().getAsClass(id=api.g.sessionData["_id"])
-            if len(user) == 1:
-                user = user[0]
+            if authSettings["enabled"]:
+                user = _user().getAsClass(id=api.g.sessionData["_id"])
+                if len(user) == 1:
+                    user = user[0]
+                    userProps = {}
+                    userProps["name"] = user.getAttribute("name",sessionData=api.g.sessionData)
+                    userProps["passwordHash"] = user.getAttribute("passwordHash",sessionData=api.g.sessionData)
+                    return { "results" : [ userProps ] }, 200
+            else:
                 userProps = {}
-                userProps["name"] = user.getAttribute("name",sessionData=api.g.sessionData)
-                userProps["passwordHash"] = user.getAttribute("passwordHash",sessionData=api.g.sessionData)
-                return { "results" : [ userProps ] }, 200
+                userProps["username"] = "username"
+                userProps["name"] = "name"
+                return userProps, 200
             return { }, 404
 
         @api.webServer.route(api.base+"auth/regenerateOTP/", methods=["GET"])

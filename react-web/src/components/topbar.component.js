@@ -6,7 +6,9 @@ import { isActiveSession } from './../utils/common';
 import PublicRoute from './../utils/publicRoute';
 import PrivateRoute from './../utils/privateRoute';
 import {Login, Logout} from './login.component';
+
 import Status from '../pages/status.page';
+import MyAccount from '../pages/myAccount.page'; 
 
 import './topbar.component.css'
 
@@ -34,6 +36,7 @@ function Topbar(props) {
                 <PrivateRoute path="/plugins" component={Status} />
                 <PrivateRoute path="/codify" component={Status} />
                 <PrivateRoute path="/modelEditor" component={Status} />
+                <PrivateRoute path="/myAccount" component={MyAccount} />
                 <PrivateRoute path="/administration" component={Status} />
                 <PrivateRoute path="/" component={Status} />
             </Switch>

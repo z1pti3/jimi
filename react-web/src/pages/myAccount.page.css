@@ -1,0 +1,19 @@
+.alert {
+    text-align: center;
+    vertical-align: middle;
+    color: var(--alertColor);
+    opacity: 1;
+    display:inline;
+}
+
+.alertError {
+    color: var(--errorColor);
+}
+
+.saved, .saved:focus, .saved:hover {
+    background-color: var(--alertColor);
+}
+
+.error, .error:focus, .error:hover {
+    background-color: var(--errorColor);
+}

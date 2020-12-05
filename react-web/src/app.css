@@ -11,6 +11,10 @@ body, html, .App, #root, .outer {
   height: 100%;
 }
 
+hr {
+  background-color: var(--textColor);
+}
+
 .container, .col, .col-2 {
   padding-left: 0;
   padding-right: 0;
@@ -26,6 +30,22 @@ body, html, .App, #root, .outer {
   color: var(--textColor);
   min-width: 0;
   width: 100%;
-  padding-top: 40px;
-  padding-left: 0;
+  height: 100%;
+  padding-top: 60px;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-bottom: 20px;
+}
+
+.pageContent1 {
+  width: 500px;
+  height: 100%;
+  border-width: 1px;
+  border-radius: 15px;
+  margin: auto;
+}
+
+.hide {
+  visibility: hidden;
+  opacity: 0; 
 }
