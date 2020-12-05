@@ -1,13 +1,30 @@
 import React, { Component } from "react";
+import { useHistory } from 'react-router-dom';
 
 import configData from "./../config/config.json";
 
-import { setUserSession } from './../utils/common';
+import { setUserSession, removeUserSession } from './../utils/common';
 
 import "./html.component.css"
 import "./login.component.css"
 
-export default class Login extends Component {
+export function Logout(props) {   
+    removeUserSession();
+    const history = useHistory()
+    setTimeout(() => { history.push('/login'); }, 2500);
+    return (
+        <div className="fullscreen">
+            <h1>jimi</h1>
+            <div className="outer">
+                <div className="inner">
+                    <h3>Successfully logged out</h3>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export class Login extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -35,7 +52,8 @@ export default class Login extends Component {
                 if (response.ok) return response;
                 throw response;
             }).then(response => {
-                this.props.history.push('/index'); 
+                setUserSession("1", "test");
+                this.props.history.push('/'); 
             }).catch(error => { 
                 this.setState({ otpRequired: true });
             });

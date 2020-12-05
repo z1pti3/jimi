@@ -10,15 +10,10 @@ function App() {
   return (
     <Container fluid>
       <Row>
-        <Col>
-        <Topbar />
-        </Col>
       </Row>
       <Row>
-
         <Col id="pageContent-wrapper">
-          <Tab />
-          this is a test
+          <Topbar />
         </Col> 
       </Row>
     </Container>

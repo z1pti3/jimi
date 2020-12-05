@@ -23,6 +23,7 @@ body, html, .App, #root, .outer {
 
 #pageContent-wrapper {
   background-color: var(--mainBackgroundColor);
+  color: var(--textColor);
   min-width: 0;
   width: 100%;
   padding-top: 40px;

@@ -16,26 +16,17 @@
     display: flex;
 }
 
-.link {
-    padding-left: 10px;
-    padding-right: 10px;
-    text-align: center;
-    vertical-align: bottom;
-    display: flex;
-    height: 100%;
-    flex-direction: column;
-    justify-content: flex-end;
+#topbar-right {
+    margin-right: 10px;
+    float: right;
+    text-align: right;
 }
 
-.link:hover {
-    background-color: tomato;
+.linkRight {
+    float: right;
 }
 
-.link:focus, .active {
-    color: gray;
-}
-
-h4 {
+.home {
     padding-left: 10px;
     padding-right: 30px;
     vertical-align: middle;
@@ -47,4 +38,38 @@ h4 {
     line-height: unset;
     font-weight: 600;
     font-size: 35px;
+    color: var(--textColor);
+}
+
+.home:hover {
+    color: var(--textColor);
+    text-decoration: none;
+}
+
+.home:active, .homeActive {
+    color: var(--textColor);
+    text-decoration: none;
+    background-color: unset;
+}
+
+.link {
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: center;
+    vertical-align: bottom;
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    justify-content: flex-end;
+    color: var(--textColor);
+}
+
+.link:hover {
+    background-color: var(--hoverColor);
+    color: var(--textColor);
+    text-decoration: none;
+}
+
+.link:focus, .active {
+    background-color: var(--hoverColor);
 }
