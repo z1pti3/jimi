@@ -126,7 +126,7 @@ export default class MyAccount extends Component {
 
                     <br/>
                     <button type="submit" className={`btn btn-primary btn-block button small ${!this.state.updated ? "" : "saved"} ${!this.state.updateFailed ? "" : "error"}`}>Update</button>
-                    <p className={`alert ${!this.state.updateFailed ? "" : "alertError"} ${!this.state.updated && !this.state.updateFailed ? "hide" : ""}`}><b>{this.state.msg}</b></p>
+                    <p className={`resultMessage ${!this.state.updateFailed ? "alert" : "alertError"} ${!this.state.updated && !this.state.updateFailed ? "hide" : ""}`}><b>{this.state.msg}</b></p>
                 </form>
             </div>
         );

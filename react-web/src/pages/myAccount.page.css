@@ -1,9 +1,14 @@
-.alert {
+.resultMessage {
     text-align: center;
     vertical-align: middle;
-    color: var(--alertColor);
     opacity: 1;
     display:inline;
+    transition: all 0.1s step-end;
+    padding-left: 15px;
+}
+
+.alert {
+    color: var(--alertColor);
 }
 
 .alertError {

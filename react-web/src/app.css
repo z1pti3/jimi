@@ -39,8 +39,11 @@ hr {
 }
 
 .pageContent1 {
-  width: 500px;
-  padding: 10px;
+  width: 600px;
+  padding-top: 10px;
+  padding-left: 50px;
+  padding-right: 50px;
+  padding-bottom: 10px;
   min-height: 100%;
   margin: auto;
   background-color: var(--mainBackgroundColor);
