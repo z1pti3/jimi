@@ -1,3 +1,5 @@
+import { Cookies } from 'react-cookie';
+
 // return if the session is active
 export const isActiveSession = () => {
   return sessionStorage.getItem('active') || true;
@@ -10,7 +12,8 @@ export const getSessionCSRF = () => {
   
 // remove the session storage
 export const removeSession = () => {
-  //cookies.remove("jimiAuth");
+  const cookies = new Cookies();
+  cookies.remove("jimiAuth");
   sessionStorage.setItem('active', false);
   sessionStorage.removeItem('CSRF');
 }

@@ -379,10 +379,8 @@ if api.webServer:
 
         @api.webServer.route(api.base+"auth/logout/", methods=["GET"])
         def api_logout():
-            response = api.make_response()
-            response.set_cookie("jimiAuth", value="")
             audit._audit().add("auth","logout",{ "action" : "success", "_id" : api.g.sessionData["_id"] })
-            return response, 200
+            return {}, 200
 
         # Checks that username and password are a match
         @api.webServer.route(api.base+"auth/myAccount/", methods=["POST"])

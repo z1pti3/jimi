@@ -43,7 +43,7 @@ hr {
   padding: 10px;
   min-height: 100%;
   margin: auto;
-  background-color: var(--panelBackgroundColor);
+  background-color: var(--mainBackgroundColor);
 }
 
 .hide {

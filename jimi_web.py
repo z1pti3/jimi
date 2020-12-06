@@ -76,9 +76,9 @@ def loadPluginPages():
 # def loadConducts():
 # 	return { "result" : conduct._conduct().query(api.g.sessionData,query={ "name" : { "$exists" : True } },sort=[( "name", 1 )])["results"] }, 200
 
-# @api.webServer.route("/login")
-# def loginPage():
-# 	return render_template("index.html")
+@api.webServer.route("/login")
+def loginPage():
+	return render_template("index.html")
 
 @api.webServer.route("/conduct/PropertyTypes/", methods=["GET"])
 def getConductPropertyTypes():
