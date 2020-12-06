@@ -304,7 +304,7 @@ if api.webServer:
                         #    return {}, 403
                         api.g.type = "x-api-token"
                     else: 
-                        return {}, 403
+                        return api.redirect("/login?return={0}".format(api.request.full_path), code=302)
                     # Data that is returned to the Flask request handler function
                     api.g.sessionData = validSession["sessionData"]
                     api.g.sessionToken = validSession["sessionToken"]
@@ -335,28 +335,30 @@ if api.webServer:
         # Checks that username and password are a match
         @api.webServer.route(api.base+"auth/", methods=["POST"])
         def api_validateUser():
-            response = api.make_response()
-            data = json.loads(api.request.data)
-            #check if OTP has been passed
-            #if invalid user or user requires OTP, return 200 but request OTP
-            if "otp" not in data:
-                user = _user().getAsClass(query={ "username" : data["username"] })
-                if len(user) == 1:
-                    user = user[0]
-                    if user.totpSecret != "":
-                        return response, 403
+            if authSettings["enabled"]:
+                data = json.loads(api.request.data)
+                #check if OTP has been passed
+                #if invalid user or user requires OTP, return 200 but request OTP
+                if "otp" not in data:
+                    user = _user().getAsClass(query={ "username" : data["username"] })
+                    if len(user) == 1:
+                        user = user[0]
+                        if user.totpSecret != "":
+                            return {}, 403
+                        else:
+                            userSession = validateUser(data["username"],data["password"])
                     else:
-                        userSession = validateUser(data["username"],data["password"])
+                        return {}, 403
                 else:
-                    return response, 403
+                    userSession = validateUser(data["username"],data["password"],data["otp"])
+                if userSession:
+                    sessionData = validateSession(userSession)["sessionData"]
+                    response = api.make_response({ "CSRF" : sessionData["CSRF"] },200)
+                    response.set_cookie("jimiAuth", value=userSession, max_age=600) # Need to add secure=True before production
+                    return response, 200
             else:
-                userSession = validateUser(data["username"],data["password"],data["otp"])
-            if userSession:
-                sessionData = validateSession(userSession)["sessionData"]
-                response.set_cookie("jimiAuth", value=userSession, max_age=600) # Need to add secure=True before production
-                response.response = { "CSRF" : sessionData["CSRF"] }
-                return response, 200
-            return response, 403
+                return { "CSRF" : "" }, 200
+            return {}, 403
 
         # Called by API systems to request an x-api-token string from x-api-key provided
         @api.webServer.route(api.base+"auth/", methods=["GET"])
@@ -370,14 +372,17 @@ if api.webServer:
 
         @api.webServer.route(api.base+"auth/poll/", methods=["GET"])
         def api_sessionPolling():
-            return { "CSRF" : api.g.sessionData["CSRF"] }, 200
+            result = { "CSRF" : "" }
+            if authSettings["enabled"]:
+                result = { "CSRF" : api.g.sessionData["CSRF"] }
+            return result, 200
 
         @api.webServer.route(api.base+"auth/logout/", methods=["GET"])
         def api_logout():
             response = api.make_response()
             response.set_cookie("jimiAuth", value="")
             audit._audit().add("auth","logout",{ "action" : "success", "_id" : api.g.sessionData["_id"] })
-            return response, 403
+            return response, 200
 
         # Checks that username and password are a match
         @api.webServer.route(api.base+"auth/myAccount/", methods=["POST"])
@@ -407,9 +412,9 @@ if api.webServer:
                 if len(user) == 1:
                     user = user[0]
                     userProps = {}
+                    userProps["username"] = user.getAttribute("username",sessionData=api.g.sessionData)
                     userProps["name"] = user.getAttribute("name",sessionData=api.g.sessionData)
-                    userProps["passwordHash"] = user.getAttribute("passwordHash",sessionData=api.g.sessionData)
-                    return { "results" : [ userProps ] }, 200
+                    return userProps, 200
             else:
                 userProps = {}
                 userProps["username"] = "username"

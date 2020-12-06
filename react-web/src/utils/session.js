@@ -1,6 +1,6 @@
 // return if the session is active
 export const isActiveSession = () => {
-  return sessionStorage.getItem('active') || false;
+  return sessionStorage.getItem('active') || true;
 }
 
 // return session CSRF
@@ -10,7 +10,8 @@ export const getSessionCSRF = () => {
   
 // remove the session storage
 export const removeSession = () => {
-  sessionStorage.removeItem('active');
+  //cookies.remove("jimiAuth");
+  sessionStorage.setItem('active', false);
   sessionStorage.removeItem('CSRF');
 }
   

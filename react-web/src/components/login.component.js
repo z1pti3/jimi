@@ -9,28 +9,32 @@ import "./html.component.css"
 import "./login.component.css"
 
 export function PollAuth(props) {
+    const history = useHistory();
     const requestOptions = {
         method: 'GET',
         credentials: 'include',
         mode: configData.cosMode
     };
-    var result = false;
     fetch(configData.url+configData.uri+'auth/poll/', requestOptions).then(response => {
         if (response.ok) {
-            setSession(response.json()["CSRF"]);
-            result = true;
-            return;
+            return response.json();
         }
         throw response;
+    }).then(response => {
+        setSession(response["CSRF"]);
     }).catch(error => {
         removeSession();
-        result = false;
-        return;
+        history.push('/login');
     });
-    return result;
 }
 
 export function Logout(props) {   
+    const requestOptions = {
+        method: 'GET',
+        mode: configData.cosMode,
+        credentials: 'include'
+    };
+    fetch(configData.url+configData.uri+'auth/logout/', requestOptions);
     removeSession();
     const history = useHistory()
     setTimeout(() => { history.push('/login'); }, 2500);
@@ -71,10 +75,13 @@ export class Login extends Component {
                 body: JSON.stringify({ username: this.state.username, password: this.state.password })
             };
             fetch(configData.url+configData.uri+'auth/', requestOptions).then(response => {
-                if (response.ok) return response;
+                if (response.ok) {
+                    console.log(response);
+                    return response.json();
+                }
                 throw response;
             }).then(response => {
-                setSession(response.json()["CSRF"]);
+                setSession(response["CSRF"]);
                 this.props.history.push('/'); 
             }).catch(error => { 
                 this.setState({ otpRequired: true });

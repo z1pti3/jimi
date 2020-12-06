@@ -1,5 +1,7 @@
 import React, { Component } from "react";
 
+import { getSessionCSRF } from './../utils/session';
+
 import configData from "./../config/config.json";
 
 import "./../components/html.component.css"
@@ -43,7 +45,7 @@ export default class MyAccount extends Component {
             setTimeout(() => { this.setState({ updateFailed: false }) }, 1000);
             return
         }
-        var data = { name: this.state.name }
+        var data = { CSRF: getSessionCSRF(), name: this.state.name }
         if (this.state.password1 !== null && this.state.password1 !== "")
         {
             data["password"] = this.state.password
