@@ -7,7 +7,7 @@ function PublicRoute({ component: Component, ...rest }) {
   return (
     <Route
       {...rest}
-      render={(props) => !PollAuth() ? <Component {...props} /> : <Redirect to={{ pathname: '/dashboard' }} />}
+      render={(props) => !PollAuth() ? <Component {...props} /> : <Redirect to={{ pathname: '/' }} />}
     />
   )
 }

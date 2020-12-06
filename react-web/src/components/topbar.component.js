@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter, Switch, Route, NavLink } from 'react-router-dom';
 
-import { isActiveSession } from './../utils/common';
+import { isActiveSession } from './../utils/session';
 
 import PublicRoute from './../utils/publicRoute';
 import PrivateRoute from './../utils/privateRoute';

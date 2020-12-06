@@ -352,7 +352,9 @@ if api.webServer:
             else:
                 userSession = validateUser(data["username"],data["password"],data["otp"])
             if userSession:
+                sessionData = validateSession(userSession)["sessionData"]
                 response.set_cookie("jimiAuth", value=userSession, max_age=600) # Need to add secure=True before production
+                response.response = { "CSRF" : sessionData["CSRF"] }
                 return response, 200
             return response, 403
 
@@ -368,7 +370,7 @@ if api.webServer:
 
         @api.webServer.route(api.base+"auth/poll/", methods=["GET"])
         def api_sessionPolling():
-            return { "data" : True }, 200     
+            return { "CSRF" : api.g.sessionData["CSRF"] }, 200
 
         @api.webServer.route(api.base+"auth/logout/", methods=["GET"])
         def api_logout():

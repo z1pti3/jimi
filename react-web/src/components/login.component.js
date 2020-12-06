@@ -3,7 +3,7 @@ import { useHistory } from 'react-router-dom';
 
 import configData from "./../config/config.json";
 
-import { setSession, removeSession } from './../utils/common';
+import { setSession, removeSession } from './../utils/session';
 
 import "./html.component.css"
 import "./login.component.css"
@@ -14,13 +14,20 @@ export function PollAuth(props) {
         credentials: 'include',
         mode: configData.cosMode
     };
-    return fetch(configData.url+configData.uri+'auth/poll/', requestOptions).then(response => {
+    var result = false;
+    fetch(configData.url+configData.uri+'auth/poll/', requestOptions).then(response => {
         if (response.ok) {
-            return true
-        } else {
-            return false;
+            setSession(response.json()["CSRF"]);
+            result = true;
+            return;
         }
+        throw response;
+    }).catch(error => {
+        removeSession();
+        result = false;
+        return;
     });
+    return result;
 }
 
 export function Logout(props) {   
@@ -67,7 +74,7 @@ export class Login extends Component {
                 if (response.ok) return response;
                 throw response;
             }).then(response => {
-                setSession();
+                setSession(response.json()["CSRF"]);
                 this.props.history.push('/'); 
             }).catch(error => { 
                 this.setState({ otpRequired: true });
