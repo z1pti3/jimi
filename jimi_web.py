@@ -72,9 +72,9 @@ def loadPluginPages():
 			userPlugins.append(userModel.name)
 	return { "result"  :userPlugins }, 200
 
-# @api.webServer.route("/conducts/")
-# def loadConducts():
-# 	return { "result" : conduct._conduct().query(api.g.sessionData,query={ "name" : { "$exists" : True } },sort=[( "name", 1 )])["results"] }, 200
+@api.webServer.route(api.base+"conducts/")
+def loadConducts():
+	return { "results" : conduct._conduct().query(api.g.sessionData,query={ "name" : { "$exists" : True } },sort=[( "name", 1 )])["results"] }, 200
 
 @api.webServer.route("/login")
 def loginPage():

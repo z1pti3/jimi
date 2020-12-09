@@ -9,6 +9,7 @@ import {Login, Logout} from './login.component';
 
 import Status from '../pages/status.page';
 import MyAccount from '../pages/myAccount.page'; 
+import Conducts from '../pages/conducts.page'; 
 
 import './topbar.component.css'
 
@@ -32,7 +33,7 @@ function Topbar(props) {
                 <PublicRoute path="/login" component={Login} />
                 <PrivateRoute path="/logout" component={Logout} />
                 <PrivateRoute path="/status" component={Status} />
-                <PrivateRoute path="/conducts" component={Status} />
+                <PrivateRoute path="/conducts" component={Conducts} />
                 <PrivateRoute path="/plugins" component={Status} />
                 <PrivateRoute path="/codify" component={Status} />
                 <PrivateRoute path="/modelEditor" component={Status} />
