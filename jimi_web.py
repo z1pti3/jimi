@@ -63,14 +63,14 @@ def indexPage():
 #	from system import install
 #	return render_template("main.html", version=install.installedVersion(), admin=api.g.sessionData["admin"])
 
-@api.webServer.route("/plugins/")
+@api.webServer.route(api.base+"plugins/")
 def loadPluginPages():
 	userPlugins = []
 	userModels = plugin._plugin().getAsClass(sessionData=api.g.sessionData,query={ "name" : { "$in" : pluginPages } })
 	for userModel in userModels:
 		if userModel.name in pluginPages:
-			userPlugins.append(userModel.name)
-	return { "result"  :userPlugins }, 200
+			userPlugins.append({ "id" : userModel._id, "name" : userModel.name})
+	return { "results"  : userPlugins }, 200
 
 @api.webServer.route(api.base+"conducts/")
 def loadConducts():
