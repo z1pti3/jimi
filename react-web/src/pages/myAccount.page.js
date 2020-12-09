@@ -13,9 +13,9 @@ export default class MyAccount extends Component {
         this.state = {
             username: null,
             name: null,
-            password: null,
-            password1: null,
-            password2: null,
+            password: "",
+            password1: "",
+            password2: "",
             updated: false,
             updateFailed: false,
             msg: ""
@@ -46,7 +46,7 @@ export default class MyAccount extends Component {
             return
         }
         var data = { CSRF: getSessionCSRF(), name: this.state.name }
-        if (this.state.password1 !== null && this.state.password1 !== "")
+        if (this.state.password1 !== "")
         {
             data["password"] = this.state.password
             data["password1"] = this.state.password1
@@ -67,11 +67,11 @@ export default class MyAccount extends Component {
         }).catch(error => { 
             this.setState({ msg: "Error: Could not save data" })
             this.setState({ updateFailed: true });
-            setTimeout(() => { this.setState({ updateFailed: false }) }, 1000);
         });
     }
 
     change(event) {
+        this.setState({ updateFailed: false, msg: "" });
         const target = event.target;
         var value = target.value;
         const name = target.name;
@@ -113,15 +113,15 @@ export default class MyAccount extends Component {
                     </div>
                     <div className="form-group">
                         Current Password:
-                        <input type="password" name="password" className="form-control textbox" autoComplete="off" value="****" onChange={this.change} />
+                        <input type="password" name="password" className="form-control textbox" autoComplete="off" onChange={this.change} />
                     </div>
                     <div className="form-group">
                         New Password:
-                        <input type="password" name="password1" className="form-control textbox" autoComplete="off" onChange={this.change} />
+                        <input type="password" name="password1" className={`form-control textbox ${this.state.msg == "Passwords do not match" ? "alertErrorBorder" : ""}`} autoComplete="off" onChange={this.change} />
                     </div>
                     <div className="form-group">
                         Confirm New Password:
-                        <input type="password" name="password2" className="form-control textbox" autoComplete="off" onChange={this.change} />
+                        <input type="password" name="password2" className={`form-control textbox ${this.state.msg == "Passwords do not match" ? "alertErrorBorder" : ""}`} autoComplete="off" onChange={this.change} />
                     </div>
 
                     <br/>

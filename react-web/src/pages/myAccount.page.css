@@ -15,6 +15,10 @@
     color: var(--errorColor);
 }
 
+.alertErrorBorder {
+    border-color: var(--errorColor);
+}
+
 .saved, .saved:focus, .saved:hover {
     background-color: var(--alertColor);
 }
