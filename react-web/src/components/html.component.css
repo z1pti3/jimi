@@ -4,7 +4,7 @@
     border-style: solid;
     border-width: 1px;
     border-color: var(--panelComponentBorder);
-    display:inline
+    display:inline;
 }
 
 .textbox:disabled {
@@ -45,3 +45,8 @@
 .small {
     width: 100px;
 }
+
+.medium {
+    width: 350px;
+}
+
