@@ -48,9 +48,34 @@
     cursor: pointer;
 }
 
+.conductEditLink {
+    padding-top: 10px;
+    padding-bottom: 15px;
+    line-height: unset;
+    font-weight: 300;
+    font-size: 12px;
+    color: var(--textColor);
+    padding-left: auto;
+    float: right;
+}
+
+.conductEditLink:hover {
+    color: var(--alertColor);
+    cursor: pointer;
+}
+
 .conductLastEdit {
     padding-top: 5px;
     margin-bottom: unset;
+    line-height: unset;
+    font-weight: 300;
+    font-size: 12px;
+    color: var(--textColor);
+}
+
+.conductState {
+    margin-top: 5px;
+    margin-left: 10px;
     line-height: unset;
     font-weight: 300;
     font-size: 12px;
@@ -61,6 +86,18 @@
     width: 300px;
     margin-right: 55px;
     margin-left: 10px;
+}
+
+.conductRightOptions {
+    padding-top: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
+    line-height: unset;
+    font-weight: 300;
+    font-size: 12px;
+    color: var(--textColor);
+    padding-left: auto;
+    float: right;
 }
 
 .conductNew {

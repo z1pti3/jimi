@@ -7,7 +7,7 @@ import "./conductList.component.css"
 function ConductList(props) {
     return (
         <div>
-            {props.conducts.filter(conduct => conduct.name.toLowerCase().includes(props.filter.toLowerCase())).map(c => <ConductItem key={c._id} id={c._id} name={c.name} lastUpdateTime={c.lastUpdateTime} deleteConductClickHandler={props.deleteConductClickHandler} />)}
+            {props.conducts.filter(conduct => conduct.name.toLowerCase().includes(props.filter.toLowerCase())).map(c => <ConductItem key={c._id} id={c._id} name={c.name} lastUpdateTime={c.lastUpdateTime} state={c.enabled ? "Enabled" : "Disabled"} deleteConductClickHandler={props.deleteConductClickHandler} />)}
         </div>
     )
 }

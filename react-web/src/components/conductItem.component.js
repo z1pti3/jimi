@@ -20,7 +20,16 @@ function ConductItem(props) {
                     <a className="conductDeleteLink" onClick={(e) => props.deleteConductClickHandler(e,props.id,props.name)}>
                         Delete
                     </a>
+                    <p className="conductRightOptions">
+                        /
+                    </p>
+                    <a className="conductEditLink" href={"/conduct/?conductID=" + props.id + "&edit=True"}>
+                        Edit
+                    </a>
                 </div>
+                <p className="conductState">
+                    State: {props.state}
+                </p>
             </div>       
         </div>
     )
