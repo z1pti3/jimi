@@ -118,8 +118,11 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
             tempDataCopy["eventStats"] = eventStat
 
             try:
-                jid = workers.workers.new("testFire:{0}".format(tempConduct._id),tempConduct.triggerHandler,(flow["flowID"],tempDataCopy,False,True),maxDuration=maxDuration)
+                jid = workers.workers.new("testFire:{0}".format(tempConduct._id),tempConduct.triggerHandler,(flow["flowID"],tempDataCopy,False,True),maxDuration=maxDuration, raiseException=False)
                 workers.workers.wait(jid)
+                resultException = workers.workers.getError(jid)
+                if resultException:
+                    output = "\n\n***ERROR Start***\n{0}***ERROR End***\n\n".format(''.join(traceback.format_exception(etype=type(resultException), value=resultException, tb=resultException.__traceback__)))
             except Exception as e:
                 output = "\n\n***ERROR Start***\n{0}***ERROR End***\n\n".format(''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
 

@@ -7,3 +7,6 @@ def sum(*args):
 
 def length(var):
     return len(var)
+
+def roundNum(var):
+    return round(var)
