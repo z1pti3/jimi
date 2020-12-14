@@ -18,9 +18,6 @@ class _sleep(action._action):
 
 	def run(self,data,persistentData,actionResult):
 		time.sleep(self.sleepFor)
-		if "action" in data:
-			actionResult = data["action"]
-		else:
-			actionResult["result"] = True
-			actionResult["rc"] = 0
+		actionResult["result"] = True
+		actionResult["rc"] = 0
 		return actionResult
