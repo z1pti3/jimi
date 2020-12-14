@@ -372,4 +372,3 @@ docker-compose.yml
 .dockerignore
 jimi.code-workspace
 *.code-workspace
-react-web
