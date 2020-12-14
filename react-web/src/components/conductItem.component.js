@@ -23,7 +23,7 @@ function ConductItem(props) {
                     <p className="conductRightOptions">
                         /
                     </p>
-                    <a className="conductEditLink" href={"/conduct/?conductID=" + props.id + "&edit=True"}>
+                    <a className="conductEditLink" href={"/conductSettings/?conductID=" + props.id + "&edit=True"}>
                         Edit
                     </a>
                 </div>

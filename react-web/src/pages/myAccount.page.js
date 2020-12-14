@@ -18,7 +18,8 @@ export default class MyAccount extends Component {
             password2: "",
             updated: false,
             updateFailed: false,
-            msg: ""
+            msg: "",
+            loading: true
         }
         this.change = this.change.bind(this);
         this.submit = this.submit.bind(this);
@@ -33,7 +34,7 @@ export default class MyAccount extends Component {
                 return response.json()
             }
         }).then(json => {
-            this.setState({ "username" : json["username"], "name" : json["name"] })
+            this.setState({ "username" : json["username"], "name" : json["name"], "loading" : false })
         });
     }
 
@@ -87,7 +88,7 @@ export default class MyAccount extends Component {
     }
 
     render() {
-        return (
+        return !this.state.loading ? (
             <div className="pageContent1">
                 <form onSubmit={this.submit}>
                     <h3>Your Details</h3>
@@ -129,6 +130,6 @@ export default class MyAccount extends Component {
                     <p className={`resultMessage ${!this.state.updateFailed ? "alert" : "alertError"} ${!this.state.updated && !this.state.updateFailed ? "hide" : ""}`}><b>{this.state.msg}</b></p>
                 </form>
             </div>
-        );
+        ) : <span>Loading page...</span>
     }
 }

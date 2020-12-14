@@ -27,6 +27,11 @@ export default class Conducts extends Component {
 
         this.change = this.change.bind(this);
         this.DeleteConduct = this.DeleteConduct.bind(this);
+        this.NewConduct = this.NewConduct.bind(this);
+    }
+
+    NewConduct() {
+        this.props.history.push('/conductSettings/');
     }
 
     DeleteConduct(e,id,name) {
@@ -67,7 +72,7 @@ export default class Conducts extends Component {
             <div className="pageContent1">
                 <div>
                     <input type="text" name="filter" className="form-control textbox conductSearch" placeholder="Search conducts" onChange={this.change} />
-                    <button type="submit" className="btn btn-primary btn-block button conductNew">+ Create New</button>
+                    <button className="btn btn-primary btn-block button conductNew" onClick={this.NewConduct}>+ Create New</button>
                 </div>
                 <br/>
                 <div>
