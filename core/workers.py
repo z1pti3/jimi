@@ -29,7 +29,7 @@ class _threading(threading.Thread):
 
 class workerHandler:
     class _worker:
-        def __init__(self, name, call, args, delete, maxDuration, multiprocessing):
+        def __init__(self, name, call, args, delete, maxDuration, multiprocessing, raiseException):
             self.name = name
             self.call = call
             self.id = str(uuid.uuid4())
@@ -38,6 +38,8 @@ class workerHandler:
             self.endTime = 0
             self.duration = 0
             self.result = None
+            self.resultException = None
+            self.raiseException = raiseException
             self.running = None
             self.crash = False
             self.args = args
@@ -76,16 +78,22 @@ class workerHandler:
 
                 # Ensure cache is updated with any new items
                 #cache.globalCache.sync(globalCacheObjects)
-            except SystemExit:
-                self.crash = True
-                if logging.debugEnabled:
-                    logging.debug("Threaded process worker killed, workerID={0}".format(self.id))
-                systemTrigger.failedTrigger(self.id,"triggerKilled")
+            except SystemExit as e:
+                if self.raiseException:
+                    self.crash = True
+                    if logging.debugEnabled:
+                        logging.debug("Threaded process worker killed, workerID={0}".format(self.id))
+                    systemTrigger.failedTrigger(self.id,"triggerKilled")
+                else:
+                    self.resultException = e
             except Exception as e:
-                self.crash = True
-                if logging.debugEnabled:
-                    logging.debug("Threaded worker crashed, workerID={0}".format(self.id))
-                systemTrigger.failedTrigger(self.id,"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
+                if self.raiseException:
+                    self.crash = True
+                    if logging.debugEnabled:
+                        logging.debug("Threaded worker crashed, workerID={0}".format(self.id))
+                    systemTrigger.failedTrigger(self.id,"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
+                else:
+                    self.resultException = e
             finally:
                 if p.exitcode == None:
                     p.terminate()
@@ -108,16 +116,23 @@ class workerHandler:
                     self.result = self.call(*self.args)
                 else:
                     self.result = self.call()
-            except SystemExit:
-                self.crash = True
-                if logging.debugEnabled:
-                    logging.debug("Threaded worker killed, workerID={0}".format(self.id))
-                systemTrigger.failedTrigger(self.id,"triggerKilled")
+            except SystemExit as e:
+                if self.raiseException:
+                    self.crash = True
+                    if logging.debugEnabled:
+                        logging.debug("Threaded worker killed, workerID={0}".format(self.id))
+                    systemTrigger.failedTrigger(self.id,"triggerKilled")
+                    systemTrigger.failedTrigger(self.id,"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
+                else:
+                    self.resultException = e
             except Exception as e:
-                self.crash = True
-                if logging.debugEnabled:
-                    logging.debug("Threaded worker crashed, workerID={0}".format(self.id))
-                systemTrigger.failedTrigger(self.id,"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
+                if self.raiseException:
+                    self.crash = True
+                    if logging.debugEnabled:
+                        logging.debug("Threaded worker crashed, workerID={0}".format(self.id))
+                    systemTrigger.failedTrigger(self.id,"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
+                else:
+                    self.resultException = e
             if logging.debugEnabled:
                 logging.debug("Threaded worker completed, workerID={0}".format(self.id))
             self.running = False
@@ -131,7 +146,7 @@ class workerHandler:
         self.cleanUp = cleanUp
         
         # Autostarting worker handler thread
-        workerThread = self._worker("workerThread",self.handler,None,True,0,False)
+        workerThread = self._worker("workerThread",self.handler,None,True,0,False,True)
         workerThread.start()
         self.workerList.append(workerThread)
         self.workerID = workerThread.id
@@ -173,7 +188,9 @@ class workerHandler:
                     if worker.running != False:
                         worker.thread.kill()
                     if self.cleanUp:
-                        del self.workerList[self.workerList.index(worker)]
+                        # Making sure that only completed workers i.e. endTime!=0 are clearned
+                        if worker.resultException == None and worker.endTime != 0 or (( worker.endTime + 60 < now ) and worker.endTime != 0):
+                            self.workerList.remove(worker)
                 tick = now
 
             # CPU saver
@@ -185,8 +202,8 @@ class workerHandler:
                 loops = 0
                 time.sleep(workerSettings["loopT"])
             
-    def new(self, name, call, args=None, delete=True, maxDuration=60, multiprocessing=False):
-        workerThread = self._worker(name, call, args, delete, maxDuration, multiprocessing)
+    def new(self, name, call, args=None, delete=True, maxDuration=60, multiprocessing=False, raiseException=True):
+        workerThread = self._worker(name, call, args, delete, maxDuration, multiprocessing, raiseException)
         self.workerList.append(workerThread)
         if logging.debugEnabled:
             logging.debug("Created new worker, workerID={0}".format(workerThread.id))
@@ -211,6 +228,15 @@ class workerHandler:
         workersRunning = [x for x in self.workerList if x.running == True]
         for worker in workersRunning:
             result.append(worker)
+        return result
+
+    def getError(self, id):
+        result = None
+        worker = [x for x in self.workerList if x.id == id]
+        if worker:
+            worker = worker[0]
+            result = worker.resultException
+            worker.resultException = None
         return result
     
     def delete(self, id):
