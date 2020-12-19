@@ -17,7 +17,7 @@ function StatusItem(props) {
 function StatusList(props) {
     return (
         <div>
-            {props.triggers.map(c => <StatusItem key={c._id} name={c.name} enabled={c.enabled} startCheck={c.startCheck} lastCheck={c.lastCheck} maxDuration={c.maxDuration} />)}
+            {props.triggers.map(c => <StatusItem key={c._id} name={c.name} enabled={c.enabled} startCheck={c.startCheck} lastCheck={c.lastCheck} maxDuration={c.maxDuration == 0 ? 60 : c.maxDuration} />)}
         </div>
     )
 }
