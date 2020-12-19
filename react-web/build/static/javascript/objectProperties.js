@@ -81,7 +81,8 @@ function savePropertiesPanel(flowID,panel) {
 		return;
 	}
 	// Posting
-	$.ajax({url:"/api/1.0/models/"+modelType+"/"+modelID+"/", type:"POST", data: JSON.stringify({ action : "update", data: jsonData, CSRF: CSRF }), contentType:"application/json", success: function ( result ) {
+	jsonData["CSRF"] = CSRF;
+	$.ajax({url:"/api/1.0/models/"+modelType+"/"+modelID+"/", type:"POST", data: JSON.stringify(jsonData), contentType:"application/json", success: function ( result ) {
 			// Telling UI it has had some changes made
 			if (newName) {
 				postData = { "action": "update" }

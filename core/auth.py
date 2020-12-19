@@ -312,6 +312,10 @@ if api.webServer:
                         api.g.renew = validSession["renew"]
                 else:
                     api.g.type = "bypass"
+            else:
+                api.g.sessionData = { "_id" : "0", "user" : "noAuth", "CSRF" : "" }
+                api.g.sessionToken = ""
+                api.g.type = "noAuth"
             
         # Ensures that all requests return an up to date sessionToken to prevent session timeout for valid sessions
         @api.webServer.after_request

@@ -43,7 +43,7 @@ export default class Status extends Component {
                 this.setState({ triggers : triggers });
                 this.updateTriggers();
             })
-        }, 1000 );
+        }, 2500 );
     }
 
     render() {
