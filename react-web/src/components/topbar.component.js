@@ -12,6 +12,7 @@ import MyAccount from '../pages/myAccount.page';
 import Conducts from '../pages/conducts.page'; 
 import ConductSettings from '../pages/conductSettings.page'; 
 import Plugins from '../pages/plugins.page'; 
+import Plugin from '../pages/plugin.page'; 
 
 
 import './topbar.component.css'
@@ -39,6 +40,7 @@ function Topbar(props) {
                 <PrivateRoute path="/conducts" component={Conducts} />
                 <PrivateRoute path="/conductSettings" component={ConductSettings} />
                 <PrivateRoute path="/plugins" component={Plugins} />
+                <PrivateRoute path="/plugin" component={Plugin} />
                 <PrivateRoute path="/codify" component={Status} />
                 <PrivateRoute path="/modelEditor" component={Status} />
                 <PrivateRoute path="/myAccount" component={MyAccount} />

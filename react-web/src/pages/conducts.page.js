@@ -4,6 +4,8 @@ import configData from "./../config/config.json";
 
 import ConductList from "./../components/conductList.component"
 
+import "./conducts.page.css"
+
 export default class Conducts extends Component {
     constructor(props) {
         super(props);

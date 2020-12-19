@@ -266,7 +266,7 @@ if api.webServer:
             api.g.type = ""
             #api.g = { "sessionData" : {}, "sessionToken": "", "type" : "" }
             if authSettings["enabled"]:
-                noAuthEndPoints = ["static","loginPage","api_validateUser","api_validateAPIKey"]
+                noAuthEndPoints = ["static","staticFile","loginPage","api_validateUser","api_validateAPIKey"]
                 if api.request.endpoint not in noAuthEndPoints:
                     validSession = None
                     if "jimiAuth" in api.request.cookies:
@@ -330,7 +330,7 @@ if api.webServer:
             response.headers['Access-Control-Allow-Credentials'] = "true"
             response.headers['Access-Control-Allow-Methods'] = "GET, POST, PUT, DELETE"
             # ClickJacking
-            response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+            #response.headers['X-Frame-Options'] = 'SAMEORIGIN'
             return response
 
         # Checks that username and password are a match

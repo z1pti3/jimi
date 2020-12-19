@@ -7,7 +7,7 @@ import "./pluginList.component.css"
 function PluginList(props) {
     return (
         <div>
-            {props.plugins.map(c => <PluginItem key={c.id} name={c.name} />)}
+            {props.plugins.filter( plugin => plugin.name.toLowerCase().includes(props.filter.toLowerCase())).map( c=> <PluginItem key={c._id} name={c.name} />) }
         </div>
     )
 }

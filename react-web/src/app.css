@@ -38,6 +38,11 @@ hr {
   overflow-y: auto;
 }
 
+.pageContent0 {
+  width: 100%;
+  height: 100%;
+}
+
 .pageContent1 {
   width: 600px;
   padding-top: 10px;

@@ -6,9 +6,12 @@ import "./pluginItem.component.css"
 
 function PluginItem(props) {
     return (
-        <div>
-            {props.name}
-            <hr/>
+        <div className="pluginItemContainer">
+            <a className="pluginLink" href={"plugin/?pluginName="+props.name}>
+                <div className="pluginItem">
+                    <span className="pluginTitle">{props.name}</span>
+                </div>
+            </a>
         </div>
     )
 }

@@ -4,11 +4,14 @@ import configData from "./../config/config.json";
 
 import PluginList from "./../components/pluginList.component"
 
+import "./plugins.page.css"
+
 export default class Plugins extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            plugins : []
+            plugins : [],
+            filter: ""
         }
 
         const requestOptions = {
@@ -23,12 +26,31 @@ export default class Plugins extends Component {
         }).then(json => {
             this.setState({ plugins : json["results"] });
         });
+
+        this.change = this.change.bind(this);
+    }
+
+    change(event) {
+        const target = event.target;
+        var value = target.value;
+        const name = target.name;
+        if (target.type === 'checkbox') {
+
+        } else {
+            this.setState({ [name]: value });
+        }   
     }
 
     render() {
         return (
             <div className="pageContent1">
-                <PluginList plugins={this.state.plugins} />
+                <div>
+                    <input type="text" name="filter" className="form-control textbox pluginSearch" placeholder="Search Plugins" onChange={this.change} />
+                </div>
+                <br/>
+                <div>
+                    <PluginList plugins={this.state.plugins} filter={this.state.filter} />
+                </div>
             </div>
         );
     }

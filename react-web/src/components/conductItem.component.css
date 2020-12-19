@@ -80,12 +80,6 @@
     color: var(--textColor);
 }
 
-.conductSearch {
-    width: 300px;
-    margin-right: 55px;
-    margin-left: 10px;
-}
-
 .conductRightOptions {
     padding-top: 25px;
     padding-left: 5px;
@@ -99,6 +93,4 @@
     margin-bottom: unset;
 }
 
-.conductNew {
-    width: 125px;
-}
+
