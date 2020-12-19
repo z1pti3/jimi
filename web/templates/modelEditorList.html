@@ -182,11 +182,11 @@
         $('.dataTables_filter input[type="search"]').addClass("theme-panelTextbox")
 
         $.ajax({url:"/api/1.0/models/"+modelName+"/"+id+"/", type:"GET", success: function ( result ) {
-                for ( resultItem in result["results"][0] ) {
-                    if (typeof result["results"][0][resultItem] == "object") {
-                        table.row.add({ "property" : resultItem, "value" : [ resultItem, JSON.stringify(result["results"][0][resultItem]) ], "initalValue" : JSON.stringify(result["results"][0][resultItem]) });
+                for ( resultItem in result ) {
+                    if (typeof result[resultItem] == "object") {
+                        table.row.add({ "property" : resultItem, "value" : [ resultItem, JSON.stringify(result[resultItem]) ], "initalValue" : JSON.stringify(result[resultItem]) });
                     } else {
-                        table.row.add({ "property" : resultItem, "value" : [ resultItem, result["results"][0][resultItem] ], "initalValue" : String(result["results"][0][resultItem]) });
+                        table.row.add({ "property" : resultItem, "value" : [ resultItem, result[resultItem] ], "initalValue" : String(result[resultItem]) });
                     }
                 }
                 table.draw();
@@ -206,7 +206,8 @@
                             jsonData[data["value"][0]] = $("#property_"+data["value"][0]).val()
                         }
                     } );
-                    $.ajax({url:"/api/1.0/models/"+modelName+"/"+id+"/", type:"POST", data: JSON.stringify({ action : "update", data: jsonData, CSRF: CSRF }), contentType:"application/json", success: function ( result ) {
+                    jsonData["CSRF"] = CSRF
+                    $.ajax({url:"/api/1.0/models/"+modelName+"/"+id+"/", type:"POST", data: JSON.stringify(jsonData), contentType:"application/json", success: function ( result ) {
                             alertNow("Object saved!");
                         }
                     });
