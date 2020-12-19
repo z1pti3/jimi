@@ -1,0 +1,65 @@
+<script src="{{ url_for('static', filename='includes/jquery/js/jquery-3.4.1.js') }}"></script>
+<script src="{{ url_for('static', filename='includes/jquery/js/jquery.datatables.min.js') }}"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/dataTables.bootstrap.css') }}">
+<script src="{{ url_for('static', filename='includes/datatables/js/dataTables.bootstrap.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/fixedHeader.dataTables.min.css') }}">
+<script src="{{ url_for('static', filename='includes/datatables/js/dataTables.fixedHeader.min.js') }}"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
+<script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
+
+<script src="{{ url_for('static', filename='includes/visjs/js/moment.js') }}"></script>
+<script src="{{ url_for('static', filename='includes/datatables/js/datetime.moment.js') }}"></script>
+
+<script src="{{ url_for('static', filename='javascript/hotkeys.js') }}"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='themes/default/default.css') }}">
+
+<html>
+    <head>
+    <title>JIMI</title>        
+    </head>
+    <body class="theme-panelContainer">
+        <table id="orderTable" class="table table-sm theme-table" cellspacing="0" width="100%">
+            <thead>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </body>
+</html>
+
+<script>
+    $(document).ready(function () {
+        $.fn.dataTable.moment('DD-MMM-YY HH:mm:ss');
+        var tableData = {{ triggers|tojson }}
+        $('#orderTable').DataTable({
+            "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
+            fixedHeader: {
+                header: true,
+                footer: true
+            },
+            "paging" : false,
+            columns : [
+                    { "data": "_id", "name": "_id", "title": "_id", "width": "50px", render: $.fn.dataTable.render.text() },
+                    { "data": "type", "name": "type", "title": "type", "width": "50px", render: $.fn.dataTable.render.text() },
+                    { "data": "name", "name": "name", "title": "name", "width": "50px", render: $.fn.dataTable.render.text() },
+                    { "data": "lastCheck", "name": "lastCheck", "title": "lastCheck", "width": "50px", render: $.fn.dataTable.render.text() }
+                ],
+                columnDefs: [{
+                    orderable: true
+                }]
+        });
+        $('.dataTables_length').addClass('bs-select');
+        $('.dataTables_filter input[type="search"]').css({'width':'200px'});
+        $('.dataTables_filter input[type="search"]').addClass("theme-panelTextbox")
+        var table = $('#orderTable').DataTable();
+        for (content in tableData) {
+            table.row.add({ "_id" : tableData[content]["_id"], "type" : "trigger", "name" : tableData[content]["name"], "lastCheck" : tableData[content]["lastCheck"] })
+        }
+        table.draw();
+    });
+</script>

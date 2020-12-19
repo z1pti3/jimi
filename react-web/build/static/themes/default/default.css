@@ -1,0 +1,244 @@
+body {
+    background: #222222;
+}
+
+p {
+    color: #ddd;
+}
+
+.theme-navButton {
+    background-color: #111111;
+}
+
+.theme-navButton:hover {
+    background-color: #220433;
+}
+
+.theme-content {
+    background-color: #111111;
+    border: none;
+    color: #ddd;
+}
+
+.theme-popupContainer {
+
+}
+
+.theme-popup {
+
+}
+
+.theme-panelContainer {
+    background-color: #222222;
+    color: #ddd;
+    border-color: #2e6da4;
+    border-radius: 2px;
+}
+
+.theme-panelHeader {
+    background-color: #222222;
+    color: #8a8a8a;
+}
+
+.theme-panelHeader-Active {
+    background-color: #333333;
+    color: #cacaca;
+}
+
+.theme-panelBody {
+    background-color: #222222;
+}
+
+.theme-panelFooter {
+    background-color: #222222;
+}
+
+.theme-panelButton {
+    background-color: #222222;
+    border-color: #2e6da4;
+    color: #ddd;
+}
+
+.theme-panelButton:hover {
+    background-color: #220433;
+}
+
+.theme-panelLabel {
+}
+
+.theme-panelBreakTitle {
+    text-align: center;
+    width: 100%;
+    display:inline-block
+}
+
+.theme-panelBreakLine {
+    height: 1px;
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 1em 0;
+    padding: 0;
+    width: 100%;
+    display:inline-block
+}
+
+.theme-panelTextArea {
+    background-color: #0f0f0f;
+    min-height: 75px;
+    color: #ddd;
+    border: none;
+}
+
+.theme-panelTextArea-half {
+    background-color: #0f0f0f;
+    color: #ddd;
+    border: none;
+    width: 50%;
+}
+
+.theme-panelTextArea-14 {
+    background-color: #0f0f0f;
+    color: #ddd;
+    border: none;
+    width: 25%;
+}
+
+.theme-panelTextbox {
+    background-color: #0f0f0f; 
+    color: #ddd;
+    border: none;
+}
+
+.theme-panelTextbox-half {
+    background-color: #0f0f0f; 
+    color: #ddd;
+    border: none;
+    width: 50%;
+}
+
+.theme-panelTextbox-34 {
+    background-color: #0f0f0f; 
+    color: #ddd;
+    border: none;
+    width: 75%;
+}
+
+.theme-panelSelect {
+    background-color: #0f0f0f; 
+    border: none;
+}
+
+.theme-panelCheckbox {
+    background-color: #0f0f0f;
+    border: none;
+}
+
+.theme-table {
+    background-color: #0f0f0f;
+    color: #ddd;
+    border-color: #2e6da4;
+    border-width: 1px;
+    border-style: solid;
+}
+
+.theme-tableHeader {
+    background-color: #111111;
+    color: #ddd;
+}
+
+.theme-tableBody {
+    border: none;
+}
+
+.theme-tableRowOdd {
+    background-color: #222222;
+    color: #ddd;
+}
+
+.theme-tableRowEven {
+    background-color: #0f0f0f;
+    color: #ddd;
+}
+
+.theme-json {
+    background-color: #0f0f0f;
+    color: #ddd;
+}
+
+.theme-jsonkey {
+    color: #ff2c10;
+}
+
+.theme-jsonstring {
+    color: #fff;
+}
+
+.theme-jsonboolean {
+    color: #32a732;
+}
+
+.theme-jsonnull {
+    color: #9b9b9b;
+}
+
+.theme-dropdown-menu {
+    background-color: #222222;
+    border-color: #2e6da4;
+    border-width: 1px;
+    border-style: solid;
+}
+
+.theme-dropdown-menu > li > a {
+    color: #ddd;
+}
+
+.theme-dropdown-menu > li:hover > a {
+    background-color: #220433;
+    color: #ddd;
+}
+
+.theme-dropdown-menu-divider {
+    border-color: #2e6da4;
+    border-style: solid;
+    border-width: 1px;
+}
+
+
+/* selectbox */
+.select2-container--theme-panelSelect .select2-selection--single {
+    background-color: #0f0f0f;
+    border: none;
+    height: 20px;
+}
+
+/* item hover */
+.select2-container--theme-panelSelect .select2-results__option[aria-selected=true] {
+    background-color: #220433;
+    color: #ddd;
+}
+
+/* search box */
+.select2-container--theme-panelSelect .select2-search--dropdown .select2-search__field {
+    background-color: #0f0f0f;
+    color: #ddd;
+    border: none;
+}
+
+.select2-container--theme-panelSelect .select2-search--dropdown {
+    border: none;
+    outline: 0;
+    box-shadow: none;
+    outline: 0;
+    padding: 0;
+}
+
+/* search results */
+.select2-container--theme-panelSelect .select2-results {
+    background-color: #0f0f0f;
+    color: #ddd;
+}
+
+.select2-container--theme-panelSelect .select2-results > .select2-results__options {
+    max-height: 200px;
+    overflow-y: auto; 
+}

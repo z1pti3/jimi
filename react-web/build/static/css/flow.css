@@ -1,0 +1,241 @@
+/*UI*/
+html, body {
+	height: 100%;
+	font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+	padding: 0;
+	margin: 0;
+	overflow: hidden;
+}
+
+.ui-container {
+	display: flex;
+	flex-direction: row;
+	overflow: hidden;
+	/* avoid browser level touch actions */
+	height: 100%;
+	overflow: hidden;
+	padding: 0;
+	margin: 0;
+}
+
+.ui-left {
+	flex: 0 0 auto;
+	/* only manually resize */
+	min-height: 200px;
+	width: 75%;
+	min-width: 50%;
+	max-width: 85%;
+	white-space: nowrap;
+	border-right: 3px solid gray;
+	padding: 0;
+	margin: 0;
+	background: repeating-linear-gradient( 45deg, #eee, #eee 10px, #e5e5e5 10px, #e5e5e5 20px )
+}
+
+.ui-right {
+	flex: 1 1 auto;
+	width: 100%;
+	height: 100%;
+	min-height: 200px;
+	min-width: 200px;
+	padding: 0;
+	margin: 0;
+}
+
+/*controls*/
+.controls {
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+.tabs {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+.tabs-container-top {
+	height: calc(100% - 50px);
+	overflow: scroll;
+	padding: 0;
+	margin: 0;
+}
+
+.tabs-container-bottom {
+	height: 50px;
+	padding: 0;
+	margin: 0;
+}
+
+/*flowchart*/
+.flowchart-container {
+	padding: 0;
+	margin: 0;	
+	border-style: solid;
+	position: relative;
+	overflow: hidden;
+	background: white;
+}
+
+.flowchart-operator {
+	width: auto;
+}
+
+.flowchart-operator-connector-label {
+	padding: 2px 5px 0px 5px;
+}
+
+.flowchart-operator-connector {
+	padding: 0;
+}
+
+.flowchart-operator-connector-arrow {
+	top: 0px;
+}
+
+.flowchart-operator-connector-small-arrow {
+	top: 5px;
+}
+
+.flowchart-link, .flowchart-operator {
+	padding: 0;
+	margin: 0;
+}
+
+.flowchart pre {
+	display: none;
+}
+
+#create_operator {
+	margin-bottom: 10px;
+}
+
+.flowchart-event {
+	margin-top: 10px;
+	margin-bottom: 10px;
+	color: #3366FF;
+}
+
+#flowchart_data {
+	width: 100%;
+	margin-top: 20px;
+	margin-bottom: 40px;
+	height: 140px;
+}
+
+#operator_properties, #link_properties {
+	display: none;
+	margin-top: 20px;
+	margin-bottom: 20px;
+	border: 4px solid;
+	padding: 10px;
+}
+
+#chart_container {
+	width: 100%;
+	height: 500px;
+	overflow: hidden;
+	background: repeating-linear-gradient( 45deg, #eee, #eee 10px, #e5e5e5 10px, #e5e5e5 20px );
+	border: 1px solid black;
+}
+
+.draggable_operator {
+	display: inline-block;
+	padding: 2px 5px 2px 5px;
+	border: 1px solid #ccc;
+	cursor: grab;
+	-webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none; /* Chrome/Safari/Opera */
+	-khtml-user-select: none; /* Konqueror */
+	-moz-user-select: none; /* Firefox */
+	-ms-user-select: none; /* IE/Edge */
+	user-select: none; /* non-prefixed version, currently
+                                  not supported by any browser */
+}
+
+.draggable_operators {
+	margin-top: 10px;
+}
+
+.draggable_operators_label {
+	margin-bottom: 5px;
+}
+
+.draggable_operators_divs {
+	margin-bottom: 20px;
+}
+
+.delete_selected_button {
+	margin-bottom: 20px;
+}
+
+
+/* TABS */
+/* Style the tab */
+.tab {
+	overflow: hidden;
+	border: 1px solid #ccc;
+	background-color: #f1f1f1;
+  }
+  
+  /* Style the buttons inside the tab */
+  .tab button {
+	background-color: inherit;
+	float: left;
+	border: none;
+	outline: none;
+	cursor: pointer;
+	padding: 14px 16px;
+	transition: 0.3s;
+	font-size: 17px;
+  }
+  
+  /* Change background color of buttons on hover */
+  .tab button:hover {
+	background-color: #ddd;
+  }
+  
+  /* Create an active/current tablink class */
+  .tab button.active {
+	background-color: #ccc;
+  }
+
+  .tabcontent {
+	display: none;
+	padding: 6px 12px;
+	-webkit-animation: fadeEffect 1s;
+	animation: fadeEffect 1s;
+  }
+
+  .newFlow {
+	  position: absolute;
+	  z-index: 1;
+	  right: 1px;
+  }
+
+  /* Fade in tabs */
+@-webkit-keyframes fadeEffect {
+	from {opacity: 0;}
+	to {opacity: 1;}
+  }
+  
+@keyframes fadeEffect {
+	from {opacity: 0;}
+	to {opacity: 1;}
+}
+
+/* searchable list */
+.item {
+	clear: both;
+	float: left;
+}
+
+.hide {
+	display: none;
+}
+
+.inputFullWidth {
+	width: 100%;
+}

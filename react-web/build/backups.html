@@ -1,0 +1,28 @@
+<script src="{{ url_for('static', filename='includes/jquery/js/jquery-3.4.1.js') }}"></script>
+<script src="{{ url_for('static', filename='includes/jquery/js/jquery.datatables.min.js') }}"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/dataTables.bootstrap.css') }}">
+<script src="{{ url_for('static', filename='includes/datatables/js/dataTables.bootstrap.js') }}"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
+<script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
+
+<script src="{{ url_for('static', filename='javascript/hotkeys.js') }}"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='themes/default/default.css') }}">
+
+<html>
+    <head>
+    <title>JIMI - Backups</title>        
+    </head>
+    <body class="theme-panelContainer">
+        <a href="/admin/backup-system/" target="blank"><button class='btn btn-primary theme-panelButton'>Backup System</button></a>
+        <br><br>
+        <form enctype="multipart/form-data" action="/admin/restore-system/" method="POST">
+            <input type="hidden" value="{{CSRF}}">
+            <input type="file" class="theme-panelContainer" name="file">
+            <input class='btn btn-primary theme-panelButton' type="submit" value="Restore System">
+        </form>
+    </body>
+</html>

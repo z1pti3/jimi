@@ -143,7 +143,7 @@ if api.webServer:
 
                     result = []
                     for classID in classIDs:
-                        for foundObject in class_().query(api.g.sessionData,query={ "classID" : classID },fields=["_id","name"])["results"]:
+                        for foundObject in class_().query(api.g.sessionData,query={ "classID" : classID },fields=["_id","name","enabled","startCheck","maxDuration"])["results"]:
                             result.append(foundObject)
 
                     return { "results" : result}, 200
