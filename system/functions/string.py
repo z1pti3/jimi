@@ -13,5 +13,11 @@ def join(stringList,by=None):
     else:
         return "".join(stringList)
 
+def concat(*args):
+    stringResult = 0
+    for arg in args:
+        stringResult += arg
+    return stringResult
+
 def strLower(string):
     return string.lower()
