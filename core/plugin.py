@@ -115,14 +115,14 @@ if api.webServer:
                     result = { "valid" : True }
             return result, 200
 
-        @api.webServer.route(api.base+"plugins/", methods=["GET"])
-        def getPlugins():
-            result = {}
-            result["results"] = []
-            plugins = os.listdir("plugins")
-            for plugin in plugins:
-                result["results"].append({ "name" : plugin, "location" : "plugins/{0}".format(plugin) })
-            return result, 200
+        # @api.webServer.route(api.base+"plugins/", methods=["GET"])
+        # def getPlugins():
+        #     result = {}
+        #     result["results"] = []
+        #     plugins = os.listdir("plugins")
+        #     for plugin in plugins:
+        #         result["results"].append({ "name" : plugin, "location" : "plugins/{0}".format(plugin) })
+        #     return result, 200
 
         @api.webServer.route(api.base+"plugins/<pluginName>/", methods=["GET"])
         def getPlugin(pluginName):

@@ -1,0 +1,55 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		<script src="{{ url_for('static', filename='includes/jquery/js/jquery-3.4.1.js') }}"></script>
+		<script src="{{ url_for('static', filename='includes/jquery/js/jquery-ui-1.12.1.js') }}"></script>
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.theme.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.structure.css') }}">
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
+		<script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
+
+		<script src="{{ url_for('static', filename='javascript/helpers.js') }}"></script>
+		<script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
+
+		<script src="{{ url_for('static', filename='javascript/hotkeys.js') }}"></script>
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/alert.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/codify.css') }}">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='themes/default/default.css') }}">
+
+
+	</head>
+	<body class="theme-panelContainer">
+		<div class="container-fluid theme-panelContainer">
+      Import Data:<br>
+	  <textarea id="importData" class="inputFullWidth theme-panelTextArea" style="height: 150px;"></textarea></br>
+	  <input class="theme-panelCheckbox" type="checkbox" id="appendObjects">Append</input></br>
+	  <input class="theme-panelCheckbox" type="checkbox" id="duplicateObjects">Duplicate all objects</input></br>
+	  Offset UI x by: <input class="theme-panelTextbox" value="0" id="offsetX"></input></br>
+	  Offset UI y by: <input class="theme-panelTextbox" value="0" id="offsetY"></input></br>
+      <button id="import" class="btn btn-primary theme-panelButton">Import</button></br>
+		</div>
+	</body>
+</html>
+
+<script>
+  var CSRF = "{{CSRF}}"
+</script>
+
+<script>
+  $("#import").click(function () {
+    $.ajax({type:"POST", data:JSON.stringify({ importData: $('#importData').val(), duplicateObjects: $("#duplicateObjects").is(":checked"), appendObjects: $("#appendObjects").is(":checked"), offsetX : $('#offsetX').val(), offsetY : $('#offsetY').val(), CSRF: CSRF }), contentType:"application/json", success: function(result) {
+        alert("Imported!");
+      } 
+    });
+  });
+</script>

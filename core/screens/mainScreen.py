@@ -34,10 +34,10 @@ class mainScreen:
             ], "[ jimi ] >> ")
 
         # Dynamic loading of plugins
-        self.menu.items.append(["select plugin", None])
-        apiEndpoint = "plugins/"
-        for plugin in json.loads(helpers.apiCall("GET",apiEndpoint,token=auth.generateSystemSession(),timeout=10).text)["results"]:
-            self.menu.items.append(["select plugin {0}".format(plugin["name"]),callSelectPlugin])
+        # self.menu.items.append(["select plugin", None])
+        # apiEndpoint = "plugins/"
+        # for plugin in json.loads(helpers.apiCall("GET",apiEndpoint,token=auth.generateSystemSession(),timeout=10).text)["results"]:
+        #     self.menu.items.append(["select plugin {0}".format(plugin["name"]),callSelectPlugin])
         
         self.menu.load()
 

@@ -233,7 +233,7 @@ def requireAuthentication(func):
         if "jimiAuth" in api.request.cookies:
             validSession = validateSession(api.request.cookies["jimiAuth"])
             if not validSession:
-                return api.redirect("/login", code=302)
+                return {}, 403
         return func(*args, **kwargs)
     return decorated_function
 
@@ -266,7 +266,7 @@ if api.webServer:
             api.g.type = ""
             #api.g = { "sessionData" : {}, "sessionToken": "", "type" : "" }
             if authSettings["enabled"]:
-                noAuthEndPoints = ["static","loginPage","api_validateUser","api_validateAPIKey"]
+                noAuthEndPoints = ["static","staticFile","loginPage","api_validateUser","api_validateAPIKey"]
                 if api.request.endpoint not in noAuthEndPoints and not "__PUBLIC__" in api.request.endpoint:
                     validSession = None
                     if "jimiAuth" in api.request.cookies:
@@ -274,7 +274,7 @@ if api.webServer:
                         if not validSession:
                             redirectEndPoints = ["api_sessionPolling","mainPage","statusPage"]
                             if api.request.endpoint in redirectEndPoints:
-                                return api.redirect("/login?return={0}".format(api.request.full_path), code=302)
+                                return {}, 403
                             else:
                                 return {}, 403
                         api.g.type = "cookie"
@@ -312,6 +312,10 @@ if api.webServer:
                         api.g.renew = validSession["renew"]
                 else:
                     api.g.type = "bypass"
+            else:
+                api.g.sessionData = { "_id" : "0", "user" : "noAuth", "CSRF" : "" }
+                api.g.sessionToken = ""
+                api.g.type = "noAuth"
             
         # Ensures that all requests return an up to date sessionToken to prevent session timeout for valid sessions
         @api.webServer.after_request
@@ -325,33 +329,41 @@ if api.webServer:
             if api.request.endpoint != "static": 
                 response.headers['Cache-Control'] = 'no-cache, no-store'
                 response.headers['Pragma'] = 'no-cache'
+            # Permit CORS when web and web API ( Flask ) are seperated
+            response.headers['Access-Control-Allow-Origin'] = "http://localhost:3000"
+            response.headers['Access-Control-Allow-Credentials'] = "true"
+            response.headers['Access-Control-Allow-Methods'] = "GET, POST, PUT, DELETE"
             # ClickJacking
-            response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+            #response.headers['X-Frame-Options'] = 'SAMEORIGIN'
             return response
 
         # Checks that username and password are a match
         @api.webServer.route(api.base+"auth/", methods=["POST"])
         def api_validateUser():
-            response = api.make_response()
-            data = json.loads(api.request.data)
-            #check if OTP has been passed
-            #if invalid user or user requires OTP, return 200 but request OTP
-            if "otp" not in data:
-                user = _user().getAsClass(query={ "username" : data["username"] })
-                if len(user) == 1:
-                    user = user[0]
-                    if user.totpSecret != "":
-                        return "otp_required", 200
+            if authSettings["enabled"]:
+                data = json.loads(api.request.data)
+                #check if OTP has been passed
+                #if invalid user or user requires OTP, return 200 but request OTP
+                if "otp" not in data:
+                    user = _user().getAsClass(query={ "username" : data["username"] })
+                    if len(user) == 1:
+                        user = user[0]
+                        if user.totpSecret != "":
+                            return {}, 403
+                        else:
+                            userSession = validateUser(data["username"],data["password"])
                     else:
-                        userSession = validateUser(data["username"],data["password"])
+                        return {}, 403
                 else:
-                    return "otp_required", 200
+                    userSession = validateUser(data["username"],data["password"],data["otp"])
+                if userSession:
+                    sessionData = validateSession(userSession)["sessionData"]
+                    response = api.make_response({ "CSRF" : sessionData["CSRF"] },200)
+                    response.set_cookie("jimiAuth", value=userSession, max_age=600) # Need to add secure=True before production
+                    return response, 200
             else:
-                userSession = validateUser(data["username"],data["password"],data["otp"])
-            if userSession:
-                response.set_cookie("jimiAuth", value=userSession, max_age=600) # Need to add secure=True before production
-                return response, 200
-            return response, 403
+                return { "CSRF" : "" }, 200
+            return {}, 403
 
         # Called by API systems to request an x-api-token string from x-api-key provided
         @api.webServer.route(api.base+"auth/", methods=["GET"])
@@ -365,38 +377,52 @@ if api.webServer:
 
         @api.webServer.route(api.base+"auth/poll/", methods=["GET"])
         def api_sessionPolling():
-            return { "data" : True }, 200     
+            result = { "CSRF" : "" }
+            if authSettings["enabled"]:
+                result = { "CSRF" : api.g.sessionData["CSRF"] }
+            return result, 200
 
         @api.webServer.route(api.base+"auth/logout/", methods=["GET"])
         def api_logout():
-            response = api.make_response(api.redirect("/login?return=/?"))
-            response.set_cookie("jimiAuth", value="")
-            audit._audit().add("auth","logout",{ "action" : "sucess", "_id" : api.g.sessionData["_id"] })
-            return response, 302
+            audit._audit().add("auth","logout",{ "action" : "success", "_id" : api.g.sessionData["_id"] })
+            return {}, 200
 
         # Checks that username and password are a match
         @api.webServer.route(api.base+"auth/myAccount/", methods=["POST"])
         def api_updateMyAccount():
-            user = _user().getAsClass(id=api.g.sessionData["_id"])
-            if len(user) == 1:
-                user = user[0]
-                data = json.loads(api.request.data)
-                user.setAttribute("passwordHash",data["data"]["passwordHash"],sessionData=api.g.sessionData)
-                user.setAttribute("name",data["data"]["name"],sessionData=api.g.sessionData)
-                user.update(["name","passwordHash","apiTokens"])
+            if authSettings["enabled"]:
+                user = _user().getAsClass(id=api.g.sessionData["_id"])
+                if len(user) == 1:
+                    user = user[0]
+                    data = json.loads(api.request.data)
+                    if "password" in data:
+                        if getENCFromPassword(data["password"]) == user.passwordHash:
+                            user.setAttribute("passwordHash",data["password1"],sessionData=api.g.sessionData)
+                        else:
+                            return { "msg" : "Current password does not match" }, 400
+                    user.setAttribute("name",data["name"],sessionData=api.g.sessionData)
+                    user.update(["name","passwordHash","apiTokens"])
+                    return {}, 200
+            else:
                 return {}, 200
             return {}, 403
 
         # Called by API systems to request an x-api-token string from x-api-key provided
         @api.webServer.route(api.base+"auth/myAccount/", methods=["GET"])
         def api_getMyAccount():
-            user = _user().getAsClass(id=api.g.sessionData["_id"])
-            if len(user) == 1:
-                user = user[0]
+            if authSettings["enabled"]:
+                user = _user().getAsClass(id=api.g.sessionData["_id"])
+                if len(user) == 1:
+                    user = user[0]
+                    userProps = {}
+                    userProps["username"] = user.getAttribute("username",sessionData=api.g.sessionData)
+                    userProps["name"] = user.getAttribute("name",sessionData=api.g.sessionData)
+                    return userProps, 200
+            else:
                 userProps = {}
-                userProps["name"] = user.getAttribute("name",sessionData=api.g.sessionData)
-                userProps["passwordHash"] = user.getAttribute("passwordHash",sessionData=api.g.sessionData)
-                return { "results" : [ userProps ] }, 200
+                userProps["username"] = "username"
+                userProps["name"] = "name"
+                return userProps, 200
             return { }, 404
 
         @api.webServer.route(api.base+"auth/regenerateOTP/", methods=["GET"])
