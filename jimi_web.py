@@ -308,6 +308,18 @@ def clearCachePage():
 						content += "<br>Success<br>"
 	return render_template("workers.html", content=content)
 
+@api.webServer.route("/distributeCluster/", methods=["GET"])
+def distributeClusterPage():
+	content = ""
+	if api.g.sessionData:
+		if "admin" in api.g.sessionData:
+			if api.g.sessionData["admin"]:
+				apiEndpoint = "cluster/distribute/"
+				host,port = cluster.getMaster()
+				url="http://{0}:{1}".format(host,port)
+				content = helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken,overrideURL=url)
+	return render_template("workers.html", content=content)
+
 @api.webServer.route("/cluster/", methods=["GET"])
 def clusterPage():
 	if api.g.sessionData:

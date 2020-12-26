@@ -223,3 +223,11 @@ if api.webServer:
                     return { }, 404
             else:
                 return { }, 403
+
+        @api.webServer.route(api.base+"cluster/distribute/", methods=["GET"])
+        def distributeCluster():
+            if api.g.sessionData["admin"]:
+                trigger._trigger().api_update(query={ "startCheck" : 0 },update={ "$set" : { "systemID" : None } })
+                return { "result" : True }, 200
+            else:
+                return { }, 403
