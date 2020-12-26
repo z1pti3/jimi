@@ -39,7 +39,7 @@ class _modelUI(db._document):
 class _properties():
     def generate(self,classObject):
         formData = []
-        blacklist = ["classID","workerID","acl","scope","lastUpdateTime","creationTime","createdBy","attemptCount","autoRestartCount","clusterSet","systemID","startCheck","scope"]
+        blacklist = ["classID","workerID","acl","lastUpdateTime","creationTime","createdBy","attemptCount","autoRestartCount","startCheck"]
         members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
         for member in members:
             if member not in blacklist:
