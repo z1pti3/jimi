@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		<script src="{{ url_for('static', filename='includes/jquery/js/jquery-3.4.1.js') }}"></script>
+		<script src="{{ url_for('static', filename='includes/jquery/js/jquery-ui-1.12.1.js') }}"></script>
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.theme.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.structure.css') }}">
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
+		<script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
+
+		<script src="{{ url_for('static', filename='includes/select2/select2.min.js') }}"></script>
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/select2/select2.min.css') }}">
+
+		<script src="{{ url_for('static', filename='includes/visjs/js/vis-network.min.js') }}"></script>
+
+		<script src="{{ url_for('static', filename='javascript/helpers.js') }}"></script>
+		<script src="{{ url_for('static', filename='javascript/flow.js') }}"></script>
+		<script src="{{ url_for('static', filename='javascript/objectProperties.js') }}"></script>
+		<script src="{{ url_for('static', filename='javascript/linkProperties.js') }}"></script>
+		<script src="{{ url_for('static', filename='javascript/newObject.js') }}"></script>
+		<script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
+		<script src="{{ url_for('static', filename='javascript/existingObject.js') }}"></script>
+		<script src="{{ url_for('static', filename='javascript/triggerObject.js') }}"></script>
+		<script src="{{ url_for('static', filename='javascript/aclProperties.js') }}"></script>
+
+		<script src="{{ url_for('static', filename='javascript/hotkeys.js') }}"></script>
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/conductEditor.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/objectProperties.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/alert.css') }}">
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='themes/default/default.css') }}">
+
+
+	</head>
+	<body>
+		<div class="ui-container">
+			<button onclick="createNewObjectPanel()" class="btn btn-primary newModelObject theme-panelButton">+</button>
+			<button onclick="codifyConduct()" class="btn btn-primary codifyConductButton theme-panelButton">Codify</button>
+			<button onclick="exportConduct()" class="btn btn-primary exportConductButton theme-panelButton">Export</button>
+			<button onclick="importConduct()" class="btn btn-primary importConductButton theme-panelButton">Import</button>
+			<div class="ui-main">
+				<!-- Right Click Menus -->
+				<ul id="contextMenu" class="dropdown-menu contextMenuTrigger theme-dropdown-menu" role="menu" style="display:none" >
+					<li><a tabindex="-1" onclick="editFlowObject()">Edit</a></li>
+					<li class="divider theme-dropdown-menu-divider"></li>
+					<li><a tabindex="-1" onclick="copyFlowObject()">Mirror Object</a></li>
+					<li><a tabindex="-1" onclick="duplicateFlowObject()">Duplicate</a></li>
+					<li class="divider theme-dropdown-menu-divider"></li>
+					<li><a tabindex="-1" onclick="exportFlowObject()">Export</a></li>
+					<li><a tabindex="-1" onclick="CodifyFlowObject()">Codify</a></li>
+					<li class="divider theme-dropdown-menu-divider"></li>
+					<li><a tabindex="-1" onclick="triggerFlowObject()">Test Trigger</a></li>
+					<li class="divider theme-dropdown-menu-divider"></li>
+					<li><a tabindex="-1" onclick="editACL()">Security Settings</a></li>
+					<li class="divider theme-dropdown-menu-divider"></li>
+					<li><a tabindex="-1" onclick="deleteFlowObject()">Delete</a></li>
+				</ul>
+				<ul id="contextMenu" class="dropdown-menu contextMenuAction theme-dropdown-menu" role="menu" style="display:none" >
+					<li><a tabindex="-1" onclick="editFlowObject()">Edit</a></li>
+					<li class="divider theme-dropdown-menu-divider"></li>
+					<li><a tabindex="-1" onclick="copyFlowObject()">Mirror Object</a></li>
+					<li><a tabindex="-1" onclick="duplicateFlowObject()">Duplicate</a></li>
+					<li class="divider theme-dropdown-menu-divider"></li>
+					<li><a tabindex="-1" onclick="editACL()">Security Settings</a></li>
+					<li class="divider theme-dropdown-menu-divider"></li>
+					<li><a tabindex="-1" onclick="deleteFlowObject()">Delete</a></li>
+				</ul>
+				<div class="flowchart theme-content" id="flowchart"></div>
+			</div>
+		</div>
+	</body>
+</html>
+
+<script>
+	var CSRF = "{{CSRF}}"
+  </script>
+
+<!-- Right Click Menu -->
+<script>
+	(function ($, window) {
+		$.fn.contextMenu = function (settings) {
+			return this.each(function () {
+				$(this).on("contextmenu", function (e) {
+					return false
+				});
+				//make sure menu closes on any click
+				$('body').click(function () {
+					$(".contextMenuTrigger").hide();
+					$(".contextMenuAction").hide();
+				});
+			});
+	};
+	})(jQuery, window);
+	$(".flowchart").contextMenu({menuSelector: "#contextMenu" });
+</script>
+

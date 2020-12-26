@@ -1,0 +1,173 @@
+html, body {
+	height: 100%;
+	
+	font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+	padding: 0;
+	margin: 0;
+	overflow: hidden;
+}
+
+.ui-container {
+	position: fixed;
+	display: flex;
+	flex-direction: row;
+	/* avoid browser level touch actions */
+	height: 100%;
+	width: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+.ui-main {
+	position: fixed;
+	flex: 0 0 auto;
+	width: 100%;
+	height: 100%;
+	white-space: nowrap;
+	padding: 0;
+	margin: 0;
+	background: repeating-linear-gradient( 45deg, #eee, #eee 10px, #e5e5e5 10px, #e5e5e5 20px )
+}
+
+/*flowchart*/
+.flowchart {
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	margin: 0;	
+	border-style: solid;
+	position: relative;
+	overflow: hidden;
+	background:#e7e7e7;
+}
+
+.flowchart-operator {
+	width: auto;
+}
+
+.flowchart-operator-connector-label {
+	padding: 2px 5px 0px 5px;
+}
+
+.flowchart-operator-connector {
+	padding: 0;
+}
+
+.flowchart-operator-connector-arrow {
+	top: 0px;
+}
+
+.flowchart-operator-connector-small-arrow {
+	top: 5px;
+}
+
+.flowchart-link, .flowchart-operator {
+	padding: 0;
+	margin: 0;
+}
+
+.flowchart pre {
+	display: none;
+}
+
+#create_operator {
+	margin-bottom: 10px;
+}
+
+.flowchart-event {
+	margin-top: 10px;
+	margin-bottom: 10px;
+	color: #3366FF;
+}
+
+#flowchart_data {
+	width: 100%;
+	margin-top: 20px;
+	margin-bottom: 40px;
+	height: 140px;
+}
+
+#operator_properties, #link_properties {
+	display: none;
+	margin-top: 20px;
+	margin-bottom: 20px;
+	border: 4px solid;
+	padding: 10px;
+}
+
+#chart_container {
+	width: 100%;
+	height: 500px;
+	overflow: hidden;
+	background: repeating-linear-gradient( 45deg, #eee, #eee 10px, #e5e5e5 10px, #e5e5e5 20px );
+	border: 1px solid black;
+}
+
+.draggable_operator {
+	display: inline-block;
+	padding: 2px 5px 2px 5px;
+	border: 1px solid #ccc;
+	cursor: grab;
+	-webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none; /* Chrome/Safari/Opera */
+	-khtml-user-select: none; /* Konqueror */
+	-moz-user-select: none; /* Firefox */
+	-ms-user-select: none; /* IE/Edge */
+	user-select: none; /* non-prefixed version, currently
+                                  not supported by any browser */
+}
+
+.draggable_operators {
+	margin-top: 10px;
+}
+
+.draggable_operators_label {
+	margin-bottom: 5px;
+}
+
+.draggable_operators_divs {
+	margin-bottom: 20px;
+}
+
+.delete_selected_button {
+	margin-bottom: 20px;
+}
+
+.newModelObject {
+	position: absolute;
+	z-index: 1;
+	right: 225px;
+}
+
+.codifyConductButton {
+	position: absolute;
+	z-index: 1;
+	right: 75px;
+}
+
+.exportConductButton {
+	position: absolute;
+	z-index: 1;
+	right: 150px;
+}
+
+.importConductButton {
+	position: absolute;
+	z-index: 1;
+	right: 1px;
+}
+
+.flowchart-operator-trigger {
+	background: #225f888c;
+	border-radius: 15px;
+}
+
+.flowchart-operator-trigger-humio {
+	background: #6f21d58c;
+	border-radius: 15px;
+}
+
+.flowchart-operator-trigger-awsAlerts {
+	background: #ffa6008c;
+	border-radius: 15px;
+}

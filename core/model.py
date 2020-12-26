@@ -143,7 +143,7 @@ if api.webServer:
 
                     result = []
                     for classID in classIDs:
-                        for foundObject in class_().query(api.g.sessionData,query={ "classID" : classID },fields=["_id","name"])["results"]:
+                        for foundObject in class_().query(api.g.sessionData,query={ "classID" : classID })["results"]:
                             result.append(foundObject)
 
                     return { "results" : result}, 200
@@ -170,7 +170,7 @@ if api.webServer:
                 if classObject:
                     classObject = classObject[0]
                     members = helpers.classToJson(classObject)
-                    return { "results" : [members]}, 200
+                    return members, 200
                 else:
                     return {}, 404
             else:
@@ -210,7 +210,7 @@ if api.webServer:
                         audit._audit().add("model","create",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "modelName" : modelName, "objectID" : str(newObjectID) })
                     else:
                         audit._audit().add("model","create",{ "user" : "system", "objectID" : str(newObjectID) })
-                    return { "result" : { "_id" : str(newObjectID) } }, 200
+                    return { "_id" : str(newObjectID) }, 200
             return {}, 404
 
         @api.webServer.route(api.base+"models/<modelName>/<objectID>/", methods=["POST"])
@@ -218,74 +218,72 @@ if api.webServer:
             class_ = loadModel(modelName)
             if class_:
                 data = json.loads(api.request.data)
-                if data["action"] == "update":
-                    updateItemsList = []
-                    changeLog = {}
-                    data = data["data"]
-                    _class = class_.classObject()().getAsClass(api.g.sessionData,id=objectID)
-                    if len(_class) == 1:
-                        _class = _class[0]
-                        # Builds list of permitted ACL
-                        access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,_class.acl,"write")
-                        if access:
-                            for dataKey, dataValue in data.items():
-                                fieldAccessPermitted = True
-                                # Checking if sessionData is permitted field level access
-                                if _class.acl != {} and not adminBypass:
-                                    fieldAccessPermitted = db.fieldACLAccess(api.g.sessionData,_class.acl,dataKey,"write")
+                updateItemsList = []
+                changeLog = {}
+                _class = class_.classObject()().getAsClass(api.g.sessionData,id=objectID)
+                if len(_class) == 1:
+                    _class = _class[0]
+                    # Builds list of permitted ACL
+                    access, accessIDs, adminBypass = db.ACLAccess(api.g.sessionData,_class.acl,"write")
+                    if access:
+                        for dataKey, dataValue in data.items():
+                            fieldAccessPermitted = True
+                            # Checking if sessionData is permitted field level access
+                            if _class.acl != {} and not adminBypass:
+                                fieldAccessPermitted = db.fieldACLAccess(api.g.sessionData,_class.acl,dataKey,"write")
 
-                                if fieldAccessPermitted:
-                                    # _id is a protected mongodb object and cant be updated
-                                    if dataKey != "_id":
-                                        if hasattr(_class, dataKey):
-                                            changeLog[dataKey] = {}
-                                            changeLog[dataKey]["currentValue"] = getattr(_class, dataKey)
-                                            if type(getattr(_class, dataKey)) is str:
-                                                if _class.setAttribute(dataKey, str(dataValue),sessionData=api.g.sessionData):
+                            if fieldAccessPermitted:
+                                # _id is a protected mongodb object and cant be updated
+                                if dataKey != "_id":
+                                    if hasattr(_class, dataKey):
+                                        changeLog[dataKey] = {}
+                                        changeLog[dataKey]["currentValue"] = getattr(_class, dataKey)
+                                        if type(getattr(_class, dataKey)) is str:
+                                            if _class.setAttribute(dataKey, str(dataValue),sessionData=api.g.sessionData):
+                                                updateItemsList.append(dataKey)
+                                                changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
+                                        elif type(getattr(_class, dataKey)) is int:
+                                            try:
+                                                if _class.setAttribute(dataKey, int(dataValue),sessionData=api.g.sessionData):
                                                     updateItemsList.append(dataKey)
                                                     changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
-                                            elif type(getattr(_class, dataKey)) is int:
-                                                try:
-                                                    if _class.setAttribute(dataKey, int(dataValue),sessionData=api.g.sessionData):
-                                                        updateItemsList.append(dataKey)
-                                                        changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
-                                                except ValueError:
-                                                    if _class.setAttribute(dataKey, 0,sessionData=api.g.sessionData):
-                                                        updateItemsList.append(dataKey)
-                                                        changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
-                                            elif type(getattr(_class, dataKey)) is float:
-                                                try:
-                                                    if _class.setAttribute(dataKey, float(dataValue),sessionData=api.g.sessionData):
-                                                        updateItemsList.append(dataKey)
-                                                        changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
-                                                except ValueError:
-                                                    if _class.setAttribute(dataKey, 0,sessionData=api.g.sessionData):
-                                                        updateItemsList.append(dataKey)
-                                                        changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
-                                            elif type(getattr(_class, dataKey)) is bool:
-                                                # Convert string object to bool
-                                                if type(dataValue) is str:
-                                                    if dataValue.lower() == "true":
-                                                        dataValue = True
-                                                    else:
-                                                        dataValue = False
-                                                if _class.setAttribute(dataKey, dataValue,sessionData=api.g.sessionData):
+                                            except ValueError:
+                                                if _class.setAttribute(dataKey, 0,sessionData=api.g.sessionData):
                                                     updateItemsList.append(dataKey)
                                                     changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
-                                            elif type(getattr(_class, dataKey)) is dict or type(getattr(_class, dataKey)) is list:
-                                                if dataValue:
-                                                    if _class.setAttribute(dataKey, json.loads(dataValue),sessionData=api.g.sessionData):
-                                                        updateItemsList.append(dataKey)
-                                                        changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
-                            # Commit back to database
-                            if updateItemsList:
-                                # Adding audit record
-                                if "_id" in api.g.sessionData:
-                                    audit._audit().add("model","update",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "objects" : helpers.unicodeEscapeDict(changeLog), "modelName" : modelName, "objectID" : objectID })
-                                else:
-                                    audit._audit().add("model","update",{ "user" : "system", "objects" : helpers.unicodeEscapeDict(changeLog), "modelName" : modelName, "objectID" : objectID })
-                                _class.update(updateItemsList)
-                            return {}, 200
-                        else:
-                            return {}, 403
+                                        elif type(getattr(_class, dataKey)) is float:
+                                            try:
+                                                if _class.setAttribute(dataKey, float(dataValue),sessionData=api.g.sessionData):
+                                                    updateItemsList.append(dataKey)
+                                                    changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
+                                            except ValueError:
+                                                if _class.setAttribute(dataKey, 0,sessionData=api.g.sessionData):
+                                                    updateItemsList.append(dataKey)
+                                                    changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
+                                        elif type(getattr(_class, dataKey)) is bool:
+                                            # Convert string object to bool
+                                            if type(dataValue) is str:
+                                                if dataValue.lower() == "true":
+                                                    dataValue = True
+                                                else:
+                                                    dataValue = False
+                                            if _class.setAttribute(dataKey, dataValue,sessionData=api.g.sessionData):
+                                                updateItemsList.append(dataKey)
+                                                changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
+                                        elif type(getattr(_class, dataKey)) is dict or type(getattr(_class, dataKey)) is list:
+                                            if dataValue:
+                                                if _class.setAttribute(dataKey, json.loads(dataValue),sessionData=api.g.sessionData):
+                                                    updateItemsList.append(dataKey)
+                                                    changeLog[dataKey]["newValue"] = getattr(_class, dataKey)
+                        # Commit back to database
+                        if updateItemsList:
+                            # Adding audit record
+                            if "_id" in api.g.sessionData:
+                                audit._audit().add("model","update",{ "_id" : api.g.sessionData["_id"], "user" : api.g.sessionData["user"], "objects" : helpers.unicodeEscapeDict(changeLog), "modelName" : modelName, "objectID" : objectID })
+                            else:
+                                audit._audit().add("model","update",{ "user" : "system", "objects" : helpers.unicodeEscapeDict(changeLog), "modelName" : modelName, "objectID" : objectID })
+                            _class.update(updateItemsList)
+                        return {}, 200
+                    else:
+                        return {}, 403
             return {}, 404

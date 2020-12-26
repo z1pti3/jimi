@@ -1,0 +1,60 @@
+body {
+  min-height: 100vh;
+  display: flex;
+  font-weight: 400;
+  font-family: sans-serif;
+  background: var(--mainBackgroundColor);
+}
+
+body, html, .App, #root, .outer {
+  width: 100%;
+  height: 100%;
+}
+
+hr {
+  background-color: var(--textColor);
+}
+
+.container, .col, .col-2 {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+#sidebar-wrapper {
+  min-height: 100vh !important;
+  max-width: 250px;
+}
+
+#pageContent-wrapper {
+  background-color: var(--mainBackgroundColor);
+  color: var(--textColor);
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  padding-top: 40px;
+  padding-left: 0px;
+  padding-right: 0px;
+  padding-bottom: 0px;
+  overflow-y: auto;
+}
+
+.pageContent0 {
+  width: 100%;
+  height: 100%;
+}
+
+.pageContent1 {
+  width: 600px;
+  padding-top: 10px;
+  padding-left: 50px;
+  padding-right: 50px;
+  padding-bottom: 10px;
+  min-height: 100%;
+  margin: auto;
+  background-color: var(--mainBackgroundColor);
+}
+
+.hide {
+  visibility: hidden;
+  opacity: 0; 
+}

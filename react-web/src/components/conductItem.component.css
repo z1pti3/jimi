@@ -1,0 +1,96 @@
+.conductItemContainer {
+    width: 500px;
+    height: 75px;
+    padding: 3px 10px 3px 10px;
+    margin: auto;
+}
+
+.conductItem {
+    height: 100%;
+    background-color: var(--panelBackgroundColor);
+    box-shadow: 0 1px 6px var(--panelShadowColor1), 0 1px 4px var(--panelShadowColor2);
+    border-radius: 10px;
+}
+
+.conductTitle {
+    padding-left: 10px;
+    text-align: left;
+    line-height: unset;
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--textColor);
+    width: unset;
+    display: inline;
+}
+
+.conductTitle:hover {
+    color: var(--textColor);
+}
+
+.conductRight {
+    padding-right: 10px;
+    float: right;
+}
+
+.conductDeleteLink {
+    padding-top: 25px;
+    line-height: unset;
+    font-weight: 300;
+    font-size: 12px;
+    color: var(--textColor);
+    padding-left: auto;
+    float: right;
+}
+
+.conductDeleteLink:hover {
+    color: var(--errorColor);
+    cursor: pointer;
+}
+
+.conductEditLink {
+    padding-top: 25px;
+    line-height: unset;
+    font-weight: 300;
+    font-size: 12px;
+    color: var(--textColor);
+    padding-left: auto;
+    float: right;
+}
+
+.conductEditLink:hover {
+    color: var(--alertColor);
+    cursor: pointer;
+}
+
+.conductLastEdit {
+    padding-top: 5px;
+    margin-bottom: unset;
+    line-height: unset;
+    font-weight: 300;
+    font-size: 12px;
+    color: var(--textColor);
+}
+
+.conductState {
+    margin-top: 15px;
+    margin-left: 10px;
+    line-height: unset;
+    font-weight: 300;
+    font-size: 12px;
+    color: var(--textColor);
+}
+
+.conductRightOptions {
+    padding-top: 25px;
+    padding-left: 5px;
+    padding-right: 5px;
+    line-height: unset;
+    font-weight: 300;
+    font-size: 12px;
+    color: var(--textColor);
+    padding-left: auto;
+    float: right;
+    margin-bottom: unset;
+}
+
+

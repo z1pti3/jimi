@@ -1,0 +1,211 @@
+/* Sidebar */
+#sidebar-wrapper{
+    z-index:1;
+    position: absolute;
+    width: 80px;
+    height:100%;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    background: #111111;
+    opacity:0.9;
+    transition:all .1s;
+    display:flex;
+    padding-top: 150px;
+  }
+  
+  #menu-toggle{
+      font-size:2em;
+  }
+  /* Change the width of the sidebar to display it*/
+  #wrapper.menuDisplayed #sidebar-wrapper{
+    width:250px;
+  }
+  
+  #wrapper.menuDisplayed #page-content-wrapper{
+    padding-left:250px;
+  }
+
+  #wrapper.menuDisplayed .sidebar_item{
+    opacity: 1;
+  }
+
+  #wrapper .btn{
+    height: 35px;
+  }
+
+  #wrapper.menuDisplayed .btn{
+    color: #ddd;
+    height: 35px;
+  }
+
+  #wrapper.menuDisplayed .sidebar_button{
+    opacity: 1;
+  }
+  
+  /* Sidebar styling */
+  .sidebar-nav{
+    padding: 1px;
+    list-style:none; 
+    width:100%;
+    text-align: center;
+  }
+  
+  .sidebar-nav li{
+    line-height:40px;  
+    width:100%;
+    padding:10px;
+  }
+  
+  .sidebar-nav li a {
+    display:block;
+    text-decoration:none;
+    color:#ddd;
+  }
+  
+  #collapse_sidebar li:hover{
+    background:#220433;
+  }
+  
+  #collapse_sidebar {
+    padding-top: 10px;
+    position: absolute;
+    display: inline-block;
+    top: 0;
+    text-align: left;
+}
+
+.sidebar_item {
+    transition:all .1s;
+    opacity: 1;
+}
+
+.sidebar-dropdown-menu {
+    background: #111111;
+}
+
+/* Main Content */
+#page-content-wrapper{
+  width: 100%;	
+  transition:all .1s;
+  padding-left: 80px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-background {
+    background:#111111;
+    opacity:0.9;
+    padding: 0px 7px 7px 0px;
+    height: 100%;
+    width: 100%;
+    min-height: 0;
+}
+
+.page-content {
+    background: white;
+    overflow-y: auto;
+    border: black;
+    border-width: 2px;
+    border-style: solid;
+    height: 100%;
+    width: 100%;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+}
+
+.header-panel {
+    background: #111111;
+    opacity:0.9;
+    height: 80px;
+    text-align: left;
+    width: 100%;
+    min-height: 0;
+    color: white;
+    padding: 0;
+}
+
+.footer-panel {
+    background: #111111;
+    opacity:0.9;
+    height: 20px;
+    text-align: center;
+    width: 100%;
+    min-height: 0;
+    color: white;
+    padding: 0;
+    font-size: xx-small;
+}
+
+#wrapper {
+    height: 100%;
+}
+
+.nav-header {
+    margin: 4px;
+    color: white;
+    text-align: center;
+}
+
+.search-dropdown-menu-results {
+    max-height: 300px;
+    width: 250px;
+    overflow: auto;
+}
+
+.search-dropdown-menu-results li {
+    padding: 0 0 0 5px;
+    margin: 0;
+    font-size: small;
+}
+
+.search-dropdown-menu-results li:hover {
+    background:#220433;
+}
+
+.content-frame {
+  border: 0;
+  height: 100%;
+  left: 0;
+  top: 0;
+  width: 100%;
+}
+
+.disable-animations * {
+  /* CSS transitions */
+  -o-transition-property: none !important;
+  -moz-transition-property: none !important;
+  -webkit-transition-property: none !important;
+  transition-property: none !important;
+  /* CSS transforms */
+  -o-transform: none !important;
+  -moz-transform: none !important;
+  -webkit-transform: none !important;
+  transform: none !important;
+  /* CSS animations */
+  -webkit-animation: none !important;
+  -moz-animation: none !important;
+  -o-animation: none !important;
+  animation: none !important;
+}
+
+.tab-body {
+  height:200px;
+  width:200px;
+  padding:15px;
+  border:1px solid black;
+  max-height:200px;
+}
+
+.tab-content>.tab-pane {
+display: block;
+width: 0;
+height: 0;
+}
+
+.tab-content>.active {
+display: block;
+width: initial;
+height: initial;
+}
