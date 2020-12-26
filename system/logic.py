@@ -53,13 +53,11 @@ def logicProcess(statement):
         elif statement[2] == "not in":
             return (statement[0] not in statement[1])
         elif statement[2].startswith("match"):
-            statement[1] = statement[2].split("\"")[1]
             if re.search(statement[1],statement[0]):
                 return True
             else:
                 return False
         elif statement[2].startswith("not match"):
-            statement[1] = statement[2].split("\"")[1]
             if re.search(statement[1],statement[0]):
                 return False
             else:
