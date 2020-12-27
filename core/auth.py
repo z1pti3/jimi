@@ -12,6 +12,8 @@ from pathlib import Path
 from Crypto.Cipher import AES, PKCS1_OAEP # pycryptodome
 from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
 
 # Example ACL stored with object
 # "acl" : { "ids" : [ { "accessID" : "", "read" : False, "write" : False, "delete" : False } ], "fields" : [ { "field" : "passwordHash", "ids" : [ { "accessID" : "", "read" : False, "write" : False, "delete" : False } ] } ] }
@@ -97,6 +99,9 @@ with open(Path(authSettings["rsa"]["cert"])) as f:
 with open(Path(authSettings["rsa"]["key"])) as f:
   sessionPrivateKey = f.read()
 
+public_key = serialization.load_pem_public_key( sessionPublicKey.encode(), backend=default_backend() )
+private_key = serialization.load_pem_private_key( sessionPrivateKey.encode(), password=None, backend=default_backend() )
+
 requiredhType = "j1"
 
 def meetsPasswordPolicy(password):
@@ -175,15 +180,15 @@ def generateSession(dataDict):
     dataDict["expiry"] = time.time() + authSettings["sessionTimeout"]
     if "CSRF" not in dataDict:
         dataDict["CSRF"] = secrets.token_urlsafe(16)
-    return jwt.encode(dataDict, sessionPrivateKey.encode(), algorithm="RS256")
+    return jwt.encode(dataDict, private_key, algorithm="RS256")
 
 def generateSystemSession():
     data = { "expiry" : time.time() + 10, "admin" : True, "_id" : 0, "user" : "system", "primaryGroup" : 0, "authenticated" : True, "api" : True }
-    return jwt.encode(data, sessionPrivateKey.encode(), algorithm="RS256")
+    return jwt.encode(data, private_key, algorithm="RS256")
 
 def validateSession(sessionToken):
     try:
-        dataDict = jwt.decode(sessionToken, sessionPublicKey.encode(), algorithm="RS256")
+        dataDict = jwt.decode(sessionToken, public_key, algorithms=["RS256"])
         if dataDict["authenticated"]:
             if dataDict["expiry"] < time.time():
                 return None
