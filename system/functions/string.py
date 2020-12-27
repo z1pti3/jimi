@@ -1,5 +1,5 @@
 def contains(string,contents):
-    return string in contents
+    return contents in string
 
 def split(string,spliton,position):
     return string.split(spliton)[position]

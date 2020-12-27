@@ -443,8 +443,7 @@ def setConductFlowLogic(conductID,flowID,nextflowID):
 # 					trigger._trigger().api_delete(query={ "_id" : { "$in" : unusedTriggerObjectsIds } })
 # 					return { },200
 # 				return render_template("cleanupObjects.html", unusedActionObjects=unusedActionObjects, unusedTriggerObjects=unusedTriggerObjects, CSRF=api.g.sessionData["CSRF"])
-# 	return { }, 404
-	
+# 	return { }, 404	
 
 api.startServer(debug=True, use_reloader=False, host=apiSettings["bind"], port=apiSettings["port"], threaded=True)
 

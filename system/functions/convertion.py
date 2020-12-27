@@ -21,5 +21,7 @@ def upper(string):
 def toJson(string):
     return json.loads(string)
 
-def fromJson(j):
+def fromJson(j,indent=False):
+    if indent:
+       return "\"{0}\"".format(json.dumps(j,indent = 3))
     return "\"{0}\"".format(json.dumps(j))

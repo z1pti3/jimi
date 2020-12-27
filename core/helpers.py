@@ -82,6 +82,8 @@ def evalDict(varDict,dicts={},functionSafeList=functionSafeList):
                 result[key] = evalDict(value,dicts,functionSafeList)
             else:
                 result[key].update(evalDict(value,dicts,functionSafeList))
+        elif type(value) is list:
+            result[key] = evalList(value,dicts,functionSafeList)
         else:
             result[key] = varDict[key]
     return result
