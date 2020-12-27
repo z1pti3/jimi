@@ -22,6 +22,8 @@ class _scheduler:
             self.lastHandle = now
             # Adds defined delay onto nextCheck so that it can pickup ones that would otherwise wait for after the pause
             for t in trigger._trigger().getAsClass(query={ "systemID" : systemSettings["systemID"], "$or" : [ {"nextCheck" : { "$lt" :  (now + schedulerSettings["loopP"])}}, {"$or" : [ {"nextCheck" : { "$eq" : ""}} , {"nextCheck" : {"$eq" : None }} ] } ], "enabled" : True, "startCheck" :  0, "$and":[{"schedule" : {"$ne" : None}} , {"schedule" : {"$ne" : ""}} ] }):
+                if t.schedule == "*":
+                    t.nextCheck == 1  
                 if t.nextCheck == 0:
                     t.nextCheck = getSchedule(t.schedule)
                     t.update(["nextCheck"]) 
@@ -31,7 +33,10 @@ class _scheduler:
                     maxDuration = 60
                     if type(t.maxDuration) is int and t.maxDuration > 0:
                         maxDuration = t.maxDuration
-                    t.workerID = workers.workers.new("trigger:{0}".format(t._id),t.checkHandler,(),maxDuration=maxDuration,multiprocessing=t.threaded)
+                    if t.schedule == "*":
+                        t.workerID = workers.workers.new("continuousTrigger:{0}".format(t._id),continuous,(t,),maxDuration=0,multiprocessing=t.threaded)
+                    else:
+                        t.workerID = workers.workers.new("trigger:{0}".format(t._id),t.checkHandler,(),maxDuration=maxDuration,multiprocessing=t.threaded)
                     t.update(["startCheck","workerID","attemptCount"])       
             # pause
             time.sleep(schedulerSettings["loopP"])
@@ -77,6 +82,13 @@ def getSchedule(scheduleString):
                 return None
             return int(value.timestamp())
     return None
+
+def continuous(t):
+    startTime = time.time()
+    while t.enabled:
+        t.checkHandler()
+        if time.time() - startTime > 60:
+            t.refresh() 
 
 def start():
     global scheduler
