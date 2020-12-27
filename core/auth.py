@@ -178,7 +178,7 @@ def generateSession(dataDict):
     return jwt.encode(dataDict, sessionPrivateKey.encode(), algorithm="RS256")
 
 def generateSystemSession():
-    data = { "expiry" : time.time() + 10, "admin" : True, "_id" : 0, "primaryGroup" : 0, "authenticated" : True, "api" : True }
+    data = { "expiry" : time.time() + 10, "admin" : True, "_id" : 0, "user" : "system", "primaryGroup" : 0, "authenticated" : True, "api" : True }
     return jwt.encode(data, sessionPrivateKey.encode(), algorithm="RS256")
 
 def validateSession(sessionToken):
