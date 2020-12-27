@@ -212,7 +212,7 @@
                 for ( plugin in result["result"] ) {
                     listItem = $("<li>")
                     address = $("<a>")
-                    address.attr({"onclick": "navigate('"+result["result"][plugin]+"','/plugin/"+result["result"][plugin]+"')"});
+                    address.attr({"onclick": "navigate('"+result["result"][plugin]+"','/plugin/"+result["result"][plugin]+"/')"});
                     address.attr({"href":"#"})
                     address.text(result["result"][plugin])
                     listItem.append(address)
