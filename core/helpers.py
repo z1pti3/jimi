@@ -283,6 +283,14 @@ def unicodeEscapeDict(dictVar):
         newKey = key.replace(".","\\u002E").replace("$","\\u0024")
         if type(value) is dict:
             resultItem[newKey] = unicodeEscapeDict(value)
+        elif type(value) is list:
+            newList = []
+            for item in value:
+                if type(item) is dict:
+                    newList.append(unicodeEscapeDict(item))
+                else:
+                    newList.append(item)
+            resultItem[newKey] = newList
         else:
             resultItem[newKey] = value
     return resultItem
@@ -293,6 +301,14 @@ def unicodeUnescapeDict(dictVar):
         newKey = key.replace("\\u002E",".").replace("\\u0024","$")
         if type(value) is dict:
             resultItem[newKey] = unicodeUnescapeDict(value)
+        elif type(value) is list:
+            newList = []
+            for item in value:
+                if type(item) is dict:
+                    newList.append(unicodeUnescapeDict(item))
+                else:
+                    newList.append(item)
+            resultItem[newKey] = newList
         else:
             resultItem[newKey] = value
     return resultItem
