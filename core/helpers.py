@@ -26,7 +26,7 @@ regexFunction = re.compile("^([a-zA-Z0-9]*)\(.*\)")
 regexFunctionOpen = re.compile("^([a-zA-Z0-9]*)\(.*")
 regexCommor = re.compile(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")
 regexInt = re.compile("^(-|)[0-9]+$")
-regexFloat = re.compile("^[0-9]+\.[0-9]+$")
+regexFloat = re.compile("^(-|)[0-9]+\.[0-9]+$")
 regexString = re.compile("^\".*\"$")
 
 systemProperties = ["classID","workerID","acl","scope","lastUpdateTime","creationTime","createdBy","attemptCount","autoRestartCount","clusterSet","systemID","startCheck","scope"]
@@ -135,6 +135,9 @@ def typeCast(varString,dicts={},functionSafeList=functionSafeList):
             return True
         if lower == "false":
             return False
+        # None
+        if lower == "none":
+            return None
         # Dict
         if regexDict.search(varString):
             return getDictValue(varString,dicts)
