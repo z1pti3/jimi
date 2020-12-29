@@ -1,5 +1,8 @@
 import time
 import re
+import inspect
+import textwrap
+import ast
 
 from core import db, function, cache
 
@@ -80,6 +83,29 @@ class _action(db._document):
             audit._audit().add("action","action start",{ "conductID" : helpers.dictValue(data,"conductID"), "conductName" : helpers.dictValue(data,"conductName"), "triggerName" : helpers.dictValue(data,"triggerName"), "triggerID" : helpers.dictValue(data,"triggerID"), "flowD" : helpers.dictValue(data,"flowID"), "actionID" : self._id, "actionName" : self.name, "data" : data, "actionResult" : actionResult })
         if logging.debugEnabled:
             logging.debug("Action run started, actionID='{0}', data='{1}'".format(self._id,data),7)
+
+    # BETA function to support SSH python remote functions ( this is because we do not want to extent jimi fully onto remote systems and this gives devs a helper function for running locally and remotely auto handled)
+    # This needs addition work and possible rework using pools??????? - Good starting port for additional flex
+    def runRemoteFunction(self,persistentData,functionCall,functionInputDict):
+        if hasattr(self,"runRemote"):
+            if self.runRemote:
+                if "remote" in persistentData:
+                    if "client" in persistentData["remote"]:
+                        functionStr = inspect.getsource(functionCall)
+                        # Attempts to remove any indents up to 10
+                        for x in range(0,10):
+                            if functionStr[:3] == "def":
+                                break
+                            functionStr = textwrap.dedent(functionStr)
+                        functionStr=functionStr.replace("(self,functionInputDict)","(functionInputDict)") + "\nprint({0}({1}))".format(functionCall.__name__,functionInputDict)
+                        client = persistentData["remote"]["client"]
+                        exitCode, stdout, stderr = client.command("python3 -c \"import sys;exec(sys.argv[1].replace('\\\\\\n','\\\\n'))\" \"{0}\"".format(functionStr.replace("\n","\\\\n").replace("\"","\\\"")),elevate=True)
+                        stdout = "\n".join(stdout)
+                        stderr = "\n".join(stderr)
+                        if exitCode == 0:
+                            return ast.literal_eval(stdout.split("\n")[-2])
+                        return { "error" : "Remote function failed", "stdout" : stdout, "stderr" : stderr, "exitCode" : exitCode }
+        return functionCall(functionInputDict)
 
     def run(self,data,persistentData,actionResult):
         actionResult["result"] = True
