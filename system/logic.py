@@ -6,7 +6,7 @@ def ifEval(logicString,dicts={},debug=False):
     functionSafeList = function.systemFunctions
     if "if " == logicString[:3]:
         tempLogic = logicString[3:]
-        logicMatches = re.finditer(r'((\"(.*?[^\\])\"|([a-zA-Z0-9]+(\[(.*?)\])+)|([a-zA-Z0-9]+(\((.*?)(\)\)|\)))+)|\[(.*?)\]|([a-zA-Z0-9]*)))\s?( not match | match | not in | in |==|!=|>=|>|<=|<)\s?((\"(.*?[^\\])\"|([a-zA-Z0-9]+(\[(.*?)\])+)|([a-zA-Z0-9]+(\((.*?)(\)\)|\)))+)|\[(.*?)\]|([a-zA-Z0-9]*)))',tempLogic)
+        logicMatches = re.finditer(r'((\"(.*?[^\\])\"|([a-zA-Z0-9]+(\[(.*?)\])+)|([a-zA-Z0-9]+(\((.*?)(\)\)|\)))+)|\[(.*?)\]|([a-zA-Z0-9]*)))\s?( not match | match | not in | in |==|!=|>=|>|<=|<)\s?((\"(.*?[^\\])\"|([a-zA-Z0-9]+(\[(.*?)\])+)|([a-zA-Z0-9]+(\((.*?)(\)\)|\))( |$))+)|\[(.*?)\]|([a-zA-Z0-9]*)))',tempLogic)
         for index, logicMatch in enumerate(logicMatches, start=1):
             statement = [logicMatch.group(1).strip(),logicMatch.group(14).strip(),logicMatch.group(13).strip()]
             # Cast typing statement vars
