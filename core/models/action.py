@@ -85,6 +85,7 @@ class _action(db._document):
             logging.debug("Action run started, actionID='{0}', data='{1}'".format(self._id,data),7)
 
     # BETA function to support SSH python remote functions ( this is because we do not want to extent jimi fully onto remote systems and this gives devs a helper function for running locally and remotely auto handled)
+    # This needs addition work and possible rework using pools??????? - Good starting port for additional flex
     def runRemoteFunction(self,persistentData,functionCall,functionInputDict):
         if hasattr(self,"runRemote"):
             if self.runRemote:
