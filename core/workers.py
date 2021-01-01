@@ -122,7 +122,6 @@ class workerHandler:
                     if logging.debugEnabled:
                         logging.debug("Threaded worker killed, workerID={0}".format(self.id))
                     systemTrigger.failedTrigger(self.id,"triggerKilled")
-                    systemTrigger.failedTrigger(self.id,"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
                 else:
                     self.resultException = e
             except Exception as e:
