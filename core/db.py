@@ -5,6 +5,16 @@ import copy
 from bson.objectid import ObjectId
 from threading import Lock
 
+# NOTE
+# db class is a helper to expose some functions of mongoDB in an easy to use rapid dev way, this does not mean you
+# have to use this helper for everything as the mongoDB driver is also exposed as self._dbcollection for your raw access needs.
+# Remember if you go down the raw route you have to handle ACL yourself!!
+
+# TODO
+# Enable paging by default
+# Support mongoDB sub document field selection i.e. data.type.name
+# Add partial class loading and partial dict update support e.g. $pull, $push   
+
 # DB Document Class
 class _document():
     _id = str()
