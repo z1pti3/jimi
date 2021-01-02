@@ -7,7 +7,7 @@ import string
 from core import db
 
 # Current System Version
-systemVersion = 1.9
+systemVersion = 1.81
 
 # Initialize 
 dbCollectionName = "system"
@@ -245,7 +245,7 @@ def systemUpgrade(currentVersion):
 				pluginClass.upgradeHandler()
 		return True
 
-	if currentVersion < 1.8:
+	if currentVersion < 1.81:
 		model.registerModel("storage","_storage","_document","core.storage")
 
 	if currentVersion < 1.62:
