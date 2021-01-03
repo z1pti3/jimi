@@ -368,8 +368,10 @@ def getConductFlowCodify(conductID):
         processQueue = []
         indentLevel = 0
         logic = None
+        backLoopDetectionList = []
         while True:
             if currentFlow:
+                backLoopDetectionList.append(currentFlow["flowID"])
                 obj = None
                 if currentFlow["type"] == "trigger":
                     for t in triggers:
@@ -377,14 +379,16 @@ def getConductFlowCodify(conductID):
                             obj = t
                             break
                     for nextFlow in currentFlow["next"]:
-                        processQueue.append({ "flowID" : nextFlow["flowID"], "indentLevel": indentLevel+1, "logic" : nextFlow["logic"] })
+                        if nextFlow["flowID"] not in backLoopDetectionList:
+                            processQueue.append({ "flowID" : nextFlow["flowID"], "indentLevel": indentLevel+1, "logic" : nextFlow["logic"] })
                 elif currentFlow["type"] == "action":
                     for a in actions:
                         if currentFlow["actionID"] == a._id:
                             obj = a
                             break
                     for nextFlow in currentFlow["next"]:
-                        processQueue.append({ "flowID" : nextFlow["flowID"], "indentLevel": indentLevel+1, "logic" : nextFlow["logic"] })
+                        if nextFlow["flowID"] not in backLoopDetectionList:
+                            processQueue.append({ "flowID" : nextFlow["flowID"], "indentLevel": indentLevel+1, "logic" : nextFlow["logic"] })
                 if obj:
                     classObj = _class = model._model().getAsClass(api.g.sessionData,id=obj.classID)
                     classObj = classObj[0]
