@@ -7,7 +7,7 @@ import string
 from core import db
 
 # Current System Version
-systemVersion = 1.8
+systemVersion = 1.81
 
 # Initialize 
 dbCollectionName = "system"
@@ -196,6 +196,9 @@ def systemInstall():
 	# Adding model for plugins
 	model.registerModel("plugins","_plugin","_document","core.plugin")
 
+	# Adding model for fileStorage
+	model.registerModel("storage","_storage","_document","core.storage")
+
 	from core import auth
 
 	# Adding models for user and groups
@@ -241,6 +244,9 @@ def systemUpgrade(currentVersion):
 				pluginClass = pluginClass[0]
 				pluginClass.upgradeHandler()
 		return True
+
+	if currentVersion < 1.81:
+		model.registerModel("storage","_storage","_document","core.storage")
 
 	if currentVersion < 1.62:
 		from core.models import trigger
