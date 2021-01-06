@@ -105,7 +105,7 @@ class _conduct(db._document):
     def flowHandler(self,currentFlow,flowDict,data,persistentData=None):
         processQueue = []
         if not persistentData:
-            persistentData = { "system" : { "conduct" : self } }
+            persistentData = { "system" : { "conduct" : self }, "plugin" : { } }
         data["conductID"] = self._id
         data["action"] = { "result" : True, "rc" : 1337 }
         flowObjectsUsed = []
