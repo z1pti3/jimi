@@ -21,3 +21,6 @@ def concat(*args):
 
 def strLower(string):
     return string.lower()
+
+def replace(string,match,replacement):
+    return string.replace(match,replacement)

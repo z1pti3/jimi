@@ -168,7 +168,8 @@ def typeCast(varString,dicts={},functionSafeList=functionSafeList):
                                 index += 1
                             else:
                                 tempArg += functionValue[index]
-                                if functionValue[index-1] != "\\" and functionValue[index-2] != "\\":
+                                if (functionValue[index-1] != "\\") or (functionValue[index-1] == "\\" and functionValue[index-2] == "\\"):
+                                    tempArg = tempArg.replace("\\\\","\\")
                                     break
                                 index += 1
                     elif functionValue[index] == "[":
