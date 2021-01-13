@@ -272,7 +272,7 @@ if api.webServer:
             #api.g = { "sessionData" : {}, "sessionToken": "", "type" : "" }
             if authSettings["enabled"]:
                 noAuthEndPoints = ["static","staticFile","loginPage","api_validateUser","api_validateAPIKey"]
-                if api.request.endpoint not in noAuthEndPoints and not "__PUBLIC__" in api.request.endpoint:
+                if api.request.endpoint != None and api.request.endpoint not in noAuthEndPoints and "__PUBLIC__" not in api.request.endpoint:
                     validSession = None
                     if "jimiAuth" in api.request.cookies:
                         validSession = validateSession(api.request.cookies["jimiAuth"])
