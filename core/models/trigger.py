@@ -72,7 +72,7 @@ class _trigger(db._document):
         setattr(self,attr,value)
         return True
 
-    def notify(self,events=[],var=None,plugin=None,callingTriggerID=None):
+    def notify(self,events=[],var=None,plugin=None,callingTriggerID=None,persistentData=None):
         if events:
             if self.log:
                 notifyStartTime = time.time()
@@ -105,9 +105,9 @@ class _trigger(db._document):
                             audit._audit().add("trigger","notify call",{ "triggerID" : self._id, "conductID" : loadedConduct._id, "conductName" : loadedConduct.name, "name" : self.name, "data" : data })
 
                         if eventHandler:
-                            eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerHandler,(self._id,data),maxDuration=maxDuration)
+                            eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerHandler,(self._id,data,False,False,persistentData),maxDuration=maxDuration)
                         else:
-                            loadedConduct.triggerHandler(self._id,data)
+                            loadedConduct.triggerHandler(self._id,data,False,False,persistentData)
 
                         # CPU saver
                         cpuSaver.tick()
