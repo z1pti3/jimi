@@ -49,7 +49,7 @@ class _document():
             self.creationTime = int(time.time())
             if sessionData:
                 self.createdBy = sessionData["_id"]
-            result = self._dbCollection.insert_one(self.parse())
+            result = self._dbCollection.insert_one(helpers.unicodeEscapeDict(self.parse()))
             self._id = result.inserted_id
             return result
         else:
@@ -112,7 +112,11 @@ class _document():
 
             update = { "$set" : {} }
             for field in fields:
-                update["$set"][field] = getattr(self,field)
+                value = getattr(self,field)
+                if type(value) is dict:
+                    value = helpers.unicodeEscapeDict(value)
+                update["$set"][field] = value
+
             result = updateDocumentByID(self._dbCollection,self._id,update)
             return result
         return False
@@ -130,7 +134,10 @@ class _document():
 
         update = { "$set" : {} }
         for field in fields:
-            update["$set"][field] = getattr(self,field)
+            value = getattr(self,field)
+            if type(value) is dict:
+                value = helpers.unicodeEscapeDict(value)
+            update["$set"][field] = value
 
         bulkClass.newBulkOperaton(self._dbCollection.name,"update",{"_id" : self._id, "update" : update})
 
@@ -154,7 +161,10 @@ class _document():
             self.lastUpdateTime = time.time()
             update = { "$set" : {} }
             for field in fields:
-                update["$set"][field] = getattr(self,field)
+                value = getattr(self,field)
+                if type(value) is dict:
+                    value = helpers.unicodeEscapeDict(value)
+                update["$set"][field] = value
         else:
             update = fields
 
@@ -186,7 +196,7 @@ class _document():
 
     @mongoConnectionWrapper
     def insert_one(self,data):
-        self._dbCollection.insert_one(data)
+        self._dbCollection.insert_one(helpers.unicodeEscapeDict(data))
 
     def getAttribute(self,attr,sessionData=None):
         if not sessionData or fieldACLAccess(sessionData,self.acl,attr,accessType="read"):
@@ -352,6 +362,7 @@ class _document():
             except Exception as e:
                 if logging.debugEnabled:
                     logging.debug("Error {0}".format(e))
+
         result = self._dbCollection.update_many(query,update)
         return { "result" : True, "count" :  result.modified_count }
 
@@ -415,7 +426,7 @@ class _bulk():
             # Insert
             bulkInsert = []
             for insert in bulkOperatonMethod["insert"]:
-                bulkInsert.append(insert.parse())
+                bulkInsert.append(helpers.unicodeEscapeDict(insert.parse()))
                 cpuSaver.tick()
             if len(bulkInsert) > 0:
                 collection = db[bulkOperatonCollection]
@@ -436,7 +447,7 @@ class _bulk():
             if len(bulkOperatonMethod["upsert"]) > 0:
                 upsertArray = []
                 for upsert in bulkOperatonMethod["upsert"]:
-                    upsertArray.append(pymongo.UpdateOne(upsert[0], upsert[1],upsert=True))
+                    upsertArray.append(pymongo.UpdateOne(upsert[0], upsert[1], upsert=True))
                     cpuSaver.tick()
                 bulkUpdate = db[bulkOperatonCollection].bulk_write(upsertArray)
                 bulkOperatonMethod["upsert"] = []
