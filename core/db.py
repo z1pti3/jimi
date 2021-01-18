@@ -49,7 +49,7 @@ class _document():
             self.creationTime = int(time.time())
             if sessionData:
                 self.createdBy = sessionData["_id"]
-            result = self._dbCollection.insert_one(self.parse())
+            result = self._dbCollection.insert_one(helpers.unicodeEscapeDict(self.parse()))
             self._id = result.inserted_id
             return result
         else:
@@ -112,8 +112,11 @@ class _document():
 
             update = { "$set" : {} }
             for field in fields:
-                update["$set"][field] = getattr(self,field)
-            update = helpers.unicodeEscapeDict(update)
+                value = getattr(self,field)
+                if type(value) is dict:
+                    value = helpers.unicodeEscapeDict(value)
+                update["$set"][field] = value
+
             result = updateDocumentByID(self._dbCollection,self._id,update)
             return result
         return False
@@ -131,9 +134,10 @@ class _document():
 
         update = { "$set" : {} }
         for field in fields:
-            update["$set"][field] = getattr(self,field)
-
-        update = helpers.unicodeEscapeDict(update)
+            value = getattr(self,field)
+            if type(value) is dict:
+                value = helpers.unicodeEscapeDict(value)
+            update["$set"][field] = value
 
         bulkClass.newBulkOperaton(self._dbCollection.name,"update",{"_id" : self._id, "update" : update})
 
@@ -157,11 +161,12 @@ class _document():
             self.lastUpdateTime = time.time()
             update = { "$set" : {} }
             for field in fields:
-                update["$set"][field] = getattr(self,field)
+                value = getattr(self,field)
+                if type(value) is dict:
+                    value = helpers.unicodeEscapeDict(value)
+                update["$set"][field] = value
         else:
             update = fields
-
-        update = helpers.unicodeEscapeDict(update)
 
         bulkClass.newBulkOperaton(self._dbCollection.name,"upsert",[query,update])
         
@@ -434,7 +439,7 @@ class _bulk():
             if len(bulkOperatonMethod["update"]) > 0:
                 bulkUpdate = db[bulkOperatonCollection].initialize_unordered_bulk_op()
                 for update in bulkOperatonMethod["update"]:
-                    bulkUpdate.find({ "_id" : ObjectId(update["_id"]) }).update_one(helpers.unicodeEscapeDict(update["update"]))
+                    bulkUpdate.find({ "_id" : ObjectId(update["_id"]) }).update_one(update["update"])
                     cpuSaver.tick()
                 bulkUpdate.execute()
                 bulkOperatonMethod["insert"] = []
@@ -442,7 +447,7 @@ class _bulk():
             if len(bulkOperatonMethod["upsert"]) > 0:
                 upsertArray = []
                 for upsert in bulkOperatonMethod["upsert"]:
-                    upsertArray.append(pymongo.UpdateOne(upsert[0], helpers.unicodeEscapeDict(upsert[1]), upsert=True))
+                    upsertArray.append(pymongo.UpdateOne(upsert[0], upsert[1], upsert=True))
                     cpuSaver.tick()
                 bulkUpdate = db[bulkOperatonCollection].bulk_write(upsertArray)
                 bulkOperatonMethod["upsert"] = []
