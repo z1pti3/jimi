@@ -3,7 +3,7 @@ import time, json
 from pathlib import Path
 from bson import json_util,ObjectId
 
-from core import db
+from core import db, helpers
 
 # Initialize 
 
@@ -44,7 +44,7 @@ class _audit(db._document):
                 if "000000000001010000000000" in eventData["conductID"]:
                     writeLog = True
                 if writeLog:
-                    result = self._dbCollection.insert_one(auditData)
+                    result = self._dbCollection.insert_one(helpers.unicodeEscapeDict(auditData))
         except KeyError:
             pass
         try:
