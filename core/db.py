@@ -362,7 +362,7 @@ class _document():
             except Exception as e:
                 if logging.debugEnabled:
                     logging.debug("Error {0}".format(e))
-        update = helpers.unicodeEscapeDict(update)
+
         result = self._dbCollection.update_many(query,update)
         return { "result" : True, "count" :  result.modified_count }
 
