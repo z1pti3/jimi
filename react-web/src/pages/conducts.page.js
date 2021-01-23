@@ -6,7 +6,7 @@ import ConductList from "./../components/conductList.component"
 
 import "./conducts.page.css"
 
-export default class Conducts extends Component {
+export default class ConductsPage extends Component {
     constructor(props) {
         super(props);
         this.state = {

@@ -7,15 +7,16 @@ import PublicRoute from './../utils/publicRoute';
 import PrivateRoute from './../utils/privateRoute';
 import {Login, Logout} from './login.component';
 
-import Status from '../pages/status.page';
-import MyAccount from '../pages/myAccount.page'; 
-import Conducts from '../pages/conducts.page'; 
-import Conduct from '../pages/conduct.page'; 
-import ConductSettings from '../pages/conductSettings.page'; 
-import Plugins from '../pages/plugins.page'; 
-import Plugin from '../pages/plugin.page'; 
-import ModelEditor from '../pages/modelEditor.page'; 
-import Codify from '../pages/codify.page'; 
+import StatusPage from '../pages/status.page';
+import MyAccountPage from '../pages/myAccount.page'; 
+import ConductsPage from '../pages/conducts.page'; 
+import ConductPage from '../pages/conduct.page'; 
+import ConductSettingsPage from '../pages/conductSettings.page'; 
+import PluginsPage from '../pages/plugins.page'; 
+import PluginPage from '../pages/plugin.page'; 
+import ModelEditorPage from '../pages/modelEditor.page'; 
+import CodifyPage from '../pages/codify.page'; 
+import AdminPage from '../pages/admin.page'; 
 
 
 
@@ -40,17 +41,17 @@ function Topbar(props) {
             <Switch>
                 <PublicRoute path="/login" component={Login} />
                 <PrivateRoute path="/logout" component={Logout} />
-                <PrivateRoute path="/status" component={Status} />
-                <PrivateRoute path="/conducts" component={Conducts} />
-                <PrivateRoute path="/conduct" component={Conduct} />
-                <PrivateRoute path="/conductSettings" component={ConductSettings} />
-                <PrivateRoute path="/plugins" component={Plugins} />
-                <PrivateRoute path="/plugin" component={Plugin} />
-                <PrivateRoute path="/codify" component={Codify} />
-                <PrivateRoute path="/modelEditor" component={ModelEditor} />
-                <PrivateRoute path="/myAccount" component={MyAccount} />
-                <PrivateRoute path="/administration" component={Status} />
-                <PrivateRoute path="/" component={Status} />
+                <PrivateRoute path="/status" component={StatusPage} />
+                <PrivateRoute path="/conducts" component={ConductsPage} />
+                <PrivateRoute path="/conduct" component={ConductPage} />
+                <PrivateRoute path="/conductSettings" component={ConductSettingsPage} />
+                <PrivateRoute path="/plugins" component={PluginsPage} />
+                <PrivateRoute path="/plugin" component={PluginPage} />
+                <PrivateRoute path="/codify" component={CodifyPage} />
+                <PrivateRoute path="/modelEditor" component={ModelEditorPage} />
+                <PrivateRoute path="/myAccount" component={MyAccountPage} />
+                <PrivateRoute path="/administration" component={AdminPage} />
+                <PrivateRoute path="/" component={StatusPage} />
             </Switch>
         </BrowserRouter>
     );

@@ -4,7 +4,9 @@ import configData from "./../config/config.json";
 
 import StatusList from "./../components/status.component"
 
-import "./status.page.css"
+import "../components/html.component.css"
+
+import "./admin.page.css"
 
 function apiTriggerStatusRefresh() {
     const requestOptions = {
@@ -22,7 +24,7 @@ function apiTriggerStatusRefresh() {
     return triggers
 }
 
-export default class StatusPage extends Component {
+export default class AdminPage extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -49,13 +51,22 @@ export default class StatusPage extends Component {
     render() {
         return (
             <div className="pageContent1">
-                <h1>Trigger Status:</h1>
+                <h1>Controls:</h1>
+                <hr/>
+                <button className="btn btn-primary btn-block button medium marSmall" onClick={this.NewConduct}>Clear Cache</button>
                 <br/>
-                <div className="pageCenter-outer">
-                    <div className="pageCenter-inner">
-                        <StatusList triggers={this.state.triggers} />
-                    </div>
-                </div>
+                <button className="btn btn-primary btn-block button medium marSmall" onClick={this.NewConduct}>Clear StartChecks</button>
+                <br/>
+                <button className="btn btn-primary btn-block button medium marSmall" onClick={this.NewConduct}>Redistribute Cluster</button>
+                <br/>
+                <button className="btn btn-primary btn-block button medium marSmall" onClick={this.NewConduct}>Backup</button>
+                <br/>
+                <button className="btn btn-primary btn-block button medium marSmall" onClick={this.NewConduct}>Delete Unused Objects</button>
+                <br/>
+                <br/>
+                <h1>Cluster Status:</h1>
+                <hr/>
+                <br/>
             </div>
         );
     }

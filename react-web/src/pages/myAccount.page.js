@@ -7,7 +7,7 @@ import configData from "./../config/config.json";
 import "./../components/html.component.css"
 import "./myAccount.page.css"
 
-export default class MyAccount extends Component {
+export default class MyAccountPage extends Component {
     constructor(props) {
         super(props);
         this.state = {

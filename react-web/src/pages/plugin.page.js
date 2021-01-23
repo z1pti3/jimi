@@ -4,7 +4,7 @@ import configData from "./../config/config.json";
 
 import "./plugin.page.css"
 
-export default class Plugin extends Component {
+export default class PluginPage extends Component {
     constructor(props) {
         super(props);
         this.state = {

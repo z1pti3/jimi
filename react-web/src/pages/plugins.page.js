@@ -6,7 +6,7 @@ import PluginList from "./../components/pluginList.component"
 
 import "./plugins.page.css"
 
-export default class Plugins extends Component {
+export default class PluginsPage extends Component {
     constructor(props) {
         super(props);
         this.state = {

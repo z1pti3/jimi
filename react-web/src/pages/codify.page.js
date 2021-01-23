@@ -4,7 +4,7 @@ import configData from "../config/config.json";
 
 import "./codify.page.css"
 
-export default class Codify extends Component {
+export default class CodifyPage extends Component {
     constructor(props) {
         super(props);
     }

@@ -4,7 +4,7 @@ import configData from "./../config/config.json";
 
 import "./conduct.page.css"
 
-export default class Conduct extends Component {
+export default class ConductPage extends Component {
     constructor(props) {
         super(props);
         this.state = {

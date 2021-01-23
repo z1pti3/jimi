@@ -4,7 +4,7 @@ import configData from "../config/config.json";
 
 import "./modelEditor.page.css"
 
-export default class ModelEditor extends Component {
+export default class ModelEditorPage extends Component {
     constructor(props) {
         super(props);
     }
