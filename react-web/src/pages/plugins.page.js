@@ -48,8 +48,10 @@ export default class Plugins extends Component {
                     <input type="text" name="filter" className="form-control textbox pluginSearch" placeholder="Search Plugins" onChange={this.change} />
                 </div>
                 <br/>
-                <div>
-                    <PluginList plugins={this.state.plugins} filter={this.state.filter} />
+                <div className="pageCenter-outer">
+                    <div className="pageCenter-inner">
+                        <PluginList plugins={this.state.plugins} filter={this.state.filter} />
+                    </div>
                 </div>
             </div>
         );

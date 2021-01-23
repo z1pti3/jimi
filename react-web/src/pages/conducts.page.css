@@ -1,9 +1,10 @@
 .conductNew {
     width: 125px;
+    margin-left: 10px;
+    margin-top: 10px;
 }
 
 .conductSearch {
-    width: 300px;
-    margin-right: 55px;
+    max-width: 425px;
     margin-left: 10px;
 }

@@ -89,7 +89,7 @@ export default class MyAccount extends Component {
 
     render() {
         return !this.state.loading ? (
-            <div className="pageContent1">
+            <div className="pageContent2">
                 <form onSubmit={this.submit}>
                     <h3>Your Details</h3>
                     <br/><br/>
@@ -99,11 +99,13 @@ export default class MyAccount extends Component {
                     </div>                    
                     <div className="form-group">
                         Username:
+                        <br/>
                         <input type="text" name="username" className="form-control textbox" autoComplete="off" value={this.state.username} disabled="true" onChange={this.change} />
                     </div>
 
                     <div className="form-group">
                         Name:
+                        <br/>
                         <input type="text" name="name" className="form-control textbox" autoComplete="off" value={this.state.name} onChange={this.change} />
                     </div>
                     <br/>
@@ -114,14 +116,17 @@ export default class MyAccount extends Component {
                     </div>
                     <div className="form-group">
                         Current Password:
+                        <br/>
                         <input type="password" name="password" className="form-control textbox" autoComplete="off" onChange={this.change} />
                     </div>
                     <div className="form-group">
                         New Password:
+                        <br/>
                         <input type="password" name="password1" className={`form-control textbox ${this.state.msg == "Passwords do not match" ? "alertErrorBorder" : ""}`} autoComplete="off" onChange={this.change} />
                     </div>
                     <div className="form-group">
                         Confirm New Password:
+                        <br/>
                         <input type="password" name="password2" className={`form-control textbox ${this.state.msg == "Passwords do not match" ? "alertErrorBorder" : ""}`} autoComplete="off" onChange={this.change} />
                     </div>
 

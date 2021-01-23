@@ -108,7 +108,7 @@ export default class ConductSettings extends Component {
 
     render() {
         return !this.state.loading ? (
-            <div className="pageContent1">
+            <div className="pageContent2">
                 <form onSubmit={this.submit}>
                     <h3>Conduct Details</h3>
                     <br/><br/>

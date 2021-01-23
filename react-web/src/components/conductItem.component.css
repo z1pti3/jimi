@@ -1,5 +1,5 @@
 .conductItemContainer {
-    width: 500px;
+    width: 100%;
     height: 75px;
     padding: 3px 10px 3px 10px;
     margin: auto;
@@ -10,6 +10,13 @@
     background-color: var(--panelBackgroundColor);
     box-shadow: 0 1px 6px var(--panelShadowColor1), 0 1px 4px var(--panelShadowColor2);
     border-radius: 10px;
+    min-width: 500px;
+}
+
+.conductLeft {
+    padding-right: 10px;
+    float: left;
+    width: calc(100% - 180px);
 }
 
 .conductTitle {
@@ -19,8 +26,11 @@
     font-weight: 500;
     font-size: 22px;
     color: var(--textColor);
-    width: unset;
-    display: inline;
+    width: 100%;
+    display: inline-block;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .conductTitle:hover {
@@ -30,10 +40,16 @@
 .conductRight {
     padding-right: 10px;
     float: right;
+    width: 180px;
+}
+
+.conductRightLinks {
+    padding-top: 25px;
+    padding-bottom: unset;
+    float: right;
 }
 
 .conductDeleteLink {
-    padding-top: 25px;
     line-height: unset;
     font-weight: 300;
     font-size: 12px;
@@ -48,7 +64,6 @@
 }
 
 .conductEditLink {
-    padding-top: 25px;
     line-height: unset;
     font-weight: 300;
     font-size: 12px;
@@ -69,11 +84,14 @@
     font-weight: 300;
     font-size: 12px;
     color: var(--textColor);
+    float: right;
 }
 
 .conductState {
-    margin-top: 15px;
+    margin-top: 10px;
     margin-left: 10px;
+    margin-bottom: unset;
+    margin-right: 0;
     line-height: unset;
     font-weight: 300;
     font-size: 12px;
@@ -81,16 +99,14 @@
 }
 
 .conductRightOptions {
-    padding-top: 25px;
     padding-left: 5px;
     padding-right: 5px;
+    margin-bottom: unset;
     line-height: unset;
     font-weight: 300;
     font-size: 12px;
     color: var(--textColor);
-    padding-left: auto;
     float: right;
-    margin-bottom: unset;
 }
 
 

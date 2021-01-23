@@ -51,7 +51,11 @@ export default class Status extends Component {
             <div className="pageContent1">
                 <h1>Trigger Status:</h1>
                 <br/>
-                <StatusList triggers={this.state.triggers} />
+                <div className="pageCenter-outer">
+                    <div className="pageCenter-inner">
+                        <StatusList triggers={this.state.triggers} />
+                    </div>
+                </div>
             </div>
         );
     }

@@ -17,6 +17,7 @@
 }
 
 #topbar-right {
+    min-width: 350px;
     margin-right: 10px;
     float: right;
     text-align: right;
@@ -62,6 +63,7 @@
     flex-direction: column;
     justify-content: flex-end;
     color: var(--textColor);
+    min-width:110px;
 }
 
 .link:hover {
