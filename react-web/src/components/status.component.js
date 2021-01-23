@@ -8,7 +8,7 @@ function StatusItem(props) {
     const now = Date.now()/1000;
     return (
         <div className="statusItemContainer">
-            <div className={`statusItem ${props.enabled ? "statusItemEnabled" : ""} ${ ((props.startCheck > 0 && props.startCheck + props.maxDuration < now) || props.lastCheck + 2.5 > now) ? "statusItemRunning" : ""} ${props.enabled && props.startCheck > 0 && props.startCheck + props.maxDuration < now  ? "statusItemCrashed" : ""} `} title={props.name}>
+            <div className={`statusItem ${props.enabled ? "statusItemEnabled" : ""} ${ ((props.startCheck > 0 && props.startCheck + props.maxDuration > now) || props.lastCheck + 2.5 > now) ? "statusItemRunning" : ""} ${props.enabled && props.startCheck > 0 && props.startCheck + props.maxDuration < now  ? "statusItemCrashed" : ""} `} title={props.name}>
             </div>       
         </div>
     )
