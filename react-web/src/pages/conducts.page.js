@@ -73,7 +73,7 @@ export default class Conducts extends Component {
         return (
             <div className="pageContent1">
                 <div>
-                    <input type="text" name="filter" className="form-control textbox conductSearch" placeholder="Search conducts" onChange={this.change} />
+                    <input type="text" name="filter" className="form-control textbox conductSearch" placeholder="Search Conducts" onChange={this.change} />
                     <br/>
                     <button className="btn btn-primary btn-block button conductNew" onClick={this.NewConduct}>+ Create New</button>
                 </div>

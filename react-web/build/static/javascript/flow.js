@@ -424,8 +424,9 @@ function setupFlowchart() {
 			improvedLayout: false
 		},
 		interaction: {
-			multiselect: true
-		}
+			multiselect: true,
+			hover: true
+		},
 	};
 	network = new vis.Network(container, data, options);
 
