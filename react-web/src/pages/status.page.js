@@ -23,6 +23,7 @@ function apiTriggerStatusRefresh() {
 }
 
 export default class StatusPage extends Component {
+    timeoutIDTriggerStatus;
     constructor(props) {
         super(props);
         this.state = {
@@ -37,8 +38,12 @@ export default class StatusPage extends Component {
         })
     }
 
+    componentWillUnmount() {
+        clearTimeout(this.timeoutIDTriggerStatus);
+    }
+
     updateTriggers() {
-        setTimeout(() => {
+        this.timeoutIDTriggerStatus = setTimeout(() => {
             apiTriggerStatusRefresh().then(triggers => {
                 this.setState({ triggers : triggers });
                 this.updateTriggers();

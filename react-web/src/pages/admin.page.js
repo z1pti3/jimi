@@ -43,6 +43,8 @@ function apiJobsRefresh() {
 }
 
 export default class AdminPage extends Component {
+    timeoutIDclusterMembers;
+    timeoutIDJobs;
     constructor(props) {
         super(props);
         this.state = {
@@ -68,8 +70,13 @@ export default class AdminPage extends Component {
         this.deleteUnusedObjects = this.deleteUnusedObjects.bind(this);
     }
 
+    componentWillUnmount() {
+        clearTimeout(this.timeoutIDclusterMembers);
+        clearTimeout(this.timeoutIDJobs);
+    }
+
     updateJobs() {
-        setTimeout(() => {
+        this.timeoutIDJobs = setTimeout(() => {
             apiJobsRefresh().then(jobs => {
                 this.setState({ jobs : jobs });
                 this.updateJobs();
@@ -78,7 +85,7 @@ export default class AdminPage extends Component {
     }
 
     updateClusterMembers() {
-        setTimeout(() => {
+        this.timeoutIDclusterMembers = setTimeout(() => {
             apiClusterMembersRefresh().then(clusterMembers => {
                 this.setState({ clusterMembers : clusterMembers });
                 this.updateClusterMembers();
