@@ -51,7 +51,7 @@ export default class AdminPage extends Component {
     render() {
         return (
             <div className="pageContent1">
-                <h1>Controls:</h1>
+                <h1>Controls</h1>
                 <hr/>
                 <button className="btn btn-primary btn-block button medium marSmall" onClick={this.NewConduct}>Clear Cache</button>
                 <br/>
@@ -64,7 +64,7 @@ export default class AdminPage extends Component {
                 <button className="btn btn-primary btn-block button medium marSmall" onClick={this.NewConduct}>Delete Unused Objects</button>
                 <br/>
                 <br/>
-                <h1>Cluster Status:</h1>
+                <h1>Cluster Status</h1>
                 <hr/>
                 <br/>
             </div>

@@ -31,6 +31,40 @@
     border-color: var(--panelComponentBorder);
 }
 
+.textarea {
+    background-color: var(--panelComponentBackground); 
+    color: var(--textColor);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--panelComponentBorder);
+    display:inline;
+    height: 150px !important;
+}
+
+.textarea:disabled {
+    background-color: var(--panelComponentBackground); 
+    color: var(--textDisabledColor);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--panelComponentBorder);
+}
+
+.textarea:focus {
+    background-color: var(--panelComponentBackground-Focus); 
+    color: var(--textColor);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--panelComponentBorder);
+}
+
+.textarea:hover {
+    background-color: var(--panelComponentBackground-Focus); 
+    color: var(--textColor);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--panelComponentBorder);
+}
+
 .button {
     background-color: var(--panelComponentBackground);
     border-color: var(--panelComponentBorder);

@@ -49,7 +49,7 @@ export default class StatusPage extends Component {
     render() {
         return (
             <div className="pageContent1">
-                <h1>Trigger Status:</h1>
+                <h1>Trigger Status</h1>
                 <br/>
                 <div className="pageCenter-outer">
                     <div className="pageCenter-inner">

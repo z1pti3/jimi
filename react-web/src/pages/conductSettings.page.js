@@ -122,7 +122,7 @@ export default class ConductSettingsPage extends Component {
                     </div>
                     <div className="form-group">
                         Comment:
-                        <input type="text" name="comment" className="form-control textbox" autoComplete="off" value={this.state.comment} onChange={this.change} />
+                        <textarea type="text" name="comment" className="form-control textarea" autoComplete="off" value={this.state.comment} onChange={this.change} />
                     </div>
                     <br/>
 
