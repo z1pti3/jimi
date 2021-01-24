@@ -41,6 +41,7 @@
                                         <li><a onclick="navigate('Backups','/admin/backups/')">Backups</a></li>
                                         <li><a onclick="navigate('Cleanup - Objects','/cleanup/')">Cleanup - Objects</a></li>
                                         <li><a onclick="navigate('Clear Cache (ALL)','/clearCache/')">Clear Cache (ALL)</a></li>
+                                        <li><a onclick="navigate('Distribute Cluster','/distributeCluster/')">Distribute Cluster</a></li>
                                     </div>
                                 </ul>
                             </div>
@@ -211,7 +212,7 @@
                 for ( plugin in result["result"] ) {
                     listItem = $("<li>")
                     address = $("<a>")
-                    address.attr({"onclick": "navigate('"+result["result"][plugin]+"','/plugin/"+result["result"][plugin]+"')"});
+                    address.attr({"onclick": "navigate('"+result["result"][plugin]+"','/plugin/"+result["result"][plugin]+"/')"});
                     address.attr({"href":"#"})
                     address.text(result["result"][plugin])
                     listItem.append(address)

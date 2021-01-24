@@ -34,11 +34,9 @@ $(document).ready(function () {
 	})
 });
 
-function saveACLValuesPanel(panel) {
+function saveACLValuesPanel(panel,node) {
 	var conductID = GetURLParameter("conductID")
 	var objectJson = {};
-	selectedNodes = network.getSelectedNodes()
-	node = nodeObjects[selectedNodes[0]]["flowID"]
 	objectJson["uiAcl"] = panel.find("#propertiesPanelUiACLValue").val();
 	objectJson["acl"] = panel.find("#propertiesPanelACLValue").val();
 	objectJson["CSRF"] = CSRF
@@ -48,12 +46,10 @@ function saveACLValuesPanel(panel) {
 	});
 }
 
-function loadACLValuesPanel(panel) {
+function loadACLValuesPanel(panel,node) {
 	// Building properties form
 	var conductID = GetURLParameter("conductID")
 	panel.find("#title").text("Security Settings");
-	selectedNodes = network.getSelectedNodes()
-	node = nodeObjects[selectedNodes[0]]["flowID"]
 	$.ajax({ url: "/conductEditor/"+conductID+"/editACL/"+node, type : "GET", success: function( flowData ) {
 			panel.find("#propertiesPanelUiACLValue").val(JSON.stringify(flowData["uiAcl"]));
 			panel.find("#propertiesPanelACLValue").val(JSON.stringify(flowData["acl"]));
@@ -87,11 +83,11 @@ function createACLValuesPanel(node) {
 		})
 
 		panel.find("#save").click(function () { 
-			saveACLValuesPanel(panel);
+			saveACLValuesPanel(panel,node);
 		})
 
 		panel.find("#refresh").click(function () { 
-			loadACLValuesPanel(panel);
+			loadACLValuesPanel(panel,node);
 		})
 
 		panel.bind("keydown", function (event) { 
@@ -99,14 +95,14 @@ function createACLValuesPanel(node) {
                 switch (String.fromCharCode(event.which).toLowerCase()) {
 				case 's':
 					event.preventDefault();
-					saveACLValuesPanel(panel);
+					saveACLValuesPanel(panel,node);
 					break;
 				}
 			}
 		})
 
 		// Loading properties form
-		loadACLValuesPanel(panel);
+		loadACLValuesPanel(panel,node);
 	
 		// Applying object to UI
 		$('.ui-main').append(panel);

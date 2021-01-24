@@ -356,7 +356,7 @@ if jimi.api.webServer:
                     if jimi.api.g.type != "bypass":
                         if jimi.api.g.type == "cookie":
                             if "renew" in jimi.api.g:
-                                response.set_cookie("jimiAuth", value=generateSession(jimi.api.g.sessionData), max_age=600) # Need to add secure=True before production, httponly=False cant be used due to auth polling
+                                response.set_cookie("jimiAuth", value=generateSession(jimi.api.g.sessionData), max_age=600, httponly=True) # Need to add secure=True before production, httponly=False cant be used due to auth polling
             # Cache Weakness
             if jimi.api.request.endpoint != "static": 
                 response.headers['Cache-Control'] = 'no-cache, no-store'
@@ -392,7 +392,7 @@ if jimi.api.webServer:
                     if userSession:
                         sessionData = validateSession(userSession)["sessionData"]
                         response = jimi.api.make_response({ "CSRF" : sessionData["CSRF"] },200)
-                        response.set_cookie("jimiAuth", value=userSession, max_age=600) # Need to add secure=True before production
+                        response.set_cookie("jimiAuth", value=userSession, max_age=600, httponly=True) # Need to add secure=True before production
                         return response, 200
                 else:
                     return { "CSRF" : "" }, 200
