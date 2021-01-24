@@ -8,43 +8,19 @@ class mainScreen:
     def __init__(self):
         splash()
         self.menu = screen._screen([
-            ["list", None],
-            ["list workers",callWorkerAPI],
-            ["list conduct",callClassAPI],
-            ["list trigger",callClassAPI],
-            ["list action",callClassAPI],
-            ["list model",callClassAPI],
-            ["list user",listUsers],
-            ["list group",listGroups],
-            ["list plugins",listPlugins],
             ["select", None],
-            ["select conduct",callSelectClass],
-            ["select trigger",callSelectClass],
-            ["select action",callSelectClass],
-            ["select worker",callSelectWorker],
-            ["select model",callSelectClass],
-            ["select user",callSelectClass],
-            ["select group",callSelectClass],
             ["select core",callSelectCore],
             ["time", getTime],
-            ["debug", setDebugLevel],
-            ["debug filter", setDebugFilter],
             ["splash", splash],
             ["version", version],
             ], "[ jimi ] >> ")
-
-        # Dynamic loading of plugins
-        # self.menu.items.append(["select plugin", None])
-        # apiEndpoint = "plugins/"
-        # for plugin in json.loads(helpers.apiCall("GET",apiEndpoint,token=auth.generateSystemSession(),timeout=10).text)["results"]:
-        #     self.menu.items.append(["select plugin {0}".format(plugin["name"]),callSelectPlugin])
         
         self.menu.load()
 
 
 from core import api, workers, logging, settings, helpers, screen, auth
 
-from core.screens import classScreen, coreScreen, workerScreen, pluginScreen
+from screens import coreScreen
 
 
 def splash(args=None):
@@ -95,61 +71,9 @@ def loadPluginMenu(args):
             pass
 
 # SCREENS
-def setDebugLevel(args):
-    if len(args) == 2:
-        settings.config["debug"]["level"] = int(args[1])
-
-def setDebugFilter(args):
-    if len(args) == 3:
-        logging.filter = args[2]
-    else:
-        logging.filter = ""
-
 def getTime(ans):
     print(int(time.time()))
 
-def callWorkerAPI(args):
-    if len(args) == 2:
-        apiEndpoint = "workers/"
-        if args[0] == "list":
-            print(helpers.apiCall("GET",apiEndpoint,token=auth.generateSystemSession()).text)
-
-def callClassAPI(args):
-    if len(args) == 2:
-        apiEndpoint = "models/{0}/all/".format(args[1])
-        if args[0] == "list":
-            print(helpers.apiCall("GET",apiEndpoint,token=auth.generateSystemSession()).text)
-
-def callSelectClass(args):
-    if len(args) == 3:
-        screen = classScreen.selectClass(args[1],args[2])
-
-def callSelectWorker(args):
-    if len(args) == 3:
-        screen = workerScreen.selectWorker(args[2])
-
 def callSelectCore(args):
     screen = coreScreen.selectCore()
-
-def callSelectPlugin(args):
-    if len(args) == 3:
-        screen = pluginScreen.selectPlugin(args[2])
-
-def listPlugins(args):
-    if len(args) == 2:
-        apiEndpoint = "plugins/"
-        if args[0] == "list":
-            print(helpers.apiCall("GET",apiEndpoint,token=auth.generateSystemSession()).text)
-
-def listUsers(args):
-    if len(args) == 2:
-        apiEndpoint = "user/"
-        if args[0] == "list":
-            print(helpers.apiCall("GET",apiEndpoint,token=auth.generateSystemSession()).text)
-
-def listGroups(args):
-    if len(args) == 2:
-        apiEndpoint = "group/"
-        if args[0] == "list":
-            print(helpers.apiCall("GET",apiEndpoint,token=auth.generateSystemSession()).text)
 

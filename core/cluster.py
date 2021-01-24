@@ -214,11 +214,8 @@ if jimi.api.webServer:
             @jimi.api.webServer.route(jimi.api.base+"cluster/", methods=["GET"])
             @jimi.auth.adminEndpoint
             def getCluster():
-                result = None
-                if cluster:
-                    result = { "stopped" : cluster.stopped, "startTime" : cluster.startTime, "lastHandle" : cluster.lastHandle, "workerID" : cluster.workerID }
                 results = _clusterMember().query()["results"]
-                return { "self" : result, "cluster" : results }, 200
+                return { "results" : results }, 200
 
             @jimi.api.webServer.route(jimi.api.base+"cluster/distribute/", methods=["GET"])
             @jimi.auth.adminEndpoint

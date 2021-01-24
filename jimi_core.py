@@ -23,7 +23,6 @@ if __name__ == "__main__":
     apiEndpoint = "cluster/"
     jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
 
-    # Loading main screen
-    from core.screens import mainScreen
-    screen = mainScreen.mainScreen()
-    
+    # Added self healing for core threads into this
+    while True:
+        time.sleep(1)
