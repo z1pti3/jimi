@@ -4,19 +4,19 @@ import os
 from pathlib import Path
 import importlib
 
-from core import db
+import jimi
 
 # Initialize 
 dbCollectionName = "plugins"
 
 # Model Class
-class _plugin(db._document):
+class _plugin(jimi.db._document):
     name = str()
     enabled = bool()
     installed = bool()
     version = float()
 
-    _dbCollection = db.db[dbCollectionName]
+    _dbCollection = jimi.db.db[dbCollectionName]
 
     # Override parent new to include name var, parent class new run after class var update
     def new(self,name):
@@ -31,10 +31,10 @@ class _plugin(db._document):
         for jsonItem in jsonList:
             _class = loadPluginClass(jsonItem["name"])
             if _class:
-                result.append(helpers.jsonToClass(_class(),jsonItem))
+                result.append(jimi.helpers.jsonToClass(_class(),jsonItem))
             else:
-                if logging.debugEnabled:
-                    logging.debug("Error unable to locate plugin class, pluginName={0}".format(jsonItem["name"]))
+                if jimi.logging.debugEnabled:
+                    jimi.logging.debug("Error unable to locate plugin class, pluginName={0}".format(jsonItem["name"]))
         return result
 
     def installHandler(self):
@@ -63,7 +63,7 @@ class _plugin(db._document):
             self.upgradeFooter(LatestPluginVersion)
 
     def upgradeHeader(self,LatestPluginVersion):
-        logging.debug("Starting plugin upgrade, pluginName={0}".format(self.name),-1)
+        jimi.logging.debug("Starting plugin upgrade, pluginName={0}".format(self.name),-1)
 
     def upgrade(self,LatestPluginVersion):
         pass
@@ -71,7 +71,7 @@ class _plugin(db._document):
     def upgradeFooter(self,LatestPluginVersion):
         self.version =  LatestPluginVersion
         self.update(["version"])
-        logging.debug("Plugin upgrade completed, pluginName={0}".format(self.name),-1)
+        jimi.logging.debug("Plugin upgrade completed, pluginName={0}".format(self.name),-1)
 
     def uninstallHandler(self):
         self.enabled = False
@@ -90,23 +90,22 @@ class _plugin(db._document):
     def uninstallFooter(self):
         pass
 
-
-from core import api, logging, model, helpers, function
-
 # API
-if api.webServer:
-    if not api.webServer.got_first_request:
-        @api.webServer.route(api.base+"plugins/<pluginName>/installed/", methods=["GET"])
+if jimi.api.webServer:
+    if not jimi.api.webServer.got_first_request:
+        @jimi.api.webServer.route(jimi.api.base+"plugins/<pluginName>/installed/", methods=["GET"])
+        @jimi.auth.adminEndpoint
         def pluginInstalled(pluginName):
             result = { "installed" : False }
-            plugins = _plugin().query(api.g.sessionData,query={ "name" : pluginName })["results"]
+            plugins = _plugin().query(jimi.api.g.sessionData,query={ "name" : pluginName })["results"]
             if len(plugins) == 1:
                 plugins = plugins[0]
                 if plugins["installed"]:
                     result = { "installed" : True }
             return result, 200
 
-        @api.webServer.route(api.base+"plugins/<pluginName>/valid/", methods=["GET"])
+        @jimi.api.webServer.route(jimi.api.base+"plugins/<pluginName>/valid/", methods=["GET"])
+        @jimi.auth.adminEndpoint
         def pluginValid(pluginName):
             result = { "valid" : False }
             plugins = os.listdir("plugins")
@@ -115,20 +114,12 @@ if api.webServer:
                     result = { "valid" : True }
             return result, 200
 
-        # @api.webServer.route(api.base+"plugins/", methods=["GET"])
-        # def getPlugins():
-        #     result = {}
-        #     result["results"] = []
-        #     plugins = os.listdir("plugins")
-        #     for plugin in plugins:
-        #         result["results"].append({ "name" : plugin, "location" : "plugins/{0}".format(plugin) })
-        #     return result, 200
-
-        @api.webServer.route(api.base+"plugins/<pluginName>/", methods=["GET"])
+        @jimi.api.webServer.route(jimi.api.base+"plugins/<pluginName>/", methods=["GET"])
+        @jimi.auth.adminEndpoint
         def getPlugin(pluginName):
             result = {}
             result["results"] = []
-            plugins = _plugin().query(api.g.sessionData,query={ "name" : pluginName })["results"]
+            plugins = _plugin().query(jimi.api.g.sessionData,query={ "name" : pluginName })["results"]
             if len(plugins) == 1:
                 result["results"] = plugins
             if result["results"]:
@@ -136,28 +127,30 @@ if api.webServer:
             else:
                 return { }, 404
 
-        @api.webServer.route(api.base+"plugins/<pluginName>/", methods=["POST"])
-        def updatePlugin(pluginName):
-            data = json.loads(api.request.data)
-            if data["action"] == "install" or data["action"] == "uninstall" or data["action"] == "upgrade":
-                pluginClass = loadPluginClass(pluginName)
-                if pluginClass:
-                    plugins = _plugin().query(api.g.sessionData,query={ "name" : pluginName })["results"]
-                    if len(plugins) == 1:
-                        plugins = plugins[0]
-                        if data["action"] == "install":
-                            installPlugin =  pluginClass().get(plugins["_id"])
-                            installPlugin.installHandler()
-                            return { }, 200
-                        elif data["action"] == "uninstall":
-                            uninstallPlugin =  pluginClass().get(plugins["_id"])
-                            uninstallPlugin.uninstallHandler()
-                            return { }, 200
-                        elif data["action"] == "upgrade":
-                            upgradePlugin =  pluginClass().get(plugins["_id"])
-                            upgradePlugin.upgradeHandler()
-                            return { }, 200
-            return { }, 404
+        if jimi.api.webServer.name == "jimi_core":
+            @jimi.api.webServer.route(jimi.api.base+"plugins/<pluginName>/", methods=["POST"])
+            @jimi.auth.systemEndpoint
+            def updatePlugin(pluginName):
+                data = json.loads(jimi.api.request.data)
+                if data["action"] == "install" or data["action"] == "uninstall" or data["action"] == "upgrade":
+                    pluginClass = loadPluginClass(pluginName)
+                    if pluginClass:
+                        plugins = _plugin().query(jimi.api.g.sessionData,query={ "name" : pluginName })["results"]
+                        if len(plugins) == 1:
+                            plugins = plugins[0]
+                            if data["action"] == "install":
+                                installPlugin =  pluginClass().get(plugins["_id"])
+                                installPlugin.installHandler()
+                                return { }, 200
+                            elif data["action"] == "uninstall":
+                                uninstallPlugin =  pluginClass().get(plugins["_id"])
+                                uninstallPlugin.uninstallHandler()
+                                return { }, 200
+                            elif data["action"] == "upgrade":
+                                upgradePlugin =  pluginClass().get(plugins["_id"])
+                                upgradePlugin.upgradeHandler()
+                                return { }, 200
+                return { }, 404
 
 def load():
     updatePluginDB()
@@ -209,7 +202,7 @@ def loadPluginAPIExtensions():
     for plugin in plugins:
         if os.path.isfile(Path("plugins/{0}/api/{0}.py".format(plugin))):
             mod = __import__("plugins.{0}.api.{0}".format(plugin), fromlist=["pluginPages"])
-            api.webServer.register_blueprint(mod.pluginPages,url_prefix='/plugin')
+            jimi.api.webServer.register_blueprint(mod.pluginPages,url_prefix='/plugin')
 
 def loadPluginFunctionExtensions():
     plugins = os.listdir("plugins")
@@ -221,7 +214,7 @@ def loadPluginFunctionExtensions():
                     mod = importlib.import_module("plugins.{0}.functions.{1}".format(plugin,listedFunctionFile[:-3]))
                     for func in dir(mod):
                         if func.startswith("__") == False and func.endswith("__") == False:
-                            function.systemFunctions[func] = getattr(mod, func) 
+                            jimi.function.systemFunctions[func] = getattr(mod, func) 
 
 # Cleans all object references for non-existent plugin models
 def cleanPluginDB():

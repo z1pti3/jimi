@@ -5,12 +5,11 @@ import time
 import uuid
 import traceback
 
-from core import api, helpers, model, settings, audit, workers
+import jimi
+
 from system import variable, logic
 
-from core.models import conduct
-
-cpuSaver = settings.config["cpuSaver"]
+cpuSaver = jimi.settings.config["cpuSaver"]
 
 regexFunction = re.compile("^([a-zA-Z0-9]*)\(.*\)")
 regexCommor = re.compile(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")
@@ -41,7 +40,7 @@ def flowLogicEval(data,logicVar):
 def getObjectFromCode(sessionData,codeFunction):
     functionName = codeFunction.split("{")[0]
     args = json.loads(codeFunction.strip()[(len(functionName)):])
-    classObject = model._model().getAsClass(sessionData=sessionData,query={ "name" : functionName })[0].classObject()()
+    classObject = jimi.model._model().getAsClass(sessionData=sessionData,query={ "name" : functionName })[0].classObject()()
     members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
     for key, value in args.items():
         for member in members:
@@ -78,7 +77,7 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
             flowIndentLevel = len(flow.split("\t"))-1
             flow = flow.replace("\t","")
             if flowIndentLevel == 0:
-                events = helpers.typeCast(eventsData)
+                events = jimi.helpers.typeCast(eventsData)
                 classObject = getObjectFromCode(sessionData,flow)
                 if type(events) != list:
                     classObject.checkHeader()
@@ -92,7 +91,7 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
             else:
                 if len(flow.split("->")) == 2:
                     classObject = getObjectFromCode(sessionData,flow.split("->")[1])
-                    flowLevel[flowIndentLevel-1]["next"].append({ "classObject" : classObject, "flowID" : str(uuid.uuid4()), "actionID" : classObject._id, "type" : "action", "codeLine" : flow.split("->")[1], "logic" : helpers.typeCast(flow.split("->")[0][6:-1]), "next" : [] })
+                    flowLevel[flowIndentLevel-1]["next"].append({ "classObject" : classObject, "flowID" : str(uuid.uuid4()), "actionID" : classObject._id, "type" : "action", "codeLine" : flow.split("->")[1], "logic" : jimi.helpers.typeCast(flow.split("->")[0][6:-1]), "next" : [] })
                 else:
                     classObject = getObjectFromCode(sessionData,flow)
                     flowLevel[flowIndentLevel-1]["next"].append({ "classObject" : classObject, "flowID" : str(uuid.uuid4()), "actionID" : classObject._id, "type" : "action", "codeLine" : flow, "logic" : True, "next" : [] })
@@ -101,26 +100,26 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
 
     startTime = time.time()
     output = "Started @ {0}\n\n".format(startTime)
-    tempConduct = conduct._conduct()
+    tempConduct = jimi.conduct._conduct()
     tempConduct._id = "000000000001010000000000-" + str(uuid.uuid4())
     tempConduct.flow = conductFlow
     tempConduct.log = True
     for flow in flows:
-        tempData = conduct.flowDataTemplate(conduct=tempConduct,trigger=flow["classObject"])
+        tempData = jimi.conduct.flowDataTemplate(conduct=tempConduct,trigger=flow["classObject"])
         for index, event in enumerate(events):
             first = True if index == 0 else False
             last = True if index == len(events) - 1 else False
             eventStat = { "first" : first, "current" : index, "total" : len(events), "last" : last }
 
-            tempDataCopy = conduct.copyFlowData(tempData)
+            tempDataCopy = jimi.conduct.copyFlowData(tempData)
 
             tempDataCopy["event"] = event
             tempDataCopy["eventStats"] = eventStat
 
             try:
-                jid = workers.workers.new("testFire:{0}".format(tempConduct._id),tempConduct.triggerHandler,(flow["flowID"],tempDataCopy,False,True),maxDuration=maxDuration, raiseException=False)
-                workers.workers.wait(jid)
-                resultException = workers.workers.getError(jid)
+                jid = jimi.workers.workers.new("testFire:{0}".format(tempConduct._id),tempConduct.triggerHandler,(flow["flowID"],tempDataCopy,False,True),maxDuration=maxDuration, raiseException=False)
+                jimi.workers.workers.wait(jid)
+                resultException = jimi.workers.workers.getError(jid)
                 if resultException:
                     output = "\n\n***ERROR Start***\n{0}***ERROR End***\n\n".format(''.join(traceback.format_exception(etype=type(resultException), value=resultException, tb=resultException.__traceback__)))
             except Exception as e:
@@ -134,7 +133,7 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
         if "actionID" in flow:
             flowDict[flow["actionID"]] = flow
     # Getting Result From DB
-    auditData = audit._audit().query(query={ "data.conductID" : tempConduct._id },fields=["_id","time","source","type","data","systemID"])["results"]
+    auditData = jimi.audit._audit().query(query={ "data.conductID" : tempConduct._id },fields=["_id","time","source","type","data","systemID"])["results"]
     for auditItem in auditData:
         if "time" in auditItem:
             auditItem["time"] = time.strftime('%d/%m/%Y %H:%M:%S', time.gmtime(auditItem["time"]))
@@ -162,10 +161,12 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
     return output
 
 ######### --------- API --------- #########
-if api.webServer:
-    if not api.webServer.got_first_request:
-        @api.webServer.route(api.base+"codify/run/", methods=["POST"])
-        def codifyRun():
-            data = json.loads(api.request.data)
-            result = executeCodifyFlow(data["sessionData"],data["events"],data["code"],eventCount=int(data["eventCount"]),maxDuration=int(data["timeout"]))
-            return { "result" : result }, 200
+if jimi.api.webServer:
+    if not jimi.api.webServer.got_first_request:
+        if jimi.api.webServer.name == "jimi_core":
+            @jimi.api.webServer.route(jimi.api.base+"codify/run/", methods=["POST"])
+            def codifyRun():
+                data = json.loads(jimi.api.request.data)
+                # Function uses token for access passed by jimi_web
+                result = executeCodifyFlow(data["sessionData"],data["events"],data["code"],eventCount=int(data["eventCount"]),maxDuration=int(data["timeout"]))
+                return { "result" : result }, 200

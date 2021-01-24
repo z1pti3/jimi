@@ -9,6 +9,8 @@ import traceback
 import copy
 import sys
 
+import jimi
+
 class _threading(threading.Thread):
     def __init__(self, *args, **keywords):
         threading.Thread.__init__(self, *args, **keywords)
@@ -22,8 +24,8 @@ class _threading(threading.Thread):
         thread_id = self.get_id() 
         res = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id), ctypes.py_object(SystemExit))
         if res == 0:
-            if logging.debugEnabled:
-                logging.debug("Exception raise failure - invalid thread ID")
+            if jimi.logging.debugEnabled:
+                jimi.logging.debug("Exception raise failure - invalid thread ID")
         if res > 1: 
             ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id), 0)
 
@@ -57,8 +59,8 @@ class workerHandler:
         def multiprocessingThreadCall(self):
             self.startTime = int(time.time())
             self.running = True
-            if logging.debugEnabled:
-                logging.debug("Threaded process worker started, workerID={0}".format(self.id))
+            if jimi.logging.debugEnabled:
+                jimi.logging.debug("Threaded process worker started, workerID={0}".format(self.id))
 
             Q = Queue()
             p = Process(target=multiprocessingThreadStart, args=(Q,self.call,self.args)) # Taking an entire copy of cache is not effient review bug
@@ -72,8 +74,8 @@ class workerHandler:
 
                 if rc != 0:
                     self.crash = True
-                    if logging.debugEnabled:
-                        logging.debug("Threaded process worker crashed, workerID={0}".format(self.id))
+                    if jimi.logging.debugEnabled:
+                        jimi.logging.debug("Threaded process worker crashed, workerID={0}".format(self.id))
                     systemTrigger.failedTrigger(self.id,"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
 
                 # Ensure cache is updated with any new items
@@ -81,16 +83,16 @@ class workerHandler:
             except SystemExit as e:
                 if self.raiseException:
                     self.crash = True
-                    if logging.debugEnabled:
-                        logging.debug("Threaded process worker killed, workerID={0}".format(self.id))
+                    if jimi.logging.debugEnabled:
+                        jimi.logging.debug("Threaded process worker killed, workerID={0}".format(self.id))
                     systemTrigger.failedTrigger(self.id,"triggerKilled")
                 else:
                     self.resultException = e
             except Exception as e:
                 if self.raiseException:
                     self.crash = True
-                    if logging.debugEnabled:
-                        logging.debug("Threaded worker crashed, workerID={0}".format(self.id))
+                    if jimi.logging.debugEnabled:
+                        jimi.logging.debug("Threaded worker crashed, workerID={0}".format(self.id))
                     systemTrigger.failedTrigger(self.id,"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
                 else:
                     self.resultException = e
@@ -99,8 +101,8 @@ class workerHandler:
                     p.terminate()
                 #Q.close()
             
-            if logging.debugEnabled:
-                logging.debug("Threaded process worker completed, workerID={0}".format(self.id))
+            if jimi.logging.debugEnabled:
+                jimi.logging.debug("Threaded process worker completed, workerID={0}".format(self.id))
             self.running = False
             self.endTime = int(time.time())
             self.duration = (self.endTime - self.startTime)
@@ -108,8 +110,8 @@ class workerHandler:
         def threadCall(self):
             self.startTime = int(time.time())
             self.running = True
-            if logging.debugEnabled:
-                logging.debug("Threaded worker started, workerID={0}".format(self.id))
+            if jimi.logging.debugEnabled:
+                jimi.logging.debug("Threaded worker started, workerID={0}".format(self.id))
             # Handle thread raise exception kill
             try:
                 if self.args:
@@ -119,21 +121,21 @@ class workerHandler:
             except SystemExit as e:
                 if self.raiseException:
                     self.crash = True
-                    if logging.debugEnabled:
-                        logging.debug("Threaded worker killed, workerID={0}".format(self.id))
+                    if jimi.logging.debugEnabled:
+                        jimi.logging.debug("Threaded worker killed, workerID={0}".format(self.id))
                     systemTrigger.failedTrigger(self.id,"triggerKilled")
                 else:
                     self.resultException = e
             except Exception as e:
                 if self.raiseException:
                     self.crash = True
-                    if logging.debugEnabled:
-                        logging.debug("Threaded worker crashed, workerID={0}".format(self.id))
+                    if jimi.logging.debugEnabled:
+                        jimi.logging.debug("Threaded worker crashed, workerID={0}".format(self.id))
                     systemTrigger.failedTrigger(self.id,"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
                 else:
                     self.resultException = e
-            if logging.debugEnabled:
-                logging.debug("Threaded worker completed, workerID={0}".format(self.id))
+            if jimi.logging.debugEnabled:
+                jimi.logging.debug("Threaded worker completed, workerID={0}".format(self.id))
             self.running = False
             self.endTime = int(time.time())
             self.duration = (self.endTime - self.startTime)
@@ -173,8 +175,8 @@ class workerHandler:
                         workersWaiting = workersWaiting[0:underConcurrent]
                     # Start all workers possible up to the concurrent limit
                     for workerWaiting in workersWaiting:
-                        if logging.debugEnabled:
-                            logging.debug("Starting threaded worker, workerID={0}".format(workerWaiting.id))
+                        if jimi.logging.debugEnabled:
+                            jimi.logging.debug("Starting threaded worker, workerID={0}".format(workerWaiting.id))
                         workerWaiting.start()
                         underConcurrent-=1
                         del workersStillWaiting[workersStillWaiting.index(workerWaiting)]
@@ -204,16 +206,16 @@ class workerHandler:
     def new(self, name, call, args=None, delete=True, maxDuration=60, multiprocessing=False, raiseException=True):
         workerThread = self._worker(name, call, args, delete, maxDuration, multiprocessing, raiseException)
         self.workerList.append(workerThread)
-        if logging.debugEnabled:
-            logging.debug("Created new worker, workerID={0}".format(workerThread.id))
+        if jimi.logging.debugEnabled:
+            jimi.logging.debug("Created new worker, workerID={0}".format(workerThread.id))
         return workerThread.id
 
     def get(self, id):
         worker = [x for x in self.workerList if x.id == id]
         if worker:
             worker = worker[0]
-        if logging.debugEnabled:
-            logging.debug("Got data for worker, workerID={0}".format(id))
+        if jimi.logging.debugEnabled:
+            jimi.logging.debug("Got data for worker, workerID={0}".format(id))
         return worker
 
     def getAll(self):
@@ -242,28 +244,28 @@ class workerHandler:
         worker = [x for x in self.workerList if x.id == id]
         if worker:
             worker = worker[0]
-            if logging.debugEnabled:
-                logging.debug("Deleted worker, workerID={0}".format(id))
+            if jimi.logging.debugEnabled:
+                jimi.logging.debug("Deleted worker, workerID={0}".format(id))
             del worker
         else:
-            if logging.debugEnabled:
-                logging.debug("Unable to locate worker, workerID={0}".format(id))
+            if jimi.logging.debugEnabled:
+                jimi.logging.debug("Unable to locate worker, workerID={0}".format(id))
 
     def kill(self, id):
         worker = [x for x in self.workerList if x.id == id]
         if worker:
             worker = worker[0]
             worker.thread.kill()
-            if logging.debugEnabled:
-                logging.debug("Killed worker, workerID={0}".format(id))
+            if jimi.logging.debugEnabled:
+                jimi.logging.debug("Killed worker, workerID={0}".format(id))
         else:
-            if logging.debugEnabled:
-                logging.debug("Unable to locate worker, workerID={0}".format(id))
+            if jimi.logging.debugEnabled:
+                jimi.logging.debug("Unable to locate worker, workerID={0}".format(id))
 
     def wait(self, jid):
         worker = [x for x in self.workerList if x.id == jid][0]
-        if logging.debugEnabled:
-            logging.debug("Waiting for worker, workerID={0}".format(id))
+        if jimi.logging.debugEnabled:
+            jimi.logging.debug("Waiting for worker, workerID={0}".format(id))
         if worker:
             while (worker.running != False ):
                 time.sleep(0.1)
@@ -330,10 +332,9 @@ class workerHandler:
 
         return { "result" : True }
 
-from core import api, logging, settings, model, cache
 from system.models import trigger as systemTrigger
 
-workerSettings = settings.config["workers"]
+workerSettings = jimi.settings.config["workers"]
 
 multiprocessing.set_start_method("spawn",force=True)
 
@@ -349,8 +350,8 @@ def start():
     except NameError:
         pass
     workers = workerHandler(workerSettings["concurrent"])
-    if logging.debugEnabled:
-        logging.debug("Workers started, workerID='{0}'".format(workers.workerID),6)
+    if jimi.logging.debugEnabled:
+        jimi.logging.debug("Workers started, workerID='{0}'".format(workers.workerID),6)
     return True
 
 def multiprocessingThreadStart(Q,threadCall,args):
@@ -365,34 +366,31 @@ def multiprocessingThreadStart(Q,threadCall,args):
     Q.put((rc,error))
 
 ######### --------- API --------- #########
-if api.webServer:
-    if not api.webServer.got_first_request:
-        @api.webServer.route(api.base+"workers/", methods=["GET"])
-        def getWorkers():
-            if api.g.sessionData["admin"]:
+if jimi.api.webServer:
+    if not jimi.api.webServer.got_first_request:
+        if jimi.api.webServer.name == "jimi_core":
+            @jimi.api.webServer.route(jimi.api.base+"workers/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def getWorkers():
                 result = workers.api_get()
                 if result["results"]:
                     return result, 200
                 else:
                     return {}, 404
-            else:
-                return {},403
 
-        @api.webServer.route(api.base+"workers/", methods=["DELETE"])
-        def deleteWorkers():
-            if api.g.sessionData["admin"]:
+            @jimi.api.webServer.route(jimi.api.base+"workers/", methods=["DELETE"])
+            @jimi.auth.adminEndpoint
+            def deleteWorkers():
                 result = workers.api_delete()
                 if result["result"]:
                     return result, 200
                 else:
                     return {}, 404
-            else:
-                return {},403
 
-        @api.webServer.route(api.base+"workers/", methods=["POST"])
-        def updateWorkers():
-            if api.g.sessionData["admin"]:
-                data = json.loads(api.request.data)
+            @jimi.api.webServer.route(jimi.api.base+"workers/", methods=["POST"])
+            @jimi.auth.adminEndpoint
+            def updateWorkers():
+                data = json.loads(jimi.api.request.data)
                 if data["action"] == "start":
                     result = start()
                     return { "result" : result }, 200
@@ -407,12 +405,10 @@ if api.webServer:
                     return { }, 200
                 else:
                     return { }, 404
-            else:
-                return { }, 403
 
-        @api.webServer.route(api.base+"workers/<workerID>/", methods=["GET"])
-        def getWorker(workerID):
-            if api.g.sessionData["admin"]:
+            @jimi.api.webServer.route(jimi.api.base+"workers/<workerID>/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def getWorker(workerID):
                 if workerID == "0":
                     result = workers.api_get(workers.workerID)
                     result["results"][0]["lastHandle"] = workers.lastHandle
@@ -424,32 +420,28 @@ if api.webServer:
                     return result, 200
                 else:
                     return {}, 404
-            else:
-                return {},403
 
-        @api.webServer.route(api.base+"workers/<workerID>/", methods=["DELETE"])
-        def deleteWorker(workerID):
-            if api.g.sessionData["admin"]:
+            @jimi.api.webServer.route(jimi.api.base+"workers/<workerID>/", methods=["DELETE"])
+            @jimi.auth.adminEndpoint
+            def deleteWorker(workerID):
                 result = workers.api_delete(workerID)
                 if result["result"]:
                     return result, 200
                 else:
                     return {}, 404
-            else:
-                return {}, 403
 
-        @api.webServer.route(api.base+"workers/stats/", methods=["GET"])
-        def getWorkerStats():
-            result = {}
-            result["results"] = []
-            if api.g.sessionData["admin"]:
+            @jimi.api.webServer.route(jimi.api.base+"workers/stats/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def getWorkerStats():
+                result = {}
+                result["results"] = []
                 result["results"].append({ "activeCount" : workers.activeCount(), "queueLength" : workers.queue(), "workers" : workers.active() })
-            return result, 200
+                return result, 200
 
-        @api.webServer.route(api.base+"workers/settings/", methods=["GET"])
-        def getWorkerSettings():
-            result = {}
-            result["results"] = []
-            if api.g.sessionData["admin"]:
+            @jimi.api.webServer.route(jimi.api.base+"workers/settings/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def getWorkerSettings():
+                result = {}
+                result["results"] = []
                 result["results"].append(workerSettings)
-            return result, 200
+                return result, 200

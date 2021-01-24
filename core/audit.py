@@ -3,15 +3,15 @@ import time, json
 from pathlib import Path
 from bson import json_util,ObjectId
 
-from core import db, helpers
+import jimi
 
 # Initialize 
 
 dbCollectionName = "audit"
 
 # audit Class
-class _audit(db._document):
-    _dbCollection = db.db[dbCollectionName]
+class _audit(jimi.db._document):
+    _dbCollection = jimi.db.db[dbCollectionName]
 
     def new():
         pass
@@ -44,7 +44,7 @@ class _audit(db._document):
                 if "000000000001010000000000" in eventData["conductID"]:
                     writeLog = True
                 if writeLog:
-                    result = self._dbCollection.insert_one(helpers.unicodeEscapeDict(auditData))
+                    result = self._dbCollection.insert_one(jimi.helpers.unicodeEscapeDict(auditData))
         except KeyError:
             pass
         try:
@@ -67,7 +67,5 @@ class _audit(db._document):
                 logging.debug("Writing audit item, auditID={0}, auditData='{1}'".format(str(result.inserted_id),auditData))
         return result
 
-from core import logging, settings
-
-auditSettings = settings.config["audit"]
-systemSettings = settings.config["system"]
+auditSettings = jimi.settings.config["audit"]
+systemSettings = jimi.settings.config["system"]

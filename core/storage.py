@@ -1,10 +1,10 @@
-from core import db
+import jimi
 
-class _storage(db._document):
+class _storage(jimi.db._document):
     fileData = str()
     source = str()
 
-    _dbCollection = db.db["storage"]
+    _dbCollection = jimi.db.db["storage"]
 
     def new(self,acl,source,fileData):
         self.source = source

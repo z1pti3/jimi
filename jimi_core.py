@@ -1,13 +1,11 @@
 if __name__ == "__main__":
-    # Setup and define API ( required before other modules )
-    from core import api, settings
+    from core import settings, api
+
     apiSettings = settings.config["api"]["core"]
     api.createServer("jimi_core")
-
-    # Core imports
-    from core import workers, plugin, scheduler, cluster, settings, screen, model, helpers, auth, flow, admin
-
     api.startServer(debug=True, use_reloader=False, host=apiSettings["bind"], port=apiSettings["port"], threaded=True)
+
+    import jimi
 
     import time
     time.sleep(1)
@@ -18,17 +16,14 @@ if __name__ == "__main__":
 
     # Auto start the application using its API
     apiEndpoint = "workers/"
-    apiToken = auth.generateSystemSession()
-    helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
+    apiToken = jimi.auth.generateSystemSession()
+    jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
     apiEndpoint = "scheduler/"
-    helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
+    jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
     apiEndpoint = "cluster/"
-    helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
+    jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
 
     # Loading main screen
     from core.screens import mainScreen
     screen = mainScreen.mainScreen()
-else:
-    # Prevent circular import of DB
-    from core import model
     

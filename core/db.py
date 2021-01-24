@@ -5,6 +5,8 @@ import copy
 from bson.objectid import ObjectId
 from threading import Lock
 
+import jimi
+
 # NOTE
 # db class is a helper to expose some functions of mongoDB in an easy to use rapid dev way, this does not mean you
 # have to use this helper for everything as the mongoDB driver is also exposed as self._dbcollection for your raw access needs.
@@ -25,7 +27,7 @@ class _document():
     createdBy = str()
 
     def __init__(self):
-        cache.globalCache.newCache("dbModelCache")
+        jimi.cache.globalCache.newCache("dbModelCache")
 
     # Wrapped mongo call that catches and retrys on error
     def mongoConnectionWrapper(func):
@@ -35,30 +37,30 @@ class _document():
                 try:
                     return func(inst, *args, **kwargs)
                 except (pymongo.errors.AutoReconnect, pymongo.errors.ServerSelectionTimeoutError) as e:
-                    logging.debug("PyMongo auto-reconnecting... {0}. Waiting 1 second.".format(e),-10)
+                    jimi.logging.debug("PyMongo auto-reconnecting... {0}. Waiting 1 second.".format(e),-10)
                     time.sleep(1)
         return wrapper
 
     # Create new object
     @mongoConnectionWrapper
     def new(self,sessionData=None):
-        result = cache.globalCache.get("dbModelCache",self.__class__.__name__,getClassByName,sessionData=sessionData,extendCacheTime=True)
+        result = jimi.cache.globalCache.get("dbModelCache",self.__class__.__name__,getClassByName,sessionData=sessionData,extendCacheTime=True)
         if len(result) == 1:
             result = result[0]
             self.classID = result["_id"]
             self.creationTime = int(time.time())
             if sessionData:
                 self.createdBy = sessionData["_id"]
-            result = self._dbCollection.insert_one(helpers.unicodeEscapeDict(self.parse()))
+            result = self._dbCollection.insert_one(jimi.helpers.unicodeEscapeDict(self.parse()))
             self._id = result.inserted_id
             return result
         else:
-            if logging.debugEnabled:
-                logging.debug("Cannot create new document className='{0}' not found".format(self.__class__.__name__),3)
+            if jimi.logging.debugEnabled:
+                jimi.logging.debug("Cannot create new document className='{0}' not found".format(self.__class__.__name__),3)
             return False
 
     def bulkNew(self,bulkClass,sessionData=None):
-        result = cache.globalCache.get("dbModelCache",self.__class__.__name__,getClassByName,sessionData=sessionData,extendCacheTime=True)
+        result = jimi.cache.globalCache.get("dbModelCache",self.__class__.__name__,getClassByName,sessionData=sessionData,extendCacheTime=True)
         if len(result) == 1:
             result = result[0]
             self.classID = result["_id"]
@@ -66,8 +68,8 @@ class _document():
             bulkClass.newBulkOperaton(self._dbCollection.name,"insert",self)
             return self
         else:
-            if logging.debugEnabled:
-                logging.debug("Cannot create new document className='{0}' not found".format(self.__class__.__name__),3)
+            if jimi.logging.debugEnabled:
+                jimi.logging.debug("Cannot create new document className='{0}' not found".format(self.__class__.__name__),3)
             return None
 
     # Converts jsonList into class - Seperate function to getAsClass so it can be overridden to support plugin loading for child classes
@@ -76,7 +78,7 @@ class _document():
         # Loading json data into class
         for jsonItem in jsonList:
             _class = copy.copy(self)
-            result.append(helpers.jsonToClass(_class,jsonItem))
+            result.append(jimi.helpers.jsonToClass(_class,jsonItem))
         return result
 
     # Get objects and return list as loaded class
@@ -96,7 +98,7 @@ class _document():
     def refresh(self):
         queryResults = findDocumentByID(self._dbCollection,self._id)
         if queryResults:
-            helpers.jsonToClass(self,queryResults)
+            jimi.helpers.jsonToClass(self,queryResults)
 
     # Updated DB with latest values
     @mongoConnectionWrapper
@@ -114,7 +116,7 @@ class _document():
             for field in fields:
                 value = getattr(self,field)
                 if type(value) is dict:
-                    value = helpers.unicodeEscapeDict(value)
+                    value = jimi.helpers.unicodeEscapeDict(value)
                 update["$set"][field] = value
 
             result = updateDocumentByID(self._dbCollection,self._id,update)
@@ -136,7 +138,7 @@ class _document():
         for field in fields:
             value = getattr(self,field)
             if type(value) is dict:
-                value = helpers.unicodeEscapeDict(value)
+                value = jimi.helpers.unicodeEscapeDict(value)
             update["$set"][field] = value
 
         bulkClass.newBulkOperaton(self._dbCollection.name,"update",{"_id" : self._id, "update" : update})
@@ -144,7 +146,7 @@ class _document():
         # Updated DB with latest values
     @mongoConnectionWrapper
     def bulkUpsert(self,query,fields,bulkClass,sessionData=None,customUpdate=False):
-        result = cache.globalCache.get("dbModelCache",self.__class__.__name__,getClassByName,sessionData=sessionData,extendCacheTime=True)
+        result = jimi.cache.globalCache.get("dbModelCache",self.__class__.__name__,getClassByName,sessionData=sessionData,extendCacheTime=True)
         if len(result) == 1:
             result = result[0]
             self.classID = result["_id"]
@@ -163,7 +165,7 @@ class _document():
             for field in fields:
                 value = getattr(self,field)
                 if type(value) is dict:
-                    value = helpers.unicodeEscapeDict(value)
+                    value = jimi.helpers.unicodeEscapeDict(value)
                 update["$set"][field] = value
         else:
             update = fields
@@ -172,7 +174,7 @@ class _document():
         
     # Parse class into json dict
     def parse(self,hidden=False):
-        result = helpers.classToJson(self,hidden)
+        result = jimi.helpers.classToJson(self,hidden)
         return result
 
     # Parse DB dict into class
@@ -180,7 +182,7 @@ class _document():
     def load(self,id):
         queryResults = findDocumentByID(self._dbCollection,id)
         if queryResults:
-            helpers.jsonToClass(self,queryResults)
+            jimi.helpers.jsonToClass(self,queryResults)
             return self
         else:
             return None
@@ -196,7 +198,7 @@ class _document():
 
     @mongoConnectionWrapper
     def insert_one(self,data):
-        self._dbCollection.insert_one(helpers.unicodeEscapeDict(data))
+        self._dbCollection.insert_one(jimi.helpers.unicodeEscapeDict(data))
 
     def getAttribute(self,attr,sessionData=None):
         if not sessionData or fieldACLAccess(sessionData,self.acl,attr,accessType="read"):
@@ -227,8 +229,8 @@ class _document():
             try:
                 query = { "_id" : ObjectId(id) }
             except Exception as e:
-                if logging.debugEnabled:
-                    logging.debug("Error {0}".format(e))
+                if jimi.logging.debugEnabled:
+                    jimi.logging.debug("Error {0}".format(e))
                 return result
         if not query:
             query = {}
@@ -271,10 +273,10 @@ class _document():
                             fieldAccessPermitted = fieldACLAccess(sessionData,doc["acl"],field)
                         # Allow field data to be returned if access is permitted
                         if fieldAccessPermitted:
-                            value = helpers.handelTypes(doc[field])
+                            value = jimi.helpers.handelTypes(doc[field])
                             if type(value) is dict:
-                                value = helpers.unicodeUnescapeDict(value)
-                            resultItem[helpers.unicodeUnescape(field)] = value
+                                value = jimi.helpers.unicodeUnescapeDict(value)
+                            resultItem[jimi.helpers.unicodeUnescape(field)] = value
             else:
                 for field in list(doc):
                     fieldAccessPermitted = True
@@ -283,10 +285,10 @@ class _document():
                         fieldAccessPermitted = fieldACLAccess(sessionData,doc["acl"],field)
                     # Allow field data to be returned if access is permitted
                     if fieldAccessPermitted:
-                        value = helpers.handelTypes(doc[field])
+                        value = jimi.helpers.handelTypes(doc[field])
                         if type(value) is dict:
-                            value = helpers.unicodeUnescapeDict(value)
-                        resultItem[helpers.unicodeUnescape(field)] = value
+                            value = jimi.helpers.unicodeUnescapeDict(value)
+                        resultItem[jimi.helpers.unicodeUnescape(field)] = value
             result["results"].append(resultItem)
         docs.close()
         return result
@@ -298,8 +300,8 @@ class _document():
             try:
                 query = { "_id" : ObjectId(id) }
             except Exception as e:
-                if logging.debugEnabled:
-                    logging.debug("Error {0}".format(e))
+                if jimi.logging.debugEnabled:
+                    jimi.logging.debug("Error {0}".format(e))
                 return result
         if not query:
             query = {}
@@ -328,7 +330,7 @@ class _document():
 
     @mongoConnectionWrapper
     def api_getByModelName(self,modelName):
-        classID = model.getClassID(modelName)
+        classID = jimi.model.getClassID(modelName)
         if classID:
             return self.query(query={ "classID" : classID })
         return { "results" : [] }
@@ -342,16 +344,16 @@ class _document():
                 if result.deleted_count == 1:
                     return { "result" : True, "count" : result.deleted_count }
             except Exception as e:
-                if logging.debugEnabled:
-                    logging.debug("Error {0}".format(e))
+                if jimi.logging.debugEnabled:
+                    jimi.logging.debug("Error {0}".format(e))
         elif query and not id:
             try:
                 result = self._dbCollection.delete_many(query)
                 if result.deleted_count > 0:
                     return { "result" : True, "count" : result.deleted_count }
             except Exception as e:
-                if logging.debugEnabled:
-                    logging.debug("Error {0}".format(e))
+                if jimi.logging.debugEnabled:
+                    jimi.logging.debug("Error {0}".format(e))
         return { "result" : False, "count" : 0 }
 
     @mongoConnectionWrapper
@@ -360,8 +362,8 @@ class _document():
             try:
                 query["_id"] = ObjectId(query["_id"])
             except Exception as e:
-                if logging.debugEnabled:
-                    logging.debug("Error {0}".format(e))
+                if jimi.logging.debugEnabled:
+                    jimi.logging.debug("Error {0}".format(e))
 
         result = self._dbCollection.update_many(query,update)
         return { "result" : True, "count" :  result.modified_count }
@@ -421,12 +423,12 @@ class _bulk():
 
     def bulkOperatonProcessing(self):
         self.lock.acquire()
-        cpuSaver = helpers.cpuSaver()
+        cpuSaver = jimi.helpers.cpuSaver()
         for bulkOperatonCollection, bulkOperatonMethod in self.bulkOperatons.items():
             # Insert
             bulkInsert = []
             for insert in bulkOperatonMethod["insert"]:
-                bulkInsert.append(helpers.unicodeEscapeDict(insert.parse()))
+                bulkInsert.append(jimi.helpers.unicodeEscapeDict(insert.parse()))
                 cpuSaver.tick()
             if len(bulkInsert) > 0:
                 collection = db[bulkOperatonCollection]
@@ -461,10 +463,8 @@ class _bulk():
         self.lock.release()
 
 
-from core import settings, logging, helpers, model, cache
-
-mongodbSettings = settings.config["mongodb"]
-authSettings = settings.config["auth"]
+mongodbSettings = jimi.settings.config["mongodb"]
+authSettings = jimi.settings.config["auth"]
 
 dbClient = pymongo.MongoClient(mongodbSettings["hosts"],username=mongodbSettings["username"],password=mongodbSettings["password"])
 
@@ -551,6 +551,4 @@ def delete():
     dbClient.drop_database(mongodbSettings["db"]) 
 
 def getClassByName(match,sessionData):
-    return model._model().query(query={"className" : match})["results"]
-
-logging.debug("db.py loaded")
+    return jimi.model._model().query(query={"className" : match})["results"]

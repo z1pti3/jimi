@@ -1,8 +1,6 @@
 from flask import Flask, request, make_response, redirect, g
 import _thread
 
-from core import settings
-
 base = "/api/1.0/"
 webServer = None
 

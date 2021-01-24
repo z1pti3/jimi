@@ -13,11 +13,11 @@ import json
 import ast
 import time
 import datetime
-
 from bson.objectid import ObjectId 
-from core import settings, function
 
-functionSafeList = function.systemFunctions
+import jimi
+
+functionSafeList = jimi.function.systemFunctions
 
 regexEvalString = re.compile("(\%\%([^%]*)\%\%)")
 regexDict = re.compile("^([a-zA-Z]+)\[.*\]")
@@ -35,7 +35,7 @@ class cpuSaver:
     loops = 0
 
     def __init__(self):
-        self.cpuSaver = settings.config["cpuSaver"]
+        self.cpuSaver = jimi.settings.config["cpuSaver"]
 
     def tick(self,runAfter=0,sleepFor=0):
         if self.cpuSaver:
@@ -357,13 +357,13 @@ def reload():
             if type(moduleItem[1]) is types.ModuleType:
                 importlib.reload(moduleItem[1])
 
-apiURL = "http://{0}:{1}/{2}".format(settings.config["system"]["accessAddress"],settings.config["system"]["accessPort"],settings.config["api"]["core"]["base"])
+apiURL = "http://{0}:{1}/{2}".format(jimi.settings.config["system"]["accessAddress"],jimi.settings.config["system"]["accessPort"],jimi.settings.config["api"]["core"]["base"])
 def apiCall(methord,apiEndpoint,jsonData=None,token=None,overrideURL=None,timeout=2,overrideAPIBase=None):
     if overrideURL != None:
         if overrideAPIBase != None:
             url = "{0}/{1}/{2}".format(overrideURL,overrideAPIBase,apiEndpoint)
         else:
-            url = "{0}/{1}/{2}".format(overrideURL,settings.config["api"]["core"]["base"],apiEndpoint)                   
+            url = "{0}/{1}/{2}".format(overrideURL,jimi.settings.config["api"]["core"]["base"],apiEndpoint)                   
     else:
         url = "{0}/{1}".format(apiURL,apiEndpoint)
 
@@ -373,11 +373,11 @@ def apiCall(methord,apiEndpoint,jsonData=None,token=None,overrideURL=None,timeou
     response = None
     try:
         if methord == "GET":
-            response = requests.get(url,proxies=settings.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
+            response = requests.get(url,proxies=jimi.settings.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
         elif methord == "POST":
-            response = requests.post(url,json=jsonData,proxies=settings.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
+            response = requests.post(url,json=jsonData,proxies=jimi.settings.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
         elif methord == "DELETE":
-            response = requests.delete(url,proxies=settings.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
+            response = requests.delete(url,proxies=jimi.settings.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
     except Exception as e:
         pass
     return response

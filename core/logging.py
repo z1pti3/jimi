@@ -3,9 +3,9 @@ import json
 import uuid
 import inspect
 
-from core import settings
+import jimi
 
-debugSettings = settings.config["debug"]
+debugSettings = jimi.settings.config["debug"]
 try:
     debugEnabled = debugSettings["enabled"]
 except KeyError:

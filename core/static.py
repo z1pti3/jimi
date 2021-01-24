@@ -1,3 +1,3 @@
-from core import settings
+import jimi
 
-static = settings.config["static"]
+static = jimi.settings.config["static"]

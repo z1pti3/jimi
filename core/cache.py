@@ -1,7 +1,7 @@
 import time
 import copy
 
-from core import helpers, logging
+import jimi
 
 class _cache:
     objects = dict()
@@ -14,8 +14,8 @@ class _cache:
                 cacheName = "{0},-,{1}".format(userID,cacheName)
         if cacheName not in self.objects:
             self.objects[cacheName] = { "objects" : {}, "maxSize" : maxSize, "cacheExpiry" : cacheExpiry, "userID" : userID }
-            if logging.debugEnabled:
-                logging.debug("New cache store created, name={0}, maxSize={1}, cacheExpry={2}, userID={3}".format(cacheName,maxSize,cacheExpiry,userID),20)
+            if jimi.logging.debugEnabled:
+                jimi.logging.debug("New cache store created, name={0}, maxSize={1}, cacheExpry={2}, userID={3}".format(cacheName,maxSize,cacheExpiry,userID),20)
 
     def clearCache(self,cacheName,sessionData=None):
         authedCacheName = self.checkSessionData(cacheName,sessionData)
@@ -26,8 +26,8 @@ class _cache:
                 self.objects[cacheName]["objects"].clear()
         elif authedCacheName in self.objects:
             self.objects[authedCacheName]["objects"].clear()
-            if logging.debugEnabled:
-                logging.debug("Cache store cleared, name={0}".format(authedCacheName),20)
+            if jimi.logging.debugEnabled:
+                jimi.logging.debug("Cache store cleared, name={0}".format(authedCacheName),20)
         
     # BUG this function does not check for size so it would be possibel to go over the defined max memory size -- Add this at a later date
     def sync(self,objects):
@@ -145,8 +145,8 @@ class _cache:
         authedCacheName = self.checkSessionData(cacheName,sessionData)
         if authedCacheName == None:
             return
-        if logging.debugEnabled:
-            logging.debug("Cache store attempting to reduce memory, name={0}, amount={1}".format(authedCacheName,amountToFree),20)
+        if jimi.logging.debugEnabled:
+            jimi.logging.debug("Cache store attempting to reduce memory, name={0}, amount={1}".format(authedCacheName,amountToFree),20)
         # No objects to clear
         if len(self.objects[authedCacheName]["objects"]) == 0:
             return False
@@ -157,7 +157,7 @@ class _cache:
         accessCount = {}
         for cacheObjectKey, cacheObjectValue in self.objects[authedCacheName]["objects"].items():
             if cacheObjectValue["cacheExpiry"] < now:
-                amountReduced += helpers.getObjectMemoryUsage(cacheObjectValue)
+                amountReduced += jimi.helpers.getObjectMemoryUsage(cacheObjectValue)
                 poplist.append(cacheObjectKey)
             else:
                 if cacheObjectValue["accessCount"] not in accessCount:
@@ -168,7 +168,7 @@ class _cache:
         if amountReduced < amountToFree:
             for count in accessCount.keys():
                 for item in accessCount[count]:
-                    amountReduced += helpers.getObjectMemoryUsage(self.objects[authedCacheName]["objects"][item])
+                    amountReduced += jimi.helpers.getObjectMemoryUsage(self.objects[authedCacheName]["objects"][item])
                     poplist.append(item)
                     if amountReduced >= amountToFree:
                         break
@@ -192,8 +192,8 @@ class _cache:
             if sessionData["_id"] == self.objects[authedCacheName]["userID"]:
                 return authedCacheName
             else:
-                if logging.debugEnabled:
-                    logging.debug("ERROR - Cache store access denied due to mismatched ID, name={0}, userID={1}".format(cacheName,sessionData["_id"]),5)
+                if jimi.logging.debugEnabled:
+                    jimi.logging.debug("ERROR - Cache store access denied due to mismatched ID, name={0}, userID={1}".format(cacheName,sessionData["_id"]),5)
                 return None
         else:
             return cacheName
@@ -203,7 +203,7 @@ class _cache:
         result = ""
         totalSize = 0
         for cacheName, cacheValue in self.objects.items():
-            cacheSzie = helpers.getObjectMemoryUsage(cacheValue)
+            cacheSzie = jimi.helpers.getObjectMemoryUsage(cacheValue)
             totalSize+=cacheSzie
             result+="name='{0}', size='{1}'\r\n".format(cacheName,cacheSzie)
         result+="\r\n\r\nTotal Size='{0}'".format(totalSize)

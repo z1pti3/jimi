@@ -15,12 +15,12 @@ from Crypto.Random import get_random_bytes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 
+import jimi
+
 # Example ACL stored with object
 # "acl" : { "ids" : [ { "accessID" : "", "read" : False, "write" : False, "delete" : False } ], "fields" : [ { "field" : "passwordHash", "ids" : [ { "accessID" : "", "read" : False, "write" : False, "delete" : False } ] } ] }
 
-from core import db
-
-class _user(db._document):
+class _user(jimi.db._document):
     name = str()
     enabled = bool()
     username = str()
@@ -32,7 +32,7 @@ class _user(db._document):
     apiTokens = list()
     primaryGroup = str()
 
-    _dbCollection = db.db["users"]
+    _dbCollection = jimi.db.db["users"]
 
     # Override parent new to include name var, parent class new run after class var update
     def new(self,name,username,password):
@@ -48,7 +48,7 @@ class _user(db._document):
             return None
 
     def setAttribute(self,attr,value,sessionData=None):
-        if attr == "passwordHash" and not helpers.isBase64(value):
+        if attr == "passwordHash" and not jimi.helpers.isBase64(value):
             if meetsPasswordPolicy(value):
                 result = generatePasswordHash(value, self.username)
                 self.passwordHash = result[1]
@@ -71,13 +71,13 @@ class _user(db._document):
         self.update(["apiTokens"])
         return apiSessionToken
 
-class _group(db._document):
+class _group(jimi.db._document):
     name = str()
     enabled = bool()
     members = list()
     apiTokens = list()
 
-    _dbCollection = db.db["groups"]
+    _dbCollection = jimi.db.db["groups"]
 
     # Override parent new to include name var, parent class new run after class var update
     def new(self,name):
@@ -88,10 +88,9 @@ class _group(db._document):
         else:
             return None
 
-from core import api, settings, helpers, audit
 from system import install
 
-authSettings = settings.config["auth"]
+authSettings = jimi.settings.config["auth"]
 
 # Loading public and private keys for session signing
 with open(Path(authSettings["rsa"]["cert"])) as f:
@@ -183,7 +182,7 @@ def generateSession(dataDict):
     return jwt.encode(dataDict, private_key, algorithm="RS256")
 
 def generateSystemSession():
-    data = { "expiry" : time.time() + 10, "admin" : True, "_id" : 0, "user" : "system", "primaryGroup" : 0, "authenticated" : True, "api" : True }
+    data = { "expiry" : time.time() + 10, "admin" : True, "system" : True, "_id" : 0, "user" : "system", "primaryGroup" : 0, "authenticated" : True, "api" : True }
     return jwt.encode(data, private_key, algorithm="RS256")
 
 def validateSession(sessionToken):
@@ -224,19 +223,19 @@ def validateUser(username,password,otp=None):
                 user.update(["passwordHashType","passwordHash"])
             user.failedLoginCount = 0
             user.update(["lastLoginAttempt","failedLoginCount"])
-            audit._audit().add("auth","login",{ "action" : "success", "src_ip" : api.request.remote_addr, "username" : username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" :user.primaryGroup, "admin" : isAdmin(user) })
+            jimi.audit._audit().add("auth","login",{ "action" : "success", "src_ip" : jimi.api.request.remote_addr, "username" : username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" :user.primaryGroup, "admin" : isAdmin(user) })
             return generateSession({ "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True })
         else:
             user.failedLoginCount+=1
             user.update(["lastLoginAttempt","failedLoginCount"])
-    audit._audit().add("auth","login",{ "action" : "failed", "src_ip" : api.request.remote_addr, "username" : username })
+    jimi.audit._audit().add("auth","login",{ "action" : "failed", "src_ip" : jimi.api.request.remote_addr, "username" : username })
     return None
 
 # Needs to be converted into authorization roles e.g. admin
 def requireAuthentication(func):
     def decorated_function(*args, **kwargs):
-        if "jimiAuth" in api.request.cookies:
-            validSession = validateSession(api.request.cookies["jimiAuth"])
+        if "jimiAuth" in jimi.api.request.cookies:
+            validSession = validateSession(jimi.api.request.cookies["jimiAuth"])
             if not validSession:
                 return {}, 403
         return func(*args, **kwargs)
@@ -260,78 +259,106 @@ def isAdmin(user):
         return True
     return False
 
+def adminEndpoint(f):
+    @functools.wraps(f)
+    def wrap(*args, **kwargs):
+        try:
+            if authSettings["enabled"]:
+                if jimi.api.g.sessionData["admin"]:
+                    return f(*args, **kwargs)
+            else:
+                return f(*args, **kwargs)
+        except:
+            pass
+        return {}, 403
+    return wrap
+
+def systemEndpoint(f):
+    @functools.wraps(f)
+    def wrap(*args, **kwargs):
+        try:
+            if authSettings["enabled"]:
+                if jimi.api.g.sessionData["system"]:
+                    return f(*args, **kwargs)
+            else:
+                return f(*args, **kwargs)
+        except:
+            pass
+        return {}, 403
+    return wrap
+
 ######### --------- API --------- #########
-if api.webServer:
-    if not api.webServer.got_first_request:
+if jimi.api.webServer:
+    if not jimi.api.webServer.got_first_request:
         # Ensures that all requests require basic level of authentication ( athorization handled by dectirators )
-        @api.webServer.before_request
+        @jimi.api.webServer.before_request
         def api_alwaysAuthBefore():
-            api.g.sessionData = {}
-            api.g.sessionToken = ""
-            api.g.type = ""
+            jimi.api.g.sessionData = {}
+            jimi.api.g.sessionToken = ""
+            jimi.api.g.type = ""
             #api.g = { "sessionData" : {}, "sessionToken": "", "type" : "" }
             if authSettings["enabled"]:
                 noAuthEndPoints = ["static","staticFile","loginPage","api_validateUser","api_validateAPIKey"]
-                if api.request.endpoint != None and api.request.endpoint not in noAuthEndPoints and "__PUBLIC__" not in api.request.endpoint:
+                if jimi.api.request.endpoint != None and jimi.api.request.endpoint not in noAuthEndPoints and "__PUBLIC__" not in jimi.api.request.endpoint:
                     validSession = None
-                    if "jimiAuth" in api.request.cookies:
-                        validSession = validateSession(api.request.cookies["jimiAuth"])
+                    if "jimiAuth" in jimi.api.request.cookies:
+                        validSession = validateSession(jimi.api.request.cookies["jimiAuth"])
                         if not validSession:
                             redirectEndPoints = ["api_sessionPolling","mainPage","statusPage"]
-                            if api.request.endpoint in redirectEndPoints:
+                            if jimi.api.request.endpoint in redirectEndPoints:
                                 return {}, 403
                             else:
                                 return {}, 403
-                        api.g.type = "cookie"
+                        jimi.api.g.type = "cookie"
                         # Confirm CSRF
-                        if api.request.method in ["POST","PUT","DELETE"]:
+                        if jimi.api.request.method in ["POST","PUT","DELETE"]:
                             try:
                                 try:
-                                    data = json.loads(api.request.data)
+                                    data = json.loads(jimi.api.request.data)
                                     if "CSRF" not in data:
                                         raise KeyError
                                 except:
                                     try:
-                                        data = json.loads(list(api.request.form.to_dict().keys())[0])
+                                        data = json.loads(list(jimi.api.request.form.to_dict().keys())[0])
                                         if "CSRF" not in data:
                                             raise KeyError
                                     except:
-                                        data = api.request.form["CSRF"]
+                                        data = jimi.api.request.form["CSRF"]
                                 if validSession["sessionData"]["CSRF"] != data["CSRF"]:
                                     return {}, 403
                             except:
                                 return {}, 403
-                    elif "x-api-token" in api.request.headers:
-                        validSession = validateSession(api.request.headers.get("x-api-token"))
+                    elif "x-api-token" in jimi.api.request.headers:
+                        validSession = validateSession(jimi.api.request.headers.get("x-api-token"))
                         if not validSession:
                             return {}, 403
                         #if validSession["sessionData"]["api"] != True:
                         #    return {}, 403
-                        api.g.type = "x-api-token"
+                        jimi.api.g.type = "x-api-token"
                     else: 
-                        return api.redirect("/login?return={0}".format(api.request.full_path), code=302)
+                        return jimi.api.redirect("/login?return={0}".format(jimi.api.request.full_path), code=302)
                     # Data that is returned to the Flask request handler function
-                    api.g.sessionData = validSession["sessionData"]
-                    api.g.sessionToken = validSession["sessionToken"]
+                    jimi.api.g.sessionData = validSession["sessionData"]
+                    jimi.api.g.sessionToken = validSession["sessionToken"]
                     if "renew" in validSession:
-                        api.g.renew = validSession["renew"]
+                        jimi.api.g.renew = validSession["renew"]
                 else:
-                    api.g.type = "bypass"
+                    jimi.api.g.type = "bypass"
             else:
-                api.g.sessionData = { "_id" : "0", "user" : "noAuth", "CSRF" : "" }
-                api.g.sessionToken = ""
-                api.g.type = "noAuth"
+                jimi.api.g.sessionData = { "_id" : "0", "user" : "noAuth", "CSRF" : "" }
+                jimi.api.g.sessionToken = ""
+                jimi.api.g.type = "noAuth"
             
         # Ensures that all requests return an up to date sessionToken to prevent session timeout for valid sessions
-        @api.webServer.after_request
+        @jimi.api.webServer.after_request
         def api_alwaysAuthAfter(response):
             if authSettings["enabled"]:
-                    if api.g.type != "bypass":
-                        if api.g.type == "cookie":
-                            if "renew" in api.g:
-                                response.set_cookie("jimiAuth", value=generateSession(api.g.sessionData), max_age=600) # Need to add secure=True before production, httponly=False cant be used due to auth polling
+                    if jimi.api.g.type != "bypass":
+                        if jimi.api.g.type == "cookie":
+                            if "renew" in jimi.api.g:
+                                response.set_cookie("jimiAuth", value=generateSession(jimi.api.g.sessionData), max_age=600) # Need to add secure=True before production, httponly=False cant be used due to auth polling
             # Cache Weakness
-            if api.request.endpoint != "static": 
+            if jimi.api.request.endpoint != "static": 
                 response.headers['Cache-Control'] = 'no-cache, no-store'
                 response.headers['Pragma'] = 'no-cache'
             # Permit CORS when web and web API ( Flask ) are seperated
@@ -342,110 +369,111 @@ if api.webServer:
             #response.headers['X-Frame-Options'] = 'SAMEORIGIN'
             return response
 
-        # Checks that username and password are a match
-        @api.webServer.route(api.base+"auth/", methods=["POST"])
-        def api_validateUser():
-            if authSettings["enabled"]:
-                data = json.loads(api.request.data)
-                #check if OTP has been passed
-                #if invalid user or user requires OTP, return 200 but request OTP
-                if "otp" not in data:
-                    user = _user().getAsClass(query={ "username" : data["username"] })
+        if jimi.api.webServer.name == "jimi_web":
+            # Checks that username and password are a match
+            @jimi.api.webServer.route(jimi.api.base+"auth/", methods=["POST"])
+            def api_validateUser():
+                if authSettings["enabled"]:
+                    data = json.loads(jimi.api.request.data)
+                    #check if OTP has been passed
+                    #if invalid user or user requires OTP, return 200 but request OTP
+                    if "otp" not in data:
+                        user = _user().getAsClass(query={ "username" : data["username"] })
+                        if len(user) == 1:
+                            user = user[0]
+                            if user.totpSecret != "":
+                                return {}, 403
+                            else:
+                                userSession = validateUser(data["username"],data["password"])
+                        else:
+                            return {}, 403
+                    else:
+                        userSession = validateUser(data["username"],data["password"],data["otp"])
+                    if userSession:
+                        sessionData = validateSession(userSession)["sessionData"]
+                        response = jimi.api.make_response({ "CSRF" : sessionData["CSRF"] },200)
+                        response.set_cookie("jimiAuth", value=userSession, max_age=600) # Need to add secure=True before production
+                        return response, 200
+                else:
+                    return { "CSRF" : "" }, 200
+                return {}, 403
+
+            # Called by API systems to request an x-api-token string from x-api-key provided
+            @jimi.api.webServer.route(jimi.api.base+"auth/", methods=["GET"])
+            def api_validateAPIKey():
+                if "x-api-key" in jimi.api.request.headers:
+                    user = _user().getAsClass(query={ "apiTokens" : { "$in" : [ jimi.api.request.headers.get("x-api-key") ] } } )
+                    if len(user) == 1:
+                        user = user[0]  
+                        return { "x-api-token" : generateSession({ "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True }).decode()}, 200
+                return {}, 404
+
+            @jimi.api.webServer.route(jimi.api.base+"auth/poll/", methods=["GET"])
+            def api_sessionPolling():
+                result = { "CSRF" : "" }
+                if authSettings["enabled"]:
+                    result = { "CSRF" : jimi.api.g.sessionData["CSRF"] }
+                return result, 200
+
+            @jimi.api.webServer.route(jimi.api.base+"auth/logout/", methods=["GET"])
+            def api_logout():
+                jimi.audit._audit().add("auth","logout",{ "action" : "success", "_id" : jimi.api.g.sessionData["_id"] })
+                return {}, 200
+
+            # Checks that username and password are a match
+            @jimi.api.webServer.route(jimi.api.base+"auth/myAccount/", methods=["POST"])
+            def api_updateMyAccount():
+                if authSettings["enabled"]:
+                    user = _user().getAsClass(id=jimi.api.g.sessionData["_id"])
                     if len(user) == 1:
                         user = user[0]
-                        if user.totpSecret != "":
-                            return {}, 403
-                        else:
-                            userSession = validateUser(data["username"],data["password"])
-                    else:
-                        return {}, 403
+                        data = json.loads(jimi.api.request.data)
+                        if "password" in data:
+                            if getENCFromPassword(data["password"]) == user.passwordHash:
+                                user.setAttribute("passwordHash",data["password1"],sessionData=jimi.api.g.sessionData)
+                            else:
+                                return { "msg" : "Current password does not match" }, 400
+                        user.setAttribute("name",data["name"],sessionData=jimi.api.g.sessionData)
+                        user.update(["name","passwordHash","apiTokens"])
+                        return {}, 200
                 else:
-                    userSession = validateUser(data["username"],data["password"],data["otp"])
-                if userSession:
-                    sessionData = validateSession(userSession)["sessionData"]
-                    response = api.make_response({ "CSRF" : sessionData["CSRF"] },200)
-                    response.set_cookie("jimiAuth", value=userSession, max_age=600) # Need to add secure=True before production
-                    return response, 200
-            else:
-                return { "CSRF" : "" }, 200
-            return {}, 403
-
-        # Called by API systems to request an x-api-token string from x-api-key provided
-        @api.webServer.route(api.base+"auth/", methods=["GET"])
-        def api_validateAPIKey():
-            if "x-api-key" in api.request.headers:
-                user = _user().getAsClass(query={ "apiTokens" : { "$in" : [ api.request.headers.get("x-api-key") ] } } )
-                if len(user) == 1:
-                    user = user[0]  
-                    return { "x-api-token" : generateSession({ "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True }).decode()}, 200
-            return {}, 404
-
-        @api.webServer.route(api.base+"auth/poll/", methods=["GET"])
-        def api_sessionPolling():
-            result = { "CSRF" : "" }
-            if authSettings["enabled"]:
-                result = { "CSRF" : api.g.sessionData["CSRF"] }
-            return result, 200
-
-        @api.webServer.route(api.base+"auth/logout/", methods=["GET"])
-        def api_logout():
-            audit._audit().add("auth","logout",{ "action" : "success", "_id" : api.g.sessionData["_id"] })
-            return {}, 200
-
-        # Checks that username and password are a match
-        @api.webServer.route(api.base+"auth/myAccount/", methods=["POST"])
-        def api_updateMyAccount():
-            if authSettings["enabled"]:
-                user = _user().getAsClass(id=api.g.sessionData["_id"])
-                if len(user) == 1:
-                    user = user[0]
-                    data = json.loads(api.request.data)
-                    if "password" in data:
-                        if getENCFromPassword(data["password"]) == user.passwordHash:
-                            user.setAttribute("passwordHash",data["password1"],sessionData=api.g.sessionData)
-                        else:
-                            return { "msg" : "Current password does not match" }, 400
-                    user.setAttribute("name",data["name"],sessionData=api.g.sessionData)
-                    user.update(["name","passwordHash","apiTokens"])
                     return {}, 200
-            else:
-                return {}, 200
-            return {}, 403
+                return {}, 403
 
-        # Called by API systems to request an x-api-token string from x-api-key provided
-        @api.webServer.route(api.base+"auth/myAccount/", methods=["GET"])
-        def api_getMyAccount():
-            if authSettings["enabled"]:
-                user = _user().getAsClass(id=api.g.sessionData["_id"])
+            # Called by API systems to request an x-api-token string from x-api-key provided
+            @jimi.api.webServer.route(jimi.api.base+"auth/myAccount/", methods=["GET"])
+            def api_getMyAccount():
+                if authSettings["enabled"]:
+                    user = _user().getAsClass(id=jimi.api.g.sessionData["_id"])
+                    if len(user) == 1:
+                        user = user[0]
+                        userProps = {}
+                        userProps["username"] = user.getAttribute("username",sessionData=jimi.api.g.sessionData)
+                        userProps["name"] = user.getAttribute("name",sessionData=jimi.api.g.sessionData)
+                        return userProps, 200
+                else:
+                    userProps = {}
+                    userProps["username"] = "username"
+                    userProps["name"] = "name"
+                    return userProps, 200
+                return { }, 404
+
+            @jimi.api.webServer.route(jimi.api.base+"auth/regenerateOTP/", methods=["GET"])
+            def api_regenerateOTP():
+                user = _user().getAsClass(id=jimi.api.g.sessionData["_id"])
                 if len(user) == 1:
                     user = user[0]
-                    userProps = {}
-                    userProps["username"] = user.getAttribute("username",sessionData=api.g.sessionData)
-                    userProps["name"] = user.getAttribute("name",sessionData=api.g.sessionData)
-                    return userProps, 200
-            else:
-                userProps = {}
-                userProps["username"] = "username"
-                userProps["name"] = "name"
-                return userProps, 200
-            return { }, 404
+                    user.setAttribute("totpSecret",generateSharedSecret(),sessionData=jimi.api.g.sessionData)
+                    user.update(["totpSecret"])
+                    return { }, 200
+                return { }, 404
 
-        @api.webServer.route(api.base+"auth/regenerateOTP/", methods=["GET"])
-        def api_regenerateOTP():
-            user = _user().getAsClass(id=api.g.sessionData["_id"])
-            if len(user) == 1:
-                user = user[0]
-                user.setAttribute("totpSecret",generateSharedSecret(),sessionData=api.g.sessionData)
-                user.update(["totpSecret"])
-                return { }, 200
-            return { }, 404
-
-        @api.webServer.route(api.base+"auth/viewOTP/", methods=["GET"])
-        def api_viewOTP():
-            user = _user().getAsClass(id=api.g.sessionData["_id"])
-            if len(user) == 1:
-                user = user[0]
-                totpSecret = user.getAttribute("totpSecret",sessionData=api.g.sessionData)
-                if totpSecret != "":
-                    return "otpauth://totp/JIMI:{}?secret={}&issuer=JIMI".format(user.username,totpSecret), 200
-            return { }, 404
+            @jimi.api.webServer.route(jimi.api.base+"auth/viewOTP/", methods=["GET"])
+            def api_viewOTP():
+                user = _user().getAsClass(id=jimi.api.g.sessionData["_id"])
+                if len(user) == 1:
+                    user = user[0]
+                    totpSecret = user.getAttribute("totpSecret",sessionData=jimi.api.g.sessionData)
+                    if totpSecret != "":
+                        return "otpauth://totp/JIMI:{}?secret={}&issuer=JIMI".format(user.username,totpSecret), 200
+                return { }, 404

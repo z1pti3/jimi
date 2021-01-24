@@ -2,21 +2,22 @@ import uuid
 import time
 import json
 
-from core import db
+import jimi
 
 # Initialize
 dbCollectionName = "clusterMembers"
 
-class _clusterMember(db._document):
+class _clusterMember(jimi.db._document):
     systemID = int()
     systemUID = str()
     bindAddress = str()
     bindPort = int()
+    bindSecure = bool()
     master = bool()
     syncCount = int()
     lastSyncTime = int()
 
-    _dbCollection = db.db[dbCollectionName]
+    _dbCollection = jimi.db.db[dbCollectionName]
 
     def new(self,systemID):
         self.systemID = systemID
@@ -37,7 +38,7 @@ class _clusterMember(db._document):
         for clusterMember in clusterMembers:
             if clusterMember.systemID == self.systemID:
                 if clusterMember.systemUID != self.systemUID:
-                    logging.debug("ERROR: Duplicated systemID detected during sync.",-1)
+                    jimi.logging.debug("ERROR: Duplicated systemID detected during sync.",-1)
                     return False
                 if clusterMember.master:
                     self.master = True
@@ -73,22 +74,22 @@ class _clusterMember(db._document):
 
         if self.master:
             # Reset systemID for all non-active systems
-            result = trigger._trigger().api_update(query={ "systemID" : { "$nin" : active } },update={ "$set" : { "systemID" : None } })
+            result = jimi.trigger._trigger().api_update(query={ "systemID" : { "$nin" : active } },update={ "$set" : { "systemID" : None } })
             if result:
-                if logging.debugEnabled:
-                    logging.debug("Reset {0} triggers from inactive cluster members".format(result["count"]),6)
+                if jimi.logging.debugEnabled:
+                    jimi.logging.debug("Reset {0} triggers from inactive cluster members".format(result["count"]),6)
             else:
-                if logging.debugEnabled:
-                    logging.debug("Unable to reset triggers from inactive cluster members - active='{0}'".format(active),2)
+                if jimi.logging.debugEnabled:
+                    jimi.logging.debug("Unable to reset triggers from inactive cluster members - active='{0}'".format(active),2)
 
             if len(active) > 0:
-                inactiveTriggers = trigger._trigger().getAsClass(query={ "systemID" : { "$nin" : active }, "enabled" : True })
+                inactiveTriggers = jimi.trigger._trigger().getAsClass(query={ "systemID" : { "$nin" : active }, "enabled" : True })
                 if len(inactiveTriggers) > 0:
-                    if logging.debugEnabled:
-                        logging.debug("Moving triggers from inactive cluster member to active members",2)
+                    if jimi.logging.debugEnabled:
+                        jimi.logging.debug("Moving triggers from inactive cluster member to active members",2)
                     clusterMembersDetails = {}
                     for activeMember in active:
-                        count = trigger._trigger().getAsClass(query={ "systemID" : activeMember, "enabled" : True })
+                        count = jimi.trigger._trigger().getAsClass(query={ "systemID" : activeMember, "enabled" : True })
                         clusterMembersDetails[str(activeMember)] = { "count" : len(count) }
                     groups = {}
                     for inactiveTrigger in inactiveTriggers:
@@ -108,9 +109,9 @@ class _clusterMember(db._document):
                         inactiveTrigger.startCheck = 0
                         inactiveTrigger.update(["systemID","startCheck"])
                         clusterMembersDetails[str(member)]["count"]+=1
-                        if logging.debugEnabled:
-                            logging.debug("Set triggerID='{0}' triggers to systemID='{1}', new trigger count='{2}'".format(inactiveTrigger._id,member,clusterMembersDetails[str(member)]["count"]),6)
-                        audit._audit().add("cluster","set trigger",{ "triggerID" : inactiveTrigger._id, "triggerName" : inactiveTrigger.name, "systemID" : member, "clusterSet" : inactiveTrigger.clusterSet, "masterID" : self.systemID, "masterUID" : self.systemUID })
+                        if jimi.logging.debugEnabled:
+                            jimi.logging.debug("Set triggerID='{0}' triggers to systemID='{1}', new trigger count='{2}'".format(inactiveTrigger._id,member,clusterMembersDetails[str(member)]["count"]),6)
+                        jimi.audit._audit().add("cluster","set trigger",{ "triggerID" : inactiveTrigger._id, "triggerName" : inactiveTrigger.name, "systemID" : member, "clusterSet" : inactiveTrigger.clusterSet, "masterID" : self.systemID, "masterUID" : self.systemUID })
 
         return True
 
@@ -120,7 +121,7 @@ class _cluster:
     lastHandle = None
 
     def __init__(self):
-        self.workerID = workers.workers.new("cluster",self.handler,maxDuration=0)
+        self.workerID = jimi.workers.workers.new("cluster",self.handler,maxDuration=0)
         self.startTime = int(time.time())
 
     def handler(self):
@@ -134,13 +135,9 @@ class _cluster:
             time.sleep(clusterSettings["loopP"])
             
 
-from core import settings, api, helpers, logging, workers, audit
-
-from core.models import trigger
-
-systemSettings = settings.config["system"]
-clusterSettings = settings.config["cluster"]
-apiSettings = settings.config["api"]
+systemSettings = jimi.settings.config["system"]
+clusterSettings = jimi.settings.config["cluster"]
+apiSettings = jimi.settings.config["api"]
 
 def loadClusterMember():
     clusterMember = _clusterMember().getAsClass(query={ "systemID" : systemSettings["systemID"] })
@@ -148,7 +145,7 @@ def loadClusterMember():
         clusterMember = clusterMember[0]
     elif len(clusterMember) > 1:
         clusterMember = clusterMember[0]
-        logging.debug("ERROR: Duplicated systemID found.",-1)
+        jimi.logging.debug("ERROR: Duplicated systemID found.",-1)
     else:
         clusterMember = _clusterMember().new(systemSettings["systemID"]).inserted_id
         clusterMember = _clusterMember().getAsClass(id=clusterMember)
@@ -157,30 +154,40 @@ def loadClusterMember():
     clusterMember.syncCount = 0
     clusterMember.bindAddress = systemSettings["accessAddress"]
     clusterMember.bindPort = systemSettings["accessPort"]
+    try:
+        clusterMember.bindSecure = systemSettings["secure"]
+    except KeyError:
+        pass
     clusterMember.systemUID = str(uuid.uuid4())
-    clusterMember.update(["syncCount","systemUID","bindAddress","bindPort"])
+    clusterMember.update(["syncCount","systemUID","bindAddress","bindPort","bindSecure"])
     return clusterMember
 
 def getMaster():
     clusterMaster = _clusterMember().getAsClass(query={ "master" : True })
     if len(clusterMaster) > 0:
         clusterMaster = clusterMaster[0]
-        return (clusterMaster.bindAddress, clusterMaster.bindPort)
-    return ("127.0.0.1",5000)
+        propcol = "http"
+        if clusterMaster.bindSecure:
+            propcol = "https"
+        return "{0}://{1}:{2}".format(propcol,clusterMaster.bindAddress, clusterMaster.bindPort)
+    return "http://127.0.0.1:5000"
 
 def getAll():
     clusterMembers = _clusterMember().getAsClass(query={ "lastSyncTime" : { "$gt" : (time.time()-60) } })
     if len(clusterMembers) > 0:
         result = []
         for clusterMember in clusterMembers:
-            result.append((clusterMember.bindAddress, clusterMember.bindPort))
+            propcol = "http"
+            if clusterMember.bindSecure:
+                propcol = "https"
+            result.append("{0}://{1}:{2}".format(propcol,clusterMember.bindAddress, clusterMember.bindPort))
         return result
-    return [("127.0.0.1",5000)]
+    return ["http://127.0.0.1:5000"]
 
 def start():
     global cluster
     try:
-        if workers.workers:
+        if jimi.workers.workers:
             try:
                 # Creating instance of cluster
                 if cluster:
@@ -191,43 +198,41 @@ def start():
             except NameError:
                 pass
             cluster = _cluster()
-            if logging.debugEnabled:
-                logging.debug("Cluster started, workerID='{0}'".format(cluster.workerID),6)
+            if jimi.logging.debugEnabled:
+                jimi.logging.debug("Cluster started, workerID='{0}'".format(cluster.workerID),6)
             return True
     except AttributeError:
-        if logging.debugEnabled:
-            logging.debug("Cluster start requested, No valid worker class loaded",4)
+        if jimi.logging.debugEnabled:
+            jimi.logging.debug("Cluster start requested, No valid worker class loaded",4)
         return False
 
 
 ######### --------- API --------- #########
-if api.webServer:
-    if not api.webServer.got_first_request:
-        @api.webServer.route(api.base+"cluster/", methods=["GET"])
-        def getCluster():
-            result = None
-            if api.g.sessionData["admin"]:
+if jimi.api.webServer:
+    if not jimi.api.webServer.got_first_request:
+        if jimi.api.webServer.name == "jimi_web":
+            @jimi.api.webServer.route(jimi.api.base+"cluster/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def getCluster():
+                result = None
                 if cluster:
                     result = { "stopped" : cluster.stopped, "startTime" : cluster.startTime, "lastHandle" : cluster.lastHandle, "workerID" : cluster.workerID }
                 results = _clusterMember().query()["results"]
-            return { "self" : result, "cluster" : results }, 200
+                return { "self" : result, "cluster" : results }, 200
 
-        @api.webServer.route(api.base+"cluster/", methods=["POST"])
-        def updateCluster():
-            if api.g.sessionData["admin"]:
-                data = json.loads(api.request.data)
+            @jimi.api.webServer.route(jimi.api.base+"cluster/distribute/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def distributeCluster():
+                jimi.trigger._trigger().api_update(query={ "startCheck" : 0 },update={ "$set" : { "systemID" : None } })
+                return { "result" : True }, 200
+
+        if jimi.api.webServer.name == "jimi_core":
+            @jimi.api.webServer.route(jimi.api.base+"cluster/", methods=["POST"])
+            @jimi.auth.systemEndpoint
+            def updateCluster():
+                data = json.loads(jimi.api.request.data)
                 if data["action"] == "start":
                     result = start()
                     return { "result" : result }, 200
                 else:
                     return { }, 404
-            else:
-                return { }, 403
-
-        @api.webServer.route(api.base+"cluster/distribute/", methods=["GET"])
-        def distributeCluster():
-            if api.g.sessionData["admin"]:
-                trigger._trigger().api_update(query={ "startCheck" : 0 },update={ "$set" : { "systemID" : None } })
-                return { "result" : True }, 200
-            else:
-                return { }, 403

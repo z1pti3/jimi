@@ -4,8 +4,9 @@ import re
 import json
 import datetime
 import traceback
-
 import croniter
+
+import jimi
 
 class _scheduler:
     stopped = False
@@ -13,7 +14,7 @@ class _scheduler:
     lastHandle = None
 
     def __init__(self):
-        self.workerID = workers.workers.new("scheduler",self.handler,maxDuration=0)
+        self.workerID = jimi.workers.workers.new("scheduler",self.handler,maxDuration=0)
         self.startTime = int(time.time())
 
     def handler(self):
@@ -21,7 +22,7 @@ class _scheduler:
             now = int(time.time())
             self.lastHandle = now
             # Adds defined delay onto nextCheck so that it can pickup ones that would otherwise wait for after the pause
-            for t in trigger._trigger().getAsClass(query={ "systemID" : systemSettings["systemID"], "$or" : [ {"nextCheck" : { "$lt" :  (now + schedulerSettings["loopP"])}}, {"$or" : [ {"nextCheck" : { "$eq" : ""}} , {"nextCheck" : {"$eq" : None }} ] } ], "enabled" : True, "startCheck" :  0, "$and":[{"schedule" : {"$ne" : None}} , {"schedule" : {"$ne" : ""}} ] }):
+            for t in jimi.trigger._trigger().getAsClass(query={ "systemID" : systemSettings["systemID"], "$or" : [ {"nextCheck" : { "$lt" :  (now + schedulerSettings["loopP"])}}, {"$or" : [ {"nextCheck" : { "$eq" : ""}} , {"nextCheck" : {"$eq" : None }} ] } ], "enabled" : True, "startCheck" :  0, "$and":[{"schedule" : {"$ne" : None}} , {"schedule" : {"$ne" : ""}} ] }):
                 if t.schedule == "*":
                     t.nextCheck == 1  
                 if t.nextCheck == 0:
@@ -34,20 +35,18 @@ class _scheduler:
                     if type(t.maxDuration) is int and t.maxDuration > 0:
                         maxDuration = t.maxDuration
                     if t.schedule == "*":
-                        t.workerID = workers.workers.new("continuousTrigger:{0}".format(t._id),continuous,(t,),maxDuration=0,multiprocessing=t.threaded)
+                        t.workerID = jimi.workers.workers.new("continuousTrigger:{0}".format(t._id),continuous,(t,),maxDuration=0,multiprocessing=t.threaded)
                     else:
-                        t.workerID = workers.workers.new("trigger:{0}".format(t._id),t.checkHandler,(),maxDuration=maxDuration,multiprocessing=t.threaded)
+                        t.workerID = jimi.workers.workers.new("trigger:{0}".format(t._id),t.checkHandler,(),maxDuration=maxDuration,multiprocessing=t.threaded)
                     t.update(["startCheck","workerID","attemptCount"])       
             # pause
             time.sleep(schedulerSettings["loopP"])
 
-from core import api, workers, db, helpers, logging, model, settings, audit
-from core.models import conduct, action, trigger
 
 from system.models import trigger as systemTrigger
 
-systemSettings = settings.config["system"]
-schedulerSettings = settings.config["scheduler"]
+systemSettings = jimi.settings.config["system"]
+schedulerSettings = jimi.settings.config["scheduler"]
 
 # Get next run time from schedule string
 def getSchedule(scheduleString):
@@ -93,7 +92,7 @@ def continuous(t):
 def start():
     global scheduler
     try:
-        if workers.workers:
+        if jimi.workers.workers:
             try:
                 # Creating instance of scheduler
                 if scheduler:
@@ -104,12 +103,12 @@ def start():
             except NameError:
                 pass
             scheduler = _scheduler()
-            if logging.debugEnabled:
-                logging.debug("Scheduler started, workerID='{0}'".format(scheduler.workerID),6)
+            if jimi.logging.debugEnabled:
+                jimi.logging.debug("Scheduler started, workerID='{0}'".format(scheduler.workerID),6)
             return True
     except AttributeError:
-        if logging.debugEnabled:
-            logging.debug("Scheduler start requested, No valid worker class loaded",4)
+        if jimi.logging.debugEnabled:
+            jimi.logging.debug("Scheduler start requested, No valid worker class loaded",4)
         return False
 
 # Creating instance of scheduler
@@ -117,68 +116,23 @@ def start():
 
 
 ######### --------- API --------- #########
-if api.webServer:
-    if not api.webServer.got_first_request:
-        @api.webServer.route(api.base+"scheduler/", methods=["GET"])
-        def getScheduler():
-            if api.g.sessionData["admin"]:
+if jimi.api.webServer:
+    if not jimi.api.webServer.got_first_request:
+        if jimi.api.webServer.name == "jimi_core":
+            @jimi.api.webServer.route(jimi.api.base+"scheduler/", methods=["GET"])
+            @jimi.auth.systemEndpoint
+            def getScheduler():
                 if scheduler:
                     return { "result": { "stopped" : scheduler.stopped, "startTime" : scheduler.startTime, "lastHandle" : scheduler.lastHandle, "workerID" : scheduler.workerID } },200
                 else:
                     return { } , 404
-            else:
-                return {},403
 
-        @api.webServer.route(api.base+"scheduler/", methods=["POST"])
-        def updateScheduler():
-            if api.g.sessionData["admin"]:
-                data = json.loads(api.request.data)
+            @jimi.api.webServer.route(jimi.api.base+"scheduler/", methods=["POST"])
+            @jimi.auth.systemEndpoint
+            def updateScheduler():
+                data = json.loads(jimi.api.request.data)
                 if data["action"] == "start":
                     result = start()
                     return { "result" : result }, 200
                 else:
                     return { }, 404
-            else:
-                return {}, 403
-
-        @api.webServer.route(api.base+"scheduler/<triggerID>/", methods=["POST"])
-        def forceTriggers(triggerID):
-            data = json.loads(api.request.data)
-            if data["action"] == "trigger":
-                class_ = trigger._trigger().getAsClass(sessionData=api.g.sessionData,id=triggerID)[0]
-                if class_:
-                    if class_.startCheck == 0:
-                        class_.startCheck = time.time()
-                        maxDuration = 60
-                        if type(class_.maxDuration) is int and class_.maxDuration > 0:
-                            maxDuration = class_.maxDuration
-                        try:
-                            events = json.loads(data["events"])
-                        except json.decoder.JSONDecodeError:
-                            events = [data["events"]]
-                            # Ensure we run even if no event data was sent
-                            if events == [""]:
-                                class_.update(["startCheck","workerID"])
-                                try:
-                                    class_.checkHandler()
-                                except Exception as e:
-                                    if logging.debugEnabled:
-                                        logging.debug("Forced trigger crashed, triggerID={0}, triggerName={1}".format(class_._id,class_.name))
-                                    systemTrigger.failedTrigger(None,"forcedTriggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)),triggerID=class_._id,triggerName=class_.name)
-                                    return { "result" : False }, 400
-                                return { "result" : True }, 200
-                        if type(events) != list:
-                            events = [events]
-                        class_.workerID = workers.workers.new("trigger:{0}".format(triggerID),class_.notify,(events,),maxDuration=maxDuration)
-                        class_.update(["startCheck","workerID"])
-                        return { "result" : True }, 200
-                    else:
-                        if logging.debugEnabled:
-                            logging.debug("Error unable to force trigger, triggerID={0} as it is already running.".format(triggerID))
-                        return { "result" : False, "reason" : "Trigger already running" }, 403
-                else:
-                    if logging.debugEnabled:
-                        logging.debug("Error unable to force trigger, triggerID={0} as its triggerID cannot be loaded.".format(triggerID))
-                    return { "result" : False, "reason" : "triggerID could not be loaded" }, 404
-            else:
-                return {}, 404
