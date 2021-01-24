@@ -63,8 +63,8 @@ class _audit(jimi.db._document):
         except KeyError:
             pass
         if result is not None:
-            if logging.debugEnabled:
-                logging.debug("Writing audit item, auditID={0}, auditData='{1}'".format(str(result.inserted_id),auditData))
+            if jimi.logging.debugEnabled:
+                jimi.logging.debug("Writing audit item, auditID={0}, auditData='{1}'".format(str(result.inserted_id),auditData))
         return result
 
 auditSettings = jimi.settings.config["audit"]
