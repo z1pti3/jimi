@@ -94,6 +94,33 @@ def workerPage():
 				results.append(job)
 	return { "results" : results }, 200
 
+# Should be migrated into admin.py or cache.py
+@api.webServer.route(api.base+"/clearCache/", methods=["GET"])
+@auth.adminEndpoint
+def clearCachePage():
+	results = []
+	apiEndpoint = "admin/clearCache/"
+	servers = cluster.getAll()
+	for url in servers:
+		response = helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken,overrideURL=url)
+		if response.status_code != 200:
+			results.append({ "server" : url, "result" : False })
+		else:
+			results.append({ "server" : url, "result" : True })
+	return { "results" : results }, 200
+
+# Should be migrated into admin.py
+@api.webServer.route(api.base+"/clearStartChecks/", methods=["GET"])
+@auth.adminEndpoint
+def clearStartChecksPage():
+	apiEndpoint = "admin/clearStartChecks/"
+	url = cluster.getMaster()
+	response = helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken,overrideURL=url)
+	if response.status_code != 200:
+		return { "server" : url, "result" : False }, 403
+	else:
+		return { "server" : url, "result" : True }, 200
+
 @api.webServer.route("/login")
 def loginPage():
 	return render_template("index.html")
@@ -299,61 +326,6 @@ def setConductFlowLogic(conductID,flowID,nextflowID):
 # 				return render_template("audit.html", content=auditContent)
 # 	return {}, 403
 
-# @api.webServer.route("/workers/", methods=["GET"])
-# def workerPage():
-# 	if api.g.sessionData:
-# 		if "admin" in api.g.sessionData:
-# 			if api.g.sessionData["admin"]:
-# 				apiEndpoint = "workers/stats/"
-# 				servers = cluster.getAll()
-# 				content = ""
-# 				for host, port in servers:
-# 					url="http://{0}:{1}".format(host,port)
-# 					content += "{0}:{1}".format(host,port)
-# 					content += "<br>"
-# 					response = helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken,overrideURL=url)
-# 					if response:
-# 						content += response.text
-# 					content += "<br>"
-# 				return render_template("workers.html", content=content)
-# 	return {}, 403
-
-# @api.webServer.route("/clearCache/", methods=["GET"])
-# def clearCachePage():
-# 	content = ""
-# 	if api.g.sessionData:
-# 		if "admin" in api.g.sessionData:
-# 			if api.g.sessionData["admin"]:
-# 				apiEndpoint = "admin/clearCache/"
-# 				servers = cluster.getAll()
-# 				for host, port in servers:
-# 					content += "{0}:{1}".format(host,port)
-# 					url="http://{0}:{1}".format(host,port)
-# 					response = helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken,overrideURL=url)
-# 					if response.status_code != 200:
-# 						content += "<br>Failure<br>"
-# 					else:
-# 						content += "<br>Success<br>"
-# 	return render_template("workers.html", content=content)
-
-# @api.webServer.route("/cluster/", methods=["GET"])
-# def clusterPage():
-# 	if api.g.sessionData:
-# 		if "admin" in api.g.sessionData:
-# 			if api.g.sessionData["admin"]:
-# 				apiEndpoint = "cluster/"
-# 				host,port = cluster.getMaster()
-# 				url="http://{0}:{1}".format(host,port)
-# 				content = helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken,overrideURL=url)
-# 				if content:
-# 					content = content.text
-# 				return render_template("blank.html", content=content)
-# 	return {}, 403
-
-# @api.webServer.route("/myAccount/", methods=["GET"])
-# def myAccountPage():
-# 	return render_template("myAccount.html", CSRF=api.g.sessionData["CSRF"])
-
 # @api.webServer.route("/admin/backups/", methods=["GET"])
 # def backupsPage():
 # 	if api.g.sessionData:
@@ -406,62 +378,42 @@ def setConductFlowLogic(conductID,flowID,nextflowID):
 # 						return render_template("blank.html", content="Restore Failed!\nError Message: {}".format(str(stderr)))
 # 	return {}, 403
 
-# @api.webServer.route("/status/", methods=["GET"])
-# def statusPage():
-# 	triggers = trigger._trigger().query(fields=["_id","name","lastCheck","lastResult"])["results"]
-# 	actions = action._action().query(fields=["_id","name","lastRun","lastResult"])["results"]
-# 	# Bad programming dont just copy and past the same thing make it dynamic!!!!!!!!!!
-# 	triggersContent = []
-# 	for t in triggers:
-# 		if "lastCheck" in t:
-# 			t["lastCheck"] = time.strftime('%d/%m/%Y %H:%M:%S', time.gmtime(t["lastCheck"]))
-# 		triggersContent.append(t)
-# 	actionsContent = []
-# 	for a in actions:
-# 		if "lastRun" in a:
-# 			a["lastRun"] = time.strftime('%d/%m/%Y %H:%M:%S', time.gmtime(a["lastRun"]))
-# 		actionsContent.append(a)
-# 	return render_template("status.html", triggers=triggersContent, actions=actionsContent)
 
-
-# @api.webServer.route("/cleanup/", methods=["GET","DELETE"])
-# def cleanupPage():
-# 	if api.g.sessionData:
-# 		if "admin" in api.g.sessionData:
-# 			if api.g.sessionData["admin"]:
-# 				actions = action._action().query(api.g.sessionData,query={ "name" : { "$nin" : ["resetTrigger","failedTriggers"] } },fields=["_id","name","lastUpdateTime"])["results"]
-# 				triggers = trigger._trigger().query(api.g.sessionData,query={ "name" : { "$nin" : ["resetTrigger","failedTriggers"] } },fields=["_id","name","lastUpdateTime"])["results"]
-# 				actionids = [ x["_id"] for x in actions ]
-# 				triggerids = [ x["_id"] for x in triggers ]
-# 				conducts = conduct._conduct().query(query={ "$or" : [ { "flow.triggerID" : { "$in" : triggerids } }, { "flow.actionID" : { "$in" : actionids } } ] },fields=["_id","name","flow"])["results"]
-# 				for c in conducts:
-# 					for flow in c["flow"]:
-# 						if "actionID" in flow:
-# 							if flow["actionID"] in actionids:
-# 								actionids.remove(flow["actionID"])
-# 						if "triggerID" in flow:
-# 							if flow["triggerID"] in triggerids:
-# 								triggerids.remove(flow["triggerID"])
-# 				unusedActionObjects = []
-# 				unusedActionObjectsIds = []
-# 				for actionid in actionids:
-# 					a = [ x for x in actions if x["_id"] == actionid ]
-# 					if a:
-# 						unusedActionObjects.append({ "name" : a[0]["name"], "_id" : a[0]["_id"] })
-# 						unusedActionObjectsIds.append(db.ObjectId(a[0]["_id"]))
-# 				unusedTriggerObjects = []
-# 				unusedTriggerObjectsIds = []
-# 				for triggerid in triggerids:
-# 					t= [ x for x in triggers if x["_id"] == triggerid ]
-# 					if t:
-# 						unusedTriggerObjects.append({ "name" : t[0]["name"], "_id" : t[0]["_id"] })
-# 						unusedTriggerObjectsIds.append(db.ObjectId(t[0]["_id"]))
-# 				if request.method == "DELETE":
-# 					action._action().api_delete(query={ "_id" : { "$in" : unusedActionObjectsIds } })
-# 					trigger._trigger().api_delete(query={ "_id" : { "$in" : unusedTriggerObjectsIds } })
-# 					return { },200
-# 				return render_template("cleanupObjects.html", unusedActionObjects=unusedActionObjects, unusedTriggerObjects=unusedTriggerObjects, CSRF=api.g.sessionData["CSRF"])
-# 	return { }, 404	
+@api.webServer.route("/cleanup/", methods=["GET","DELETE"])
+@auth.adminEndpoint
+def cleanupPage():
+	actions = action._action().query(api.g.sessionData,query={ "name" : { "$nin" : ["resetTrigger","failedTriggers"] } },fields=["_id","name","lastUpdateTime"])["results"]
+	triggers = trigger._trigger().query(api.g.sessionData,query={ "name" : { "$nin" : ["resetTrigger","failedTriggers"] } },fields=["_id","name","lastUpdateTime"])["results"]
+	actionids = [ x["_id"] for x in actions ]
+	triggerids = [ x["_id"] for x in triggers ]
+	conducts = conduct._conduct().query(query={ "$or" : [ { "flow.triggerID" : { "$in" : triggerids } }, { "flow.actionID" : { "$in" : actionids } } ] },fields=["_id","name","flow"])["results"]
+	for c in conducts:
+		for flow in c["flow"]:
+			if "actionID" in flow:
+				if flow["actionID"] in actionids:
+					actionids.remove(flow["actionID"])
+			if "triggerID" in flow:
+				if flow["triggerID"] in triggerids:
+					triggerids.remove(flow["triggerID"])
+	unusedActionObjects = []
+	unusedActionObjectsIds = []
+	for actionid in actionids:
+		a = [ x for x in actions if x["_id"] == actionid ]
+		if a:
+			unusedActionObjects.append({ "name" : a[0]["name"], "_id" : a[0]["_id"] })
+			unusedActionObjectsIds.append(db.ObjectId(a[0]["_id"]))
+	unusedTriggerObjects = []
+	unusedTriggerObjectsIds = []
+	for triggerid in triggerids:
+		t= [ x for x in triggers if x["_id"] == triggerid ]
+		if t:
+			unusedTriggerObjects.append({ "name" : t[0]["name"], "_id" : t[0]["_id"] })
+			unusedTriggerObjectsIds.append(db.ObjectId(t[0]["_id"]))
+	if request.method == "DELETE":
+		action._action().api_delete(query={ "_id" : { "$in" : unusedActionObjectsIds } })
+		trigger._trigger().api_delete(query={ "_id" : { "$in" : unusedTriggerObjectsIds } })
+		return { },200
+	return render_template("cleanupObjects.html", unusedActionObjects=unusedActionObjects, unusedTriggerObjects=unusedTriggerObjects, CSRF=api.g.sessionData["CSRF"])
 
 api.startServer(debug=True, use_reloader=False, host=apiSettings["bind"], port=apiSettings["port"], threaded=True)
 

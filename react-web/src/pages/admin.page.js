@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { useHistory } from 'react-router-dom';
 
 import configData from "./../config/config.json";
 
@@ -50,17 +51,21 @@ export default class AdminPage extends Component {
         }
 
         this.updateclusterMembers = this.updateClusterMembers.bind(this);
-        this.updateJobs = this.updateJobs.bind(this);
-
         apiClusterMembersRefresh().then(clusterMembers => {
             this.setState({ clusterMembers : clusterMembers });
             this.updateClusterMembers();
         })
 
+        this.updateJobs = this.updateJobs.bind(this);
         apiJobsRefresh().then(jobs => {
             this.setState({ jobs : jobs });
             this.updateJobs();
         })
+
+        this.clearCache = this.clearCache.bind(this);
+        this.clearStartChecks = this.clearStartChecks.bind(this);
+        this.redistributeCluster = this.redistributeCluster.bind(this);
+        this.deleteUnusedObjects = this.deleteUnusedObjects.bind(this);
     }
 
     updateJobs() {
@@ -69,7 +74,7 @@ export default class AdminPage extends Component {
                 this.setState({ jobs : jobs });
                 this.updateJobs();
             })
-        }, 5000 );
+        }, 2500 );
     }
 
     updateClusterMembers() {
@@ -81,20 +86,67 @@ export default class AdminPage extends Component {
         }, 15000 );
     }
 
+    clearCache() {
+        const requestOptions = {
+            method: 'GET',
+            credentials: 'include',
+            mode: configData.cosMode
+        };
+        var triggers = fetch(configData.url+configData.uri+'clearCache/', requestOptions).then(response => {
+            if (response.ok) {
+                return response.json()
+            }
+        }).then(json => {
+            alert(JSON.stringify(json["results"]));
+        });
+    }
+
+    clearStartChecks() {
+        const requestOptions = {
+            method: 'GET',
+            credentials: 'include',
+            mode: configData.cosMode
+        };
+        var triggers = fetch(configData.url+configData.uri+'clearStartChecks/', requestOptions).then(response => {
+            if (response.ok) {
+                return response.json()
+            }
+        }).then(json => {
+            alert(JSON.stringify(json));
+        });
+    }
+
+    redistributeCluster() {
+        const requestOptions = {
+            method: 'GET',
+            credentials: 'include',
+            mode: configData.cosMode
+        };
+        var triggers = fetch(configData.url+configData.uri+'cluster/distribute/', requestOptions).then(response => {
+            if (response.ok) {
+                return response.json()
+            }
+        }).then(json => {
+            alert(JSON.stringify(json));
+        });
+    }
+
+    deleteUnusedObjects() {
+        this.props.history.push('/cleanup/'); 
+    }
+
     render() {
         return (
             <div className="pageContent1">
                 <h1>Controls</h1>
                 <hr/>
-                <button className="btn btn-primary btn-block button medium marSmall" onClick={this.NewConduct}>Clear Cache</button>
+                <button className="btn btn-primary btn-block button medium marSmall" onClick={this.clearCache}>Clear Cache</button>
                 <br/>
-                <button className="btn btn-primary btn-block button medium marSmall" onClick={this.NewConduct}>Clear StartChecks</button>
+                <button className="btn btn-primary btn-block button medium marSmall" onClick={this.clearStartChecks}>Clear StartChecks</button>
                 <br/>
-                <button className="btn btn-primary btn-block button medium marSmall" onClick={this.NewConduct}>Redistribute Cluster</button>
+                <button className="btn btn-primary btn-block button medium marSmall" onClick={this.redistributeCluster}>Redistribute Cluster</button>
                 <br/>
-                <button className="btn btn-primary btn-block button medium marSmall" onClick={this.NewConduct}>Backup</button>
-                <br/>
-                <button className="btn btn-primary btn-block button medium marSmall" onClick={this.NewConduct}>Delete Unused Objects</button>
+                <button className="btn btn-primary btn-block button medium marSmall" onClick={this.deleteUnusedObjects}>Delete Unused Objects</button>
                 <br/>
                 <br/>
                 <h1>Cluster Status</h1>

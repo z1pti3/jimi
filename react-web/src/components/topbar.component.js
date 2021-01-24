@@ -17,6 +17,7 @@ import PluginPage from '../pages/plugin.page';
 import ModelEditorPage from '../pages/modelEditor.page'; 
 import CodifyPage from '../pages/codify.page'; 
 import AdminPage from '../pages/admin.page'; 
+import CleanupPage from '../pages/cleanup.page';
 
 
 
@@ -51,6 +52,7 @@ function Topbar(props) {
                 <PrivateRoute path="/modelEditor" component={ModelEditorPage} />
                 <PrivateRoute path="/myAccount" component={MyAccountPage} />
                 <PrivateRoute path="/administration" component={AdminPage} />
+                <PrivateRoute path="/cleanup" component={CleanupPage} />
                 <PrivateRoute path="/" component={StatusPage} />
             </Switch>
         </BrowserRouter>
