@@ -3,7 +3,7 @@ import { useHistory } from 'react-router-dom';
 
 import configData from "./../config/config.json";
 
-import { setSession, removeSession } from './../utils/session';
+import { setSession, removeSession, isActiveSession } from './../utils/session';
 
 import "./html.component.css"
 import "./login.component.css"
@@ -76,7 +76,6 @@ export class Login extends Component {
             };
             fetch(configData.url+configData.uri+'auth/', requestOptions).then(response => {
                 if (response.ok) {
-                    console.log(response);
                     return response.json();
                 }
                 throw response;
