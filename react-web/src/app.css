@@ -35,7 +35,6 @@ hr {
   padding-left: 0px;
   padding-right: 0px;
   padding-bottom: 0px;
-  overflow-y: auto;
 }
 
 .pageCenter-inner {
@@ -52,17 +51,20 @@ hr {
 .pageContent0 {
   width: 100%;
   height: 100%;
+  overflow-y: auto;
 }
 
 .pageContent1 {
-  width: 75%;
+  width: 100%;
+  height: 100%;
   padding-top: 10px;
-  padding-left: 50px;
-  padding-right: 50px;
+  padding-left: 15%;
+  padding-right: 15%;
   padding-bottom: 10px;
   min-height: 100%;
   margin: auto;
   background-color: var(--mainBackgroundColor);
+  overflow: auto;
 }
 
 .pageContent2 {
@@ -73,7 +75,7 @@ hr {
   padding-bottom: 10px;
   min-height: 100%;
   margin: auto;
-  background-color: var(--mainBackgroundColor);
+  background-color: var(--mainBackgroundColor)
 }
 
 .hide {

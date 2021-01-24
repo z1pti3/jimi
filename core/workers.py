@@ -317,7 +317,7 @@ class workerHandler:
 
         for worker in workers:
             if worker:
-                result["results"].append({ "id" : worker.id, "nane": worker.name, "startTime" : worker.startTime, "createdTime" : worker.createdTime })
+                result["results"].append({ "id" : worker.id, "name": worker.name, "startTime" : worker.startTime, "createdTime" : worker.createdTime })
         
         return result
 

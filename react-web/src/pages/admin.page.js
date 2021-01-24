@@ -2,19 +2,36 @@ import React, { Component } from "react";
 
 import configData from "./../config/config.json";
 
-import StatusList from "./../components/status.component"
+import ClusterList from "./../components/clusterList.component"
+import ClusterJobList from "./../components/clusterJobList.component"
 
 import "../components/html.component.css"
 
 import "./admin.page.css"
 
-function apiTriggerStatusRefresh() {
+function apiClusterMembersRefresh() {
     const requestOptions = {
         method: 'GET',
         credentials: 'include',
         mode: configData.cosMode
     };
-    var triggers = fetch(configData.url+configData.uri+'models/trigger/all/', requestOptions).then(response => {
+    var triggers = fetch(configData.url+configData.uri+'cluster/', requestOptions).then(response => {
+        if (response.ok) {
+            return response.json()
+        }
+    }).then(json => {
+        return json["results"];
+    });
+    return triggers
+}
+
+function apiJobsRefresh() {
+    const requestOptions = {
+        method: 'GET',
+        credentials: 'include',
+        mode: configData.cosMode
+    };
+    var triggers = fetch(configData.url+configData.uri+'workers/', requestOptions).then(response => {
         if (response.ok) {
             return response.json()
         }
@@ -28,24 +45,40 @@ export default class AdminPage extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            triggers : []
+            clusterMembers : [],
+            jobs : []
         }
 
-        this.updateTriggers = this.updateTriggers.bind(this);
+        this.updateclusterMembers = this.updateClusterMembers.bind(this);
+        this.updateJobs = this.updateJobs.bind(this);
 
-        apiTriggerStatusRefresh().then(triggers => {
-            this.setState({ triggers : triggers });
-            this.updateTriggers();
+        apiClusterMembersRefresh().then(clusterMembers => {
+            this.setState({ clusterMembers : clusterMembers });
+            this.updateClusterMembers();
+        })
+
+        apiJobsRefresh().then(jobs => {
+            this.setState({ jobs : jobs });
+            this.updateJobs();
         })
     }
 
-    updateTriggers() {
+    updateJobs() {
         setTimeout(() => {
-            apiTriggerStatusRefresh().then(triggers => {
-                this.setState({ triggers : triggers });
-                this.updateTriggers();
+            apiJobsRefresh().then(jobs => {
+                this.setState({ jobs : jobs });
+                this.updateJobs();
             })
-        }, 2500 );
+        }, 5000 );
+    }
+
+    updateClusterMembers() {
+        setTimeout(() => {
+            apiClusterMembersRefresh().then(clusterMembers => {
+                this.setState({ clusterMembers : clusterMembers });
+                this.updateClusterMembers();
+            })
+        }, 15000 );
     }
 
     render() {
@@ -66,7 +99,12 @@ export default class AdminPage extends Component {
                 <br/>
                 <h1>Cluster Status</h1>
                 <hr/>
+                <ClusterList clusterMembers={this.state.clusterMembers} />
                 <br/>
+                <br/>
+                <h1>Job Status</h1>
+                <hr/>
+                <ClusterJobList jobs={this.state.jobs} />
             </div>
         );
     }

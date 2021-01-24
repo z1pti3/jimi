@@ -63,6 +63,7 @@ def indexPage():
 #	from system import install
 #	return render_template("main.html", version=install.installedVersion(), admin=api.g.sessionData["admin"])
 
+# Should be migrated into plugins.py
 @api.webServer.route(api.base+"plugins/")
 def loadPluginPages():
 	userPlugins = []
@@ -72,9 +73,26 @@ def loadPluginPages():
 			userPlugins.append({ "id" : userModel._id, "name" : userModel.name})
 	return { "results"  : userPlugins }, 200
 
+# Should be migrated into models/conduct.py
 @api.webServer.route(api.base+"conducts/")
 def loadConducts():
 	return { "results" : conduct._conduct().query(api.g.sessionData,query={ "name" : { "$exists" : True } },sort=[( "name", 1 )])["results"] }, 200
+
+# Should be migrated into workers.py
+@api.webServer.route(api.base+"/workers/", methods=["GET"])
+@auth.adminEndpoint
+def workerPage():
+	apiEndpoint = "workers/"
+	servers = cluster.getAll()
+	results = []
+	for url in servers:
+		response = helpers.apiCall("GET",apiEndpoint,token=api.g.sessionToken,overrideURL=url)
+		responseJson = json.loads(response.text)
+		if responseJson:
+			for job in responseJson["results"]:
+				job["server"] = url
+				results.append(job)
+	return { "results" : results }, 200
 
 @api.webServer.route("/login")
 def loginPage():
