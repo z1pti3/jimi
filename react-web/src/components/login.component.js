@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import { useHistory } from 'react-router-dom';
 
 import configData from "./../config/config.json";
+import { URL } from"./../utils/api";
+
 
 import { setSession, removeSession, isActiveSession } from './../utils/session';
 
@@ -13,9 +15,8 @@ export function PollAuth(props) {
     const requestOptions = {
         method: 'GET',
         credentials: 'include',
-        mode: configData.cosMode
     };
-    fetch(configData.url+configData.uri+'auth/poll/', requestOptions).then(response => {
+    fetch(URL()+'auth/poll/', requestOptions).then(response => {
         if (response.ok) {
             return response.json();
         }
@@ -31,10 +32,9 @@ export function PollAuth(props) {
 export function Logout(props) {   
     const requestOptions = {
         method: 'GET',
-        mode: configData.cosMode,
         credentials: 'include'
     };
-    fetch(configData.url+configData.uri+'auth/logout/', requestOptions);
+    fetch(URL()+'auth/logout/', requestOptions);
     removeSession();
     const history = useHistory()
     setTimeout(() => { history.push('/login'); }, 2500);
@@ -71,10 +71,9 @@ export class Login extends Component {
         if (!this.state.otpRequired) {
             const requestOptions = {
                 method: 'POST',
-                mode: configData.cosMode,
                 body: JSON.stringify({ username: this.state.username, password: this.state.password })
             };
-            fetch(configData.url+configData.uri+'auth/', requestOptions).then(response => {
+            fetch(URL()+'auth/', requestOptions).then(response => {
                 if (response.ok) {
                     return response.json();
                 }
@@ -88,10 +87,9 @@ export class Login extends Component {
         } else {
             const requestOptions = {
                 method: 'POST',
-                mode: configData.cosMode,
                 body: JSON.stringify({ username: this.state.username, password: this.state.password, otp: this.state.otp })
             };
-            fetch(configData.url+configData.uri+'auth/', requestOptions).then(response => {
+            fetch(URL()+'auth/', requestOptions).then(response => {
                 if (response.ok) return response;
                 throw response;
             }).then(response => {

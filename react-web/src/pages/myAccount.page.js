@@ -3,6 +3,7 @@ import React, { Component } from "react";
 import { getSessionCSRF } from './../utils/session';
 
 import configData from "./../config/config.json";
+import { URL } from"./../utils/api";
 
 import "./../components/html.component.css"
 import "./myAccount.page.css"
@@ -27,9 +28,8 @@ export default class MyAccountPage extends Component {
         const requestOptions = {
             method: 'GET',
             credentials: 'include',
-            mode: configData.cosMode
         };
-        fetch(configData.url+configData.uri+'auth/myAccount/', requestOptions).then(response => {
+        fetch(URL()+'auth/myAccount/', requestOptions).then(response => {
             if (response.ok) {
                 return response.json()
             }
@@ -55,10 +55,9 @@ export default class MyAccountPage extends Component {
         const requestOptions = {
             method: 'POST',
             credentials: 'include',
-            mode: configData.cosMode,
             body: JSON.stringify(data)
         };
-        fetch(configData.url+configData.uri+'auth/myAccount/', requestOptions).then(response => {
+        fetch(URL()+'auth/myAccount/', requestOptions).then(response => {
             if (response.ok) return response;
             throw response;
         }).then(response => {

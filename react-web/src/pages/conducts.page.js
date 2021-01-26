@@ -2,6 +2,8 @@ import React, { Component } from "react";
 
 import configData from "./../config/config.json";
 
+import { URL } from"./../utils/api";
+
 import ConductList from "./../components/conductList.component"
 
 import "./conducts.page.css"
@@ -17,9 +19,8 @@ export default class ConductsPage extends Component {
         const requestOptions = {
             method: 'GET',
             credentials: 'include',
-            mode: configData.cosMode
         };
-        fetch(configData.url+configData.uri+'conducts/', requestOptions).then(response => {
+        fetch(URL()+'conducts/', requestOptions).then(response => {
             if (response.ok) {
                 return response.json()
             }
@@ -41,9 +42,8 @@ export default class ConductsPage extends Component {
             const requestOptions = {
                 method: 'DELETE',
                 credentials: 'include',
-                mode: configData.cosMode
             };
-            fetch(configData.url+configData.uri + 'models/conduct/' + id + "/", requestOptions).then(response => {
+            fetch(URL()+'models/conduct/' + id + "/", requestOptions).then(response => {
                 if (response.ok) {
                     this.setState({ conducts: this.state.conducts.filter(conduct => conduct._id !== id) });
                 }

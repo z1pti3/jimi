@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { useHistory } from 'react-router-dom';
 
 import configData from "./../config/config.json";
+import { URL } from"./../utils/api";
 
 import ClusterList from "./../components/clusterList.component"
 import ClusterJobList from "./../components/clusterJobList.component"
@@ -14,9 +15,8 @@ function apiClusterMembersRefresh() {
     const requestOptions = {
         method: 'GET',
         credentials: 'include',
-        mode: configData.cosMode
     };
-    var triggers = fetch(configData.url+configData.uri+'cluster/', requestOptions).then(response => {
+    var triggers = fetch(URL()+'cluster/', requestOptions).then(response => {
         if (response.ok) {
             return response.json()
         }
@@ -30,9 +30,8 @@ function apiJobsRefresh() {
     const requestOptions = {
         method: 'GET',
         credentials: 'include',
-        mode: configData.cosMode
     };
-    var triggers = fetch(configData.url+configData.uri+'workers/', requestOptions).then(response => {
+    var triggers = fetch(URL()+'workers/', requestOptions).then(response => {
         if (response.ok) {
             return response.json()
         }
@@ -97,9 +96,8 @@ export default class AdminPage extends Component {
         const requestOptions = {
             method: 'GET',
             credentials: 'include',
-            mode: configData.cosMode
         };
-        var triggers = fetch(configData.url+configData.uri+'clearCache/', requestOptions).then(response => {
+        var triggers = fetch(URL()+'clearCache/', requestOptions).then(response => {
             if (response.ok) {
                 return response.json()
             }
@@ -112,9 +110,8 @@ export default class AdminPage extends Component {
         const requestOptions = {
             method: 'GET',
             credentials: 'include',
-            mode: configData.cosMode
         };
-        var triggers = fetch(configData.url+configData.uri+'clearStartChecks/', requestOptions).then(response => {
+        var triggers = fetch(URL()+'clearStartChecks/', requestOptions).then(response => {
             if (response.ok) {
                 return response.json()
             }
@@ -127,9 +124,8 @@ export default class AdminPage extends Component {
         const requestOptions = {
             method: 'GET',
             credentials: 'include',
-            mode: configData.cosMode
         };
-        var triggers = fetch(configData.url+configData.uri+'cluster/distribute/', requestOptions).then(response => {
+        var triggers = fetch(URL()+'cluster/distribute/', requestOptions).then(response => {
             if (response.ok) {
                 return response.json()
             }

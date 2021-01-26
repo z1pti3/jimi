@@ -3,6 +3,8 @@ import React, { Component } from "react";
 import { getSessionCSRF } from './../utils/session';
 
 import configData from "./../config/config.json";
+import { URL } from"./../utils/api";
+
 
 import "./../components/html.component.css"
 import "./conductSettings.page.css"
@@ -28,9 +30,8 @@ export default class ConductSettingsPage extends Component {
             const requestOptions = {
                 method: 'GET',
                 credentials: 'include',
-                mode: configData.cosMode
             };
-            fetch(configData.url+configData.uri+'models/conduct/'+conductID+"/", requestOptions).then(response => {
+            fetch(URL()+'models/conduct/'+conductID+"/", requestOptions).then(response => {
                 if (response.ok) {
                     return response.json()
                 }
@@ -52,10 +53,9 @@ export default class ConductSettingsPage extends Component {
             const requestOptions = {
                 method: 'POST',
                 credentials: 'include',
-                mode: configData.cosMode,
                 body: JSON.stringify(data)
             };
-            fetch(configData.url+configData.uri+'models/conduct/'+conductID+"/", requestOptions).then(response => {
+            fetch(URL()+'models/conduct/'+conductID+"/", requestOptions).then(response => {
                 if (response.ok) return response;
                 throw response;
             }).then(response => {
@@ -67,16 +67,15 @@ export default class ConductSettingsPage extends Component {
             const requestOptions = {
                 method: 'PUT',
                 credentials: 'include',
-                mode: configData.cosMode
             };
-            fetch(configData.url+configData.uri+'models/conduct/', requestOptions).then(response => {
+            fetch(URL()+'models/conduct/', requestOptions).then(response => {
                 if (response.ok) return response.json();
                 throw response;
             }).then(response => {
                 // put returns an ID number that can then be used to push the data within the form to - this is a two step process
                 requestOptions["method"] = "POST"
                 requestOptions["body"] = JSON.stringify(data)
-                fetch(configData.url+configData.uri+'models/conduct/'+response["_id"]+"/", requestOptions).then(response => {
+                fetch(URL()+'models/conduct/'+response["_id"]+"/", requestOptions).then(response => {
                     if (response.ok) return response;
                     throw response;
                 }).then(response => {

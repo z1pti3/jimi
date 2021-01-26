@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 
 import configData from "./../config/config.json";
+import { URL } from"./../utils/api";
 
 import PluginList from "./../components/pluginList.component"
 
@@ -17,9 +18,8 @@ export default class PluginsPage extends Component {
         const requestOptions = {
             method: 'GET',
             credentials: 'include',
-            mode: configData.cosMode
         };
-        fetch(configData.url+configData.uri+'plugins/', requestOptions).then(response => {
+        fetch(URL()+'plugins/', requestOptions).then(response => {
             if (response.ok) {
                 return response.json()
             }

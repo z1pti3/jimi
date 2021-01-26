@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 
 import configData from "./../config/config.json";
+import { URL } from"./../utils/api";
 
 import StatusList from "./../components/status.component"
 
@@ -10,9 +11,8 @@ function apiTriggerStatusRefresh() {
     const requestOptions = {
         method: 'GET',
         credentials: 'include',
-        mode: configData.cosMode
     };
-    var triggers = fetch(configData.url+configData.uri+'models/trigger/all/', requestOptions).then(response => {
+    var triggers = fetch(URL()+'models/trigger/all/', requestOptions).then(response => {
         if (response.ok) {
             return response.json()
         }
