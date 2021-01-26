@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template, make_response, redirect, send_file, flash
 
-from core import api, model
+import jimi
 
-@api.webServer.route("/model/", methods=["GET"])
+@jimi.api.webServer.route("/model/", methods=["GET"])
 def modelEditorMainPage():
-    return render_template("modelEditorList.html", CSRF=api.g.sessionData["CSRF"])
+    return render_template("modelEditorList.html", CSRF=jimi.api.g.sessionData["CSRF"])
