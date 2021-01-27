@@ -429,7 +429,7 @@ if jimi.api.webServer:
                         user = user[0]
                         data = json.loads(jimi.api.request.data)
                         if "password" in data:
-                            if getENCFromPassword(data["password"]) == user.passwordHash:
+                            if generatePasswordHash(data["password"],user.username)[1] == user.passwordHash:
                                 user.setAttribute("passwordHash",data["password1"],sessionData=jimi.api.g.sessionData)
                             else:
                                 return { "msg" : "Current password does not match" }, 400

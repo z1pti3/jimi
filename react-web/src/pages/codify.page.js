@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 
 import configData from "../config/config.json";
+import { URL } from"./../utils/api";
 
 import "./codify.page.css"
 
@@ -12,7 +13,7 @@ export default class CodifyPage extends Component {
     render() {
         return (
             <div className="pageContent0">
-                <iframe className="codifyFrame" src={configData.url+"codify/"}></iframe>
+                <iframe className="codifyFrame" src={"codify/"}></iframe>
             </div>
         );
     }

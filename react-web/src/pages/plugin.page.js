@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 
 import configData from "./../config/config.json";
+import { URL } from"./../utils/api";
+
 
 import "./plugin.page.css"
 
@@ -21,7 +23,7 @@ export default class PluginPage extends Component {
     render() {
         return (
             <div className="pageContent0">
-                <iframe className="pluginFrame" src={configData.url+"plugin/"+this.state.location+"/"}></iframe>
+                <iframe className="pluginFrame" src={"plugin/"+this.state.location+"/"}></iframe>
             </div>
         );
     }
