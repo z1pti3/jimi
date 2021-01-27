@@ -23,7 +23,7 @@ export default class PluginPage extends Component {
     render() {
         return (
             <div className="pageContent0">
-                <iframe className="pluginFrame" src={"plugin/"+this.state.location+"/"}></iframe>
+                <iframe className="pluginFrame" src={"/plugin/"+this.state.location+"/"}></iframe>
             </div>
         );
     }

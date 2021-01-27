@@ -13,7 +13,7 @@ export default class CodifyPage extends Component {
     render() {
         return (
             <div className="pageContent0">
-                <iframe className="codifyFrame" src={"codify/"}></iframe>
+                <iframe className="codifyFrame" src={"/codify/"}></iframe>
             </div>
         );
     }

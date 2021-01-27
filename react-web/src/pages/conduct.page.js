@@ -21,7 +21,7 @@ export default class ConductPage extends Component {
     render() {
         return (
             <div className="pageContent0">
-                <iframe className="conductFrame" src={configData.url+"conductEditor/?conductID="+this.state.location}></iframe>
+                <iframe className="conductFrame" src={"/conductEditor/?conductID="+this.state.location}></iframe>
             </div>
         );
     }
