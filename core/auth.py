@@ -431,7 +431,8 @@ if jimi.api.webServer:
                         data = json.loads(jimi.api.request.data)
                         if "password" in data:
                             if generatePasswordHash(data["password"],user.username)[1] == user.passwordHash:
-                                user.setAttribute("passwordHash",data["password1"],sessionData=jimi.api.g.sessionData)
+                                if not user.setAttribute("passwordHash",data["password1"],sessionData=jimi.api.g.sessionData):
+                                    return { "msg" : "New password does not meet complexity requirements" }, 400
                             else:
                                 return { "msg" : "Current password does not match" }, 400
                         user.setAttribute("name",data["name"],sessionData=jimi.api.g.sessionData)
