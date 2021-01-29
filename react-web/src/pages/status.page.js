@@ -23,12 +23,13 @@ function apiTriggerStatusRefresh() {
 }
 
 export default class StatusPage extends Component {
-    timeoutIDTriggerStatus;
     constructor(props) {
         super(props);
         this.state = {
             triggers : []
         }
+
+        this.mounted = true;
 
         this.updateTriggers = this.updateTriggers.bind(this);
 
@@ -39,16 +40,18 @@ export default class StatusPage extends Component {
     }
 
     componentWillUnmount() {
-        clearTimeout(this.timeoutIDTriggerStatus);
+        this.mounted = false;
     }
 
     updateTriggers() {
-        this.timeoutIDTriggerStatus = setTimeout(() => {
-            apiTriggerStatusRefresh().then(triggers => {
-                this.setState({ triggers : triggers });
-                this.updateTriggers();
-            })
-        }, 2500 );
+        if (this.mounted) {
+            setTimeout(() => {
+                apiTriggerStatusRefresh().then(triggers => {
+                    this.setState({ triggers : triggers });
+                    this.updateTriggers();
+                })
+            }, 2500 );
+        }
     }
 
     render() {

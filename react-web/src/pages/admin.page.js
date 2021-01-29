@@ -42,14 +42,14 @@ function apiJobsRefresh() {
 }
 
 export default class AdminPage extends Component {
-    timeoutIDclusterMembers;
-    timeoutIDJobs;
     constructor(props) {
         super(props);
         this.state = {
             clusterMembers : [],
             jobs : []
         }
+
+        this.mounted = true;
 
         this.updateclusterMembers = this.updateClusterMembers.bind(this);
         apiClusterMembersRefresh().then(clusterMembers => {
@@ -70,26 +70,29 @@ export default class AdminPage extends Component {
     }
 
     componentWillUnmount() {
-        clearTimeout(this.timeoutIDclusterMembers);
-        clearTimeout(this.timeoutIDJobs);
+        this.mounted = false;
     }
 
     updateJobs() {
-        this.timeoutIDJobs = setTimeout(() => {
-            apiJobsRefresh().then(jobs => {
-                this.setState({ jobs : jobs });
-                this.updateJobs();
-            })
-        }, 2500 );
+        if (this.mounted) {
+            setTimeout(() => {
+                apiJobsRefresh().then(jobs => {
+                    this.setState({ jobs : jobs });
+                    this.updateJobs();
+                })
+            }, 2500 );
+        }
     }
 
     updateClusterMembers() {
-        this.timeoutIDclusterMembers = setTimeout(() => {
-            apiClusterMembersRefresh().then(clusterMembers => {
-                this.setState({ clusterMembers : clusterMembers });
-                this.updateClusterMembers();
-            })
-        }, 15000 );
+        if (this.mounted) {
+            setTimeout(() => {
+                apiClusterMembersRefresh().then(clusterMembers => {
+                    this.setState({ clusterMembers : clusterMembers });
+                    this.updateClusterMembers();
+                })
+            }, 15000 );
+        }
     }
 
     clearCache() {
