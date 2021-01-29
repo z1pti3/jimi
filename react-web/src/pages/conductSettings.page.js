@@ -67,6 +67,7 @@ export default class ConductSettingsPage extends Component {
             const requestOptions = {
                 method: 'PUT',
                 credentials: 'include',
+                body: JSON.stringify({ CSRF: getSessionCSRF() })
             };
             fetch(URL()+'models/conduct/', requestOptions).then(response => {
                 if (response.ok) return response.json();

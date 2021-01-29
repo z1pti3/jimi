@@ -14,7 +14,7 @@ export function PollAuth(props) {
     const history = useHistory();
     const requestOptions = {
         method: 'GET',
-        credentials: 'include',
+        credentials: 'include'
     };
     fetch(URL()+'auth/poll/', requestOptions).then(response => {
         if (response.ok) {

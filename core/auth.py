@@ -417,8 +417,10 @@ if jimi.api.webServer:
 
             @jimi.api.webServer.route(jimi.api.base+"auth/logout/", methods=["GET"])
             def api_logout():
+                response = jimi.api.make_response()
                 jimi.audit._audit().add("auth","logout",{ "action" : "success", "_id" : jimi.api.g.sessionData["_id"] })
-                return {}, 200
+                response.set_cookie("jimiAuth", value="")
+                return response, 200
 
             # Checks that username and password are a match
             @jimi.api.webServer.route(jimi.api.base+"auth/myAccount/", methods=["POST"])
