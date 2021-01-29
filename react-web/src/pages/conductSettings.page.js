@@ -76,11 +76,14 @@ export default class ConductSettingsPage extends Component {
                 // put returns an ID number that can then be used to push the data within the form to - this is a two step process
                 requestOptions["method"] = "POST"
                 requestOptions["body"] = JSON.stringify(data)
-                fetch(URL()+'models/conduct/'+response["_id"]+"/", requestOptions).then(response => {
+                var conductID = response["_id"]
+                fetch(URL()+'models/conduct/'+conductID+"/", requestOptions).then(response => {
                     if (response.ok) return response;
                     throw response;
                 }).then(response => {
-                    
+                    this.props.history.push('?conductID='+conductID+'&edit=True');
+                    // Force reload of this screen
+                    window.location.reload(false);
                 }).catch(error => { 
                     
                 });

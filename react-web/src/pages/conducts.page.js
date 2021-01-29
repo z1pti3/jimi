@@ -1,5 +1,7 @@
 import React, { Component } from "react";
 
+import { getSessionCSRF } from './../utils/session';
+
 import configData from "./../config/config.json";
 
 import { URL } from"./../utils/api";
@@ -42,6 +44,7 @@ export default class ConductsPage extends Component {
             const requestOptions = {
                 method: 'DELETE',
                 credentials: 'include',
+                body: JSON.stringify({ CSRF: getSessionCSRF() })
             };
             fetch(URL()+'models/conduct/' + id + "/", requestOptions).then(response => {
                 if (response.ok) {
