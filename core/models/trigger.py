@@ -68,7 +68,8 @@ class _trigger(db._document):
         # Resets startCheck to 0 each time a trigger is enabled
         if attr == "enabled" and value == True and self.enabled == False:
             self.startCheck = 0
-            self.update(["startCheck"])
+            self.attemptCount = 0
+            self.update(["startCheck","attemptCount"])
         setattr(self,attr,value)
         return True
 
