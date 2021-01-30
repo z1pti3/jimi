@@ -7,7 +7,7 @@ import string
 import jimi
 
 # Current System Version
-systemVersion = 1.81
+systemVersion = 1.9
 
 # Initialize 
 dbCollectionName = "system"
@@ -173,6 +173,16 @@ def systemInstall():
 		temp = temp[0]
 		temp.hidden = True
 		temp.update(["hidden"])
+	# Trigger / Action Actions
+	jimi.model.registerModel("getTrigger","_getTrigger","_action","system.models.action")
+	jimi.model.registerModel("setTrigger","_setTrigger","_action","system.models.action")
+	jimi.model.registerModel("enableTrigger","_enableTrigger","_action","system.models.action")
+	jimi.model.registerModel("disableTrigger","_disableTrigger","_action","system.models.action")
+	jimi.model.registerModel("getAction","_getAction","_action","system.models.action")
+	jimi.model.registerModel("setAction","_setAction","_action","system.models.action")
+	jimi.model.registerModel("enableAction","_enableAction","_action","system.models.action")
+	jimi.model.registerModel("disableAction","_disableAction","_action","system.models.action")
+
 	# forEach
 	actions = jimi.action._action().query(query={"name" : "forEach"})["results"]
 	if len(actions) < 1:
@@ -239,3 +249,16 @@ def systemUpgrade(currentVersion):
 
 	if currentVersion < 1.81:
 		jimi.model.registerModel("storage","_storage","_document","core.storage")
+
+	if currentVersion < 1.9:
+		jimi.model.registerModel("getTrigger","_getTrigger","_action","system.models.action")
+		jimi.model.registerModel("setTrigger","_setTrigger","_action","system.models.action")
+		jimi.model.registerModel("enableTrigger","_enableTrigger","_action","system.models.action")
+		jimi.model.registerModel("disableTrigger","_disableTrigger","_action","system.models.action")
+		jimi.model.registerModel("getAction","_getAction","_action","system.models.action")
+		jimi.model.registerModel("setAction","_setAction","_action","system.models.action")
+		jimi.model.registerModel("enableAction","_enableAction","_action","system.models.action")
+		jimi.model.registerModel("disableAction","_disableAction","_action","system.models.action")
+
+	return True
+		
