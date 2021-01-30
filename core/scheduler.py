@@ -29,16 +29,20 @@ class _scheduler:
                     t.nextCheck = getSchedule(t.schedule)
                     t.update(["nextCheck"]) 
                 else:
-                    t.startCheck = time.time()
-                    t.attemptCount += 1
-                    maxDuration = 60
-                    if type(t.maxDuration) is int and t.maxDuration > 0:
-                        maxDuration = t.maxDuration
-                    if t.schedule == "*":
-                        t.workerID = jimi.workers.workers.new("continuousTrigger:{0}".format(t._id),continuous,(t,),maxDuration=0,multiprocessing=t.threaded)
+                    if jimi.workers.workers.activeCount() < jimi.workers.workers.concurrent:
+                        t.startCheck = time.time()
+                        t.attemptCount += 1
+                        maxDuration = 60
+                        if type(t.maxDuration) is int and t.maxDuration > 0:
+                            maxDuration = t.maxDuration
+                        if t.schedule == "*":
+                            t.workerID = jimi.workers.workers.new("continuousTrigger:{0}".format(t._id),continuous,(t,),maxDuration=0,multiprocessing=t.threaded)
+                        else:
+                            t.workerID = jimi.workers.workers.new("trigger:{0}".format(t._id),t.checkHandler,(),maxDuration=maxDuration,multiprocessing=t.threaded)
+                        t.update(["startCheck","workerID","attemptCount"])      
                     else:
-                        t.workerID = jimi.workers.workers.new("trigger:{0}".format(t._id),t.checkHandler,(),maxDuration=maxDuration,multiprocessing=t.threaded)
-                    t.update(["startCheck","workerID","attemptCount"])       
+                        if jimi.logging.debugEnabled:
+                            jimi.logging.debug("Scheduler trigger start cannot requested, as the max conncurrent workers are already active. Will try again shortly",3)
             # pause
             time.sleep(schedulerSettings["loopP"])
 
@@ -96,9 +100,9 @@ def start():
             try:
                 # Creating instance of scheduler
                 if scheduler:
-                    workers.workers.kill(scheduler.workerID)
-                    if logging.debugEnabled:
-                        logging.debug("Scheduler start requested, Existing thread kill attempted, workerID='{0}'".format(scheduler.workerID),6)
+                    jimi.workers.workers.kill(scheduler.workerID)
+                    if jimi.logging.debugEnabled:
+                        jimi.logging.debug("Scheduler start requested, Existing thread kill attempted, workerID='{0}'".format(scheduler.workerID),6)
                     scheduler = None
             except NameError:
                 pass
@@ -110,10 +114,6 @@ def start():
         if jimi.logging.debugEnabled:
             jimi.logging.debug("Scheduler start requested, No valid worker class loaded",4)
         return False
-
-# Creating instance of scheduler
-#scheduler = _scheduler()
-
 
 ######### --------- API --------- #########
 if jimi.api.webServer:
