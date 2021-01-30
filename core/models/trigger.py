@@ -19,7 +19,7 @@ class _trigger(db._document):
     clusterSet = int()
     systemID = int()
     comment = str()
-    maxDuration = int()
+    maxDuration = 60
     logicString = str()
     varDefinitions = dict()
     concurrency = int()  
