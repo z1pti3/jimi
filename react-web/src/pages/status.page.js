@@ -8,6 +8,9 @@ import Loading from "./../components/loading.component"
 
 import "./status.page.css"
 
+var showDisabled = false;
+var showCluster = false;
+
 function apiTriggerStatusRefresh() {
     const requestOptions = {
         method: 'GET',
@@ -30,7 +33,6 @@ export default class StatusPage extends Component {
             triggers : [],
             loading: true
         }
-
         this.mounted = true;
 
         this.updateTriggers = this.updateTriggers.bind(this);
@@ -52,18 +54,32 @@ export default class StatusPage extends Component {
                     this.setState({ triggers : triggers });
                     this.updateTriggers();
                 })
-            }, 2500 );
+            }, 500 );
         }
+    }
+
+    toggleDisabled() {
+        if (showDisabled) { showDisabled = false; } 
+        else { showDisabled = true; }
+    }
+
+    toggleCluster() {
+        if (showCluster) { showCluster = false; } 
+        else { showCluster = true; }
     }
 
     render() {
         return !this.state.loading ? (
             <div className="pageContent1">
                 <h1>Trigger Status</h1>
+                <hr/>
+                <button className="btn btn-primary btn-block button medium marSmall" onClick={this.toggleDisabled}>Toggle Disabled</button><br/>
+                <button className="btn btn-primary btn-block button medium marSmall" onClick={this.toggleCluster}>Toggle Cluster</button>
+                <br/>
                 <br/>
                 <div className="pageCenter-outer">
                     <div className="pageCenter-inner">
-                        <StatusList triggers={this.state.triggers} />
+                        <StatusList triggers={this.state.triggers} showDisabled={showDisabled} showCluster={showCluster} />
                     </div>
                 </div>
             </div>
