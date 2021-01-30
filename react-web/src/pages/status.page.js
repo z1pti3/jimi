@@ -4,6 +4,7 @@ import configData from "./../config/config.json";
 import { URL } from"./../utils/api";
 
 import StatusList from "./../components/status.component"
+import Loading from "./../components/loading.component"
 
 import "./status.page.css"
 
@@ -66,6 +67,6 @@ export default class StatusPage extends Component {
                     </div>
                 </div>
             </div>
-        ) : <span>Loading page...</span>
+        ) : <Loading />
     }
 }

@@ -7,6 +7,7 @@ import { URL } from"./../utils/api";
 
 import "./../components/html.component.css"
 import "./myAccount.page.css"
+import Loading from "./../components/loading.component"
 
 export default class MyAccountPage extends Component {
     constructor(props) {
@@ -134,6 +135,6 @@ export default class MyAccountPage extends Component {
                     <p className={`resultMessage ${!this.state.updateFailed ? "alert" : "alertError"} ${!this.state.updated && !this.state.updateFailed ? "hide" : ""}`}><b>{this.state.msg}</b></p>
                 </form>
             </div>
-        ) : <span>Loading page...</span>
+        ) : <Loading />
     }
 }

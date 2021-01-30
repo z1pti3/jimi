@@ -7,6 +7,7 @@ import configData from "./../config/config.json";
 import { URL } from"./../utils/api";
 
 import ConductList from "./../components/conductList.component"
+import Loading from "./../components/loading.component"
 
 import "./conducts.page.css"
 
@@ -85,6 +86,6 @@ export default class ConductsPage extends Component {
                     <ConductList conducts={this.state.conducts} filter={this.state.filter} deleteConductClickHandler={this.DeleteConduct} />
                 </div>
             </div>
-        ) : <span>Loading page...</span>
+        ) : <Loading />
     }
 }

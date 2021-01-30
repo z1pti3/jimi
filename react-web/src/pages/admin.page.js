@@ -6,6 +6,7 @@ import { URL } from"./../utils/api";
 
 import ClusterList from "./../components/clusterList.component"
 import ClusterJobList from "./../components/clusterJobList.component"
+import Loading from "./../components/loading.component"
 
 import "../components/html.component.css"
 
@@ -165,6 +166,6 @@ export default class AdminPage extends Component {
                 <hr/>
                 <ClusterJobList jobs={this.state.jobs} />
             </div>
-        ) : <span>Loading page...</span>
+        ) : <Loading />
     }
 }

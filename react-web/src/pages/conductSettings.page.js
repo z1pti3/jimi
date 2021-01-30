@@ -8,6 +8,7 @@ import { URL } from"./../utils/api";
 
 import "./../components/html.component.css"
 import "./conductSettings.page.css"
+import Loading from "./../components/loading.component"
 
 export default class ConductSettingsPage extends Component {
     constructor(props) {
@@ -133,6 +134,6 @@ export default class ConductSettingsPage extends Component {
                     <button type="submit" className="btn btn-primary btn-block button small">{this.state.type}</button>
                 </form>
             </div>
-        ) : <span>Loading page...</span>
+        ) : <Loading />
     }
 }

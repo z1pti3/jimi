@@ -4,6 +4,7 @@ import configData from "./../config/config.json";
 import { URL } from"./../utils/api";
 
 import PluginList from "./../components/pluginList.component"
+import Loading from "./../components/loading.component"
 
 import "./plugins.page.css"
 
@@ -55,6 +56,6 @@ export default class PluginsPage extends Component {
                     </div>
                 </div>
             </div>
-        ) : <span>Loading page...</span>
+        ) : <Loading />
     }
 }
