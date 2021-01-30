@@ -12,7 +12,8 @@ export default class PluginsPage extends Component {
         super(props);
         this.state = {
             plugins : [],
-            filter: ""
+            filter: "",
+            loading : true
         }
 
         const requestOptions = {
@@ -24,7 +25,7 @@ export default class PluginsPage extends Component {
                 return response.json()
             }
         }).then(json => {
-            this.setState({ plugins : json["results"] });
+            this.setState({ plugins : json["results"], loading : false });
         });
 
         this.change = this.change.bind(this);
@@ -42,7 +43,7 @@ export default class PluginsPage extends Component {
     }
 
     render() {
-        return (
+        return !this.state.loading ? (
             <div className="pageContent1">
                 <div>
                     <input type="text" name="filter" className="form-control textbox pluginSearch" placeholder="Search Plugins" onChange={this.change} />
@@ -54,6 +55,6 @@ export default class PluginsPage extends Component {
                     </div>
                 </div>
             </div>
-        );
+        ) : <span>Loading page...</span>
     }
 }

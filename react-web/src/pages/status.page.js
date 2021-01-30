@@ -26,7 +26,8 @@ export default class StatusPage extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            triggers : []
+            triggers : [],
+            loading: true
         }
 
         this.mounted = true;
@@ -34,7 +35,7 @@ export default class StatusPage extends Component {
         this.updateTriggers = this.updateTriggers.bind(this);
 
         apiTriggerStatusRefresh().then(triggers => {
-            this.setState({ triggers : triggers });
+            this.setState({ triggers : triggers, loading: false });
             this.updateTriggers();
         })
     }
@@ -55,7 +56,7 @@ export default class StatusPage extends Component {
     }
 
     render() {
-        return (
+        return !this.state.loading ? (
             <div className="pageContent1">
                 <h1>Trigger Status</h1>
                 <br/>
@@ -65,6 +66,6 @@ export default class StatusPage extends Component {
                     </div>
                 </div>
             </div>
-        );
+        ) : <span>Loading page...</span>
     }
 }

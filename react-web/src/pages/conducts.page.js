@@ -15,7 +15,8 @@ export default class ConductsPage extends Component {
         super(props);
         this.state = {
             conducts: [],
-            filter: ""
+            filter: "",
+            loading : true
         }
 
         const requestOptions = {
@@ -27,7 +28,7 @@ export default class ConductsPage extends Component {
                 return response.json()
             }
         }).then(json => {
-            this.setState({ conducts : json["results"] });
+            this.setState({ conducts : json["results"], loading : false });
         });
 
         this.change = this.change.bind(this);
@@ -73,7 +74,7 @@ export default class ConductsPage extends Component {
     }
 
     render() {
-        return (
+        return !this.state.loading ? (
             <div className="pageContent1">
                 <div>
                     <input type="text" name="filter" className="form-control textbox conductSearch" placeholder="Search Conducts" onChange={this.change} />
@@ -84,6 +85,6 @@ export default class ConductsPage extends Component {
                     <ConductList conducts={this.state.conducts} filter={this.state.filter} deleteConductClickHandler={this.DeleteConduct} />
                 </div>
             </div>
-        );
+        ) : <span>Loading page...</span>
     }
 }

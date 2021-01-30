@@ -46,14 +46,15 @@ export default class AdminPage extends Component {
         super(props);
         this.state = {
             clusterMembers : [],
-            jobs : []
+            jobs : [],
+            loading: true
         }
 
         this.mounted = true;
 
         this.updateclusterMembers = this.updateClusterMembers.bind(this);
         apiClusterMembersRefresh().then(clusterMembers => {
-            this.setState({ clusterMembers : clusterMembers });
+            this.setState({ clusterMembers : clusterMembers, loading: false });
             this.updateClusterMembers();
         })
 
@@ -142,7 +143,7 @@ export default class AdminPage extends Component {
     }
 
     render() {
-        return (
+        return !this.state.loading ? (
             <div className="pageContent1">
                 <h1>Controls</h1>
                 <hr/>
@@ -164,6 +165,6 @@ export default class AdminPage extends Component {
                 <hr/>
                 <ClusterJobList jobs={this.state.jobs} />
             </div>
-        );
+        ) : <span>Loading page...</span>
     }
 }
