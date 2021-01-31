@@ -1,5 +1,5 @@
-* linguist-vendored
-*.py linguist-vendored=false
-/web/static/javascript/* linguist-vendored=false
-/web/static/css/* linguist-vendored=false
-/react-web/src/* linguist-vendored=false
+* -linguist-detectable
+*.py linguist-detectable
+/web/static/javascript/* linguist-detectable
+/web/static/css/* linguist-detectable
+/react-web/src/* linguist-detectable
