@@ -17,6 +17,8 @@ Currently jimi has some 30 public integrations and more than 200 actions and tri
 
 View Plugins: [Plugins](https://github.com/topics/jimiplugin)
 
+
+
 ![Screenshot](https://github.com/z1pti3/jimi/raw/v1.5/examples/screenshots/flowEditor.png)
 
 ## Enterprise Ready
