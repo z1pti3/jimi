@@ -1,2 +1,5 @@
 * linguist-vendored
-*.js linguist-vendored=false
+*.py linguist-vendored=false
+/web/static/javascript/* linguist-vendored=false
+/web/static/css/* linguist-vendored=false
+/react-web/src/* linguist-vendored=false
