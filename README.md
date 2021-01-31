@@ -13,6 +13,10 @@
 ```
 Jimi is an automation first platform designed from the ground by IT and Cyber Security for IT and Cyber Security. Automation first means that the usual product limitations are removed opening the possibilities of automation to all aspects of IT. Jimi features a rich no-code user interface creating a single pane of glass that effortlessly integrate your existing tools unlocking new possibilities and enabling cross functional automation. 
 
+Currently jimi has some 30 public integrations and more than 200 actions and triggers.
+
+View Plugins: [Plugins](https://github.com/topics/jimiplugin)
+
 ![Screenshot](https://github.com/z1pti3/jimi/raw/v1.5/examples/screenshots/flowEditor.png)
 
 ## Enterprise Ready
