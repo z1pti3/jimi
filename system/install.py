@@ -7,7 +7,7 @@ import string
 import jimi
 
 # Current System Version
-systemVersion = 1.9
+systemVersion = 2.0
 
 # Initialize 
 dbCollectionName = "system"
@@ -207,6 +207,7 @@ def systemInstall():
 	# Adding models for user and groups
 	jimi.model.registerModel("user","_user","_document","core.auth")
 	jimi.model.registerModel("group","_group","_document","core.auth")
+	jimi.model.registerModel("session","_session","_document","core.auth")
 
 
 	# Adding default admin group
@@ -222,7 +223,7 @@ def systemInstall():
 		rootPass = randomString(30)
 		rootUser = jimi.auth._user().new("root","root",rootPass)
 		rootUser = jimi.auth._user().getAsClass(query={ "username" : "root" })
-		logging.debug("Root user created! Password is: {}".format(rootPass),-1)
+		jimi.logging.debug("Root user created! Password is: {}".format(rootPass),-1)
 	rootUser = rootUser[0]
 
 	# Adding root to group
@@ -259,6 +260,9 @@ def systemUpgrade(currentVersion):
 		jimi.model.registerModel("setAction","_setAction","_action","system.models.action")
 		jimi.model.registerModel("enableAction","_enableAction","_action","system.models.action")
 		jimi.model.registerModel("disableAction","_disableAction","_action","system.models.action")
+
+	if currentVersion < 2.0:
+		jimi.model.registerModel("session","_session","_document","core.auth")
 
 	return True
 		
