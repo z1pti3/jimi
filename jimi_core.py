@@ -33,22 +33,34 @@ if __name__ == "__main__":
         print("Failed to start scheduler")
     while True:
         now = time.time()
-        if jimi.workers.workers.lastHandle + 60 < now:
-            jimi.audit._audit().add("core","crash",{ "action" : "restart", "type" : "workers" })
-            print("worker thread has crashed!")
-            apiEndpoint = "workers/"
-            apiToken = jimi.auth.generateSystemSession()
-            jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
-        if jimi.scheduler.scheduler.lastHandle + 60 < now:
-            jimi.audit._audit().add("core","crash",{ "action" : "restart", "type" : "scheduler" })
-            print("scheduler thread has crashed!")
-            apiEndpoint = "scheduler/"
-            apiToken = jimi.auth.generateSystemSession()
-            jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
-        if jimi.cluster.cluster.lastHandle + 60 < now:
-            jimi.audit._audit().add("core","crash",{ "action" : "restart", "type" : "cluster" })
-            print("cluster thread has crashed!")
-            apiEndpoint = "cluster/"
-            apiToken = jimi.auth.generateSystemSession()
-            jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
+        try:
+            if jimi.workers.workers.lastHandle + 60 < now:
+                print("worker thread has crashed!")
+                jimi.audit._audit().add("core","crash",{ "action" : "restart", "type" : "workers" })
+                apiEndpoint = "workers/"
+                apiToken = jimi.auth.generateSystemSession()
+                jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
+        except ValueError:
+            print("worker thread not running!")
+            jimi.audit._audit().add("core","notrunning",{ "action" : "restart", "type" : "workers" })
+        try:
+            if jimi.scheduler.scheduler.lastHandle + 60 < now:
+                jimi.audit._audit().add("core","crash",{ "action" : "restart", "type" : "scheduler" })
+                print("scheduler thread has crashed!")
+                apiEndpoint = "scheduler/"
+                apiToken = jimi.auth.generateSystemSession()
+                jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
+        except ValueError:
+            print("scheduler thread not running!")
+            jimi.audit._audit().add("core","notrunning",{ "action" : "restart", "type" : "scheduler" })
+        try:
+            if jimi.cluster.cluster.lastHandle + 60 < now:
+                jimi.audit._audit().add("core","crash",{ "action" : "restart", "type" : "cluster" })
+                print("cluster thread has crashed!")
+                apiEndpoint = "cluster/"
+                apiToken = jimi.auth.generateSystemSession()
+                jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
+        except ValueError:
+            print("cluster thread not running!")
+            jimi.audit._audit().add("core","notrunning",{ "action" : "restart", "type" : "cluster" })
         time.sleep(10)
