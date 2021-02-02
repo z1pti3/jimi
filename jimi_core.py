@@ -23,7 +23,32 @@ if __name__ == "__main__":
     apiEndpoint = "cluster/"
     jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
 
-    # Added self healing for core threads into this
     import time
+    time.sleep(10)
+    if jimi.workers.workers.lastHandle == None:
+        print("Failed to start workers")
+    if jimi.cluster.cluster.lastHandle == None:
+        print("Failed to start cluster")
+    if jimi.scheduler.scheduler.lastHandle == None:
+        print("Failed to start scheduler")
     while True:
-        time.sleep(1)
+        now = time.time()
+        if jimi.workers.workers.lastHandle + 60 < now:
+            jimi.audit._audit().add("core","crash",{ "action" : "restart", "type" : "workers" })
+            print("worker thread has crashed!")
+            apiEndpoint = "workers/"
+            apiToken = jimi.auth.generateSystemSession()
+            jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
+        if jimi.scheduler.scheduler.lastHandle + 60 < now:
+            jimi.audit._audit().add("core","crash",{ "action" : "restart", "type" : "scheduler" })
+            print("scheduler thread has crashed!")
+            apiEndpoint = "scheduler/"
+            apiToken = jimi.auth.generateSystemSession()
+            jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
+        if jimi.cluster.cluster.lastHandle + 60 < now:
+            jimi.audit._audit().add("core","crash",{ "action" : "restart", "type" : "cluster" })
+            print("cluster thread has crashed!")
+            apiEndpoint = "cluster/"
+            apiToken = jimi.auth.generateSystemSession()
+            jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
+        time.sleep(10)
