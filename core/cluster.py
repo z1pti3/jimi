@@ -108,11 +108,17 @@ class _clusterMember(jimi.db._document):
                 }
             ])
             # Getting lowest systemID
-            lowestID = active[0]
+            try:
+                lowestID = active[0]
+            except IndexError:
+                lowestID = self.systemID
+                active.append(lowestID)
             for systemID in active:
                 if systemID < lowestID:
                     lowestID = systemID
             for failedTrigger in failedTriggers:
+                if failedTrigger["attemptsLeft"] is None:
+                    failedTrigger["attemptsLeft"] = 0
                 if failedTrigger["attemptsLeft"] < 1:
                     jimi.audit._audit().add("cluster","dead trigger",{ "triggerID" : failedTrigger["_id"], "triggerName" : failedTrigger["name"], "attemptsLeft" : failedTrigger["attemptsLeft"], "masterID" : self.systemID, "masterUID" : self.systemUID })
                 else:
@@ -141,7 +147,6 @@ class _clusterMember(jimi.db._document):
             else:
                 if jimi.logging.debugEnabled:
                     jimi.logging.debug("Unable to reset triggers from inactive cluster members - active='{0}'".format(active),2)
-
             if len(active) > 0:
                 inactiveTriggers = jimi.trigger._trigger().getAsClass(query={ "systemID" : { "$nin" : active }, "enabled" : True })
                 if len(inactiveTriggers) > 0:
@@ -151,14 +156,20 @@ class _clusterMember(jimi.db._document):
                     for activeMember in active:
                         count = jimi.trigger._trigger().getAsClass(query={ "systemID" : activeMember, "enabled" : True })
                         clusterMembersDetails[str(activeMember)] = { "count" : len(count) }
-
                     # Building cluster sets
                     groups = {}
+                    groupIndex = 0
                     triggerGroups = jimi.trigger._trigger().getAsClass(query={ "systemID" : { "$nin" : active }, "clusterSet" : { "$gt" : 0 }, "enabled" : True })
                     for triggerGroup in triggerGroups:
                         if str(triggerGroup.clusterSet) not in groups:
-                            groups[str(triggerGroup.clusterSet)] = triggerGroup.systemID
-    
+                            if triggerGroup.systemID in active:
+                                groups[str(triggerGroup.clusterSet)] = triggerGroup.systemID
+                            else:
+                                groups[str(triggerGroup.clusterSet)] = active[groupIndex]
+                                groupIndex += 1
+                                if groupIndex > len(active):
+                                    groupIndex = 0
+
                     for inactiveTrigger in inactiveTriggers:
                         lowestMember = [active[-1],clusterMembersDetails[str(active[-1])]["count"]]
                         for activeMember in active:
@@ -179,7 +190,6 @@ class _clusterMember(jimi.db._document):
                         if jimi.logging.debugEnabled:
                             jimi.logging.debug("Set triggerID='{0}' triggers to systemID='{1}', new trigger count='{2}'".format(inactiveTrigger._id,member,clusterMembersDetails[str(member)]["count"]),6)
                         jimi.audit._audit().add("cluster","set trigger",{ "triggerID" : inactiveTrigger._id, "triggerName" : inactiveTrigger.name, "systemID" : member, "clusterSet" : inactiveTrigger.clusterSet, "masterID" : self.systemID, "masterUID" : self.systemUID })
-
         return True
 
 class _cluster:
@@ -194,6 +204,7 @@ class _cluster:
     def handler(self):
         clusterMember = loadClusterMember()
         while not self.stopped:
+            jimi.audit._audit().add("cluster","poll",{ "systemID" : clusterMember.systemID, "master" : clusterMember.master, "systemUID" : clusterMember.systemUID })
             now = int(time.time())
             self.lastHandle = now
             if not clusterMember.sync():
