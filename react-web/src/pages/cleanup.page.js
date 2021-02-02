@@ -12,7 +12,7 @@ export default class CleanupPage extends Component {
     render() {
         return (
             <div className="pageContent0">
-                <iframe className="cleanupFrame" src={configData.url+"cleanup/"}></iframe>
+                <iframe className="cleanupFrame" src={"/cleanup/"}></iframe>
             </div>
         );
     }
