@@ -106,6 +106,11 @@ class _conduct(db._document):
         processQueue = []
         if not persistentData:
             persistentData = { "system" : { "conduct" : self }, "plugin" : { } }
+        else:
+            try:
+                persistentData["system"]["conduct"] = self
+            except KeyError:
+                pass
         data["conductID"] = self._id
         data["action"] = { "result" : True, "rc" : 1337 }
         flowObjectsUsed = []
