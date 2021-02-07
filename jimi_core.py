@@ -64,3 +64,7 @@ if __name__ == "__main__":
             print("cluster thread not running!")
             jimi.audit._audit().add("core","notrunning",{ "action" : "restart", "type" : "cluster" })
         time.sleep(10)
+else:
+    import jimi
+    # Disable CPU saver for multiprocessing
+    jimi.settings.config["cpuSaver"]["enabled"] = False
