@@ -145,6 +145,8 @@ class workerHandler:
         self.workerList = []
         self.stopped = False
         self.cleanUp = cleanUp
+        self.backlog = False
+        self.failures = False
         
         # Autostarting worker handler thread
         workerThread = self._worker("workerThread",self.handler,None,True,0,False,True)
@@ -169,6 +171,7 @@ class workerHandler:
                 if len(workersStillWaiting) == 0:
                     workersStillWaiting = [ x for x in self.workerList if x.running == None ]
                 if len(workersStillWaiting) > 0:
+                    self.backlog = True
                     # Check if number of workersWaiting is above the number of available concurrent threads and select mx available
                     workersWaiting = workersStillWaiting
                     if len(workersWaiting) > underConcurrent:
@@ -180,6 +183,10 @@ class workerHandler:
                         workerWaiting.start()
                         underConcurrent-=1
                         del workersStillWaiting[workersStillWaiting.index(workerWaiting)]
+                else:
+                    self.backlog = False
+            else:
+                self.backlog = False
 
             # Execute worker cleanup every 5ish seconds
             if (tick + 5) < now:
@@ -188,6 +195,8 @@ class workerHandler:
                 for worker in cleanupWorkers:
                     if worker.running != False:
                         worker.thread.kill()
+                    if not self.failures and worker.resultException != None and worker.endTime != 0:
+                        self.failures = True
                     if self.cleanUp:
                         # Making sure that only completed workers i.e. endTime!=0 are clearned
                         if worker.resultException == None and worker.endTime != 0 or (( worker.endTime + 60 < now ) and worker.endTime != 0):
@@ -199,7 +208,7 @@ class workerHandler:
             if ((underConcurrent == 0) or (underConcurrent > 0 and len(workersStillWaiting) == 0)):
                 loops = 0
                 time.sleep(workerSettings["loopT1"])
-            elif (loops > workerSettings["loopL"] and len(workersStillWaiting) != 0):
+            elif (loops > workerSettings["loopL"]):
                 loops = 0
                 time.sleep(workerSettings["loopT"])
             
@@ -291,6 +300,9 @@ class workerHandler:
 
     def count(self):
         return len(self.workerList)
+
+    def countIncomplete(self):
+        return len([x for x in self.workerList if x.id != self.workerID and (x.running == True or x.running == None) ])
 
     def queue(self):
         workersWaiting = [x for x in self.workerList if x.running == None]
