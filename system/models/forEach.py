@@ -24,6 +24,7 @@ class _forEach(jimi.action._action):
 			formData.append({"type" : "checkbox", "schemaitem" : "manual", "checked" : classObject.manual, "tooltip" : "Check to enable events list to take affect"})
 			formData.append({"type" : "json-input", "schemaitem" : "events", "textbox" : classObject.events, "tooltip" : "Define a set of events for looping, manual MUST be checked for this to take affect"})
 			formData.append({"type" : "input", "schemaitem" : "limit", "textbox" : classObject.limit, "tooltip" : "Defines a maxium number of loops, set to 0 for unlimited"})
+			formData.append({"type" : "input", "schemaitem" : "concurrency", "textbox" : classObject.concurrency, "tooltip" : "Defines the number of concurrent threads, set to 0 for non-threaded mode ( default )"})
 			formData.append({"type" : "checkbox", "schemaitem" : "enabled", "checked" : classObject.enabled})
 			formData.append({"type" : "checkbox", "schemaitem" : "log", "checked" : classObject.log})
 			formData.append({"type" : "input", "schemaitem" : "comment", "textbox" : classObject.comment})
@@ -52,14 +53,14 @@ class _forEach(jimi.action._action):
 					events = events[:self.limit]
 				eventHandler = None
 				if self.concurrency > 0:
-					eventHandler = jimi.workers.workerHandler(self.concurrency,cleanUp=False)
+					eventHandler = jimi.workers.workerHandler(self.concurrency)
 				for index, event in enumerate(events):
 					if self.limit > 0:
 						if self.limit < index:
 							break
 					first = True if index == 0 else False
 					last = True if index == len(events) - 1 else False
-					eventStat = { "first" : first, "current" : index, "total" : len(events), "last" : last }
+					eventStat = { "first" : first, "current" : index + 1, "total" : len(events), "last" : last }
 
 					tempDataCopy = conduct.copyFlowData(tempData)
 
@@ -75,7 +76,16 @@ class _forEach(jimi.action._action):
 					tempDataCopy["callingTriggerID"] = data["triggerID"]
 
 					if eventHandler:
-						durationRemaining = time.time() - ( persistentData["system"]["trigger"].startTime + persistentData["system"]["trigger"].maxDuration )
+						while eventHandler.countIncomplete() >= self.concurrency:
+							cpuSaver.tick()
+						if eventHandler.failures:
+							if jimi.logging.debugEnabled:
+								jimi.logging.debug("forEachTrigger concurrent crash: forEachID={0}".format(self._id),5)
+							jimi.audit._audit().add("forEachTrigger","conccurent crash",{ "forEachID" : self._id, "name" : self.name })
+							eventHandler.stop()
+							raise jimi.exceptions.concurrentCrash
+							
+						durationRemaining = ( persistentData["system"]["trigger"].startTime + persistentData["system"]["trigger"].maxDuration ) - time.time()
 						eventHandler.new("forEachTrigger:{0}".format(data["flowID"]),persistentData["system"]["conduct"].triggerHandler,(data["flowID"],tempDataCopy,False,True,persistentData),maxDuration=durationRemaining)
 					else:
 						persistentData["system"]["conduct"].triggerHandler(data["flowID"],tempDataCopy,flowIDType=True,persistentData=persistentData)
@@ -84,10 +94,11 @@ class _forEach(jimi.action._action):
 				# Waiting for all jobs to complete
 				if eventHandler:
 					eventHandler.waitAll()
-					if eventHandler.failureCount() > 0:
+					if eventHandler.failures:
 						if jimi.logging.debugEnabled:
-							jimi.logging.debug("Trigger concurrent crash: triggerID={0}".format(self._id),5)
+							jimi.logging.debug("forEachTrigger concurrent crash: forEachID={0}".format(self._id),5)
 						jimi.audit._audit().add("forEachTrigger","conccurent crash",{ "forEachID" : self._id, "name" : self.name })
+						eventHandler.stop()
 						raise jimi.exceptions.concurrentCrash
 					eventHandler.stop()
 		# Returning false to stop flow continue
