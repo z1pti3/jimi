@@ -13,6 +13,7 @@ class _trigger(db._document):
     lastCheck = float()
     nextCheck = int()
     startCheck = float()
+    startTime = float() # Hidden runtime value that represents the actural startTime of notify 
     workerID = str()
     enabled = bool()
     log = bool()
@@ -78,6 +79,16 @@ class _trigger(db._document):
             if self.log:
                 notifyStartTime = time.time()
                 audit._audit().add("trigger","notify start",{ "triggerID" : self._id, "name" : self.name })
+
+            if not persistentData:
+                persistentData = { "system" : { "trigger" : self }, "plugin" : { } }
+            else:
+                try:
+                    persistentData["system"]["trigger"] = self
+                except KeyError:
+                    pass
+
+            self.startTime = time.time()
 
             conducts = cache.globalCache.get("conductCache",self._id,getTriggerConducts)
             if conducts:
