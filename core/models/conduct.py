@@ -7,7 +7,7 @@ from core import db
 class _conduct(db._document):
     name = str()
     flow = list()
-    enabled = bool()
+    enabled = True
     log = bool()
     comment = str()
 
