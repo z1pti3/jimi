@@ -94,10 +94,10 @@ def conductFlowchartPoll(conductID):
                                     label = "({0},{1})\n<b>{2}</b>\n{3}".format(t.systemID,t.clusterSet,t.name,modeClass.name)
                                     if flowchartResponseType == "create":
                                         node["label"] = label
-                                        node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : "#2a2a2a" }, "hover" : { "background" : color } }
+                                        node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
                                     else:
                                         if color != flowchartOperators[flowID]["node"]["color"]["background"]:
-                                            node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : "#2a2a2a" }, "hover" : { "background" : color } }
+                                            node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
                                         if label != flowchartOperators[flowID]["node"]["label"]:
                                             node["label"] = label
                                     foundObject = True
@@ -121,10 +121,10 @@ def conductFlowchartPoll(conductID):
                                     label = "<b>{0}</b>\n{1}".format(a.name,modeClass.name)
                                     if flowchartResponseType == "create":
                                         node["label"] = label
-                                        node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : "#2a2a2a" }, "hover" : { "background" : color } }
+                                        node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
                                     else:
                                         if color != flowchartOperators[flowID]["node"]["color"]["background"]:
-                                            node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : "#2a2a2a" }, "hover" : { "background" : color } }
+                                            node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
                                         if label != flowchartOperators[flowID]["node"]["label"]:
                                             node["label"] = label
                                     foundObject = True
