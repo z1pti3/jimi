@@ -2,6 +2,8 @@ import time
 
 from core import db
 
+import jimi
+
 class triggerConcurrentCrash(Exception):
     """Trigger concurrent crash"""
     pass
@@ -99,7 +101,7 @@ class _trigger(db._document):
                         maxDuration = self.maxDuration
                     eventHandler = None
                     if self.concurrency > 0:
-                        eventHandler = workers.workerHandler(self.concurrency,cleanUp=False)
+                        eventHandler = workers.workerHandler(self.concurrency)
 
                     tempData = conduct.flowDataTemplate(conduct=loadedConduct,trigger=self,var=var,plugin=plugin)
                     if callingTriggerID:
@@ -117,7 +119,17 @@ class _trigger(db._document):
                             audit._audit().add("trigger","notify call",{ "triggerID" : self._id, "conductID" : loadedConduct._id, "conductName" : loadedConduct.name, "name" : self.name, "data" : data })
 
                         if eventHandler:
-                            eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerHandler,(self._id,data,False,False,persistentData),maxDuration=maxDuration)
+                            while eventHandler.countIncomplete() >= self.concurrency:
+                                cpuSaver.tick()
+                            if eventHandler.failures:
+                                if jimi.logging.debugEnabled:
+                                    jimi.logging.debug("Trigger concurrent crash: triggerID={0}".format(self._id),5)
+                                jimi.audit._audit().add("Trigger","conccurent crash",{ "triggerID" : self._id, "name" : self.name })
+                                eventHandler.stop()
+                                raise jimi.exceptions.concurrentCrash
+                            
+                            durationRemaining = ( self.startTime + self.maxDuration ) - time.time()
+                            eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerHandler,(self._id,data,False,False,persistentData),maxDuration=durationRemaining)
                         else:
                             loadedConduct.triggerHandler(self._id,data,False,False,persistentData)
 
@@ -127,7 +139,7 @@ class _trigger(db._document):
                     # Waiting for all jobs to complete
                     if eventHandler:
                         eventHandler.waitAll()
-                        if eventHandler.failureCount() > 0:
+                        if eventHandler.failures > 0:
                             if logging.debugEnabled:
                                 logging.debug("Trigger concurrent crash: triggerID={0}".format(self._id),5)
                             audit._audit().add("trigger","conccurent crash",{ "triggerID" : self._id, "name" : self.name })
