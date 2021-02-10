@@ -269,7 +269,7 @@ class _document():
                     if field in doc:
                         fieldAccessPermitted = True
                         # Checking if sessionData is permitted field level access
-                        if "acl" in doc and not adminBypass and sessionData and authSettings["enabled"] and field not in ["classID","_id","acl"]:
+                        if "acl" in doc and not adminBypass and sessionData and authSettings["enabled"] and field not in ["classID","acl"]:
                             fieldAccessPermitted = fieldACLAccess(sessionData,doc["acl"],field)
                         # Allow field data to be returned if access is permitted
                         if fieldAccessPermitted:
@@ -281,7 +281,7 @@ class _document():
                 for field in list(doc):
                     fieldAccessPermitted = True
                     # Checking if sessionData is permitted field level access
-                    if "acl" in doc and not adminBypass and sessionData and authSettings["enabled"] and field not in ["classID","_id","acl"]:
+                    if "acl" in doc and not adminBypass and sessionData and authSettings["enabled"] and field not in ["classID","acl"]:
                         fieldAccessPermitted = fieldACLAccess(sessionData,doc["acl"],field)
                     # Allow field data to be returned if access is permitted
                     if fieldAccessPermitted:
@@ -289,7 +289,8 @@ class _document():
                         if type(value) is dict:
                             value = jimi.helpers.unicodeUnescapeDict(value)
                         resultItem[jimi.helpers.unicodeUnescape(field)] = value
-            result["results"].append(resultItem)
+            if "_id" in resultItem:
+                result["results"].append(resultItem)
         docs.close()
         return result
 
