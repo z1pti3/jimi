@@ -170,6 +170,7 @@ def loadPluginClass(pluginName):
 
 # Load / Delete valid / non-valid plugins
 def updatePluginDB():
+    classID = jimi.model._model().query(query={"className" : "_plugin" })["results"][0]["_id"]
     listedPlugins = _plugin().query()["results"]
     plugins = os.listdir("plugins")
     for plugin in plugins:
@@ -179,6 +180,7 @@ def updatePluginDB():
             if pluginClass:
                 newPlugin = pluginClass()
                 newPlugin.name = plugin
+                newPlugin.classID = classID
                 newPluginID = newPlugin._dbCollection.insert_one(newPlugin.parse()).inserted_id
                 newPlugin = pluginClass().get(newPluginID)
                 if newPlugin.installed != True:

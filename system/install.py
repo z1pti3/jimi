@@ -7,7 +7,7 @@ import string
 import jimi
 
 # Current System Version
-systemVersion = 2.0
+systemVersion = 2.01
 
 # Initialize 
 dbCollectionName = "system"
@@ -263,6 +263,13 @@ def systemUpgrade(currentVersion):
 
 	if currentVersion < 2.0:
 		jimi.model.registerModel("session","_session","_document","core.auth")
+
+	if currentVersion < 2.01:
+		classID = jimi.model._model().query(query={"className" : "_plugin" })["results"][0]["_id"]
+		installedPlugins = jimi.plugin._plugin().getAsClass(query={ "installed" : True })
+		for installedPlugin in installedPlugins:
+			installedPlugin.classID = classID
+			installedPlugin.update(["classID"])
 
 	return True
 		
