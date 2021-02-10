@@ -243,7 +243,7 @@ def validateUser(username,password,otp=None):
         user.lastLoginAttempt = time.time()
         passwordHash = generatePasswordHash(password, username, user.passwordHashType)
         validOTP = True
-        if otp is not None:
+        if user.totpSecret:
             validOTP = onetimepass.valid_totp(otp, user.totpSecret)
         if passwordHash[1] == user.passwordHash and validOTP:
             # If user password hash does not meet the required standard update
