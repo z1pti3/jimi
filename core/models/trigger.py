@@ -1,15 +1,10 @@
 import time
-
-from core import db
+import copy
 
 import jimi
 
-class triggerConcurrentCrash(Exception):
-    """Trigger concurrent crash"""
-    pass
-
 # Model Class
-class _trigger(db._document):
+class _trigger(jimi.db._document):
     name = str()
     schedule = str()
     lastCheck = float()
@@ -31,10 +26,10 @@ class _trigger(db._document):
     autoRestartCount = int()
     scope = int()
 
-    _dbCollection = db.db["triggers"]
+    _dbCollection = jimi.db.db["triggers"]
 
     def __init__(self):
-        cache.globalCache.newCache("conductCache")
+        jimi.cache.globalCache.newCache("conductCache")
 
     # Override parent new to include name var, parent class new run after class var update
     def new(self,name=""):
@@ -51,20 +46,13 @@ class _trigger(db._document):
     def loadAsClass(self,jsonList,sessionData=None):
         result = []
         # Ininilize global cache
-        cache.globalCache.newCache("modelCache",sessionData=sessionData)
+        jimi.cache.globalCache.newCache("modelCache",sessionData=sessionData)
         # Loading json data into class
         for jsonItem in jsonList:
-            _class = cache.globalCache.get("modelCache",jsonItem["classID"],getClassObject,sessionData=sessionData)
+            _class = jimi.cache.globalCache.get("modelCache",jsonItem["classID"],getClassObject,sessionData=sessionData)
             if _class is not None:
-                if len(_class) == 1:
-                    _class = _class[0].classObject()
-                if _class:
-                    result.append(helpers.jsonToClass(_class(),jsonItem))
-                else:
-                    if logging.debugEnabled:
-                        logging.debug("Error unable to locate class, disabling trigger: triggerID={0} classID={1}, models={2}".format(jsonItem["_id"],jsonItem["classID"],[_trigger,db._document]))
-                    _trigger().api_update(query={ "_id" : db.ObjectId(jsonItem["_id"]) },update={ "$set" : { "enabled" : False } } )
-                    systemTrigger.failedTrigger(None,"noTriggerClass")
+                _class = _class[0].classObject()
+                result.append(jimi.helpers.jsonToClass(_class(),jsonItem))
         return result
 
     def setAttribute(self,attr,value,sessionData=None):
@@ -76,86 +64,105 @@ class _trigger(db._document):
         setattr(self,attr,value)
         return True
 
-    def notify(self,events=[],var=None,plugin=None,callingTriggerID=None,persistentData=None):
-        if events:
-            if self.log:
-                notifyStartTime = time.time()
-                audit._audit().add("trigger","notify start",{ "triggerID" : self._id, "name" : self.name })
+    #def notify(self,events=[],var=None,plugin=None,callingTriggerID=None,persistentData=None):
+    def notify(self,events=[],data=None):
+        notifyStartTime = time.time()
+        self.startTime = notifyStartTime
+        if self.log:
+            jimi.audit._audit().add("trigger","notify_start",{ "trigger_id" : self._id, "trigger_name" : self.name })
 
-            if not persistentData:
-                persistentData = { "system" : { "trigger" : self }, "plugin" : { } }
-            else:
-                try:
-                    persistentData["system"]["trigger"] = self
-                except KeyError:
-                    pass
+        if data != None and type(data) is dict():
+            try:
+                if "event" in data["flowData"]:
+                    del data["flowData"]["event"]
+                if "var" not in data["flowData"]:
+                    data["flowData"]["var"] = {}
+                if "plugin" not in data["flowData"]:
+                    data["flowData"]["plugin"] = {}
+            except KeyError:
+                data["flowData"] = { "var" : {}, "plugin" : {} }
+            try:
+                data["persistentData"]["system"]["trigger"] = self
+            except KeyError:
+                if "persistentData" not in data:
+                    data["persistentData"] = { "system" : { "trigger" : self }, "plugin" : { } }
+                else:
+                    if "system" not in data["persistentData"]:
+                        data["persistentData"] = { "system" : { "trigger" : self } }
+                    if "plugin" not in data["persistentData"]:
+                        data["persistentData"]["plugin"] = { }
+        else:
+            data = { "flowData" : { "var" : {}, "plugin" : {} }, "persistentData" : { "system" : { "trigger" : self }, "plugin" : { } } }
+        data["flowData"]["trigger_id"] = self._id
+        data["flowData"]["trigger_name"] = self.name
+        tempData = data
 
-            self.startTime = time.time()
+        conducts = jimi.cache.globalCache.get("conductCache",self._id,getTriggerConducts)
+        if conducts:
+            cpuSaver = jimi.helpers.cpuSaver()
+            for loadedConduct in conducts:
+                maxDuration = 60
+                if self.maxDuration > 0:
+                    maxDuration = self.maxDuration
+                eventHandler = None
+                if self.concurrency > 0:
+                    eventHandler = jimi.workers.workerHandler(self.concurrency)
 
-            conducts = cache.globalCache.get("conductCache",self._id,getTriggerConducts)
-            if conducts:
-                cpuSaver = helpers.cpuSaver()
-                for loadedConduct in conducts:
-                    maxDuration = 60
-                    if type(self.maxDuration) is int and self.maxDuration > 0:
-                        maxDuration = self.maxDuration
-                    eventHandler = None
-                    if self.concurrency > 0:
-                        eventHandler = workers.workerHandler(self.concurrency)
+                tempData["flowData"]["conduct_id"] = loadedConduct._id
+                tempData["flowData"]["conduct_name"] = loadedConduct.name
 
-                    tempData = conduct.flowDataTemplate(conduct=loadedConduct,trigger=self,var=var,plugin=plugin)
-                    if callingTriggerID:
-                        tempData["callingTriggerID"] = callingTriggerID
+                for index, event in enumerate(events):
+                    first = True if index == 0 else False
+                    last = True if index == len(events) - 1 else False
+                    eventStats = { "first" : first, "current" : index, "total" : len(events), "last" : last }
 
-                    for index, event in enumerate(events):
-                        first = True if index == 0 else False
-                        last = True if index == len(events) - 1 else False
-                        eventStats = { "first" : first, "current" : index, "total" : len(events), "last" : last }
+                    data["flowData"] = tempData["flowData"].copy()
+                    try:
+                        data["flowData"]["var"] = copy.deepcopy(tempData["flowData"]["var"])
+                    except KeyError:
+                        pass
+                    try:
+                        data["flowData"]["plugin"] = copy.deepcopy(tempData["flowData"]["plugin"])
+                    except KeyError:
+                        pass
+                    data["flowData"]["event"] = event
+                    data["flowData"]["eventStats"] = eventStats
 
-                        data = conduct.copyFlowData(tempData)
-                        data["event"] = event
-                        data["eventStats"] = eventStats
-                        if self.log and (first or last):
-                            audit._audit().add("trigger","notify call",{ "triggerID" : self._id, "conductID" : loadedConduct._id, "conductName" : loadedConduct.name, "name" : self.name, "data" : data })
+                    if self.log and (first or last):
+                        jimi.audit._audit().add("trigger","notify_call",{ "trigger_id" : self._id, "trigger_name" : self.name, "conduct_id" : loadedConduct._id, "conduct_name" : loadedConduct.name, "flowData" : data["flowData"] })
 
-                        if eventHandler:
-                            while eventHandler.countIncomplete() >= self.concurrency:
-                                cpuSaver.tick()
-                            if eventHandler.failures:
-                                if jimi.logging.debugEnabled:
-                                    jimi.logging.debug("Trigger concurrent crash: triggerID={0}".format(self._id),5)
-                                jimi.audit._audit().add("Trigger","conccurent crash",{ "triggerID" : self._id, "name" : self.name })
-                                eventHandler.stop()
-                                raise jimi.exceptions.concurrentCrash
-                            
-                            durationRemaining = ( self.startTime + self.maxDuration ) - time.time()
-                            eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerHandler,(self._id,data,False,False,persistentData),maxDuration=durationRemaining)
-                        else:
-                            loadedConduct.triggerHandler(self._id,data,False,False,persistentData)
-
-                        # CPU saver
-                        cpuSaver.tick()
-
-                    # Waiting for all jobs to complete
                     if eventHandler:
-                        eventHandler.waitAll()
-                        if eventHandler.failures > 0:
-                            if logging.debugEnabled:
-                                logging.debug("Trigger concurrent crash: triggerID={0}".format(self._id),5)
-                            audit._audit().add("trigger","conccurent crash",{ "triggerID" : self._id, "name" : self.name })
-                            raise triggerConcurrentCrash
-                        eventHandler.stop()
-            else:
-                if logging.debugEnabled:
-                    logging.debug("Error trigger has no conducts, automaticly disabling: triggerID={0}".format(self._id))
-                audit._audit().add("trigger","autho disable",{ "triggerID" : self._id, "name" : self.name })
-                self.enabled = False
-                self.update(["enabled"])
-            
-            
-            if self.log:
-                notifyEndTime = time.time()
-                audit._audit().add("trigger","notify end",{ "triggerID" : self._id, "name" : self.name, "duration" : (notifyEndTime-notifyStartTime) })
+                        while eventHandler.countIncomplete() >= self.concurrency:
+                            cpuSaver.tick()
+                        if eventHandler.failures:
+                            jimi.audit._audit().add("trigger","conccurent_crash",{ "trigger_id" : self._id, "trigger_name" : self.name })
+                            eventHandler.stop()
+                            raise jimi.exceptions.concurrentCrash
+                        
+                        durationRemaining = ( self.startTime + self.maxDuration ) - time.time()
+                        eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerHandler,(self._id,data,False,False),maxDuration=durationRemaining)
+                    else:
+                        loadedConduct.triggerHandler(self._id,data,False,False)
+
+                    # CPU saver
+                    cpuSaver.tick()
+
+                # Waiting for all jobs to complete
+                if eventHandler:
+                    eventHandler.waitAll()
+                    if eventHandler.failures > 0:
+                        audit._audit().add("trigger","conccurent_crash",{ "trigger_id" : self._id, "trigger_name" : self.name })
+                        raise jimi.exceptions.triggerConcurrentCrash
+                    eventHandler.stop()
+        else:
+            jimi.audit._audit().add("trigger","auto_disable",{ "trigger_id" : self._id, "trigger_name" : self.name })
+            self.enabled = False
+            self.update(["enabled"])
+        
+        
+        if self.log:
+            notifyEndTime = time.time()
+            jimi.audit._audit().add("trigger","notify_end",{ "trigger_id" : self._id, "trigger_name" : self.name, "duration" : ( notifyEndTime - notifyStartTime ) })
 
         self.startCheck = 0
         self.attemptCount = 0
@@ -167,27 +174,37 @@ class _trigger(db._document):
         startTime = 0
         if self.log:
             startTime = time.time()
-        self.checkHeader()
-        self.check()
-        self.checkFooter(startTime)
-        self.notify(events=self.result["events"],var=self.result["var"],plugin=self.result["plugin"])
-
-    def checkHeader(self):
+        ####################################
+        #              Header              #
+        ####################################
         if self.log:
-            audit._audit().add("trigger","check start",{ "triggerID" : self._id, "name" : self.name })
-        if logging.debugEnabled:
-            logging.debug("Trigger check started, triggerID='{0}'".format(self._id),7)
+            jimi.audit._audit().add("trigger","check_start",{ "trigger_id" : self._id, "trigger_name" : self.name })
+        ####################################
+
+        self.data = { "flowData" : { "var" : {}, "plugin" : {} } }
+        events = self.doCheck()
+        data = None
+        if self.data["flowData"]["var"] or self.data["flowData"]["plugin"]:
+            data = self.data
+            
+        ####################################
+        #              Footer              #
+        ####################################
+        if self.log:
+            jimi.audit._audit().add("trigger","check_end",{ "trigger_id" : self._id, "trigger_name" : self.name, "duration" : ( time.time() - startTime ) })
+        ####################################
+        self.notify(events=self.result["events"],data=data)
+
+    def doCheck(self):
         self.result = { "events" : [], "var" : {}, "plugin" : {} }
+        self.check()
+        self.data["flowData"]["var"] = self.result["var"]
+        self.data["flowData"]["plugin"] = self.result["plugin"]
+        return self.result["events"]
 
     # Main function called to determine if a trigger is triggered
     def check(self):
         self.result["events"].append({ "tick" : True })
-
-    def checkFooter(self,startTime):
-        if self.log:
-            audit._audit().add("trigger","check end",{ "triggerID" : self._id, "name" : self.name, "duration" : (time.time()-startTime) })
-        if logging.debugEnabled:
-            logging.debug("Trigger check complete, triggerID='{0}'".format(self._id),7)
 
 from core import helpers, logging, model, audit, workers, scheduler, cache, settings, helpers
 from core.models import conduct

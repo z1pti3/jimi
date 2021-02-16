@@ -1,13 +1,9 @@
 import time
-import re
 
-from core import db, function, cache
-
-regexIf = re.compile("((\"(.*?[^\\])\"|([a-zA-Z0-9]+(\[(.*?)\])+)|([a-zA-Z0-9]+(\((.*?)(\)\)|\)))+)|\[(.*?)\]|([a-zA-Z0-9]*)))\s?( not match | match | not in | in |==|!=|>=|>|<=|<)\s?((\"(.*?[^\\])\"|([a-zA-Z0-9]+(\[(.*?)\])+)|([a-zA-Z0-9]+(\((.*?)(\)\)|\)))+)|\[(.*?)\]|([a-zA-Z0-9]*)))")
-regexLogic = re.compile("^(True|False|\(|\)| |or|and)*$")
+import jimi
 
 # Model Class
-class _action(db._document):
+class _action(jimi.db._document):
     name = str()
     enabled = bool()
     log = bool()
@@ -17,7 +13,7 @@ class _action(db._document):
     varDefinitions = dict()
     scope = int()
 
-    _dbCollection = db.db["actions"]
+    _dbCollection = jimi.db.db["actions"]
 
     # Override parent new to include name var, parent class new run after class var update
     def new(self,name=""):
@@ -35,63 +31,56 @@ class _action(db._document):
     def loadAsClass(self,jsonList,sessionData=None):
         result = []
         # Ininilize global cache
-        cache.globalCache.newCache("modelCache",sessionData=sessionData)
+        jimi.cache.globalCache.newCache("modelCache",sessionData=sessionData)
         # Loading json data into class
         for jsonItem in jsonList:
-            _class = cache.globalCache.get("modelCache",jsonItem["classID"],getClassObject,sessionData=sessionData)
+            _class = jimi.cache.globalCache.get("modelCache",jsonItem["classID"],getClassObject,sessionData=sessionData)
             if _class is not None:
-                if len(_class) == 1:
-                    _class = _class[0].classObject()
-                if _class:
-                    result.append(helpers.jsonToClass(_class(),jsonItem))
-                else:
-                    logging.debug("Error unable to locate class: actionID={0} classID={1}".format(jsonItem["_id"],jsonItem["classID"]))
+                _class = _class[0].classObject()
+                result.append(jimi.helpers.jsonToClass(_class(),jsonItem))
         return result
 
-    def runHandler(self,data,persistentData,debug=False):
+    def runHandler(self,data=None,debug=False):
+        ####################################
+        #              Header              #
+        ####################################
         startTime = 0
         if self.log:
             startTime = time.time()
-        actionResult = { "result" : False, "rc" : -1, "actionID" : self._id, "data" : {} }
-        self.runHeader(data,persistentData,actionResult)
+        if self.log:
+            jimi.audit._audit().add("action","action_start",{ "action_id" : self._id, "action_name" : self.name })
+        ####################################
+
         if self.logicString:
-            if self.log:
-                logicDebugText, logicResult = logic.ifEval(self.logicString, { "data" : data }, debug=True)
-                audit._audit().add("action","logic",{ "conductID" : helpers.dictValue(data,"conductID"), "conductName" : helpers.dictValue(data,"conductName"), "triggerName" : helpers.dictValue(data,"triggerName"), "triggerID" : helpers.dictValue(data,"triggerID"),  "flowD" : helpers.dictValue(data,"flowID"), "actionID" : self._id, "actionName" : self.name, "data" : data,  "logicString" : self.logicString, "logicResult" : logicResult, "logicData" : logicDebugText })
-            else:
-                logicResult = logic.ifEval(self.logicString, { "data" : data })
+            logicResult = jimi.logic.ifEval(self.logicString, { "data" : data["flowData"] })
             if logicResult:
-                self.run(data,persistentData,actionResult)
+                actionResult = self.doRun(data)
                 if self.varDefinitions:
-                    data["var"] = variable.varEval(self.varDefinitions,data["var"],{ "data" : data, "action" : actionResult})
+                    data["flowData"]["var"] = jimi.variable.varEval(self.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"], "action" : actionResult})
             else:
-                actionResult["result"] = False
-                actionResult["rc"] = -100
+                actionResult = { "result" : False, "rc" : -100, "msg" : "Logic returned: False", "logic_string" : self.logicString }
         else:
-            self.run(data,persistentData,actionResult)
+            actionResult = self.doRun(data)
             if self.varDefinitions:
-                data["var"] = variable.varEval(self.varDefinitions,data["var"],{ "data" : data, "action" : actionResult})
-        self.runFooter(data,persistentData,actionResult,startTime)
+                data["flowData"]["var"] = jimi.variable.varEval(self.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"], "action" : actionResult})
+
+        ####################################
+        #              Footer              #
+        ####################################
+        if self.log:
+            jimi.audit._audit().add("action","action_end",{ "action_id" : self._id, "action_name" : self.name, "action_result" : actionResult, "duration" : (time.time() - startTime) })
+        ####################################
+        
         return actionResult
 
-    def runHeader(self,data,persistentData,actionResult):
-        if self.log:
-            # Used helpers.dictValue as cant ensure new data is passed by all plugins such as forEach / Subflow - this should be removed once these are updated to include the required template
-            audit._audit().add("action","action start",{ "conductID" : helpers.dictValue(data,"conductID"), "conductName" : helpers.dictValue(data,"conductName"), "triggerName" : helpers.dictValue(data,"triggerName"), "triggerID" : helpers.dictValue(data,"triggerID"), "flowD" : helpers.dictValue(data,"flowID"), "actionID" : self._id, "actionName" : self.name, "data" : data, "actionResult" : actionResult })
-        if logging.debugEnabled:
-            logging.debug("Action run started, actionID='{0}', data='{1}'".format(self._id,data),7)
+    def doAction(self,data):
+        actionResult = self.run(data["flowData"],data["persistentData"],{})
+        return actionResult
 
     def run(self,data,persistentData,actionResult):
         actionResult["result"] = True
         actionResult["rc"] = 0
         return actionResult
-
-    def runFooter(self,data,persistentData,actionResult,startTime):
-        if self.log:
-            # Used helpers.dictValue as cant ensure new data is passed by all plugins such as forEach / Subflow - this should be removed once these are updated to include the required template
-            audit._audit().add("action","action end",{ "conductID" : helpers.dictValue(data,"conductID"), "conductName" : helpers.dictValue(data,"conductName"), "triggerName" : helpers.dictValue(data,"triggerName"), "triggerID" : helpers.dictValue(data,"triggerID"), "flowD" : helpers.dictValue(data,"flowID"), "actionID" : self._id, "actionName" : self.name, "data" : data, "actionResult" : actionResult, "duration" : (time.time() - startTime) })
-        if logging.debugEnabled:
-            logging.debug("Action run complete, actionID='{0}', data='{1}'".format(self._id,data),7)
 
     def postRun(self):
         pass
@@ -99,9 +88,5 @@ class _action(db._document):
     def __del__(self):
         self.postRun()
 
-from core import helpers, logging, model, audit
-from system.functions import network
-from system import logic, variable
-
 def getClassObject(classID,sessionData):
-    return model._model().getAsClass(sessionData,id=classID)
+    return jimi.model._model().getAsClass(sessionData,id=classID)
