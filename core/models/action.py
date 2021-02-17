@@ -64,6 +64,7 @@ class _action(jimi.db._document):
             if self.varDefinitions:
                 data["flowData"]["var"] = jimi.variable.varEval(self.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"], "action" : actionResult})
 
+
         ####################################
         #              Footer              #
         ####################################
@@ -74,7 +75,7 @@ class _action(jimi.db._document):
         return actionResult
 
     def doAction(self,data):
-        actionResult = self.run(data["flowData"],data["persistentData"],{})
+        actionResult = self.run(data["flowData"],data["persistentData"], { "result" : False, "rc" : -1, "actionID" : self._id, "data" : {} })
         return actionResult
 
     def run(self,data,persistentData,actionResult):

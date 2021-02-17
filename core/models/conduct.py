@@ -146,8 +146,10 @@ class _conduct(jimi.db._document):
                         else:
                             class_ = currentFlow["classObject"]
                         if class_.enabled:
-                            data["flowData"]["flowID"] = currentFlow["flowID"]
+                            data["flowData"]["flow_id"] = currentFlow["flowID"]
                             data["flowData"]["action"] = class_.runHandler(data=data)
+                            data["flowData"]["action"]["action_id"] = class_._id
+                            data["flowData"]["action"]["action_name"] = class_.name
                             passData = data
                             for nextFlow in currentFlow["next"]:
                                 if passData == None:
