@@ -47,7 +47,7 @@ class _conduct(jimi.db._document):
         return True
 
     # actionIDType=True uses actionID instead of triggerID
-    def triggerHandler(self,triggerID,data,actionIDType=False,flowIDType=False):
+    def triggerHandler(self,triggerID,data,actionIDType=False,flowIDType=False,flowDebugSession=None):
         ####################################
         #              Header              #
         ####################################
@@ -58,16 +58,6 @@ class _conduct(jimi.db._document):
         data["persistentData"]["system"]["conduct"] = self
         ####################################
 
-        self.trigger(triggerID,actionIDType,flowIDType,data)
-
-        ####################################
-        #              Footer              #
-        ####################################
-        if self.log:
-            jimi.audit._audit().add("conduct","trigger_end",{ "conduct_id" : self._id, "conduct_name" : self.name, "trigger_id" : triggerID, "duration" : ( time.time() - startTime ) })
-        ####################################
-
-    def trigger(self,triggerID,actionIDType,flowIDType,data):
         flowDict = jimi.cache.globalCache.get("flowDict",self._id,getFlowDict,self.flow)
 
         if actionIDType:
@@ -76,10 +66,16 @@ class _conduct(jimi.db._document):
             triggeredFlows = jimi.cache.globalCache.get("triggeredFlowFlows",triggerID,getTriggeredFlowFlows,self.flow)
         else:
             triggeredFlows = jimi.cache.globalCache.get("triggeredFlowTriggers",triggerID,getTriggeredFlowTriggers,self.flow)
- 
-        # Triggers all found flows
+
         for triggeredFlow in triggeredFlows:
-            self.flowHandler(triggeredFlow,flowDict,data)
+            self.flowHandler(triggeredFlow,flowDict,data,flowDebugSession=flowDebugSession)
+
+        ####################################
+        #              Footer              #
+        ####################################
+        if self.log:
+            jimi.audit._audit().add("conduct","trigger_end",{ "conduct_id" : self._id, "conduct_name" : self.name, "trigger_id" : triggerID, "duration" : ( time.time() - startTime ) })
+        ####################################
 
     # Eval logic between links 
     def flowLogicEval(self,data,logicVar):
@@ -101,7 +97,9 @@ class _conduct(jimi.db._document):
                     return True
         return False
 
-    def flowHandler(self,currentFlow,flowDict,data):
+    def flowHandler(self,currentFlow,flowDict,data,flowDebugSession=None):
+        if flowDebugSession:
+            flowDebugSession["eventID"] = jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].startEvent(data["flowData"]["event"])
         processQueue = []
         data["flowData"]["conductID"] = self._id
         data["flowData"]["action"] = { "result" : True, "rc" : 1337 }
@@ -147,9 +145,13 @@ class _conduct(jimi.db._document):
                             class_ = currentFlow["classObject"]
                         if class_.enabled:
                             data["flowData"]["flow_id"] = currentFlow["flowID"]
+                            if flowDebugSession:
+                                flowDebugSession["actionID"] = jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].startAction(flowDebugSession["eventID"],data)
                             data["flowData"]["action"] = class_.runHandler(data=data)
                             data["flowData"]["action"]["action_id"] = class_._id
                             data["flowData"]["action"]["action_name"] = class_.name
+                            if flowDebugSession:
+                                jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].endAction(flowDebugSession["eventID"],flowDebugSession["actionID"],data)
                             passData = data
                             for nextFlow in currentFlow["next"]:
                                 if passData == None:
@@ -183,6 +185,9 @@ class _conduct(jimi.db._document):
                         if len(class_) > 0:
                             class_ = class_[0]
                             class_.postRun()
+
+        if flowDebugSession:
+            jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].endEvent(flowDebugSession["eventID"])
 
 def dataTemplate(data=None):
     if data != None and type(data) is dict():
