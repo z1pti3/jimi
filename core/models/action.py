@@ -54,13 +54,13 @@ class _action(jimi.db._document):
         if self.logicString:
             logicResult = jimi.logic.ifEval(self.logicString, { "data" : data["flowData"] })
             if logicResult:
-                actionResult = self.doRun(data)
+                actionResult = self.doAction(data)
                 if self.varDefinitions:
                     data["flowData"]["var"] = jimi.variable.varEval(self.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"], "action" : actionResult})
             else:
                 actionResult = { "result" : False, "rc" : -100, "msg" : "Logic returned: False", "logic_string" : self.logicString }
         else:
-            actionResult = self.doRun(data)
+            actionResult = self.doAction(data)
             if self.varDefinitions:
                 data["flowData"]["var"] = jimi.variable.varEval(self.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"], "action" : actionResult})
 

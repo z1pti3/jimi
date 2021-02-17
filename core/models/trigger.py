@@ -64,7 +64,6 @@ class _trigger(jimi.db._document):
         setattr(self,attr,value)
         return True
 
-    #def notify(self,events=[],var=None,plugin=None,callingTriggerID=None,persistentData=None):
     def notify(self,events=[],data=None):
         notifyStartTime = time.time()
         self.startTime = notifyStartTime

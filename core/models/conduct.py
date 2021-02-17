@@ -204,6 +204,7 @@ def dataTemplate(data=None):
                 data["persistentData"]["plugin"] = { }
     else:
         data = { "flowData" : { "var" : {}, "plugin" : {} }, "persistentData" : { "system" : { "trigger" : None, "conduct" : None }, "plugin" : { } } }
+    return data
 
 def copyData(data):
     copyOfData = {}
