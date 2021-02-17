@@ -116,15 +116,7 @@ class _trigger(jimi.db._document):
                     last = True if index == len(events) - 1 else False
                     eventStats = { "first" : first, "current" : index, "total" : len(events), "last" : last }
 
-                    data["flowData"] = tempData["flowData"].copy()
-                    try:
-                        data["flowData"]["var"] = copy.deepcopy(tempData["flowData"]["var"])
-                    except KeyError:
-                        pass
-                    try:
-                        data["flowData"]["plugin"] = copy.deepcopy(tempData["flowData"]["plugin"])
-                    except KeyError:
-                        pass
+                    data = jimi.conduct.copyData(tempData)
                     data["flowData"]["event"] = event
                     data["flowData"]["eventStats"] = eventStats
 
@@ -151,7 +143,7 @@ class _trigger(jimi.db._document):
                 if eventHandler:
                     eventHandler.waitAll()
                     if eventHandler.failures > 0:
-                        audit._audit().add("trigger","conccurent_crash",{ "trigger_id" : self._id, "trigger_name" : self.name })
+                        jimi.audit._audit().add("trigger","conccurent_crash",{ "trigger_id" : self._id, "trigger_name" : self.name })
                         raise jimi.exceptions.triggerConcurrentCrash
                     eventHandler.stop()
         else:
@@ -167,7 +159,7 @@ class _trigger(jimi.db._document):
         self.startCheck = 0
         self.attemptCount = 0
         self.lastCheck = time.time()
-        self.nextCheck = scheduler.getSchedule(self.schedule)
+        self.nextCheck = jimi.scheduler.getSchedule(self.schedule)
         self.update(["startCheck","lastCheck","nextCheck","attemptCount"])
 
     def checkHandler(self):
@@ -186,7 +178,7 @@ class _trigger(jimi.db._document):
         data = None
         if self.data["flowData"]["var"] or self.data["flowData"]["plugin"]:
             data = self.data
-            
+
         ####################################
         #              Footer              #
         ####################################
@@ -206,12 +198,9 @@ class _trigger(jimi.db._document):
     def check(self):
         self.result["events"].append({ "tick" : True })
 
-from core import helpers, logging, model, audit, workers, scheduler, cache, settings, helpers
-from core.models import conduct
-from system.models import trigger as systemTrigger
 
 def getClassObject(classID,sessionData):
-    return model._model().getAsClass(sessionData,id=classID)
+    return jimi.model._model().getAsClass(sessionData,id=classID)
 
 def getTriggerConducts(triggerID,sessionData):
-    return conduct._conduct().getAsClass(query={"flow.triggerID" : triggerID, "enabled" : True})
+    return jimi.conduct._conduct().getAsClass(query={"flow.triggerID" : triggerID, "enabled" : True})
