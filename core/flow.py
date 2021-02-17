@@ -78,8 +78,7 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,maxDuration
                 events = jimi.helpers.typeCast(eventsData)
                 classObject = getObjectFromCode(sessionData,flow)
                 if type(events) != list:
-                    classObject.checkHeader()
-                    classObject.check()
+                    classObject.checkHandler()
                     events = classObject.result["events"]
                     if eventCount>0:
                         events = events[:eventCount]
@@ -104,8 +103,8 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,maxDuration
     tempConduct.log = True
     for flow in flows:
         tempData = jimi.conduct.dataTemplate()
-        tempData["system"]["conduct"] = tempConduct
-        tempData["system"]["trigger"] = flow["classObject"]
+        tempData["persistentData"]["system"]["conduct"] = tempConduct
+        tempData["persistentData"]["system"]["trigger"] = flow["classObject"]
         for index, event in enumerate(events):
             first = True if index == 0 else False
             last = True if index == len(events) - 1 else False

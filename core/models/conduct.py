@@ -164,7 +164,6 @@ class _conduct(jimi.db._document):
             else:
                 nextFlowID = processQueue[-1]["flowID"]
                 data = processQueue[-1]["data"]
-                data["flowID"] = processQueue[-1]["flowID"]
                 processQueue.pop()
                 try:
                     currentFlow = flowDict[nextFlowID]

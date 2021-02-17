@@ -88,9 +88,9 @@ class _forEach(jimi.action._action):
 						raise jimi.exceptions.concurrentCrash
 						
 					durationRemaining = ( data["persistentData"]["system"]["trigger"].startTime + data["persistentData"]["system"]["trigger"].maxDuration ) - time.time()
-					eventHandler.new("forEachTrigger:{0}".format(data["flowID"]),data["persistentData"]["system"]["conduct"].triggerHandler,(data["flowID"],tempDataCopy,False,True),maxDuration=durationRemaining)
+					eventHandler.new("forEachTrigger:{0}".format(data["flow_id"]),data["persistentData"]["system"]["conduct"].triggerHandler,(data["flow_id"],tempDataCopy,False,True),maxDuration=durationRemaining)
 				else:
-					data["persistentData"]["system"]["conduct"].triggerHandler(data["flowID"],tempDataCopy,flowIDType=True)
+					data["persistentData"]["system"]["conduct"].triggerHandler(data["flow_id"],tempDataCopy,flowIDType=True)
 
 				cpuSaver.tick()
 			# Waiting for all jobs to complete
