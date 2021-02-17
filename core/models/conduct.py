@@ -146,8 +146,8 @@ class _conduct(jimi.db._document):
                         else:
                             class_ = currentFlow["classObject"]
                         if class_.enabled:
-                            data["flowID"] = currentFlow["flowID"]
-                            data["action"] = class_.runHandler(data=data)
+                            data["flowData"]["flowID"] = currentFlow["flowID"]
+                            data["flowData"]["action"] = class_.runHandler(data=data)
                             passData = data
                             for nextFlow in currentFlow["next"]:
                                 if passData == None:
@@ -171,18 +171,17 @@ class _conduct(jimi.db._document):
             # CPU saver
             cpuSaver.tick()
         # Post processing for all event postRun actions
-        if "eventStats" in data:
-            if data["eventStats"]["last"]:
-                for flow in flowDict:
-                    if flowDict[flow]["type"] == "action" and flowDict[flow]["flowID"] in flowObjectsUsed:
-                        if not codifyFlow:
-                            class_ = jimi.cache.globalCache.get("actionCache",flowDict[flow]["actionID"]+flowDict[flow]["flowID"],getAction,flowDict[flow],dontCheck=True)
-                        else:
-                            class_ = [flowDict[flow]["classObject"]]
-                        if class_:
-                            if len(class_) > 0:
-                                class_ = class_[0]
-                                class_.postRun()
+        if data["flowData"]["eventStats"]["last"]:
+            for flow in flowDict:
+                if flowDict[flow]["type"] == "action" and flowDict[flow]["flowID"] in flowObjectsUsed:
+                    if not codifyFlow:
+                        class_ = jimi.cache.globalCache.get("actionCache",flowDict[flow]["actionID"]+flowDict[flow]["flowID"],getAction,flowDict[flow],dontCheck=True)
+                    else:
+                        class_ = [flowDict[flow]["classObject"]]
+                    if class_:
+                        if len(class_) > 0:
+                            class_ = class_[0]
+                            class_.postRun()
 
 def dataTemplate(data=None):
     if data != None and type(data) is dict():
