@@ -64,9 +64,7 @@ def getObjectFromCode(sessionData,codeFunction):
     classObject.functionArgs = args
     return classObject
 
-def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentData=None,maxDuration=60):
-    if not persistentData:
-        persistentData = {}
+def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,maxDuration=60):
 
     # Build Flow
     conductFlow = []
@@ -105,16 +103,17 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
     tempConduct.flow = conductFlow
     tempConduct.log = True
     for flow in flows:
-        tempData = jimi.conduct.flowDataTemplate(conduct=tempConduct,trigger=flow["classObject"])
+        tempData = jimi.conduct.dataTemplate()
+        tempData["system"]["conduct"] = tempConduct
+        tempData["system"]["trigger"] = flow["classObject"]
         for index, event in enumerate(events):
             first = True if index == 0 else False
             last = True if index == len(events) - 1 else False
             eventStat = { "first" : first, "current" : index, "total" : len(events), "last" : last }
 
-            tempDataCopy = jimi.conduct.copyFlowData(tempData)
-
-            tempDataCopy["event"] = event
-            tempDataCopy["eventStats"] = eventStat
+            tempDataCopy = jimi.conduct.copyData(tempData)
+            tempDataCopy["flowData"]["event"] = event
+            tempDataCopy["flowData"]["eventStats"] = eventStat
 
             try:
                 jid = jimi.workers.workers.new("testFire:{0}".format(tempConduct._id),tempConduct.triggerHandler,(flow["flowID"],tempDataCopy,False,True),maxDuration=maxDuration, raiseException=False)

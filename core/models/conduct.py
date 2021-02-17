@@ -55,7 +55,7 @@ class _conduct(jimi.db._document):
         if self.log:
             startTime = time.time()
             jimi.audit._audit().add("conduct","trigger_start",{ "conduct_id" : self._id, "conduct_name" : self.name, "trigger_id" : triggerID })
-        self.triggerHeader(triggerID,data)
+        data["persistentData"]["system"]["conduct"] = self
         ####################################
 
         self.trigger(triggerID,actionIDType,flowIDType,data)
@@ -183,6 +183,27 @@ class _conduct(jimi.db._document):
                             if len(class_) > 0:
                                 class_ = class_[0]
                                 class_.postRun()
+
+def dataTemplate(data=None):
+    if data != None and type(data) is dict():
+        try:
+            if "event" in data["flowData"]:
+                del data["flowData"]["event"]
+            if "var" not in data["flowData"]:
+                data["flowData"]["var"] = {}
+            if "plugin" not in data["flowData"]:
+                data["flowData"]["plugin"] = {}
+        except KeyError:
+            data["flowData"] = { "var" : {}, "plugin" : {} }
+        if "persistentData" not in data:
+            data["persistentData"] = { "system" : { "trigger" : None, "conduct" : None }, "plugin" : { } }
+        else:
+            if "system" not in data["persistentData"]:
+                data["persistentData"] = { "system" : { "trigger" : None, "conduct" : None } }
+            if "plugin" not in data["persistentData"]:
+                data["persistentData"]["plugin"] = { }
+    else:
+        data = { "flowData" : { "var" : {}, "plugin" : {} }, "persistentData" : { "system" : { "trigger" : None, "conduct" : None }, "plugin" : { } } }
 
 def copyData(data):
     copyOfData = {}

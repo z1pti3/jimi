@@ -71,28 +71,8 @@ class _trigger(jimi.db._document):
         if self.log:
             jimi.audit._audit().add("trigger","notify_start",{ "trigger_id" : self._id, "trigger_name" : self.name })
 
-        if data != None and type(data) is dict():
-            try:
-                if "event" in data["flowData"]:
-                    del data["flowData"]["event"]
-                if "var" not in data["flowData"]:
-                    data["flowData"]["var"] = {}
-                if "plugin" not in data["flowData"]:
-                    data["flowData"]["plugin"] = {}
-            except KeyError:
-                data["flowData"] = { "var" : {}, "plugin" : {} }
-            try:
-                data["persistentData"]["system"]["trigger"] = self
-            except KeyError:
-                if "persistentData" not in data:
-                    data["persistentData"] = { "system" : { "trigger" : self }, "plugin" : { } }
-                else:
-                    if "system" not in data["persistentData"]:
-                        data["persistentData"] = { "system" : { "trigger" : self } }
-                    if "plugin" not in data["persistentData"]:
-                        data["persistentData"]["plugin"] = { }
-        else:
-            data = { "flowData" : { "var" : {}, "plugin" : {} }, "persistentData" : { "system" : { "trigger" : self }, "plugin" : { } } }
+        data = jimi.conduct.dataTemplate(data=data)
+        data["persistentData"]["system"]["trigger"] = self
         data["flowData"]["trigger_id"] = self._id
         data["flowData"]["trigger_name"] = self.name
         tempData = data

@@ -40,11 +40,11 @@ class _collect(action._action):
 
 	def continueFlow(self):
 		if self.events:
-			tempDataCopy = conduct.copyFlowData(self.data)
-			tempDataCopy["event"] = self.events
-			tempDataCopy["skip"] = 1
+			tempDataCopy = conduct.copyData(self.data)
+			tempDataCopy["flowData"]["event"] = self.events
+			tempDataCopy["flowData"]["skip"] = 1
 			self.events = []
-			tempDataCopy["eventStats"] = { "first" : True, "current" : 0, "total" : 1, "last" : True }
+			tempDataCopy["flowData"]["eventStats"] = { "first" : True, "current" : 0, "total" : 1, "last" : True }
 			self.persistentData["system"]["conduct"].triggerHandler(self.data["flowID"],tempDataCopy,flowIDType=True)
 
 	def postRun(self):

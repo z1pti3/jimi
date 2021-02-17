@@ -48,7 +48,8 @@ class _forEach(jimi.action._action):
 				skip = self.skip
 			if type(events) is list:
 				cpuSaver = helpers.cpuSaver()
-				tempData = conduct.flowDataTemplate(conduct=persistentData["system"]["conduct"],trigger=self,var=data["var"],plugin=data["plugin"])
+				tempData = conduct.flowDataTemplate(data)
+				tempData["persistentData"]["system"]["trigger"] = self
 				if self.limit > 0:
 					events = events[:self.limit]
 				eventHandler = None
@@ -62,18 +63,18 @@ class _forEach(jimi.action._action):
 					last = True if index == len(events) - 1 else False
 					eventStat = { "first" : first, "current" : index + 1, "total" : len(events), "last" : last }
 
-					tempDataCopy = conduct.copyFlowData(tempData)
+					tempDataCopy = conduct.copyData(tempData)
 
 					if self.mergeEvents:
-						tempDataCopy["event"] = {**data["event"],**event}
-						tempDataCopy["eventStats"] = eventStat
+						tempDataCopy["flowData"]["event"] = {**data["flowData"]["event"],**event}
+						tempDataCopy["flowData"]["eventStats"] = eventStat
 					else:
-						tempDataCopy["event"] = event
-						tempDataCopy["eventStats"] = eventStat
+						tempDataCopy["flowData"]["event"] = event
+						tempDataCopy["flowData"]["eventStats"] = eventStat
 
 					# Adding some extra items ( need to go into plugin )
-					tempDataCopy["skip"] = skip
-					tempDataCopy["callingTriggerID"] = data["triggerID"]
+					tempDataCopy["flowData"]["skip"] = skip
+					tempDataCopy["flowData"]["callingTriggerID"] = data["flowData"]["trigger_id"]
 
 					if eventHandler:
 						while eventHandler.countIncomplete() >= self.concurrency:
@@ -86,9 +87,9 @@ class _forEach(jimi.action._action):
 							raise jimi.exceptions.concurrentCrash
 							
 						durationRemaining = ( persistentData["system"]["trigger"].startTime + persistentData["system"]["trigger"].maxDuration ) - time.time()
-						eventHandler.new("forEachTrigger:{0}".format(data["flowID"]),persistentData["system"]["conduct"].triggerHandler,(data["flowID"],tempDataCopy,False,True,persistentData),maxDuration=durationRemaining)
+						eventHandler.new("forEachTrigger:{0}".format(data["flowID"]),persistentData["system"]["conduct"].triggerHandler,(data["flowID"],tempDataCopy,False,True),maxDuration=durationRemaining)
 					else:
-						persistentData["system"]["conduct"].triggerHandler(data["flowID"],tempDataCopy,flowIDType=True,persistentData=persistentData)
+						persistentData["system"]["conduct"].triggerHandler(data["flowID"],tempDataCopy,flowIDType=True)
 
 					cpuSaver.tick()
 				# Waiting for all jobs to complete
