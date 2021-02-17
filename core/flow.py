@@ -64,9 +64,7 @@ def getObjectFromCode(sessionData,codeFunction):
     classObject.functionArgs = args
     return classObject
 
-def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentData=None,maxDuration=60):
-    if not persistentData:
-        persistentData = {}
+def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,maxDuration=60):
 
     # Build Flow
     conductFlow = []
@@ -80,8 +78,7 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
                 events = jimi.helpers.typeCast(eventsData)
                 classObject = getObjectFromCode(sessionData,flow)
                 if type(events) != list:
-                    classObject.checkHeader()
-                    classObject.check()
+                    classObject.checkHandler()
                     events = classObject.result["events"]
                     if eventCount>0:
                         events = events[:eventCount]
@@ -98,6 +95,8 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
                 flowLevel[flowIndentLevel] = flowLevel[flowIndentLevel-1]["next"][-1]
                 conductFlow.append(flowLevel[flowIndentLevel-1]["next"][-1])
 
+    sessionID = jimi.debug.newFlowDebugSession()
+    flowDebugSession = { "sessionID" : sessionID }
     startTime = time.time()
     output = "Started @ {0}\n\n".format(startTime)
     tempConduct = jimi.conduct._conduct()
@@ -105,19 +104,20 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
     tempConduct.flow = conductFlow
     tempConduct.log = True
     for flow in flows:
-        tempData = jimi.conduct.flowDataTemplate(conduct=tempConduct,trigger=flow["classObject"])
+        tempData = jimi.conduct.dataTemplate()
+        tempData["persistentData"]["system"]["conduct"] = tempConduct
+        tempData["persistentData"]["system"]["trigger"] = flow["classObject"]
         for index, event in enumerate(events):
             first = True if index == 0 else False
             last = True if index == len(events) - 1 else False
             eventStat = { "first" : first, "current" : index, "total" : len(events), "last" : last }
 
-            tempDataCopy = jimi.conduct.copyFlowData(tempData)
-
-            tempDataCopy["event"] = event
-            tempDataCopy["eventStats"] = eventStat
+            tempDataCopy = jimi.conduct.copyData(tempData)
+            tempDataCopy["flowData"]["event"] = event
+            tempDataCopy["flowData"]["eventStats"] = eventStat
 
             try:
-                jid = jimi.workers.workers.new("testFire:{0}".format(tempConduct._id),tempConduct.triggerHandler,(flow["flowID"],tempDataCopy,False,True),maxDuration=maxDuration, raiseException=False)
+                jid = jimi.workers.workers.new("testFire:{0}".format(tempConduct._id),tempConduct.triggerHandler,(flow["flowID"],tempDataCopy,False,True,flowDebugSession),maxDuration=maxDuration, raiseException=False)
                 jimi.workers.workers.wait(jid)
                 resultException = jimi.workers.workers.getError(jid)
                 if resultException:
@@ -125,40 +125,51 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,persistentD
             except Exception as e:
                 output = "\n\n***ERROR Start***\n{0}***ERROR End***\n\n".format(''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
 
-    flowDict = {}
-    for flow in tempConduct.flow:
-        flowDict[flow["flowID"]] = flow
-        if "triggerID" in flow:
-            flowDict[flow["triggerID"]] = flow
-        if "actionID" in flow:
-            flowDict[flow["actionID"]] = flow
-    # Getting Result From DB
-    auditData = jimi.audit._audit().query(query={ "data.conductID" : tempConduct._id },fields=["_id","time","source","type","data","systemID"])["results"]
-    for auditItem in auditData:
-        if "time" in auditItem:
-            auditItem["time"] = time.strftime('%d/%m/%Y %H:%M:%S', time.gmtime(auditItem["time"]))
-            if auditItem["source"] == "conduct":
-                if auditItem["type"] == "trigger start":
-                    output+="{0} - Start\n\t{1}\n\tEvent: {2}\n\tPre-Data: {3}\n".format(flowDict[auditItem["data"]["triggerID"]]["classObject"].functionName,flowDict[auditItem["data"]["triggerID"]]["classObject"].functionArgs,auditItem["data"]["data"]["event"],auditItem["data"]["data"])
-                elif auditItem["type"] == "logic":
-                    output+="\tLogic String: {0}\n\tLogic Result: {1}\n".format(auditItem["data"]["logicString"],auditItem["data"]["LogicResult"])
-                elif auditItem["type"] == "trigger end":
-                    output+="\tPost-Data: {1}\n{0} - End\n\n".format(flowDict[auditItem["data"]["triggerID"]]["classObject"].functionName,auditItem["data"]["data"])
-            if auditItem["source"] == "action":
-                if auditItem["type"] == "action start":
-                     output+="\t\t{0} - Start\n\t\t\t{1}\n\t\t\tPre-Data: {2}\n".format(flowDict[auditItem["data"]["actionID"]]["classObject"].functionName,flowDict[auditItem["data"]["actionID"]]["classObject"].functionArgs,auditItem["data"]["data"])
-                elif auditItem["type"] == "logic":
-                    output+="\t\t\tLogic String: {0}\n\t\t\tLogic Result: {1}\n".format(auditItem["data"]["logicString"],auditItem["data"]["logicResult"])
-                elif auditItem["type"] == "link-logic":
-                    output+="\t\t\tLink-logic String: {0}\n\t\t\tLink-logic Result: {1}\n".format(auditItem["data"]["linkLogic"],auditItem["data"]["linkLogicResult"])
-                elif auditItem["type"] == "action end":
-                     output+="\t\t\tPost-Data: {1}\n\t\t\tResult-Data: {2}\n\t\t{0} - End\n".format(flowDict[auditItem["data"]["actionID"]]["classObject"].functionName,auditItem["data"]["data"],auditItem["data"]["actionResult"])
+
+    output += json.dumps(jimi.debug.flowDebugSession[sessionID].flowList, indent=4)
+    jimi.debug.deleteFlowDebugSession(sessionID)
 
     endTime = time.time()
     output += "\nEnded @ {0}\n".format(endTime)
     output += "Duration @ {0}".format(endTime-startTime)
+    
 
     return output
+
+def flowHandler(sessionData,conductID,triggerType,triggerID,events,flowDebugSession=None):
+    loadedConduct = jimi.conduct._conduct().getAsClass(sessionData=sessionData,id=conductID)[0]
+    if triggerType == "action":
+        loadedTrigger = jimi.action._action().getAsClass(sessionData=sessionData,id=triggerID)[0]
+    elif triggerType == "flow":
+        flow = [ x for x in loadedConduct.flow if "flowID" in x and x["flowID"] == triggerID ]
+        if flow["type"] == "action":
+            loadedTrigger = jimi.action._action().getAsClass(sessionData=sessionData,id=flow["actionID"])[0]
+        else:
+            loadedTrigger = jimi.trigger._trigger().getAsClass(sessionData=sessionData,id=flow["triggerID"])[0]
+    else:
+        loadedTrigger = jimi.trigger._trigger().getAsClass(sessionData=sessionData,id=triggerID)[0]
+    data = jimi.conduct.dataTemplate()
+    data["persistentData"]["system"]["trigger"] = loadedTrigger
+    data["flowData"]["trigger_id"] = triggerID
+    data["flowData"]["trigger_name"] = loadedTrigger.name
+    data["flowData"]["conduct_id"] = loadedConduct._id
+    data["flowData"]["conduct_name"] = loadedConduct.name
+    for index, event in enumerate(events):
+        first = True if index == 0 else False
+        last = True if index == len(events) - 1 else False
+        eventStats = { "first" : first, "current" : index, "total" : len(events), "last" : last }
+
+        tempData = jimi.conduct.copyData(data)
+        tempData["flowData"]["event"] = event
+        tempData["flowData"]["eventStats"] = eventStats
+
+        if triggerType == "action":
+            loadedConduct.triggerHandler(triggerID,data,actionIDType=True,flowDebugSession=flowDebugSession)
+        elif triggerType == "flow":
+            loadedConduct.triggerHandler(triggerID,data,flowIDType=True,flowDebugSession=flowDebugSession)
+        else:
+            loadedConduct.triggerHandler(triggerID,data,flowDebugSession=flowDebugSession)
+
 
 ######### --------- API --------- #########
 if jimi.api.webServer:
@@ -170,3 +181,17 @@ if jimi.api.webServer:
                 # Function uses token for access passed by jimi_web
                 result = executeCodifyFlow(data["sessionData"],data["events"],data["code"],eventCount=int(data["eventCount"]),maxDuration=int(data["timeout"]))
                 return { "result" : result }, 200
+
+            @jimi.api.webServer.route(jimi.api.base+"flow/<conductID>/<triggerType>/<triggerID>/", methods=["POST"])
+            def runFlow(conductID,triggerType,triggerID):
+                data = json.loads(jimi.api.request.data)
+                sessionData = data["sessionData"]
+                events = data["events"]
+                eventCount = int(data["eventCount"])
+                if eventCount > 0:
+                    events = events[:eventCount]
+                maxDuration = data["timeout"]
+                sessionID = jimi.debug.newFlowDebugSession()
+                flowDebugSession = { "sessionID" : sessionID }
+                jimi.workers.workers.new("runFlow",flowHandler,(sessionData,conductID,triggerType,triggerID,events,flowDebugSession),maxDuration=maxDuration)
+                return { "sessionID" : sessionID }, 200

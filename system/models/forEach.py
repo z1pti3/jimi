@@ -30,78 +30,78 @@ class _forEach(jimi.action._action):
 			formData.append({"type" : "input", "schemaitem" : "comment", "textbox" : classObject.comment})
 			return formData
 
-	def run(self,data,persistentData,actionResult):
-		if "skip" in data:
-			del data["skip"]
-			actionResult["result"] = True
-			actionResult["rc"] = 0
-			return actionResult
+	def doAction(self,data):
+		try:
+			if "skip" in data["flowData"]:
+				del data["flowData"]["skip"]
+				return { "result" : True, "rc" : 0 }
+		except KeyError:
+			pass
+		
+		events = []
+		if self.manual:
+			events = self.events
 		else:
-			events = []
-			if self.manual:
-				events = self.events
-			else:
-				events = jimi.helpers.evalString(self.eventsField,{"data" : data})
-			if self.skip == 0:
-				skip = 1
-			else:
-				skip = self.skip
-			if type(events) is list:
-				cpuSaver = helpers.cpuSaver()
-				tempData = conduct.flowDataTemplate(conduct=persistentData["system"]["conduct"],trigger=self,var=data["var"],plugin=data["plugin"])
+			events = jimi.helpers.evalString(self.eventsField,{"data" : data})
+		if self.skip == 0:
+			skip = 1
+		else:
+			skip = self.skip
+		if type(events) is list:
+			cpuSaver = helpers.cpuSaver()
+			tempData = conduct.dataTemplate(data)
+			tempData["persistentData"]["system"]["trigger"] = self
+			if self.limit > 0:
+				events = events[:self.limit]
+			eventHandler = None
+			if self.concurrency > 0:
+				eventHandler = jimi.workers.workerHandler(self.concurrency)
+			for index, event in enumerate(events):
 				if self.limit > 0:
-					events = events[:self.limit]
-				eventHandler = None
-				if self.concurrency > 0:
-					eventHandler = jimi.workers.workerHandler(self.concurrency)
-				for index, event in enumerate(events):
-					if self.limit > 0:
-						if self.limit < index:
-							break
-					first = True if index == 0 else False
-					last = True if index == len(events) - 1 else False
-					eventStat = { "first" : first, "current" : index + 1, "total" : len(events), "last" : last }
+					if self.limit < index:
+						break
+				first = True if index == 0 else False
+				last = True if index == len(events) - 1 else False
+				eventStat = { "first" : first, "current" : index + 1, "total" : len(events), "last" : last }
 
-					tempDataCopy = conduct.copyFlowData(tempData)
+				tempDataCopy = conduct.copyData(tempData)
 
-					if self.mergeEvents:
-						tempDataCopy["event"] = {**data["event"],**event}
-						tempDataCopy["eventStats"] = eventStat
-					else:
-						tempDataCopy["event"] = event
-						tempDataCopy["eventStats"] = eventStat
+				if self.mergeEvents:
+					tempDataCopy["flowData"]["event"] = {**data["flowData"]["event"],**event}
+					tempDataCopy["flowData"]["eventStats"] = eventStat
+				else:
+					tempDataCopy["flowData"]["event"] = event
+					tempDataCopy["flowData"]["eventStats"] = eventStat
 
-					# Adding some extra items ( need to go into plugin )
-					tempDataCopy["skip"] = skip
-					tempDataCopy["callingTriggerID"] = data["triggerID"]
+				# Adding some extra items ( need to go into plugin )
+				tempDataCopy["flowData"]["skip"] = skip
+				tempDataCopy["flowData"]["callingTriggerID"] = data["flowData"]["trigger_id"]
 
-					if eventHandler:
-						while eventHandler.countIncomplete() >= self.concurrency:
-							cpuSaver.tick()
-						if eventHandler.failures:
-							if jimi.logging.debugEnabled:
-								jimi.logging.debug("forEachTrigger concurrent crash: forEachID={0}".format(self._id),5)
-							jimi.audit._audit().add("forEachTrigger","conccurent crash",{ "forEachID" : self._id, "name" : self.name })
-							eventHandler.stop()
-							raise jimi.exceptions.concurrentCrash
-							
-						durationRemaining = ( persistentData["system"]["trigger"].startTime + persistentData["system"]["trigger"].maxDuration ) - time.time()
-						eventHandler.new("forEachTrigger:{0}".format(data["flowID"]),persistentData["system"]["conduct"].triggerHandler,(data["flowID"],tempDataCopy,False,True,persistentData),maxDuration=durationRemaining)
-					else:
-						persistentData["system"]["conduct"].triggerHandler(data["flowID"],tempDataCopy,flowIDType=True,persistentData=persistentData)
-
-					cpuSaver.tick()
-				# Waiting for all jobs to complete
 				if eventHandler:
-					eventHandler.waitAll()
+					while eventHandler.countIncomplete() >= self.concurrency:
+						cpuSaver.tick()
 					if eventHandler.failures:
 						if jimi.logging.debugEnabled:
 							jimi.logging.debug("forEachTrigger concurrent crash: forEachID={0}".format(self._id),5)
 						jimi.audit._audit().add("forEachTrigger","conccurent crash",{ "forEachID" : self._id, "name" : self.name })
 						eventHandler.stop()
 						raise jimi.exceptions.concurrentCrash
+						
+					durationRemaining = ( data["persistentData"]["system"]["trigger"].startTime + data["persistentData"]["system"]["trigger"].maxDuration ) - time.time()
+					eventHandler.new("forEachTrigger:{0}".format(data["flowData"]["flow_id"]),data["persistentData"]["system"]["conduct"].triggerHandler,(data["flowData"]["flow_id"],tempDataCopy,False,True),maxDuration=durationRemaining)
+				else:
+					data["persistentData"]["system"]["conduct"].triggerHandler(data["flowData"]["flow_id"],tempDataCopy,flowIDType=True)
+
+				cpuSaver.tick()
+			# Waiting for all jobs to complete
+			if eventHandler:
+				eventHandler.waitAll()
+				if eventHandler.failures:
+					if jimi.logging.debugEnabled:
+						jimi.logging.debug("forEachTrigger concurrent crash: forEachID={0}".format(self._id),5)
+					jimi.audit._audit().add("forEachTrigger","conccurent crash",{ "forEachID" : self._id, "name" : self.name })
 					eventHandler.stop()
+					raise jimi.exceptions.concurrentCrash
+				eventHandler.stop()
 		# Returning false to stop flow continue
-		actionResult["result"] = False
-		actionResult["rc"] = 200
-		return actionResult
+		return { "result" : False, "rc" : 200 }

@@ -276,7 +276,21 @@ def classToJson(_class,hidden=False):
                     result[member] = handelTypes(getattr(_class,member))
             else:
                 result[member] = handelTypes(getattr(_class,member))
+        else:
+            result[member] = str(type(getattr(_class,member)))
     return result
+
+def dictToJson(json):
+    rebuiltJson = {}
+    standardTypes = [str,int,bool,float,list,None]
+    for key, value in json.items():
+        if type(value) is dict:
+            rebuiltJson[key] = dictToJson(value)
+        elif type(value) in standardTypes:
+            rebuiltJson[key] = value
+        else:
+            rebuiltJson[key] = str(type(value))
+    return rebuiltJson
 
 def unicodeEscapeDict(dictVar):
     resultItem = {}

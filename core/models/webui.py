@@ -1,11 +1,11 @@
-from core import db
+import jimi
 
 # Model Class
-class _flowData(db._document):
+class _flowData(jimi.db._document):
     conductID = str()
     flowData = dict()
 
-    _dbCollection = db.db["webui"]
+    _dbCollection = jimi.db.db["webui"]
 
     def new(self,conductID,flowData):
         self.conductID = conductID
@@ -14,14 +14,14 @@ class _flowData(db._document):
         return super(_flowData, self).new()
 
 # Model UI class
-class _modelUI(db._document):
+class _modelUI(jimi.db._document):
     conductID = str()
     flowID = str()
     x = int()
     y = int()
     title = str()
 
-    _dbCollection = db.db["modelUI"]
+    _dbCollection = jimi.db.db["modelUI"]
 
     def new(self,conductID,acl,flowID,x,y,title=""):
         if len(_modelUI().query(query={"conductID" : conductID, "flowID" : flowID})["results"]) < 1:
@@ -51,5 +51,3 @@ class _properties():
                 elif type(value) == dict or type(value) == list:
                     formData.append({"type" : "json-input", "schemaitem" : member, "textbox" : value, "label" : member})
         return formData
-
-from core import helpers, logging

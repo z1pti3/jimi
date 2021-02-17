@@ -20,32 +20,30 @@ class _collect(action._action):
 	def __init__(self):
 		self.events = []
 
-	def run(self,data,persistentData,actionResult):
-		if "skip" in data:
-			del data["skip"]
-			actionResult["result"] = True
-			actionResult["rc"] = 0
-			return actionResult
-		else:
-			self.events.append(data["event"])
-			self.persistentData = persistentData
-			self.data = data
-			if self.limit != 0 and self.limit < len(self.events):
-				self.continueFlow()
+	def doAction(self,data):
+		try:
+			if "skip" in data["flowData"]:
+				del data["flowData"]["skip"]
+				return { "result" : True, "rc" : 0 }
+		except KeyError:
+			pass
+		
+		self.events.append(data["flowData"]["event"])
+		self.data = data
+		if self.limit != 0 and self.limit < len(self.events):
+			self.continueFlow()
 
 		# Returning false to stop flow continue
-		actionResult["result"] = False
-		actionResult["rc"] = 9
-		return actionResult
+		return { "result" : False, "rc" : 9 }
 
 	def continueFlow(self):
 		if self.events:
-			tempDataCopy = conduct.copyFlowData(self.data)
-			tempDataCopy["event"] = self.events
-			tempDataCopy["skip"] = 1
+			tempDataCopy = conduct.copyData(self.data)
+			tempDataCopy["flowData"]["event"] = self.events
+			tempDataCopy["flowData"]["skip"] = 1
 			self.events = []
-			tempDataCopy["eventStats"] = { "first" : True, "current" : 0, "total" : 1, "last" : True }
-			self.persistentData["system"]["conduct"].triggerHandler(self.data["flowID"],tempDataCopy,flowIDType=True)
+			tempDataCopy["flowData"]["eventStats"] = { "first" : True, "current" : 0, "total" : 1, "last" : True }
+			self.data["persistentData"]["system"]["conduct"].triggerHandler(self.data["flowData"]["flow_id"],tempDataCopy,flowIDType=True)
 
 	def postRun(self):
 		self.continueFlow()
