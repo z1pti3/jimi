@@ -50,6 +50,10 @@ def notFound(e):
 def indexPage():
 	return render_template("index.html")
 
+@jimi.api.webServer.route("/debugFlow/")
+def testPage():
+	return render_template("debugFlowEditor.html",CSRF=jimi.api.g.sessionData["CSRF"])
+
 # Should be migrated into plugins.py
 @jimi.api.webServer.route(jimi.api.base+"plugins/")
 def loadPluginPages():

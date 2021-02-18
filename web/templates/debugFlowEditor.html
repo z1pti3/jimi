@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		<script src="{{ url_for('static', filename='includes/jquery/js/jquery-3.4.1.js') }}"></script>
+		<script src="{{ url_for('static', filename='includes/jquery/js/jquery-ui-1.12.1.js') }}"></script>
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.theme.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.structure.css') }}">
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
+		<script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
+
+		<script src="{{ url_for('static', filename='includes/select2/select2.min.js') }}"></script>
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/select2/select2.min.css') }}">
+
+		<script src="{{ url_for('static', filename='includes/visjs/js/vis-network.min.js') }}"></script>
+
+		<script src="{{ url_for('static', filename='javascript/helpers.js') }}"></script>
+		<script src="{{ url_for('static', filename='javascript/objectProperties.js') }}"></script>
+		<script src="{{ url_for('static', filename='javascript/linkProperties.js') }}"></script>
+		<script src="{{ url_for('static', filename='javascript/newObject.js') }}"></script>
+		<script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
+		<script src="{{ url_for('static', filename='javascript/existingObject.js') }}"></script>
+		<script src="{{ url_for('static', filename='javascript/triggerObject.js') }}"></script>
+		<script src="{{ url_for('static', filename='javascript/aclProperties.js') }}"></script>
+
+		<script src="{{ url_for('static', filename='javascript/hotkeys.js') }}"></script>
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/conductEditor.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/objectProperties.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/alert.css') }}">
+
+		<link rel="stylesheet" href="{{ url_for('static', filename='themes/default/default.css') }}">
+
+		<script src="{{ url_for('static', filename='javascript/debugFlowEditor.js') }}"></script>
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/debugFlowEditor.css') }}">
+
+
+	</head>
+	<body>
+		<div class="debugFlowEditor-container">
+			<!-- Right Click Menus -->
+			<ul id="contextMenu" class="dropdown-menu contextMenuTrigger theme-dropdown-menu" role="menu" style="display:none" >
+				<li><a tabindex="-1" onclick="editFlowObject()">Edit</a></li>
+				<li class="divider theme-dropdown-menu-divider"></li>
+				<li><a tabindex="-1" onclick="startDebug()">Run</a></li>
+			</ul>
+			<ul id="contextMenu" class="dropdown-menu contextMenuAction theme-dropdown-menu" role="menu" style="display:none" >
+				<li><a tabindex="-1" onclick="editFlowObject()">Edit</a></li>
+				<li class="divider theme-dropdown-menu-divider"></li>
+				<li><a tabindex="-1" onclick="startDebug()">Run</a></li>
+			</ul>
+			<div class="debugFlowEditor-left">
+				<span>executed-flows:</span>
+				<hr>
+				<div class="eventList">
+					<span class="eventItem">sdfsdhfd sjksdfh dshsd kfdsfj shdjksdhkjsd hksjdh skjhfkjsd hjksdhkj sdd fsdf</span>
+				</div>
+			</div>
+			<div class="debugFlowEditor-right">
+				<div class="debugFlowchart theme-content" id="flowchart"></div>
+			</div>
+			<div class="debugFlowEditor-bottom">
+				<div class="debugFlowEditor-in">
+					<span>data-in:</span>
+					<hr>
+				</div>
+				<div class="debugFlowEditor-out">
+					<span>data-out:</span>
+					<hr>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
+
+<script>
+	var CSRF = "{{CSRF}}"
+</script>
+
+<!-- Right Click Menu -->
+<script>
+	(function ($, window) {
+		$.fn.contextMenu = function (settings) {
+			return this.each(function () {
+				$(this).on("contextmenu", function (e) {
+					return false
+				});
+				//make sure menu closes on any click
+				$('body').click(function () {
+					$(".contextMenuTrigger").hide();
+					$(".contextMenuAction").hide();
+				});
+			});
+	};
+	})(jQuery, window);
+	$(".debugFlowchart").contextMenu({menuSelector: "#contextMenu" });
+</script>
+
