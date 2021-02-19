@@ -365,7 +365,7 @@ function refreshDebugSession() {
 					}
 				});
 			}
-			setTimeout(refreshDebugSession, 1500);
+			setTimeout(refreshDebugSession, 2500);
 		}
 	});
 }
