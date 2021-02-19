@@ -266,6 +266,7 @@ function setupFlowchart() {
 			selectedObject = ["flowObject",nodeObjects[params["nodes"][0]]["flowID"]]
 			nodeSelectionChange(nodeObjects[params["nodes"][0]]["flowID"]);
 		} else {
+			$('.eventItemInner').removeClass('click')
 			clearSelection();
 		}
 		return true;
@@ -364,7 +365,7 @@ function refreshDebugSession() {
 					}
 				});
 			}
-			setTimeout(refreshDebugSession, 500);
+			setTimeout(refreshDebugSession, 1500);
 		}
 	});
 }

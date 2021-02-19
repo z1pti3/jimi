@@ -280,12 +280,28 @@ def classToJson(_class,hidden=False):
             result[member] = str(type(getattr(_class,member)))
     return result
 
+
 def dictToJson(json):
+    def rebuildList(jsonList):
+        rebuiltList = []
+        standardTypes = [str,int,bool,float,list,None]
+        for item in jsonList:
+            if type(item) is dict:
+                rebuiltList.append(dictToJson(item))
+            elif type(item) is list:
+                rebuiltList += rebuildList(item)
+            elif type(item) in standardTypes:
+                rebuiltList.append(item)
+            else:
+                rebuiltList.append(str(type(item)))
+        return rebuiltList
     rebuiltJson = {}
     standardTypes = [str,int,bool,float,list,None]
     for key, value in json.items():
         if type(value) is dict:
             rebuiltJson[key] = dictToJson(value)
+        elif type(value) is list:
+            rebuiltJson[key] = rebuildList(value)
         elif type(value) in standardTypes:
             rebuiltJson[key] = value
         else:
