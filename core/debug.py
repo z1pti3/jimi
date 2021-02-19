@@ -106,17 +106,19 @@ if jimi.api.webServer:
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/<conductID>/<flowID>/", methods=["POST"])
             def startDebuggerTrigger(sessionID,conductID,flowID):
-                c = jimi.conduct._conduct().getAsClass(sessionData=jimi.api.g.sessionData,id=conductID)[0]
-                flow = [ x for x in c.flow if x["flowID"] == flowID ][0]
-                if "triggerID" in flow:
-                    t = jimi.trigger._trigger().getAsClass(sessionData=jimi.api.g.sessionData,id=flow["triggerID"])[0]
-                    t.data = { "flowData" : { "var" : {}, "plugin" : {} } }
-                    events = t.doCheck()
-                else:
-                    t = jimi.action._action().getAsClass(sessionData=jimi.api.g.sessionData,id=flow["actionID"])[0]
-                    events = [1]
-                jimi.workers.workers.new("debug{0}".format(sessionID),debugEventHandler,(sessionID,c,t,flowID,events))
-                return {}, 200
+                if jimi.db.ACLAccess(jimi.api.g.sessionData, flowDebugSession[sessionID].acl):
+                    c = jimi.conduct._conduct().getAsClass(sessionData=jimi.api.g.sessionData,id=conductID)[0]
+                    flow = [ x for x in c.flow if x["flowID"] == flowID ][0]
+                    if "triggerID" in flow:
+                        t = jimi.trigger._trigger().getAsClass(sessionData=jimi.api.g.sessionData,id=flow["triggerID"])[0]
+                        t.data = { "flowData" : { "var" : {}, "plugin" : {} } }
+                        events = t.doCheck()
+                    else:
+                        t = jimi.action._action().getAsClass(sessionData=jimi.api.g.sessionData,id=flow["actionID"])[0]
+                        events = [1]
+                    jimi.workers.workers.new("debug{0}".format(sessionID),debugEventHandler,(sessionID,c,t,flowID,events))
+                    return {}, 200
+                return (), 404
                 
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/", methods=["GET"])
