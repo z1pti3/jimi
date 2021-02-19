@@ -272,32 +272,34 @@ function setupFlowchart() {
 	});
 
 	network.on("oncontext", function(params) {
-        offsetLeft = $("#flowchart").offset().left;
-		nodeID = (network.getNodeAt({ "x" : params["pointer"]["DOM"]["x"], "y" : params["pointer"]["DOM"]["y"] }));
-		if ((nodeID) || (nodeID == 0)) {
-			network.setSelection({ "nodes" : [nodeID] });
-			if (flowObjects[nodeObjects[nodeID]["flowID"]]["flowType"] == "trigger") {
-				var menuHTML = ".contextMenuTrigger";
-			} else {
-				$(".contextMenuTrigger").hide();
+		selectedNodes = network.getSelectedNodes()
+		if (selectedNodes.length == 1) {
+			offsetLeft = $("#flowchart").offset().left;
+			nodeID = (network.getNodeAt({ "x" : params["pointer"]["DOM"]["x"], "y" : params["pointer"]["DOM"]["y"] }));
+			if ((nodeID) || (nodeID == 0)) {
+				if (flowObjects[nodeObjects[nodeID]["flowID"]]["flowType"] == "trigger") {
+					var menuHTML = ".contextMenuTrigger";
+				} else {
+					$(".contextMenuTrigger").hide();
+				}
+				if (flowObjects[nodeObjects[nodeID]["flowID"]]["flowType"] == "action") {
+					var menuHTML = ".contextMenuAction";
+				} else {
+					$(".contextMenuAction").hide();
+				}
+				var $menu = $(menuHTML).show()
+					.css({
+						position: "absolute",
+						left: getMenuPosition(params["pointer"]["DOM"]["x"]+offsetLeft, 'width', 'scrollLeft', $(menuHTML)),
+						top: getMenuPosition(params["pointer"]["DOM"]["y"], 'height', 'scrollTop',$(menuHTML))
+					})
+					.off('click')
+					.on('click', 'a', function (e) {
+						$menu.hide();
+				});
 			}
-			if (flowObjects[nodeObjects[nodeID]["flowID"]]["flowType"] == "action") {
-				var menuHTML = ".contextMenuAction";
-			} else {
-				$(".contextMenuAction").hide();
-			}
-			var $menu = $(menuHTML).show()
-				.css({
-					position: "absolute",
-					left: getMenuPosition(params["pointer"]["DOM"]["x"]+offsetLeft, 'width', 'scrollLeft', $(menuHTML)),
-					top: getMenuPosition(params["pointer"]["DOM"]["y"], 'height', 'scrollTop',$(menuHTML))
-				})
-				.off('click')
-				.on('click', 'a', function (e) {
-					$menu.hide();
-			});
+			return true;
 		}
-		return true;
 	});
 
 	network.on("doubleClick", function(params) {
@@ -332,37 +334,51 @@ $.ajax({url:"/api/1.0/debug/", type:"PUT", timeout: 2000, data: JSON.stringify({
 	}
 });
 
-function refreshDebugSession() {
-	$.ajax({url:"/api/1.0/debug/"+debugSession+"/list/", type:"GET", timeout: 2000, contentType:"application/json", success: function ( flowList ) {
-			for (index in flowList["flowList"]) {
-				if (!(flowList["flowList"][index] in executedFlows)) {
-					addExecutedFlowEvent(flowList["flowList"][index]);
-				}
-			}
-		}
-	});
-	if (selectedExecutedFlowUID != null) {
-		$.ajax({url:"/api/1.0/debug/"+debugSession+"/"+selectedExecutedFlowUID+"/executionList/", type:"GET", timeout: 2000, contentType:"application/json", success: function ( executionList ) {
-				for (index in executionList["executionList"]) {
-					if (!(executionList["executionList"][index] in executedFlows[selectedExecutedFlowUID]["execution"])) {
-						addExecutedFlowEventResult(selectedExecutedFlowUID,executionList["executionList"][index]);
-					}
-				}
+function runDebugger() {
+	selectedNodes = network.getSelectedNodes()
+	if (selectedNodes.length == 1) {
+		node = nodeObjects[selectedNodes[0]]["flowID"]
+		var conductID = GetURLParameter("conductID")
+		$.ajax({url:"/api/1.0/debug/"+debugSession+"/"+conductID+"/"+node+"/", type:"POST", data:JSON.stringify({CSRF: CSRF}), contentType:"application/json", success: function ( result ) {
+				// Triggered flow
 			}
 		});
 	}
-	setTimeout(refreshDebugSession, 500);	
 }
 
-function addExecutedFlowEvent(uid) {
-	var parent = $('<div id="eventItem'+uid+'" class="eventItem">').attr({ "eventID" : uid }).html(uid);
+function refreshDebugSession() {
+	var uid = selectedExecutedFlowUID;
+	$.ajax({url:"/api/1.0/debug/"+debugSession+"/list/", type:"GET", timeout: 2000, contentType:"application/json", success: function ( flowList ) {
+			for (index in flowList["flowList"]) {
+				if (!(flowList["flowList"][index]["id"] in executedFlows)) {
+					addExecutedFlowEvent(flowList["flowList"][index]["id"],flowList["flowList"][index]["event"]);
+				}
+			}
+			if (uid != null) {
+				$.ajax({url:"/api/1.0/debug/"+debugSession+"/"+uid+"/executionList/", type:"GET", timeout: 2000, contentType:"application/json", success: function ( executionList ) {
+						for (index in executionList["executionList"]) {
+							if (!(executionList["executionList"][index]["id"] in executedFlows[uid]["execution"])) {
+								addExecutedFlowEventResult(uid,executionList["executionList"][index]["id"],executionList["executionList"][index]["name"]);
+							}
+						}
+					}
+				});
+			}
+			setTimeout(refreshDebugSession, 500);
+		}
+	});
+}
+
+function addExecutedFlowEvent(uid,event) {
+	var parent = $('<div id="eventItem'+uid+'" class="eventItem">').attr({ "eventID" : uid }).html(event);
 	parent.click(function () {
+		clearSelection();
 		$(".eventItemInner").addClass("hide");
 		uid = $(this).attr("eventID")
 		$.ajax({url:"/api/1.0/debug/"+debugSession+"/"+uid+"/executionList/", type:"GET", timeout: 2000, contentType:"application/json", success: function ( executionList ) {
 				for (index in executionList["executionList"]) {
-					if (!(executionList["executionList"][index] in executedFlows[uid]["execution"])) {
-						addExecutedFlowEventResult(uid,executionList["executionList"][index]);
+					if (!(executionList["executionList"][index]["id"] in executedFlows[uid]["execution"])) {
+						addExecutedFlowEventResult(uid,executionList["executionList"][index]["id"],executionList["executionList"][index]["name"]);
 					}
 				}
 			}
@@ -375,12 +391,14 @@ function addExecutedFlowEvent(uid) {
 	executedFlows[uid] = { "execution" : {} };
 }
 
-function addExecutedFlowEventResult(uid,executionUID) {
-	var child = $('<div class="eventItem'+uid+' eventItemInner">').attr({"eventID" : uid, "executionID" : executionUID}).html(executionUID);
+function addExecutedFlowEventResult(uid,executionUID,executionName) {
+	var child = $('<div id="eventItem'+executionUID+'" class="eventItem'+uid+' eventItemInner">').attr({"eventID" : uid, "executionID" : executionUID}).html(executionName);
 	child.insertBefore($("#eventItemTop"+uid));
 	child.click(function () {
-		executionUID = $(this).attr("executionID")
 		clearSelection();
+		$('.eventItemInner').removeClass('click')
+		$(this).addClass('click');
+		executionUID = $(this).attr("executionID")
 		network.setSelection({ "nodes" : [] });
 		$.ajax({url:"/api/1.0/debug/"+debugSession+"/"+selectedExecutedFlowUID+"/"+executionUID+"/", type:"GET", timeout: 2000, contentType:"application/json", success: function ( executionData ) {
 				setSelection(executionData);
@@ -399,9 +417,12 @@ function clearExecutedFlows() {
 
 function nodeSelectionChange(flowID) {
 	clearSelection();
+	$('.eventItemInner').removeClass('click')
 	if (selectedExecutedFlowUID!=null) {
 		$.ajax({url:"/api/1.0/debug/"+debugSession+"/"+selectedExecutedFlowUID+"/"+flowID+"/flowID", type:"GET", timeout: 2000, contentType:"application/json", success: function ( executionData ) {
 				setSelection(executionData);
+				console.log(executionData)
+				$('#eventItem'+executionData["id"]).addClass('click');
 				network.setSelection({ "nodes" : [flowObjects[executionData["flowID"]]["nodeID"]] });
 			}
 		});

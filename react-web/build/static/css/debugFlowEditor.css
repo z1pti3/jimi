@@ -89,6 +89,23 @@
     color: #111111;
 }
 
+.eventItemInner {
+    display: block;
+    word-wrap: break-word;
+    white-space: normal;
+    background-color: #525252;
+    padding: 0 10px 0 10px;
+}
+
+.eventItemInner:hover {
+    background-color: #167bff;
+    color: #111111;
+}
+
+.click {
+    background-color: #167bff;
+}
+
 hr {
     margin: 10px 0 10px 0;
 }

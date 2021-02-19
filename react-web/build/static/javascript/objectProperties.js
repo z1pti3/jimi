@@ -261,8 +261,9 @@ function loadPropertiesPanel(flowID,panel) {
 function createPropertiesPanel(flowID) {
 	if (!openPanels.hasOwnProperty(flowID)) {
 		openPanels[flowID] = flowID;
+		offsetLeft = $("#flowchart").offset().left;
 		var e = window.event;
-		var posX = e.clientX;
+		var posX = e.clientX - offsetLeft;
 		var posY = e.clientY;
 		var panel = $(panelPropertiesHTML);
 		panel.css({top : posY, left : posX + 35});

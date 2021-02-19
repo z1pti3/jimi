@@ -51,14 +51,14 @@
 		<div class="debugFlowEditor-container">
 			<!-- Right Click Menus -->
 			<ul id="contextMenu" class="dropdown-menu contextMenuTrigger theme-dropdown-menu" role="menu" style="display:none" >
-				<li><a tabindex="-1" onclick="editFlowObject()">Edit</a></li>
+				<li><a tabindex="-1" onclick="runDebugger()">Run</a></li>
 				<li class="divider theme-dropdown-menu-divider"></li>
-				<li><a tabindex="-1" onclick="startDebug()">Run</a></li>
+				<li><a tabindex="-1" onclick="editFlowObject()">Edit</a></li>
 			</ul>
 			<ul id="contextMenu" class="dropdown-menu contextMenuAction theme-dropdown-menu" role="menu" style="display:none" >
-				<li><a tabindex="-1" onclick="editFlowObject()">Edit</a></li>
+				<li><a tabindex="-1" onclick="runDebugger()">Run</a></li>
 				<li class="divider theme-dropdown-menu-divider"></li>
-				<li><a tabindex="-1" onclick="startDebug()">Run</a></li>
+				<li><a tabindex="-1" onclick="editFlowObject()">Edit</a></li>
 			</ul>
 			<div class="debugFlowEditor-left">
 				<span>executed-flows:</span>
@@ -67,7 +67,9 @@
 				</div>
 			</div>
 			<div class="debugFlowEditor-right">
-				<div class="debugFlowchart theme-content" id="flowchart"></div>
+				<div class="ui-main debugFlowchart">
+					<div class="debugFlowchart theme-content" id="flowchart"></div>
+				</div>
 			</div>
 			<div class="debugFlowEditor-bottom">
 				<div class="debugFlowEditor-in">
