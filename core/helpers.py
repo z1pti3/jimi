@@ -378,7 +378,7 @@ def locateModel(classType,modelType):
                         pass
     return None
 
-# Reloads all loaded moduels - NOT WORKING!
+# Reloads all loaded modules - NOT WORKING!
 def reload():
     import sys
     import importlib

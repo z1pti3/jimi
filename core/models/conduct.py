@@ -98,7 +98,11 @@ class _conduct(jimi.db._document):
         return False
 
     def flowHandler(self,currentFlow,flowDict,data,flowDebugSession=None):
-        if flowDebugSession:
+        if flowDebugSession or "flowDebugSession" in data["persistentData"]["system"]:
+            if "flowDebugSession" in data["persistentData"]["system"]:
+                flowDebugSession = data["persistentData"]["system"]["flowDebugSession"]
+            else:
+                data["persistentData"]["system"]["flowDebugSession"] = flowDebugSession
             flowDebugSession["eventID"] = jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].startEvent(data["flowData"]["event"])
         processQueue = []
         data["flowData"]["conductID"] = self._id

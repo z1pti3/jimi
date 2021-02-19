@@ -47,6 +47,11 @@ class _forEach(jimi.action._action):
 			skip = 1
 		else:
 			skip = self.skip
+		# NOTE - try or if faster? It is most likely to be false than true
+		if "flowDebugSession" in data["persistentData"]["system"]:
+			flowDebugSession = data["persistentData"]["system"]["flowDebugSession"]
+		else:
+			flowDebugSession = None
 		if type(events) is list:
 			cpuSaver = helpers.cpuSaver()
 			tempData = conduct.dataTemplate(data)
@@ -88,9 +93,9 @@ class _forEach(jimi.action._action):
 						raise jimi.exceptions.concurrentCrash
 						
 					durationRemaining = ( data["persistentData"]["system"]["trigger"].startTime + data["persistentData"]["system"]["trigger"].maxDuration ) - time.time()
-					eventHandler.new("forEachTrigger:{0}".format(data["flowData"]["flow_id"]),data["persistentData"]["system"]["conduct"].triggerHandler,(data["flowData"]["flow_id"],tempDataCopy,False,True),maxDuration=durationRemaining)
+					eventHandler.new("forEachTrigger:{0}".format(data["flowData"]["flow_id"]),data["persistentData"]["system"]["conduct"].triggerHandler,(data["flowData"]["flow_id"],tempDataCopy,False,True,flowDebugSession),maxDuration=durationRemaining)
 				else:
-					data["persistentData"]["system"]["conduct"].triggerHandler(data["flowData"]["flow_id"],tempDataCopy,flowIDType=True)
+					data["persistentData"]["system"]["conduct"].triggerHandler(data["flowData"]["flow_id"],tempDataCopy,flowIDType=True,flowDebugSession=flowDebugSession)
 
 				cpuSaver.tick()
 			# Waiting for all jobs to complete

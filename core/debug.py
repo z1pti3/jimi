@@ -120,7 +120,6 @@ if jimi.api.webServer:
                     return {}, 200
                 return (), 404
                 
-
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/", methods=["GET"])
             def getFlowDebugSession(sessionID):
                 if jimi.db.ACLAccess(jimi.api.g.sessionData, flowDebugSession[sessionID].acl):
