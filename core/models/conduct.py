@@ -146,7 +146,7 @@ class _conduct(jimi.db._document):
                         if class_.enabled:
                             data["flowData"]["flow_id"] = currentFlow["flowID"]
                             if flowDebugSession:
-                                flowDebugSession["actionID"] = jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].startAction(flowDebugSession["eventID"],data)
+                                flowDebugSession["actionID"] = jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].startAction(flowDebugSession["eventID"],data["flowData"]["flow_id"],data)
                             data["flowData"]["action"] = class_.runHandler(data=data)
                             data["flowData"]["action"]["action_id"] = class_._id
                             data["flowData"]["action"]["action_name"] = class_.name

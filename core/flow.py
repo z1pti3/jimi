@@ -95,7 +95,7 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,maxDuration
                 flowLevel[flowIndentLevel] = flowLevel[flowIndentLevel-1]["next"][-1]
                 conductFlow.append(flowLevel[flowIndentLevel-1]["next"][-1])
 
-    sessionID = jimi.debug.newFlowDebugSession()
+    sessionID = jimi.debug.newFlowDebugSession(sessionData)
     flowDebugSession = { "sessionID" : sessionID }
     startTime = time.time()
     output = "Started @ {0}\n\n".format(startTime)
@@ -191,7 +191,7 @@ if jimi.api.webServer:
                 if eventCount > 0:
                     events = events[:eventCount]
                 maxDuration = data["timeout"]
-                sessionID = jimi.debug.newFlowDebugSession()
+                sessionID = jimi.debug.newFlowDebugSession(sessionData)
                 flowDebugSession = { "sessionID" : sessionID }
                 jimi.workers.workers.new("runFlow",flowHandler,(sessionData,conductID,triggerType,triggerID,events,flowDebugSession),maxDuration=maxDuration)
                 return { "sessionID" : sessionID }, 200

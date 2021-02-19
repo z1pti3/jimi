@@ -390,6 +390,8 @@ def apiCall(methord,apiEndpoint,jsonData=None,token=None,overrideURL=None,timeou
             response = requests.get(url,proxies=jimi.settings.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
         elif methord == "POST":
             response = requests.post(url,json=jsonData,proxies=jimi.settings.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
+        elif methord == "PUT":
+            response = requests.put(url,json=jsonData,proxies=jimi.settings.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
         elif methord == "DELETE":
             response = requests.delete(url,proxies=jimi.settings.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
     except Exception as e:

@@ -264,8 +264,9 @@ function setupFlowchart() {
 		}
 		if (params["nodes"].length == 1) {
 			selectedObject = ["flowObject",nodeObjects[params["nodes"][0]]["flowID"]]
+			nodeSelectionChange(nodeObjects[params["nodes"][0]]["flowID"]);
 		} else {
-			selectedObject = null;
+			clearSelection();
 		}
 		return true;
 	});
@@ -313,4 +314,106 @@ function setupFlowchart() {
 	});
 
 	updateFlowchart();
+}
+
+
+
+
+
+// Debug Controls
+executedFlows = {};
+selectedExecutedFlowUID = null;
+eventIndex = 0;
+debugSession = null;
+
+$.ajax({url:"/api/1.0/debug/", type:"PUT", timeout: 2000, data: JSON.stringify({ CSRF : CSRF }), contentType:"application/json", success: function ( responseData ) {
+		debugSession = responseData["sessionID"];
+		refreshDebugSession();
+	}
+});
+
+function refreshDebugSession() {
+	$.ajax({url:"/api/1.0/debug/"+debugSession+"/list/", type:"GET", timeout: 2000, contentType:"application/json", success: function ( flowList ) {
+			for (index in flowList["flowList"]) {
+				if (!(flowList["flowList"][index] in executedFlows)) {
+					addExecutedFlowEvent(flowList["flowList"][index]);
+				}
+			}
+		}
+	});
+	if (selectedExecutedFlowUID != null) {
+		$.ajax({url:"/api/1.0/debug/"+debugSession+"/"+selectedExecutedFlowUID+"/executionList/", type:"GET", timeout: 2000, contentType:"application/json", success: function ( executionList ) {
+				for (index in executionList["executionList"]) {
+					if (!(executionList["executionList"][index] in executedFlows[selectedExecutedFlowUID]["execution"])) {
+						addExecutedFlowEventResult(selectedExecutedFlowUID,executionList["executionList"][index]);
+					}
+				}
+			}
+		});
+	}
+	setTimeout(refreshDebugSession, 500);	
+}
+
+function addExecutedFlowEvent(uid) {
+	var parent = $('<div id="eventItem'+uid+'" class="eventItem">').attr({ "eventID" : uid }).html(uid);
+	parent.click(function () {
+		$(".eventItemInner").addClass("hide");
+		uid = $(this).attr("eventID")
+		$.ajax({url:"/api/1.0/debug/"+debugSession+"/"+uid+"/executionList/", type:"GET", timeout: 2000, contentType:"application/json", success: function ( executionList ) {
+				for (index in executionList["executionList"]) {
+					if (!(executionList["executionList"][index] in executedFlows[uid]["execution"])) {
+						addExecutedFlowEventResult(uid,executionList["executionList"][index]);
+					}
+				}
+			}
+		});
+		$(".eventItem"+uid).toggleClass("hide");
+		selectedExecutedFlowUID = uid;
+	});
+	$(".eventList").append(parent);
+	$(".eventList").append($('<div id="eventItemTop'+uid+'" class="hide">'));
+	executedFlows[uid] = { "execution" : {} };
+}
+
+function addExecutedFlowEventResult(uid,executionUID) {
+	var child = $('<div class="eventItem'+uid+' eventItemInner">').attr({"eventID" : uid, "executionID" : executionUID}).html(executionUID);
+	child.insertBefore($("#eventItemTop"+uid));
+	child.click(function () {
+		executionUID = $(this).attr("executionID")
+		clearSelection();
+		network.setSelection({ "nodes" : [] });
+		$.ajax({url:"/api/1.0/debug/"+debugSession+"/"+selectedExecutedFlowUID+"/"+executionUID+"/", type:"GET", timeout: 2000, contentType:"application/json", success: function ( executionData ) {
+				setSelection(executionData);
+				network.setSelection({ "nodes" : [flowObjects[executionData["flowID"]]["nodeID"]] });
+			}
+		});
+	});
+	executedFlows[uid]["execution"][executionUID] = {}
+}
+
+function clearExecutedFlows() {
+	$(".eventList").clear();
+	executedFlows = {}
+	eventIndex = 0
+}
+
+function nodeSelectionChange(flowID) {
+	clearSelection();
+	if (selectedExecutedFlowUID!=null) {
+		$.ajax({url:"/api/1.0/debug/"+debugSession+"/"+selectedExecutedFlowUID+"/"+flowID+"/flowID", type:"GET", timeout: 2000, contentType:"application/json", success: function ( executionData ) {
+				setSelection(executionData);
+				network.setSelection({ "nodes" : [flowObjects[executionData["flowID"]]["nodeID"]] });
+			}
+		});
+	}
+}
+
+function setSelection(execution) {
+	$("#debugFlowEditor-in").val(JSON.stringify(execution["dataIn"], null, 5));
+	$("#debugFlowEditor-out").val(JSON.stringify(execution["dataOut"], null, 5));
+}
+
+function clearSelection() {
+	$("#debugFlowEditor-in").val("");
+	$("#debugFlowEditor-out").val("");
 }
