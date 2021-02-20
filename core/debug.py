@@ -215,6 +215,7 @@ if jimi.api.webServer:
                 return {}, 404
 
             @jimi.api.webServer.route(jimi.api.base+"debug/clear/", methods=["GET"])
+            @jimi.auth.adminEndpoint
             def clearFlowDebugSessions():
                 global flowDebugSession
                 flowDebugSession = {}
@@ -269,6 +270,7 @@ if jimi.api.webServer:
                 return json.loads(response.text), 200
 
             @jimi.api.webServer.route(jimi.api.base+"debug/clear/", methods=["GET"])
+            @jimi.auth.adminEndpoint
             def clearFlowDebugSessions():
                 apiEndpoint = "debug/clear/"
                 responses = []
