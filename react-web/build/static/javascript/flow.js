@@ -108,13 +108,14 @@ function deleteNode(flowID) {
 	delete flowObjects[flowID]
 }
 
-function createLinkRAW(from,to,color) {
+function createLinkRAW(from,to,color,text) {
 	var linkName = from + "->" + to;
-	flowLinks[linkName] = { "from": from, "to": to, "color": color }
+	flowLinks[linkName] = { "from": from, "to": to, "color": color, "text" : text }
 	edges.add({ 
 		id: linkName,
 		from: flowObjects[from]["nodeID"], 
 		to: flowObjects[to]["nodeID"],
+		label: text,
 		color: {
 			color: color
 		},
@@ -134,16 +135,18 @@ function createLinkRAW(from,to,color) {
 	nextId++;
 }
 
-function updateLink(from,to,color) {
+function updateLink(from,to,color,text) {
 	var linkName = from + "->" + to;
 	flowLinks[linkName]["from"] = from
 	flowLinks[linkName]["to"] = to
 	flowLinks[linkName]["color"] = color
+	flowLinks[linkName]["text"] = text
 	edges.update({ 
 		id: linkName,
 		from: flowObjects[from]["nodeID"], 
 		to: flowObjects[to]["nodeID"],
-		color: color
+		color: color,
+		label: text
 	});
 	return true;
 }
@@ -156,7 +159,7 @@ function deleteLink(from,to) {
 	delete flowLinks[linkName]
 }
 
-function createLink(from,to,colour,save) {
+function createLink(from,to,colour,text,save) {
 	if (from == to) {
 		var conductID = GetURLParameter("conductID")
 		$.ajax({url:"/conductEditor/"+conductID+"/flowLink/"+from+"/"+to+"/", type:"DELETE", contentType:"application/json"});
@@ -166,7 +169,7 @@ function createLink(from,to,colour,save) {
 	if (save) {
 		var conductID = GetURLParameter("conductID")
 		$.ajax({url:"/conductEditor/"+conductID+"/flowLink/"+from+"/"+to+"/", data: JSON.stringify({ CSRF: CSRF }), type:"PUT", contentType:"application/json", success: function ( responseData ) {
-				if (createLinkRAW(from,to,colour)) {
+				if (createLinkRAW(from,to,colour,text)) {
 					return true;
 				} else {
 					//$.ajax({url:"/conductEditor/"+conductID+"/flowLink/"+from+"/"+to+"/", type:"DELETE", contentType:"application/json"});
@@ -176,7 +179,7 @@ function createLink(from,to,colour,save) {
 		});
 	} else {
 		var conductID = GetURLParameter("conductID")
-		if (createLinkRAW(from,to,colour)) {
+		if (createLinkRAW(from,to,colour,text)) {
 			return true;
 		} else {
 			//$.ajax({url:"/conductEditor/"+conductID+"/flowLink/"+from+"/"+to+"/", type:"DELETE", contentType:"application/json"});
@@ -230,7 +233,7 @@ function updateFlowchartNonBlocking(blocking) {
 	// Link Creates
 	for (link in processlist["links"]["create"]) {
 		obj = processlist["links"]["create"][link]
-		createLinkRAW(obj["from"],obj["to"],obj["color"])
+		createLinkRAW(obj["from"],obj["to"],obj["color"],obj["text"])
 		delete processlist["links"]["create"][link]
 		nonlock++
 		if ((!blocking) && (nonlock > 0)) {
@@ -241,7 +244,7 @@ function updateFlowchartNonBlocking(blocking) {
 	// Link Updates
 	for (link in processlist["links"]["update"]) {
 		obj = processlist["links"]["update"][link]
-		updateLink(obj["from"],obj["to"],obj["color"])
+		updateLink(obj["from"],obj["to"],obj["color"],obj["text"])
 		delete processlist["links"]["update"][link]
 		nonlock++
 		if ((!blocking) && (nonlock > 0)) {
@@ -460,7 +463,7 @@ function setupFlowchart() {
 			if (cKeyState) {
 				if (selectedObject[0] == "flowObject")
 				{
-					createLink(selectedObject[1],nodeObjects[params["nodes"][0]]["flowID"],"#3dbeff",true);
+					createLink(selectedObject[1],nodeObjects[params["nodes"][0]]["flowID"],"#3dbeff","",true);
 				}
 			}
 			selectedObject = ["flowObject",nodeObjects[params["nodes"][0]]["flowID"]]

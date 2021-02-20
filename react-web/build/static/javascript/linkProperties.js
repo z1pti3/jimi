@@ -5,7 +5,16 @@ var panelLinkHTML = `
 		<label id="title"></label>
 	</div>
 	<div class="propertiesPanel-body theme-panelBody">
-	<textarea id="propertiesPanelLinkValue" class="inputFullWidth theme-panelTextArea"></textarea>
+	<table width="100%">
+		<tr>
+			<td width="100px"><label class="theme-panelLabel">Link Order:</label></td>
+			<td><input id="propertiesPanelLinkOrder" class="inputFullWidth theme-panelTextbox" value="0"/></td>
+		</tr>
+		<tr>
+			<td width="100px"><label class="theme-panelLabel">Link Logic:</label></td>
+			<td><textarea id="propertiesPanelLinkValue" class="inputFullWidth theme-panelTextArea"></textarea></td>
+		</tr>
+	</table>
 	</div>
 	<div class="propertiesPanel-footer theme-panelFooter">
 		<button id="save" class="btn btn-primary theme-panelButton">Save</button>
@@ -32,6 +41,7 @@ $(document).ready(function () {
 function saveLinkPropertiesPanel(from,to,panel) {
 	var conductID = GetURLParameter("conductID")
 	var objectJson = {};
+	objectJson["order"] = panel.find("#propertiesPanelLinkOrder").val();
 	objectJson["logic"] = panel.find("#propertiesPanelLinkValue").val();
 	objectJson["CSRF"] = CSRF
 	$.ajax({ url: "/conduct/"+conductID+"/flowlogic/"+from+"/"+to+"/", type : "POST", data:JSON.stringify(objectJson), contentType:"application/json", success: function(result) {
@@ -46,6 +56,7 @@ function loadLinkPropertiesPanel(from,to,panel) {
 	panel.find("#title").text(to+"->"+from);
 	$.ajax({ url: "/conduct/"+conductID+"/flowlogic/"+from+"/"+to+"/", type : "GET", success: function( flowData ) {
 			panel.find("#propertiesPanelLinkValue").val(flowData["result"]["logic"]);
+			panel.find("#propertiesPanelLinkOrder").val(flowData["result"]["order"]);
 		}
 	});
 }
