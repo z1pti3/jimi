@@ -81,7 +81,7 @@ def fn_timer(function):
     return function_timer
 
 def debugEventHandler(sessionID,conduct,trigger,flowID,events,data=None,preserveDataID=-1):
-    if preserveDataID > -1:
+    if data and preserveDataID > -1:
         data["persistentData"] = flowDebugSession[sessionID].preserveData[preserveDataID][0]
         data["eventData"] =  flowDebugSession[sessionID].preserveData[preserveDataID][1]
     data = jimi.conduct.dataTemplate(data)

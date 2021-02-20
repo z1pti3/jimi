@@ -150,12 +150,12 @@ class _conduct(jimi.db._document):
                         if class_.enabled:
                             data["flowData"]["flow_id"] = currentFlow["flowID"]
                             if flowDebugSession:
-                                flowDebugSession["actionID"] = jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].startAction(flowDebugSession["eventID"],data["flowData"]["flow_id"],class_.name,data)
+                                flowDebugSession["actionID"] = jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].startAction(flowDebugSession["eventID"],data["flowData"]["flow_id"],class_.name,copyData(data))
                             data["flowData"]["action"] = class_.runHandler(data=data)
                             data["flowData"]["action"]["action_id"] = class_._id
                             data["flowData"]["action"]["action_name"] = class_.name
                             if flowDebugSession:
-                                jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].endAction(flowDebugSession["eventID"],flowDebugSession["actionID"],data)
+                                jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].endAction(flowDebugSession["eventID"],flowDebugSession["actionID"],copyData(data))
                             passData = data
                             for nextFlow in currentFlow["next"]:
                                 if passData == None:
