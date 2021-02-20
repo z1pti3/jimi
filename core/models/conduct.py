@@ -103,7 +103,7 @@ class _conduct(jimi.db._document):
                 flowDebugSession = data["persistentData"]["system"]["flowDebugSession"]
             else:
                 data["persistentData"]["system"]["flowDebugSession"] = flowDebugSession
-            flowDebugSession["eventID"] = jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].startEvent(data["flowData"]["event"])
+            flowDebugSession["eventID"] = jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].startEvent(data["flowData"]["event"],data)
         processQueue = []
         data["flowData"]["conductID"] = self._id
         data["flowData"]["action"] = { "result" : True, "rc" : 1337 }

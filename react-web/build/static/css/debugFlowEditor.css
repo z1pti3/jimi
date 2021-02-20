@@ -119,3 +119,10 @@ hr {
     height: calc(100% - 50px);
     width: 100%;
 }
+
+.runDebugger {
+    position: absolute;
+	z-index: 1;
+	right: 1px;
+    bottom: 0;
+}

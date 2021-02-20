@@ -10,14 +10,16 @@ class _flowDebug():
     def __init__(self,acl):
         self.flowList = {}
         self.acl = acl
+        self.preserveData = []
         self.id = str(uuid.uuid4())
 
     def getEvent(self,eventID):
         return self.flowList[eventID]
 
-    def startEvent(self,event):
+    def startEvent(self,event,data):
         uid = str(uuid.uuid4())
-        self.flowList[uid] = { "id" : uid, "type" : "event", "event" : event, "startTime" : time.time(), "endTime" : 0, "execution" : {} }
+        self.flowList[uid] = { "id" : uid, "type" : "event", "event" : event, "startTime" : time.time(), "endTime" : 0, "execution" : {}, "preserveDataID" : len(self.preserveData) }
+        self.preserveData.append([data["persistentData"],data["eventData"]])
         return uid
 
     def endEvent(self,eventID):
@@ -40,11 +42,11 @@ class _flowDebug():
 
     def startAction(self,eventID,flowID,actionName,data):
         uid = str(uuid.uuid4())
-        self.flowList[eventID]["execution"][uid] = { "id" : uid, "type" : "action", "flowID" : flowID, "name" : actionName, "dataIn" : jimi.helpers.dictToJson(data), "startTime" : time.time(), "endTime" : 0, "dataOut" : None }
+        self.flowList[eventID]["execution"][uid] = { "id" : uid, "type" : "action", "flowID" : flowID, "name" : actionName, "dataIn" : data, "startTime" : time.time(), "endTime" : 0, "dataOut" : None }
         return uid
 
     def endAction(self,eventID,actionID,data):
-        self.flowList[eventID]["execution"][actionID]["dataOut"] = jimi.helpers.dictToJson(data)
+        self.flowList[eventID]["execution"][actionID]["dataOut"] = data
         self.flowList[eventID]["execution"][actionID]["endTime"] = time.time()
 
     def getVar(self,eventID,varID):
@@ -78,8 +80,11 @@ def fn_timer(function):
         return result
     return function_timer
 
-def debugEventHandler(sessionID,conduct,trigger,flowID,events):
-    data = jimi.conduct.dataTemplate()
+def debugEventHandler(sessionID,conduct,trigger,flowID,events,data=None,preserveDataID=-1):
+    if preserveDataID > -1:
+        data["persistentData"] = flowDebugSession[sessionID].preserveData[preserveDataID][0]
+        data["eventData"] =  flowDebugSession[sessionID].preserveData[preserveDataID][1]
+    data = jimi.conduct.dataTemplate(data)
     data["persistentData"]["system"]["trigger"] = trigger
     data["flowData"]["trigger_id"] = trigger._id
     data["flowData"]["trigger_name"] = trigger.name
@@ -107,16 +112,41 @@ if jimi.api.webServer:
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/<conductID>/<flowID>/", methods=["POST"])
             def startDebuggerTrigger(sessionID,conductID,flowID):
                 if jimi.db.ACLAccess(jimi.api.g.sessionData, flowDebugSession[sessionID].acl):
+                    requestData = json.loads(jimi.api.request.data)
+                    try:
+                        dataIn = json.loads(requestData["dataIn"])
+                    except KeyError:
+                        dataIn = None
+                    data = None
+                    try:
+                        preserveData = int(requestData["preserveDataID"])
+                    except KeyError:
+                        preserveData = -1
+
                     c = jimi.conduct._conduct().getAsClass(sessionData=jimi.api.g.sessionData,id=conductID)[0]
                     flow = [ x for x in c.flow if x["flowID"] == flowID ][0]
                     if "triggerID" in flow:
                         t = jimi.trigger._trigger().getAsClass(sessionData=jimi.api.g.sessionData,id=flow["triggerID"])[0]
-                        t.data = { "flowData" : { "var" : {}, "plugin" : {} } }
-                        events = t.doCheck()
+                        if dataIn:
+                            if type(dataIn) is list:
+                                events = dataIn
+                            elif type(dataIn) is dict:
+                                events = [dataIn["flowData"]["event"]]
+                                data = dataIn
+                        else:
+                            t.data = { "flowData" : { "var" : {}, "plugin" : {} } }
+                            events = t.doCheck()
                     else:
                         t = jimi.action._action().getAsClass(sessionData=jimi.api.g.sessionData,id=flow["actionID"])[0]
-                        events = [1]
-                    jimi.workers.workers.new("debug{0}".format(sessionID),debugEventHandler,(sessionID,c,t,flowID,events))
+                        if dataIn:
+                            if type(dataIn) is list:
+                                events = dataIn
+                            elif type(dataIn) is dict:
+                                events = [dataIn["flowData"]["event"]]
+                                data = dataIn
+                        else:
+                            events = [1]
+                    jimi.workers.workers.new("debug{0}".format(sessionID),debugEventHandler,(sessionID,c,t,flowID,events,data,preserveData))
                     return {}, 200
                 return (), 404
                 
@@ -134,14 +164,14 @@ if jimi.api.webServer:
                         event = flowValue["event"]
                         if type(event) is dict or type(event) is list:
                             event = jimi.helpers.dictToJson(event)
-                        result.append({ "id" : flowKey, "event" : event })
+                        result.append({ "id" : flowKey, "event" : event, "preserveDataID" : flowValue["preserveDataID"] })
                     return {"flowList" : result }, 200
                 return {}, 404
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/<eventID>/", methods=["GET"])
             def getFlowDebugSessionFlow(sessionID,eventID):
                 if jimi.db.ACLAccess(jimi.api.g.sessionData, flowDebugSession[sessionID].acl):
-                    return flowDebugSession[sessionID].flowList[eventID], 200
+                    return jimi.helpers.dictToJson(flowDebugSession[sessionID].flowList[eventID]), 200
                 return {}, 404
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/<eventID>/executionList/", methods=["GET"])
@@ -156,7 +186,7 @@ if jimi.api.webServer:
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/<eventID>/<executionID>/", methods=["GET"])
             def getFlowDebugSessionFlowExecution(sessionID,eventID,executionID):
                 if jimi.db.ACLAccess(jimi.api.g.sessionData, flowDebugSession[sessionID].acl):
-                    return flowDebugSession[sessionID].flowList[eventID]["execution"][executionID], 200
+                    return jimi.helpers.dictToJson(flowDebugSession[sessionID].flowList[eventID]["execution"][executionID]), 200
                 return {}, 404
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/<eventID>/<flowID>/flowID/", methods=["GET"])
@@ -167,7 +197,7 @@ if jimi.api.webServer:
                         keys.reverse()
                     for executionID in keys:
                         if flowDebugSession[sessionID].flowList[eventID]["execution"][executionID]["flowID"] == flowID:
-                            return flowDebugSession[sessionID].flowList[eventID]["execution"][executionID], 200
+                            return jimi.helpers.dictToJson(flowDebugSession[sessionID].flowList[eventID]["execution"][executionID]), 200
                 return {}, 404
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/", methods=["DELETE"])

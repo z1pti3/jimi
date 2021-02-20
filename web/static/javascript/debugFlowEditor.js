@@ -326,6 +326,7 @@ function setupFlowchart() {
 // Debug Controls
 executedFlows = {};
 selectedExecutedFlowUID = null;
+selectedExecutedFlowPreserveDataID = -1;
 eventIndex = 0;
 debugSession = null;
 
@@ -335,7 +336,7 @@ $.ajax({url:"/api/1.0/debug/", type:"PUT", timeout: 2000, data: JSON.stringify({
 	}
 });
 
-function runDebugger() {
+function runDebuggerNew() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
 		node = nodeObjects[selectedNodes[0]]["flowID"]
@@ -347,12 +348,25 @@ function runDebugger() {
 	}
 }
 
+function runDebugger() {
+	selectedNodes = network.getSelectedNodes()
+	if (selectedNodes.length == 1) {
+		dataIn = $("#debugFlowEditor-in").val()
+		node = nodeObjects[selectedNodes[0]]["flowID"]
+		var conductID = GetURLParameter("conductID")
+		$.ajax({url:"/api/1.0/debug/"+debugSession+"/"+conductID+"/"+node+"/", type:"POST", data:JSON.stringify({dataIn : dataIn, preserveDataID : selectedExecutedFlowPreserveDataID, CSRF: CSRF}), contentType:"application/json", success: function ( result ) {
+				// Triggered flow
+			}
+		});
+	}
+}
+
 function refreshDebugSession() {
 	var uid = selectedExecutedFlowUID;
 	$.ajax({url:"/api/1.0/debug/"+debugSession+"/list/", type:"GET", timeout: 2000, contentType:"application/json", success: function ( flowList ) {
 			for (index in flowList["flowList"]) {
 				if (!(flowList["flowList"][index]["id"] in executedFlows)) {
-					addExecutedFlowEvent(flowList["flowList"][index]["id"],flowList["flowList"][index]["event"]);
+					addExecutedFlowEvent(flowList["flowList"][index]["id"],flowList["flowList"][index]["event"],flowList["flowList"][index]["preserveDataID"]);
 				}
 			}
 			if (uid != null) {
@@ -370,8 +384,8 @@ function refreshDebugSession() {
 	});
 }
 
-function addExecutedFlowEvent(uid,event) {
-	var parent = $('<div id="eventItem'+uid+'" class="eventItem">').attr({ "eventID" : uid }).html(event);
+function addExecutedFlowEvent(uid,event,preserveDataID) {
+	var parent = $('<div id="eventItem'+uid+'" class="eventItem">').attr({ "eventID" : uid, "preserveDataID" : preserveDataID }).html(event);
 	parent.click(function () {
 		clearSelection();
 		$(".eventItemInner").addClass("hide");
@@ -386,6 +400,7 @@ function addExecutedFlowEvent(uid,event) {
 		});
 		$(".eventItem"+uid).toggleClass("hide");
 		selectedExecutedFlowUID = uid;
+		selectedExecutedFlowPreserveDataID = $(this).attr("preserveDataID");
 	});
 	$(".eventList").append(parent);
 	$(".eventList").append($('<div id="eventItemTop'+uid+'" class="hide">'));
