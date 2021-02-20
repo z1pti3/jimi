@@ -106,9 +106,9 @@ from system import install
 authSettings = jimi.settings.config["auth"]
 
 # Loading public and private keys for session signing
-with open(Path(authSettings["rsa"]["cert"])) as f:
+with open(str(Path(authSettings["rsa"]["cert"]))) as f:
   sessionPublicKey = f.read()
-with open(Path(authSettings["rsa"]["key"])) as f:
+with open(str(Path(authSettings["rsa"]["key"]))) as f:
   sessionPrivateKey = f.read()
 
 public_key = serialization.load_pem_public_key( sessionPublicKey.encode(), backend=default_backend() )
