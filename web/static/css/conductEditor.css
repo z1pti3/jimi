@@ -136,7 +136,7 @@ html, body {
 .newModelObject {
 	position: absolute;
 	z-index: 1;
-	right: 225px;
+	right: 300px;
 }
 
 .codifyConductButton {
@@ -155,6 +155,12 @@ html, body {
 	position: absolute;
 	z-index: 1;
 	right: 1px;
+}
+
+.debugConductButton {
+	position: absolute;
+	z-index: 1;
+	right: 225px;
 }
 
 .flowchart-operator-trigger {

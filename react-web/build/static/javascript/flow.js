@@ -380,6 +380,11 @@ function codifyConduct() {
 	window.open("/conductEditor/"+conductID+"/codify/", "_blank");
 }
 
+function debugConduct() {
+	var conductID = GetURLParameter("conductID")
+	window.open("/debugFlow/?conductID="+conductID, "_blank");
+}
+
 function copyFlowObject() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
