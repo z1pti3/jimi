@@ -89,6 +89,7 @@ class _trigger(jimi.db._document):
 
                 tempData["flowData"]["conduct_id"] = loadedConduct._id
                 tempData["flowData"]["conduct_name"] = loadedConduct.name
+                tempData["eventData"] = data["eventData"]
 
                 for index, event in enumerate(events):
                     first = True if index == 0 else False

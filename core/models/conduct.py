@@ -204,6 +204,10 @@ def dataTemplate(data=None):
                 data["flowData"]["plugin"] = {}
         except KeyError:
             data["flowData"] = { "var" : {}, "plugin" : {} }
+        try:
+            data["eventData"] = {}
+        except KeyError:
+            pass
         if "persistentData" not in data:
             data["persistentData"] = { "system" : { "trigger" : None, "conduct" : None }, "plugin" : { } }
         else:
@@ -212,12 +216,13 @@ def dataTemplate(data=None):
             if "plugin" not in data["persistentData"]:
                 data["persistentData"]["plugin"] = { }
     else:
-        data = { "flowData" : { "var" : {}, "plugin" : {} }, "persistentData" : { "system" : { "trigger" : None, "conduct" : None }, "plugin" : { } } }
+        data = { "flowData" : { "var" : {}, "plugin" : {} }, "eventData" : {}, "persistentData" : { "system" : { "trigger" : None, "conduct" : None }, "plugin" : { } } }
     return data
 
 def copyData(data):
     copyOfData = {}
     copyOfData["persistentData"] = data["persistentData"]
+    copyOfData["eventData"] = data["eventData"]
     copyOfData["flowData"] = data["flowData"].copy()
     try:
         copyOfData["flowData"]["var"] = copy.deepcopy(data["flowData"]["var"])
