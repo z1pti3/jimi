@@ -6,7 +6,7 @@ systemFunctions = {}
 
 def load():
     global systemFunctions
-    listedFunctionFiles = os.listdir(Path("system/functions"))
+    listedFunctionFiles = os.listdir(str(Path("system/functions")))
     for listedFunctionFile in listedFunctionFiles:
         if listedFunctionFile[-3:] == ".py":
             mod = importlib.import_module("system.functions.{0}".format(listedFunctionFile[:-3]))
