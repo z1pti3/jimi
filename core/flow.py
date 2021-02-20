@@ -126,7 +126,7 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,maxDuration
                 output = "\n\n***ERROR Start***\n{0}***ERROR End***\n\n".format(''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
 
 
-    output += json.dumps(jimi.debug.flowDebugSession[sessionID].flowList, indent=4)
+    output += json.dumps(jimi.helpers.dictToJson(jimi.debug.flowDebugSession[sessionID].flowList), indent=4)
     jimi.debug.deleteFlowDebugSession(sessionID)
 
     endTime = time.time()

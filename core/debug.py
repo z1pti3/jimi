@@ -68,6 +68,10 @@ def newFlowDebugSession(acl={ "ids":[ { "accessID":"0","delete": True,"read": Tr
     flowDebugSession[newSession.id] = newSession
     return newSession.id
 
+def deleteFlowDebugSession(sessionID):
+    global flowDebugSession
+    del flowDebugSession[sessionID]
+
 def fn_timer(function):
     @wraps(function)
     def function_timer(*args, **kwargs):
