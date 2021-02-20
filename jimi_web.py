@@ -9,6 +9,7 @@ from pathlib import Path
 import re
 import subprocess
 import os
+from operator import itemgetter
 
 # Setup and define API ( required before other modules )
 from core import api, settings
@@ -247,7 +248,7 @@ def getConductFlowLogic(conductID,flowID,nextflowID):
 						return {"result" : {"logic" : True}}, 200
 				elif type(nextFlow) is dict:
 					if nextflowID == nextFlow["flowID"]:
-						return {"result" : {"logic" : nextFlow["logic"]}}, 200
+						return {"result" : {"logic" : nextFlow["logic"], "order" : nextFlow["order"]}}, 200
 	return { }, 404	
 
 @jimi.api.webServer.route("/conduct/<conductID>/flowlogic/<flowID>/<nextflowID>/", methods=["POST"])
@@ -275,16 +276,25 @@ def setConductFlowLogic(conductID,flowID,nextflowID):
 							found = True	
 					if found:
 						if "true" == data["logic"].lower():
-							flow["next"][key] = {"flowID" : nextFlow["flowID"], "logic" : True}
+							flow["next"][key] = {"flowID" : nextFlow["flowID"], "logic" : True, "order" : 0}
 						elif "false" == data["logic"].lower():
-							flow["next"][key] = {"flowID" : nextFlow["flowID"], "logic" : False}
+							flow["next"][key] = {"flowID" : nextFlow["flowID"], "logic" : False, "order" : 0}
 						elif data["logic"].startswith("if"):
-							flow["next"][key] = {"flowID" : nextFlow["flowID"], "logic" : data["logic"]}
+							flow["next"][key] = {"flowID" : nextFlow["flowID"], "logic" : data["logic"], "order" : 0}
 						else:
 							try:
-								flow["next"][key] = {"flowID" : nextFlow["flowID"], "logic" : int(data["logic"])}
+								flow["next"][key] = {"flowID" : nextFlow["flowID"], "logic" : int(data["logic"]), "order" : 0}
 							except ValueError:
 								return { }, 403
+						flow["next"][key]["order"] = int(data["order"])
+						# Sorting the list so we dont need to do this at flow runtime
+						try:
+							flow["next"] = sorted(flow["next"], key=itemgetter("order"), reverse=True) 
+						except KeyError:
+							for value in flow["next"]:
+								if "order" not in value:
+									value["order"] = 0
+							flow["next"] = sorted(flow["next"], key=itemgetter("order"), reverse=True) 
 						if "_id" in api.g.sessionData:
 							jimi.audit._audit().add("flowLogic","update",{ "_id" : jimi.api.g.sessionData["_id"], "user" : jimi.api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID, "nextflowID" : nextflowID, "logic" : data["logic"] })
 						else:

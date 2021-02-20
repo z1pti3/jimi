@@ -1,28 +1,14 @@
+from operator import itemgetter
 import time
 
-def test():
-    return { "rc" :0, "result" : True }
+flows = [{"order" : 0, "test" : 4},{"order" : 1, "test" : 3},{"order" : 0, "test" : 2},{"test" : 0}]
+print(flows)
 
-def test2():
-    return 0, True
-
-a,b,c = test2()
-
-print(a)
-
-
-# start = time.time()
-# for i in range(0,1000000):
-#     actionResult = test()
-# end = time.time()
-
-# print(end-start)
-
-# start = time.time()
-# for i in range(0,1000000):
-#     actionResult = { "rc" : -1, "result" : False }
-#     rc, result = test2()
-#     actionResult = { "rc" : rc, "result" : result }
-# end = time.time()
-
-# print(end-start)
+try:
+    newlist = sorted(flows, key=itemgetter("order"), reverse=True) 
+except KeyError:
+    for value in flows:
+        if "order" not in value:
+            value["order"] = 0
+    newlist = sorted(flows, key=itemgetter("order"), reverse=True) 
+print(newlist)

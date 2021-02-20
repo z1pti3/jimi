@@ -1,6 +1,7 @@
 import time
 import json
 import  uuid
+from operator import itemgetter
 
 from flask import Flask, request, render_template, make_response, redirect
 
@@ -147,6 +148,12 @@ def conductFlowchartPoll(conductID):
                 # Do any links need to be created
                 for nextFlow in flow["next"]:
                     linkName = "{0}->{1}".format(flowID,nextFlow["flowID"])
+                    try:
+                        text = str(nextFlow["order"])
+                    except KeyError:
+                        text = "0"
+                    if text == "0":
+                        text = " "
                     color = "green"
                     if type(nextFlow["logic"]) is bool:
                         if nextFlow["logic"] == True:
@@ -158,9 +165,12 @@ def conductFlowchartPoll(conductID):
                             color = "purple"
                     linksList.append(linkName)
                     if linkName not in flowchartLinks.keys():
-                        flowchartResponse["links"]["create"][linkName] = { "from" : flowID, "to" : nextFlow["flowID"], "logic" : nextFlow["logic"], "color" : color }
+                        flowchartResponse["links"]["create"][linkName] = { "from" : flowID, "to" : nextFlow["flowID"], "logic" : nextFlow["logic"], "color" : color, "text" : text }
                     elif flowchartLinks[linkName]["color"] != color:
-                        flowchartResponse["links"]["update"][linkName] = { "from" : flowID, "to" : nextFlow["flowID"], "logic" : nextFlow["logic"], "color" : color }
+                        flowchartResponse["links"]["update"][linkName] = { "from" : flowID, "to" : nextFlow["flowID"], "logic" : nextFlow["logic"], "color" : color, "text" : text }
+                    elif flowchartLinks[linkName]["text"] != text:
+                        flowchartResponse["links"]["update"][linkName] = { "from" : flowID, "to" : nextFlow["flowID"], "logic" : nextFlow["logic"], "color" : color, "text" : text }
+
 
     # Checking for deleted operators
     for flowchartOperator in flowchartOperators:
@@ -731,7 +741,15 @@ def newFlowLink(conductID,fromFlowID,toFlowID):
         nextFlows = [ x for x in fromFlow["next"] if x["flowID"] ==  toFlowID]
         if len(nextFlows) == 0:
             if toFlow["type"] != "trigger":
-                fromFlow["next"].append({ "flowID" : toFlowID, "logic": True })
+                fromFlow["next"].append({ "flowID" : toFlowID, "logic": True, "order" : 0 })
+                # Sorting the list so we dont need to do this at flow runtime
+                try:
+                    fromFlow["next"] = sorted(fromFlow["next"], key=itemgetter("order"), reverse=True) 
+                except KeyError:
+                    for value in fromFlow["next"]:
+                        if "order" not in value:
+                            value["order"] = 0
+                    fromFlow["next"] = sorted(fromFlow["next"], key=itemgetter("order"), reverse=True) 
                 if "_id" in jimi.api.g.sessionData:
                     jimi.audit._audit().add("flow","new link",{ "_id" : jimi.api.g.sessionData["_id"], "user" : jimi.api.g.sessionData["user"], "conductID" : conductID, "fromFlowID" : fromFlowID, "toFlowID": toFlowID })
                 else:
