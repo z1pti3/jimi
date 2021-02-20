@@ -67,6 +67,7 @@ export default class AdminPage extends Component {
 
         this.clearCache = this.clearCache.bind(this);
         this.clearStartChecks = this.clearStartChecks.bind(this);
+        this.deleteDebugSessions = this.deleteDebugSessions.bind(this);
         this.redistributeCluster = this.redistributeCluster.bind(this);
         this.deleteUnusedObjects = this.deleteUnusedObjects.bind(this);
     }
@@ -125,6 +126,20 @@ export default class AdminPage extends Component {
         });
     }
 
+    deleteDebugSessions() {
+        const requestOptions = {
+            method: 'GET',
+            credentials: 'include',
+        };
+        var triggers = fetch(URL()+'debug/clear/', requestOptions).then(response => {
+            if (response.ok) {
+                return response.json()
+            }
+        }).then(json => {
+            alert(JSON.stringify(json));
+        });
+    }
+
     redistributeCluster() {
         const requestOptions = {
             method: 'GET',
@@ -151,6 +166,8 @@ export default class AdminPage extends Component {
                 <button className="btn btn-primary btn-block button medium marSmall" onClick={this.clearCache}>Clear Cache</button>
                 <br/>
                 <button className="btn btn-primary btn-block button medium marSmall" onClick={this.clearStartChecks}>Clear StartChecks</button>
+                <br/>
+                <button className="btn btn-primary btn-block button medium marSmall" onClick={this.deleteDebugSessions}>Delete Debug Sessions</button>
                 <br/>
                 <button className="btn btn-primary btn-block button medium marSmall" onClick={this.redistributeCluster}>Redistribute Cluster</button>
                 <br/>

@@ -214,6 +214,12 @@ if jimi.api.webServer:
                         return {}, 404
                 return {}, 404
 
+            @jimi.api.webServer.route(jimi.api.base+"debug/clear/", methods=["GET"])
+            def clearFlowDebugSessions():
+                global flowDebugSession
+                flowDebugSession = {}
+                return {}, 200
+
         if jimi.api.webServer.name == "jimi_web":
             @jimi.api.webServer.route(jimi.api.base+"debug/", methods=["PUT"])
             def startFlowDebugSession():
@@ -261,3 +267,12 @@ if jimi.api.webServer:
                 url = jimi.cluster.getMaster()
                 response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
                 return json.loads(response.text), 200
+
+            @jimi.api.webServer.route(jimi.api.base+"debug/clear/", methods=["GET"])
+            def clearFlowDebugSessions():
+                apiEndpoint = "debug/clear/"
+                responses = []
+                for url in jimi.cluster.getAll():
+                    response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
+                    responses.append({ "url" : url, "response" : response.status_code })
+                return { "result" : responses }, 200
