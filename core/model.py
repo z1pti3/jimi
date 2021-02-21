@@ -13,6 +13,7 @@ class _model(jimi.db._document):
     classType = str()
     location = str()
     hidden = bool()
+    manifest = dict()
 
     _dbCollection = jimi.db.db[dbCollectionName]
 
@@ -34,6 +35,8 @@ class _model(jimi.db._document):
                 jimi.logging.debug("Error unable to find class='{0}', className='{1}', classType='{2}', location='{3}'".format(self.classID,self.className,self.classType,self.location),2)
             return None
         class_ = getattr(mod, "{0}".format(self.className))
+        # Injecting manifest from model into the loaded class - this is only held in memory and never committed to the database
+        class_.manifest__ = self.manifest
         return class_
 
 def registerModel(name,className,classType,location,hidden=False):

@@ -64,7 +64,6 @@ class _action(jimi.db._document):
             if self.varDefinitions:
                 data["flowData"]["var"] = jimi.variable.varEval(self.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"], "action" : actionResult})
 
-
         ####################################
         #              Footer              #
         ####################################
