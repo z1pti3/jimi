@@ -84,6 +84,8 @@
 #propertiesPanel-help-description {
 	padding-left: 10px;
 	font-size: 14px;
+	white-space: normal;
+	word-wrap: break-word;
 }
 
 #propertiesPanel-help-Input {
