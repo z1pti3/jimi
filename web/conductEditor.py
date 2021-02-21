@@ -69,7 +69,7 @@ def conductFlowchartPoll(conductID):
                             node["heightConstraint"] = { "minimum": 35, "maximum": 75 }
                             node["borderWidth"] = 1
                             node["borderWidthSelected"] = 2.5
-                            node["font"] = { "color" : "#ddd", "multi": True }
+                            node["font"] = { "color" : "#adadad", "multi": True }
                             node["shadow"] = { "enabled": True, "color": 'rgba(0, 0, 0, 0.12)',	"size": 10, "x": 5, "y": 5	}
                         elif flowUI.x != flowchartOperators[flowID]["node"]["x"] or flowUI.y != flowchartOperators[flowID]["node"]["y"]:
                             node["x"] = flowUI.x
