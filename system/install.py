@@ -10,7 +10,7 @@ import json
 import jimi
 
 # Current System Version
-systemVersion = 2.02
+systemVersion = 2.03
 
 # Initialize 
 dbCollectionName = "system"
@@ -297,7 +297,7 @@ def systemUpgrade(currentVersion):
 			installedPlugin.classID = classID
 			installedPlugin.update(["classID"])
 
-	if currentVersion < 2.02:
+	if currentVersion < 2.03:
 		# Install system manifest
 		loadSystemManifest()
 

@@ -435,6 +435,7 @@
                 { "schema_item" : "mergeEvents", "schema_value" : "mergeEvents", "type" : "checkbox", "label" : "mergeEvents", "description" : "Check to preserve the existing json values within data[event]", "required" : false, "jimi_syntax" : false },
                 { "schema_item" : "eventsField", "schema_value" : "eventsField", "type" : "input", "label" : "eventsField", "description" : "Event within a field that should be looped. i.e. %%data[event][list]%%", "required" : false, "jimi_syntax" : true },
                 { "schema_item" : "manual", "schema_value" : "manual", "type" : "checkbox", "label" : "manual", "description" : "Checked if a manually provided list should be used. When check event field must be populated with a valid list. If not selected then eventsField must be used.", "required" : false, "jimi_syntax" : false },
+                { "schema_item" : "events", "schema_value" : "events", "type" : "json-input", "label" : "events", "description" : "Used when manual is checked and defines a custom list for looping.", "required" : false, "jimi_syntax" : false },
                 { "schema_item" : "limit", "schema_value" : "limit", "type" : "input", "label" : "limit", "description" : "The maximum number of events to loop.", "required" : false, "jimi_syntax" : false },
                 { "schema_item" : "concurrency", "schema_value" : "concurrency", "type" : "input", "label" : "concurrency", "description" : "When a value high than 0 is provided concurrent threading will be used.", "required" : false, "jimi_syntax" : false }
             ],
