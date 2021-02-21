@@ -14,7 +14,7 @@ var panelPropertiesHTML = `
 		<button id="save" class="btn btn-primary theme-panelButton">Save</button>
 		<button id="refresh" class="btn btn-primary theme-panelButton">Refresh</button>
 		<button id="close" class="btn btn-primary theme-panelButton">Close</button>
-		<button id="help" class="btn btn-primary theme-panelButton">Help</button>
+		<button id="help" class="btn btn-primary theme-panelButton">Show Help</button>
 	</div>
 </div>
 `
@@ -399,11 +399,13 @@ function createPropertiesPanel(flowID) {
 			if ($(".propertiesPanel-main").css("display") == "flex") {
 				$(".propertiesPanel-main").css("display","unset");
 				$(".propertiesPanel-help").css("display","none");
+				$("#help").text("Show Help");
 				panel.width(panel.width()-900);
 				panel.height(panel.height());
 			} else {
 				$(".propertiesPanel-main").css("display","flex");
 				$(".propertiesPanel-help").css("display","unset");
+				$("#help").text("Hide Help");
 				panel.width(panel.width()+900);
 				panel.height(panel.height());
 			}
