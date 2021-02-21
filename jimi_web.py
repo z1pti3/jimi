@@ -68,7 +68,7 @@ def loadPluginPages():
 # Should be migrated into models/conduct.py
 @jimi.api.webServer.route(jimi.api.base+"conducts/")
 def loadConducts():
-	return { "results" : jimi.conduct._conduct().query(jimi.api.g.sessionData,query={ "name" : { "$exists" : True } },sort=[( "name", 1 )])["results"] }, 200
+	return { "results" : jimi.conduct._conduct().query(sessionData=jimi.api.g.sessionData,query={ "name" : { "$exists" : True } },sort=[( "name", 1 )])["results"] }, 200
 
 # Should be migrated into workers.py
 @jimi.api.webServer.route(jimi.api.base+"/workers/", methods=["GET"])
@@ -153,6 +153,7 @@ def getConductFlowProperties(conductID,flowID):
 	if len(flow) == 1:
 		flow = flow[0]
 		formData = None
+		manifest = None
 		if "type" in flow:
 			if flow["type"] == "trigger":
 				triggerObj = jimi.trigger._trigger().query(jimi.api.g.sessionData,id=flow["triggerID"])["results"]
@@ -174,6 +175,7 @@ def getConductFlowProperties(conductID,flowID):
 					formData = triggerObj._properties().generate(triggerObj)
 				else:
 					formData = jimi.webui._properties().generate(triggerObj)
+				manifest = triggerObj.manifest__
 			elif flow["type"] == "action":
 				actionObj = jimi.action._action().query(jimi.api.g.sessionData,id=flow["actionID"])["results"]
 				if len(actionObj) == 1:
@@ -192,7 +194,8 @@ def getConductFlowProperties(conductID,flowID):
 					formData = actionObj._properties().generate(actionObj)
 				else:
 					formData = jimi.webui._properties().generate(actionObj)
-		return { "formData" : formData }, 200
+				manifest = actionObj.manifest__
+		return { "formData" : formData, "manifest" : manifest }, 200
 
 @jimi.api.webServer.route("/conduct/<conductID>/flow/<flowID>/", methods=["GET"])
 def getConductFlow(conductID,flowID):

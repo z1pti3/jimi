@@ -15,6 +15,7 @@ class _plugin(jimi.db._document):
     enabled = bool()
     installed = bool()
     version = float()
+    manifest = dict()
 
     _dbCollection = jimi.db.db[dbCollectionName]
 
@@ -37,10 +38,32 @@ class _plugin(jimi.db._document):
                     jimi.logging.debug("Error unable to locate plugin class, pluginName={0}".format(jsonItem["name"]))
         return result
 
+    def loadManifest(self):
+        if os.path.isfile(str(Path("plugins/{0}/{0}.json".format(self.name)))):
+            with open(str(Path("plugins/{0}/{0}.json".format(self.name))), "r") as f:
+                self.manifest = json.load(f)
+            self.processManifest()
+            self.update(["manifest"])
+            return True
+        return False
+    
+    def processManifest(self):
+        objectTypes = ["collections","triggers","actions"]
+        for objectType in objectTypes:
+            for objectName, objectValue in self.manifest[objectType].items():
+                try:
+                    model = jimi.model._model().getAsClass(query={"name" : objectName, "location" : "plugins.{0}.{1}".format(self.name,objectValue["class_location"]) })[0]
+                    objectValue["class_id"] = model._id
+                    model.manifest = objectValue
+                    model.update(["manifest"])
+                except IndexError:
+                    pass
+
     def installHandler(self):
         self.installHeader()
         result = self.install()
         self.installFooter()
+        self.loadManifest()
         if result:
             self.enabled = True
             self.installed = True
@@ -61,6 +84,7 @@ class _plugin(jimi.db._document):
             self.upgradeHeader(LatestPluginVersion)
             self.upgrade(LatestPluginVersion)
             self.upgradeFooter(LatestPluginVersion)
+            self.loadManifest()
 
     def upgradeHeader(self,LatestPluginVersion):
         jimi.logging.debug("Starting plugin upgrade, pluginName={0}".format(self.name),-1)

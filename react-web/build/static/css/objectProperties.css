@@ -7,7 +7,7 @@
 	background-color: #FAFAFA;
 	min-width: 600px;
 	max-height: 80%;
-	max-width: 80%;
+	max-width: 90%;
 	width: 300px;
 	display: flex;
 	flex-direction: column;
@@ -19,7 +19,6 @@
 }
 
 .propertiesPanel-body {
-	display: inline-block;
 	height: 100%;
 	width: 100%;
 	overflow-y: scroll;
@@ -60,3 +59,79 @@
 	display: flex;
 	flex-wrap: wrap;
 }
+
+.propertiesPanel-main {
+	overflow-y: hidden;
+	overflow-x: hidden;
+}
+
+.propertiesPanel-help {
+	display: none;
+	flex: 1;
+	min-width: 900px;
+	height: 100%;
+	width: 100%;
+	overflow-y: scroll;
+	overflow-x: hidden;
+	font-weight: 700;
+}
+
+#propertiesPanel-help-title {
+	padding-left: 10px;
+	font-size: 20px;
+}
+
+#propertiesPanel-help-description {
+	padding-left: 10px;
+	font-size: 14px;
+}
+
+#propertiesPanel-help-Input {
+	padding-left: 10px;
+	font-size: 18px;
+}
+
+#propertiesPanel-help-Output {
+	padding-left: 10px;
+	font-size: 18px;
+}
+
+.propertiesPanel-help-table {
+	width: auto;
+	white-space: normal;
+	word-wrap: break-word;
+	text-align: center;
+	margin-left:auto; 
+    margin-right:auto;
+	border-collapse: collapse;
+}
+
+.propertiesPanel-help-table-header {
+	font-size: 16px;
+	border: 1px solid #2e6da4;
+	background-color: #111111;
+	padding: 8px;
+}
+
+.propertiesPanel-help-table-content {
+	text-align: left;
+	vertical-align: middle;
+}
+
+.propertiesPanel-help-table-content td {
+	border: 1px solid #2e6da4;
+	padding: 8px;
+}
+
+.propertiesPanel-help-table-content td label {
+	font-size: 14px;
+}
+
+.center {
+	text-align: center;
+}
+
+.propertiesPanel-help-table tr:nth-child(even){
+	background-color: #333333;
+}
+
