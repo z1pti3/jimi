@@ -40,32 +40,53 @@ class _properties():
     def generate(self,classObject):
         formData = []
         if classObject.manifest__:
-            for field in classObject.manifest__["fields"]:
-                if field["schema_item"][-2:] == "()":
-                    field["value"] = getattr(classObject, field["schema_item"][:-2])()
-                    field["schema_item"][:-2]
-                else:
-                    field["value"] = getattr(classObject,field["schema_item"])
-                    field["schemaitem"] = field["schema_item"]
-                if type(field["value"]) is str or type(field["value"]) is int or type(field["value"]) is float:
-                    field["textbox"] = field["value"]
-                elif type(field["value"]) is bool:
-                    field["checked"] = field["value"]
-                elif type(field["value"]) is dict or type(field["value"]) is list:
-                    field["textbox"] = field["value"]
-                elif field["type"] == "dropdown":
-                    field["dropdown"] = field["value"]
-                formData.append(field)
-        else:
-            blacklist = ["classID","workerID","acl","lastUpdateTime","creationTime","createdBy","attemptCount","autoRestartCount","startCheck"]
-            members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
-            for member in members:
-                if member not in blacklist:
-                    value = getattr(classObject,member)
-                    if type(value) == str or type(value) == int or type(value) == float:
-                        formData.append({"type" : "input", "schemaitem" : member, "textbox" : value, "label" : member})
-                    elif type(value) == bool:
-                        formData.append({"type" : "checkbox", "schemaitem" : member, "checked" : value, "label" : member})
-                    elif type(value) == dict or type(value) == list:
-                        formData.append({"type" : "json-input", "schemaitem" : member, "textbox" : value, "label" : member})
+            if len(classObject.manifest__["fields"]) > 0:
+                systemFields = ["_id","name","enabled","log","concurrency","threaded","systemID","startTime","nextCheck","schedule","logicString","varDefinitions","comment"]
+                formData.append({"type" : "break", "schemaitem" : "break", "start" : True, "label" : "System"})
+                for field in systemFields:
+                    try:
+                        value = getattr(classObject,field)
+                        if type(value) == str or type(value) == int or type(value) == float:
+                            formData.append({"type" : "input", "schemaitem" : field, "textbox" : value, "label" : field})
+                        elif type(value) == bool:
+                            formData.append({"type" : "checkbox", "schemaitem" : field, "checked" : value, "label" : field})
+                        elif type(value) == dict or type(value) == list:
+                            formData.append({"type" : "json-input", "schemaitem" : field, "textbox" : value, "label" : field})
+                    except AttributeError:
+                        pass
+                formData.append({"type" : "break", "schemaitem" : "break", "start" : False, "label" : "System"})
+                formData.append({"type" : "break", "schemaitem" : "break", "start" : True, "label" : classObject.name})
+                for field in classObject.manifest__["fields"]:
+                    if field["schema_item"] not in systemFields:
+                        if field["schema_value"][-2:] == "()":
+                            field["value"] = getattr(classObject, field["schema_value"][:-2])()
+                            field["schemaitem"] = field["schema_item"][:-2]
+                        else:
+                            field["value"] = getattr(classObject,field["schema_value"])
+                            field["schemaitem"] = field["schema_item"]
+                        if type(field["value"]) is str or type(field["value"]) is int or type(field["value"]) is float:
+                            field["textbox"] = field["value"]
+                        elif type(field["value"]) is bool:
+                            field["checked"] = field["value"]
+                        elif type(field["value"]) is dict or type(field["value"]) is list:
+                            field["textbox"] = field["value"]
+                        elif field["type"] == "dropdown":
+                            field["dropdown"] = field["value"]
+                        field["tooltip"] = field["description"]
+                        formData.append(field)
+                formData.append({"type" : "break", "schemaitem" : "break", "start" : False, "label" : classObject.name})
+                return formData
+        
+        # Old method
+        blacklist = ["classID","workerID","acl","lastUpdateTime","creationTime","createdBy","attemptCount","autoRestartCount","startCheck"]
+        members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
+        for member in members:
+            if member not in blacklist:
+                value = getattr(classObject,member)
+                if type(value) == str or type(value) == int or type(value) == float:
+                    formData.append({"type" : "input", "schemaitem" : member, "textbox" : value, "label" : member})
+                elif type(value) == bool:
+                    formData.append({"type" : "checkbox", "schemaitem" : member, "checked" : value, "label" : member})
+                elif type(value) == dict or type(value) == list:
+                    formData.append({"type" : "json-input", "schemaitem" : member, "textbox" : value, "label" : member})
         return formData

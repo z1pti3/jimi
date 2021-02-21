@@ -4,15 +4,24 @@ var panelPropertiesHTML = `
 		<span class="glyphicon glyphicon glyphicon-remove" id="close"></span>
 		<label id="title"></label>
 	</div>
-	<div class="container-fluid propertiesPanel-body theme-panelBody">
+	<div class="propertiesPanel-main">
+		<div class="container-fluid propertiesPanel-body theme-panelBody">
+		</div>
+		<div class="propertiesPanel-help">
+			sdfdsfdsfsds
+			<br>
+			sdfdsf
+		</div>
 	</div>
 	<div class="container-fluid propertiesPanel-footer theme-panelFooter">
 		<button id="save" class="btn btn-primary theme-panelButton">Save</button>
 		<button id="refresh" class="btn btn-primary theme-panelButton">Refresh</button>
 		<button id="close" class="btn btn-primary theme-panelButton">Close</button>
+		<button id="help" class="btn btn-primary theme-panelButton">Help</button>
 	</div>
 </div>
 `
+
 
 var openPanels = {}
 
@@ -253,6 +262,8 @@ function loadPropertiesPanel(flowID,panel) {
 				$table.append($row);
 			}
 			panel.find(".propertiesPanel-body").append($table);
+			// Added to fix a bug whereby the property table scroll bar does not appear
+			panel.height(panel.height());
 		}
 	});
 
@@ -315,6 +326,20 @@ function createPropertiesPanel(flowID) {
 
 		panel.find("#refresh").click(function () { 
 			loadPropertiesPanel(flowID,panel);
+		})
+
+		panel.find("#help").click(function () { 
+			if ($(".propertiesPanel-main").css("display") == "flex") {
+				$(".propertiesPanel-main").css("display","unset");
+				$(".propertiesPanel-help").css("display","none");
+				panel.width(panel.width()-350);
+				panel.height(panel.height());
+			} else {
+				$(".propertiesPanel-main").css("display","flex");
+				$(".propertiesPanel-help").css("display","unset");
+				panel.width(panel.width()+350);
+				panel.height(panel.height());
+			}
 		})
 
 		// Loading properties form

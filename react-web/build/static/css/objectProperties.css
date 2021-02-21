@@ -19,7 +19,6 @@
 }
 
 .propertiesPanel-body {
-	display: inline-block;
 	height: 100%;
 	width: 100%;
 	overflow-y: scroll;
@@ -59,4 +58,15 @@
 .existingPropertiesPanel-SearchResults {
 	display: flex;
 	flex-wrap: wrap;
+}
+
+.propertiesPanel-main {
+	overflow-y: hidden;
+	overflow-x: hidden;
+}
+
+.propertiesPanel-help {
+	display: none;
+	flex: 1;
+	min-width: 350px;
 }
