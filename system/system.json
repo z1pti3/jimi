@@ -1,0 +1,545 @@
+{
+    "name" : "system",
+    "author" : "system",
+    "version" : 1.0,
+    "categories" : ["system"],
+    "description" : "System installed triggers and actions.",
+    "icon" : null,
+    "requirements" : {
+        "jimi_min_version" : null,
+        "jimi_max_version" : null,
+        "plugins" : []
+    },
+    "collections" : {
+
+    },
+    "triggers" : {
+        "failedTriggers" : {
+            "display_name" : "failedTriggers",
+            "className" : "_failedTriggers",
+            "class_location" : "models.trigger",
+            "description" : "Trigger called anytime a flow overruns or errors.",
+            "fields" : [
+
+            ],
+            "data_out" : {
+                "type" : { 
+                    "description" : "Type of error.",
+                    "type" : "string",
+                    "always_present" : true,
+                    "values" : {
+                        "systemEvent" : { "description" : "" }
+                    }
+                },
+                "eventType" : {
+                    "description" : "Failure type.",
+                    "type" : "string",
+                    "always_present" : true,
+                    "values" : {
+
+                    }
+                },
+                "workerID" : {
+                    "description" : "workerID of the worker that has failed.",
+                    "type" : "string",
+                    "always_present" : true,
+                    "values" : {
+
+                    }
+                },
+                "triggerID" : {
+                    "description" : "triggerID of the trigger that has failed.",
+                    "type" : "string",
+                    "always_present" : true,
+                    "values" : {
+                        
+                    }
+                },
+                "triggerName" : {
+                    "description" : "Name of the trigger that has failed.",
+                    "type" : "string",
+                    "always_present" : true,
+                    "values" : {
+                        
+                    }
+                },
+                "msg" : {
+                    "description" : "Any provided message with the failure.",
+                    "type" : "string",
+                    "always_present" : true,
+                    "values" : {
+                        
+                    }
+                },
+                "autoRecover" : {
+                    "description" : "Returns True if the failed trigger will automatically be recovered. Automatic recovery is defined with autoRestartCount on a trigger to set the number of times to retry if an failure occurs.",
+                    "type" : "boolean",
+                    "always_present" : true,
+                    "values" : {
+                        "True" : { "description" : "Trigger will be automatically recovered." },
+                        "False" : { "description" : "Trigger will not be reattempted and will require manual attention." }
+                    }
+                }
+            }
+        }
+    },
+    "actions" : {
+        "sleep" : {
+            "display_name" : "sleep",
+            "className" : "_sleep",
+            "class_location" : "models.sleep",
+            "description" : "Pause for a defined number of seconds and then continue to the next object.",
+            "fields" : [
+                { "schema_item" : "sleepFor", "schema_value" : "sleepFor", "type" : "input", "label" : "sleepFor", "description" : "Number of seconds to sleep for.", "required" : true, "jimi_syntax" : false }
+            ],
+            "data_out" : {
+                "result" : { 
+                    "description" : "Always return True after sleeping has taken place.",
+                    "type" : "boolean",
+                    "always_present" : true,
+                    "values" : {
+                        "True" : { "description" : "Action completed successfully." }
+                    }
+                },
+                "rc" : {
+                    "description" : "Always returns 0 after sleeping has taken place.",
+                    "type" : "number",
+                    "always_present" : true,
+                    "values" : {
+                        "0" : { "description" : "The integer provided within the rc field." }
+                    }
+                }
+            }
+        },
+        "resetTrigger" : {
+            "display_name" : "resetTrigger",
+            "className" : "_resetTrigger",
+            "class_location" : "models.action",
+            "description" : "Action used to reset the startCheck of the trigger contained within event[triggerID].",
+            "fields" : [
+                
+            ],
+            "data_out" : {
+                "result" : { 
+                    "description" : "Returns True or False depending on if the trigger was successfully cleared or not.",
+                    "type" : "boolean",
+                    "always_present" : true,
+                    "values" : {
+                        "True" : { "description" : "Trigger was cleared successfully." },
+                        "False" : { "description" : "Trigger was not cleared." }
+                    }
+                },
+                "rc" : {
+                    "description" : "Returns an exit code based on the outcome of the action.",
+                    "type" : "number",
+                    "always_present" : true,
+                    "values" : {
+                        "0" : { "description" : "Trigger was cleared successfully." },
+                        "42" : { "description" : "Trigger was not cleared." }
+                    }
+                }
+            }
+        },
+        "getTrigger" : {
+            "display_name" : "getTrigger",
+            "className" : "_getTrigger",
+            "class_location" : "models.action",
+            "description" : "Finds a trigger by ID and outputs it as json.",
+            "fields" : [
+                { "schema_item" : "triggerID", "schema_value" : "triggerID", "type" : "input", "label" : "triggerID", "description" : "An ID of a trigger to get.", "required" : true, "jimi_syntax" : true }
+            ],
+            "data_out" : {
+                "result" : { 
+                    "description" : "Returns True if a trigger was found.",
+                    "type" : "boolean",
+                    "always_present" : true,
+                    "values" : {
+                        "True" : { "description" : "Trigger found." },
+                        "False" : { "description" : "Trigger not found." }
+                    }
+                },
+                "rc" : {
+                    "description" : "Returns an exit code based on the outcome of the action.",
+                    "type" : "number",
+                    "always_present" : true,
+                    "values" : {
+                        "0" : { "description" : "Trigger found." },
+                        "404" : { "description" : "Trigger was not found." }
+                    }
+                },
+                "trigger" : {
+                    "description" : "json object containing the found trigger.",
+                    "type" : "json",
+                    "always_present" : false,
+                    "values" : {
+                    }
+                }
+            }
+        },
+        "setTrigger" : {
+            "display_name" : "setTrigger",
+            "className" : "_setTrigger",
+            "class_location" : "models.action",
+            "description" : "Sets a value for a field within a given trigger.",
+            "fields" : [
+                { "schema_item" : "triggerID", "schema_value" : "triggerID", "type" : "input", "label" : "triggerID", "description" : "ID of the trigger to set the value on.", "required" : true, "jimi_syntax" : true },
+                { "schema_item" : "field", "schema_value" : "field", "type" : "input", "label" : "field", "description" : "Field to set the value to.", "required" : true, "jimi_syntax" : true },
+                { "schema_item" : "value", "schema_value" : "value", "type" : "input", "label" : "value", "description" : "Value to set to the field defined.", "required" : true, "jimi_syntax" : true }
+            ],
+            "data_out" : {
+                "result" : { 
+                    "description" : "Returns True if a trigger was updated.",
+                    "type" : "boolean",
+                    "always_present" : true,
+                    "values" : {
+                        "True" : { "description" : "Trigger updated." },
+                        "False" : { "description" : "Trigger not updated." }
+                    }
+                },
+                "rc" : {
+                    "description" : "Returns an exit code based on the outcome of the action.",
+                    "type" : "number",
+                    "always_present" : true,
+                    "values" : {
+                        "0" : { "description" : "Trigger updated." },
+                        "404" : { "description" : "Trigger was not updated." }
+                    }
+                }
+            }
+        },
+        "enableTrigger" : {
+            "display_name" : "enableTrigger",
+            "className" : "_enableTrigger",
+            "class_location" : "models.action",
+            "description" : "Enables a given trigger by ID.",
+            "fields" : [
+                { "schema_item" : "triggerID", "schema_value" : "triggerID", "type" : "input", "label" : "triggerID", "description" : "ID of the target trigger.", "required" : true, "jimi_syntax" : true }
+            ],
+            "data_out" : {
+                "result" : { 
+                    "description" : "Returns True if a trigger was enabled.",
+                    "type" : "boolean",
+                    "always_present" : true,
+                    "values" : {
+                        "True" : { "description" : "Trigger enabled." },
+                        "False" : { "description" : "Trigger not enabled." }
+                    }
+                },
+                "rc" : {
+                    "description" : "Returns an exit code based on the outcome of the action.",
+                    "type" : "number",
+                    "always_present" : true,
+                    "values" : {
+                        "0" : { "description" : "Trigger enabled." },
+                        "404" : { "description" : "Trigger was not enabled." }
+                    }
+                }
+            }
+        },
+        "disableTrigger" : {
+            "display_name" : "disableTrigger",
+            "className" : "_disableTrigger",
+            "class_location" : "models.action",
+            "description" : "Disables a given trigger by ID.",
+            "fields" : [
+                { "schema_item" : "triggerID", "schema_value" : "triggerID", "type" : "input", "label" : "triggerID", "description" : "ID of the target trigger.", "required" : true, "jimi_syntax" : true }
+            ],
+            "data_out" : {
+                "result" : { 
+                    "description" : "Returns True if a trigger was disabled.",
+                    "type" : "boolean",
+                    "always_present" : true,
+                    "values" : {
+                        "True" : { "description" : "Trigger disabled." },
+                        "False" : { "description" : "Trigger not disabled." }
+                    }
+                },
+                "rc" : {
+                    "description" : "Returns an exit code based on the outcome of the action.",
+                    "type" : "number",
+                    "always_present" : true,
+                    "values" : {
+                        "0" : { "description" : "Trigger disabled." },
+                        "404" : { "description" : "Trigger was not disabled." }
+                    }
+                }
+            }
+        },
+        "getAction" : {
+            "display_name" : "getAction",
+            "className" : "_getAction",
+            "class_location" : "models.action",
+            "description" : "Finds a action by ID and outputs it as json.",
+            "fields" : [
+                { "schema_item" : "actionID", "schema_value" : "actionID", "type" : "input", "label" : "triggerID", "description" : "An ID of a action to get.", "required" : true, "jimi_syntax" : true }
+            ],
+            "data_out" : {
+                "result" : { 
+                    "description" : "Returns True if a action was found.",
+                    "type" : "boolean",
+                    "always_present" : true,
+                    "values" : {
+                        "True" : { "description" : "Action found." },
+                        "False" : { "description" : "Action not found." }
+                    }
+                },
+                "rc" : {
+                    "description" : "Returns an exit code based on the outcome of the action.",
+                    "type" : "number",
+                    "always_present" : true,
+                    "values" : {
+                        "0" : { "description" : "Action found." },
+                        "404" : { "description" : "Action was not found." }
+                    }
+                },
+                "action" : {
+                    "description" : "json object containing the found action.",
+                    "type" : "json",
+                    "always_present" : false,
+                    "values" : {
+                    }
+                }
+            }
+        },
+        "setAction" : {
+            "display_name" : "setAction",
+            "className" : "_setAction",
+            "class_location" : "models.action",
+            "description" : "Sets a value for a field within a given action.",
+            "fields" : [
+                { "schema_item" : "actionID", "schema_value" : "actionID", "type" : "input", "label" : "actionID", "description" : "ID of the action to set the value on.", "required" : true, "jimi_syntax" : true },
+                { "schema_item" : "field", "schema_value" : "field", "type" : "input", "label" : "field", "description" : "Field to set the value to.", "required" : true, "jimi_syntax" : true },
+                { "schema_item" : "value", "schema_value" : "value", "type" : "input", "label" : "value", "description" : "Value to set to the field defined.", "required" : true, "jimi_syntax" : true }
+            ],
+            "data_out" : {
+                "result" : { 
+                    "description" : "Returns True if a action was updated.",
+                    "type" : "boolean",
+                    "always_present" : true,
+                    "values" : {
+                        "True" : { "description" : "Action updated." },
+                        "False" : { "description" : "Action not updated." }
+                    }
+                },
+                "rc" : {
+                    "description" : "Returns an exit code based on the outcome of the action.",
+                    "type" : "number",
+                    "always_present" : true,
+                    "values" : {
+                        "0" : { "description" : "Action updated." },
+                        "404" : { "description" : "Action was not updated." }
+                    }
+                }
+            }
+        },
+        "enableAction" : {
+            "display_name" : "enableAction",
+            "className" : "_enableAction",
+            "class_location" : "models.action",
+            "description" : "Enables a given action by ID.",
+            "fields" : [
+                { "schema_item" : "actionID", "schema_value" : "actionID", "type" : "input", "label" : "actionID", "description" : "ID of the target action.", "required" : true, "jimi_syntax" : true }
+            ],
+            "data_out" : {
+                "result" : { 
+                    "description" : "Returns True if a action was enabled.",
+                    "type" : "boolean",
+                    "always_present" : true,
+                    "values" : {
+                        "True" : { "description" : "Action enabled." },
+                        "False" : { "description" : "Action not enabled." }
+                    }
+                },
+                "rc" : {
+                    "description" : "Returns an exit code based on the outcome of the action.",
+                    "type" : "number",
+                    "always_present" : true,
+                    "values" : {
+                        "0" : { "description" : "Action enabled." },
+                        "404" : { "description" : "Action was not enabled." }
+                    }
+                }
+            }
+        },
+        "disableAction" : {
+            "display_name" : "disableAction",
+            "className" : "_disableAction",
+            "class_location" : "models.action",
+            "description" : "Disables a given action by ID.",
+            "fields" : [
+                { "schema_item" : "actionID", "schema_value" : "actionID", "type" : "input", "label" : "actionID", "description" : "ID of the target action.", "required" : true, "jimi_syntax" : true }
+            ],
+            "data_out" : {
+                "result" : { 
+                    "description" : "Returns True if a action was disabled.",
+                    "type" : "boolean",
+                    "always_present" : true,
+                    "values" : {
+                        "True" : { "description" : "Action disabled." },
+                        "False" : { "description" : "Action not disabled." }
+                    }
+                },
+                "rc" : {
+                    "description" : "Returns an exit code based on the outcome of the action.",
+                    "type" : "number",
+                    "always_present" : true,
+                    "values" : {
+                        "0" : { "description" : "Action disabled." },
+                        "404" : { "description" : "Action was not disabled." }
+                    }
+                }
+            }
+        },
+        "collect" : {
+            "display_name" : "collect",
+            "className" : "_collect",
+            "class_location" : "models.collect",
+            "description" : "Collects a number of events together into a list and then outputs the given list to the remainder of the flow. When collect is used the flow will run up to the collect object while it collects all of the events into a list. After the list if either at the max limit or no more events are left then the collect objects outputs the list and the flow continues. Useful function for when batch processing is more efferent than singular events.",
+            "fields" : [
+                { "schema_item" : "limit", "schema_value" : "limit", "type" : "input", "label" : "limit", "description" : "The maximum number of events to collect before flushing the list. Default 0 ( unlimited ).", "required" : false, "jimi_syntax" : true }
+            ],
+            "data_out" : {
+                "result" : { 
+                    "description" : "Returns True when flushing the list and continuing the flow.",
+                    "type" : "boolean",
+                    "always_present" : true,
+                    "values" : {
+                        "True" : { "description" : "List flushed and continuing." },
+                        "False" : { "description" : "List is still being built." }
+                    }
+                },
+                "rc" : {
+                    "description" : "Returns an exit code based on the outcome of the action.",
+                    "type" : "number",
+                    "always_present" : true,
+                    "values" : {
+                        "0" : { "description" : "List flushed and continuing." },
+                        "9" : { "description" : "List is still being built." }
+                    }
+                },
+                "event" : {
+                    "description" : "Sets data[event] to the list being flushed. This is only done when the result is True and the list is flushed.",
+                    "type" : "list",
+                    "always_present" : false,
+                    "values" : {
+                    }
+                }
+            }
+        },
+        "forEach" : {
+            "display_name" : "forEach",
+            "className" : "_forEach",
+            "class_location" : "models.forEach",
+            "description" : "Loops through a provided list value.",
+            "fields" : [
+                { "schema_item" : "mergeEvents", "schema_value" : "mergeEvents", "type" : "checkbox", "label" : "mergeEvents", "description" : "Check to preserve the existing json values within data[event]", "required" : false, "jimi_syntax" : false },
+                { "schema_item" : "eventsField", "schema_value" : "eventsField", "type" : "input", "label" : "eventsField", "description" : "Event within a field that should be looped. i.e. %%data[event][list]%%", "required" : false, "jimi_syntax" : true },
+                { "schema_item" : "manual", "schema_value" : "manual", "type" : "checkbox", "label" : "manual", "description" : "Checked if a manually provided list should be used. When check event field must be populated with a valid list. If not selected then eventsField must be used.", "required" : false, "jimi_syntax" : false },
+                { "schema_item" : "limit", "schema_value" : "limit", "type" : "input", "label" : "limit", "description" : "The maximum number of events to loop.", "required" : false, "jimi_syntax" : false },
+                { "schema_item" : "concurrency", "schema_value" : "concurrency", "type" : "input", "label" : "concurrency", "description" : "When a value high than 0 is provided concurrent threading will be used.", "required" : false, "jimi_syntax" : false }
+            ],
+            "data_out" : {
+                "result" : { 
+                    "description" : "Returns True when looping each event.",
+                    "type" : "boolean",
+                    "always_present" : true,
+                    "values" : {
+                        "True" : { "description" : "Within a loop." },
+                        "False" : { "description" : "Loop finished." }
+                    }
+                },
+                "rc" : {
+                    "description" : "Returns an exit code based on the outcome of the action.",
+                    "type" : "number",
+                    "always_present" : true,
+                    "values" : {
+                        "0" : { "description" : "Within a loop." },
+                        "200" : { "description" : "Loop finished." }
+                    }
+                },
+                "event" : {
+                    "description" : "Sets data[event] to the current list item within the loop. If merge is set then data[event] and the current list item are merged together.",
+                    "type" : "any",
+                    "always_present" : false,
+                    "values" : {
+                    }
+                }
+            }
+        },
+        "globalSet" : {
+            "display_name" : "globalSet",
+            "className" : "_globalSet",
+            "class_location" : "models.global",
+            "description" : "Define global persistent variables .",
+            "fields" : [
+                { "schema_item" : "globalName", "schema_value" : "globalName", "type" : "input", "label" : "globalName", "description" : "Name of the global variable to define.", "required" : true, "jimi_syntax" : true },
+                { "schema_item" : "globalValue", "schema_value" : "globalValue", "type" : "input", "label" : "globalValue", "description" : "Value to set to the named global variable.", "required" : true, "jimi_syntax" : true }
+            ],
+            "data_out" : {
+                "result" : { 
+                    "description" : "Returns True when the variable has been set successfully.",
+                    "type" : "boolean",
+                    "always_present" : true,
+                    "values" : {
+                        "True" : { "description" : "Variable set successfully." },
+                        "False" : { "description" : "Variable could not be set." }
+                    }
+                },
+                "rc" : {
+                    "description" : "Returns an exit code based on the outcome of the action.",
+                    "type" : "number",
+                    "always_present" : true,
+                    "values" : {
+                        "0" : { "description" : "Variable set successfully." }
+                    }
+                },
+                "var.global.<globalName>" : {
+                    "description" : "Returns within data[var] the provided global and its new value.",
+                    "type" : "any",
+                    "always_present" : true,
+                    "values" : {
+                    }
+                }
+            }
+        },
+        "globalGet" : {
+            "display_name" : "globalGet",
+            "className" : "_globalGet",
+            "class_location" : "models.global",
+            "description" : "Gets a global persistent variable by name.",
+            "fields" : [
+                { "schema_item" : "globalName", "schema_value" : "globalName", "type" : "input", "label" : "globalName", "description" : "Name of the global variable to get the value of.", "required" : true, "jimi_syntax" : true }
+            ],
+            "data_out" : {
+                "result" : { 
+                    "description" : "Returns True when the variable value has retrieved.",
+                    "type" : "boolean",
+                    "always_present" : true,
+                    "values" : {
+                        "True" : { "description" : "Variable found." },
+                        "False" : { "description" : "Variable could not be found." }
+                    }
+                },
+                "rc" : {
+                    "description" : "Returns an exit code based on the outcome of the action.",
+                    "type" : "number",
+                    "always_present" : true,
+                    "values" : {
+                        "0" : { "description" : "Variable found." },
+                        "100" : { "description" : "Variable could not be found." }
+                    }
+                },
+                "var.global.<globalName>" : {
+                    "description" : "Returns within data[var] the value for the provided global if found.",
+                    "type" : "any",
+                    "always_present" : false,
+                    "values" : {
+                    }
+                }
+            }
+        }
+    },
+    "settings" : {
+
+    }
+}

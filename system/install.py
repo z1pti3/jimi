@@ -3,11 +3,14 @@ import sys
 import secrets
 import random
 import string
+from pathlib import Path
+import os
+import json
 
 import jimi
 
 # Current System Version
-systemVersion = 2.01
+systemVersion = 2.02
 
 # Initialize 
 dbCollectionName = "system"
@@ -103,6 +106,26 @@ def resetTriggers():
 def randomString(length=12):
 	charSet = string.ascii_letters + string.digits
 	return ''.join([random.choice(charSet) for i in range(length)])
+
+def processSystemManifest(manifest):
+	objectTypes = ["collections","triggers","actions"]
+	for objectType in objectTypes:
+		for objectName, objectValue in manifest[objectType].items():
+			try:
+				model = jimi.model._model().getAsClass(query={"name" : objectName, "location" : "system.{0}".format(objectValue["class_location"]) })[0]
+				objectValue["class_id"] = model._id
+				model.manifest = objectValue
+				model.update(["manifest"])
+			except IndexError:
+				pass
+
+def loadSystemManifest():
+	if os.path.isfile(str(Path("system/system.json"))):
+		with open(str(Path("system/system.json")), "r") as f:
+			manifest = json.load(f)
+		processSystemManifest(manifest)
+		return True
+	return False
 
 def systemInstall():
 	# Adding ENC secure
@@ -235,6 +258,9 @@ def systemInstall():
 	rootUser.primaryGroup = adminGroup._id
 	rootUser.update(["primaryGroup"])
 
+	# Install system manifest
+	loadSystemManifest()
+
 	return True
 
 def systemUpgrade(currentVersion):
@@ -270,6 +296,10 @@ def systemUpgrade(currentVersion):
 		for installedPlugin in installedPlugins:
 			installedPlugin.classID = classID
 			installedPlugin.update(["classID"])
+
+	if currentVersion < 2.02:
+		# Install system manifest
+		loadSystemManifest()
 
 	return True
 		
