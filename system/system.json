@@ -1,7 +1,7 @@
 {
     "name" : "system",
     "author" : "system",
-    "version" : 1.0,
+    "version" : 2.0,
     "categories" : ["system"],
     "description" : "System installed triggers and actions.",
     "icon" : null,
