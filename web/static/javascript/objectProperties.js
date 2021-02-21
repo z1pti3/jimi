@@ -8,9 +8,6 @@ var panelPropertiesHTML = `
 		<div class="container-fluid propertiesPanel-body theme-panelBody">
 		</div>
 		<div class="propertiesPanel-help">
-			sdfdsfdsfsds
-			<br>
-			sdfdsf
 		</div>
 	</div>
 	<div class="container-fluid propertiesPanel-footer theme-panelFooter">
@@ -122,8 +119,78 @@ function loadPropertiesPanel(flowID,panel) {
 	// Building properties form
 	var conductID = GetURLParameter("conductID")
 	panel.find(".propertiesPanel-body").empty();
+	panel.find(".propertiesPanel-help").empty();
 	panel.find("#title").text(flowObjects[flowID]["name"]);
 	$.ajax({ url: "/conduct/"+conductID+"/flowProperties/"+flowID+"/", type:"GET", success: function ( result ) {
+			// help
+			if (Object.keys(result["manifest"]).length > 0)
+			{
+				var help = panel.find(".propertiesPanel-help");
+				var title = $('<label id="propertiesPanel-help-title">').text(result["manifest"]["display_name"]);
+				help.append(title).append($('<hr>'));
+				var description = $('<label id="propertiesPanel-help-description">').text(result["manifest"]["description"]);
+				help.append(description).append($('<br>'));
+				help.append($('<label id="propertiesPanel-help-Input">').text("Input:")).append($('<br>'));
+				var $table = $('<table class="propertiesPanel-help-table">');
+				$table.append($('<tr class="propertiesPanel-help-table-header">').append('<td style="min-width: 100px;max-width: 100px;"><label>Name</label></td><td style="min-width: 280px;max-width: 280px;"><label>Description</label></td><td style="min-width: 70px;max-width: 70px;"><label>Type</label></td><td style="min-width: 70px;max-width: 70px;"><label>Required</label></td><td style="min-width: 70px;max-width: 70px;"><label>Syntax</label></td>'))
+				for (field in  result["manifest"]["fields"]) {
+					var $row = $('<tr class="propertiesPanel-help-table-content">');
+					var $cell = $('<td>');
+					$cell.append($('<label>').text(result["manifest"]["fields"][field]["label"]))
+					$row.append($cell);
+					var $cell = $('<td>');
+					$cell.append($('<label>').text(result["manifest"]["fields"][field]["description"]))
+					$row.append($cell);
+					var $cell = $('<td class="center">');
+					$cell.append($('<label>').text(result["manifest"]["fields"][field]["type"]))
+					$row.append($cell);
+					var $cell = $('<td class="center">');
+					$cell.append($('<label>').text(result["manifest"]["fields"][field]["required"]))
+					$row.append($cell);
+					var $cell = $('<td class="center">');
+					$cell.append($('<label>').text(result["manifest"]["fields"][field]["jimi_syntax"]))
+					$row.append($cell);
+					$table.append($row);
+				}
+				help.append($table).append($('<br>'));
+				help.append($('<label id="propertiesPanel-help-Output">').text("Output:")).append($('<br>'));
+				var $table = $('<table class="propertiesPanel-help-table">');
+				$table.append($('<tr class="propertiesPanel-help-table-header">').append('<td style="min-width: 100px;max-width: 100px;"><label>Name</label></td><td style="min-width: 280px;max-width: 280px;"><label>Description</label></td><td style="min-width: 70px;max-width: 70px;"><label>Type</label></td><td style="min-width: 70px;max-width: 70px;"><label>Always Present</label></td><td style="min-width: 300px;max-width: 300px;"><label>values</label></td>'))
+				for (field in  result["manifest"]["data_out"]) {
+					var $row = $('<tr class="propertiesPanel-help-table-content">');
+					var $cell = $('<td>');
+					$cell.append($('<label>').text(field))
+					$row.append($cell);
+					var $cell = $('<td>');
+					$cell.append($('<label>').text(result["manifest"]["data_out"][field]["description"]))
+					$row.append($cell);
+					var $cell = $('<td class="center">');
+					$cell.append($('<label>').text(result["manifest"]["data_out"][field]["type"]))
+					$row.append($cell);
+					var $cell = $('<td class="center">');
+					$cell.append($('<label>').text(result["manifest"]["data_out"][field]["always_present"]))
+					$row.append($cell);
+					var $cell = $('<td>');
+					var $valuesTable = $('<table class="propertiesPanel-help-table">');
+					$valuesTable.append($('<tr class="propertiesPanel-help-table-header">').append('<td style="min-width: 100px;max-width: 100px;"><label>Value</label></td><td style="min-width: 200px;max-width: 200px;"><label>Description</label></td>'))
+					for (value in  result["manifest"]["data_out"][field]["values"]) {
+						var $valuesTableRow = $('<tr class="propertiesPanel-help-table-content">');
+						var $valuesTableCell = $('<td>');
+						$valuesTableCell.append($('<label>').text(value))
+						$valuesTableRow.append($valuesTableCell);
+						var $valuesTableCell = $('<td>');
+						$valuesTableCell.append($('<label>').text(result["manifest"]["data_out"][field]["values"][value]["description"]))
+						$valuesTableRow.append($valuesTableCell);
+						$valuesTable.append($valuesTableRow)
+					}
+					$cell.append($valuesTable)
+					$row.append($cell);
+					$table.append($row);
+				}
+				help.append($table).append($('<br>'));
+			}
+
+			// formData
 			var $table = $('<table width="100%">');
 			for (objectItem in result["formData"]) {
 				var $row = $('<tr>');
@@ -332,12 +399,12 @@ function createPropertiesPanel(flowID) {
 			if ($(".propertiesPanel-main").css("display") == "flex") {
 				$(".propertiesPanel-main").css("display","unset");
 				$(".propertiesPanel-help").css("display","none");
-				panel.width(panel.width()-350);
+				panel.width(panel.width()-900);
 				panel.height(panel.height());
 			} else {
 				$(".propertiesPanel-main").css("display","flex");
 				$(".propertiesPanel-help").css("display","unset");
-				panel.width(panel.width()+350);
+				panel.width(panel.width()+900);
 				panel.height(panel.height());
 			}
 		})

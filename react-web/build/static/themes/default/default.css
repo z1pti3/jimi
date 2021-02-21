@@ -3,7 +3,7 @@ body {
 }
 
 p {
-    color: #ddd;
+    color: #dfd1d1;
 }
 
 .theme-navButton {
@@ -17,7 +17,7 @@ p {
 .theme-content {
     background-color: #111111;
     border: none;
-    color: #ddd;
+    color: #dfd1d1;
 }
 
 .theme-popupContainer {
@@ -30,7 +30,7 @@ p {
 
 .theme-panelContainer {
     background-color: #222222;
-    color: #ddd;
+    color: #dfd1d1;
     border-color: #2e6da4;
     border-radius: 2px;
 }
@@ -56,7 +56,7 @@ p {
 .theme-panelButton {
     background-color: #222222;
     border-color: #2e6da4;
-    color: #ddd;
+    color: #dfd1d1;
 }
 
 .theme-panelButton:hover {
@@ -85,40 +85,40 @@ p {
 .theme-panelTextArea {
     background-color: #0f0f0f;
     min-height: 75px;
-    color: #ddd;
+    color: #dfd1d1;
     border: none;
 }
 
 .theme-panelTextArea-half {
     background-color: #0f0f0f;
-    color: #ddd;
+    color: #dfd1d1;
     border: none;
     width: 50%;
 }
 
 .theme-panelTextArea-14 {
     background-color: #0f0f0f;
-    color: #ddd;
+    color: #dfd1d1;
     border: none;
     width: 25%;
 }
 
 .theme-panelTextbox {
     background-color: #0f0f0f; 
-    color: #ddd;
+    color: #dfd1d1;
     border: none;
 }
 
 .theme-panelTextbox-half {
     background-color: #0f0f0f; 
-    color: #ddd;
+    color: #dfd1d1;
     border: none;
     width: 50%;
 }
 
 .theme-panelTextbox-34 {
     background-color: #0f0f0f; 
-    color: #ddd;
+    color: #dfd1d1;
     border: none;
     width: 75%;
 }
@@ -135,7 +135,7 @@ p {
 
 .theme-table {
     background-color: #0f0f0f;
-    color: #ddd;
+    color: #dfd1d1;
     border-color: #2e6da4;
     border-width: 1px;
     border-style: solid;
@@ -143,7 +143,7 @@ p {
 
 .theme-tableHeader {
     background-color: #111111;
-    color: #ddd;
+    color: #dfd1d1;
 }
 
 .theme-tableBody {
@@ -152,17 +152,17 @@ p {
 
 .theme-tableRowOdd {
     background-color: #222222;
-    color: #ddd;
+    color: #dfd1d1;
 }
 
 .theme-tableRowEven {
     background-color: #0f0f0f;
-    color: #ddd;
+    color: #dfd1d1;
 }
 
 .theme-json {
     background-color: #0f0f0f;
-    color: #ddd;
+    color: #dfd1d1;
 }
 
 .theme-jsonkey {
@@ -189,12 +189,12 @@ p {
 }
 
 .theme-dropdown-menu > li > a {
-    color: #ddd;
+    color: #dfd1d1;
 }
 
 .theme-dropdown-menu > li:hover > a {
     background-color: #220433;
-    color: #ddd;
+    color: #dfd1d1;
 }
 
 .theme-dropdown-menu-divider {
@@ -214,13 +214,13 @@ p {
 /* item hover */
 .select2-container--theme-panelSelect .select2-results__option[aria-selected=true] {
     background-color: #220433;
-    color: #ddd;
+    color: #dfd1d1;
 }
 
 /* search box */
 .select2-container--theme-panelSelect .select2-search--dropdown .select2-search__field {
     background-color: #0f0f0f;
-    color: #ddd;
+    color: #dfd1d1;
     border: none;
 }
 
@@ -235,7 +235,7 @@ p {
 /* search results */
 .select2-container--theme-panelSelect .select2-results {
     background-color: #0f0f0f;
-    color: #ddd;
+    color: #dfd1d1;
 }
 
 .select2-container--theme-panelSelect .select2-results > .select2-results__options {
