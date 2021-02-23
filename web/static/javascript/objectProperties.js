@@ -132,7 +132,7 @@ function loadPropertiesPanel(flowID,panel) {
 				help.append(description).append($('<br>'));
 				help.append($('<label id="propertiesPanel-help-Input">').text("Input:")).append($('<br>'));
 				var $table = $('<table class="propertiesPanel-help-table">');
-				$table.append($('<tr class="propertiesPanel-help-table-header">').append('<td style="min-width: 100px;max-width: 100px;"><label>Name</label></td><td style="min-width: 280px;max-width: 280px;"><label>Description</label></td><td style="min-width: 70px;max-width: 70px;"><label>Type</label></td><td style="min-width: 70px;max-width: 70px;"><label>Required</label></td><td style="min-width: 70px;max-width: 70px;"><label>Syntax</label></td>'))
+				$table.append($('<tr class="propertiesPanel-help-table-header">').append('<td><label>Name</label></td><td><label>Description</label></td><td><label>Type</label></td><td><label>Required</label></td><td><label>Syntax</label></td>'))
 				for (field in  result["manifest"]["fields"]) {
 					var $row = $('<tr class="propertiesPanel-help-table-content">');
 					var $cell = $('<td>');
@@ -155,7 +155,7 @@ function loadPropertiesPanel(flowID,panel) {
 				help.append($table).append($('<br>'));
 				help.append($('<label id="propertiesPanel-help-Output">').text("Output:")).append($('<br>'));
 				var $table = $('<table class="propertiesPanel-help-table">');
-				$table.append($('<tr class="propertiesPanel-help-table-header">').append('<td style="min-width: 100px;max-width: 100px;"><label>Name</label></td><td style="min-width: 280px;max-width: 280px;"><label>Description</label></td><td style="min-width: 70px;max-width: 70px;"><label>Type</label></td><td style="min-width: 70px;max-width: 70px;"><label>Always Present</label></td><td style="min-width: 300px;max-width: 300px;"><label>values</label></td>'))
+				$table.append($('<tr class="propertiesPanel-help-table-header">').append('<td><label>Name</label></td><td><label>Description</label></td><td><label>Type</label></td><td><label>Always Present</label></td><td><label>values</label></td>'))
 				for (field in  result["manifest"]["data_out"]) {
 					var $row = $('<tr class="propertiesPanel-help-table-content">');
 					var $cell = $('<td>');
@@ -172,7 +172,7 @@ function loadPropertiesPanel(flowID,panel) {
 					$row.append($cell);
 					var $cell = $('<td>');
 					var $valuesTable = $('<table class="propertiesPanel-help-table">');
-					$valuesTable.append($('<tr class="propertiesPanel-help-table-header">').append('<td style="min-width: 100px;max-width: 100px;"><label>Value</label></td><td style="min-width: 200px;max-width: 200px;"><label>Description</label></td>'))
+					$valuesTable.append($('<tr class="propertiesPanel-help-table-header">').append('<td><label>Value</label></td><td><label>Description</label></td>'))
 					for (value in  result["manifest"]["data_out"][field]["values"]) {
 						var $valuesTableRow = $('<tr class="propertiesPanel-help-table-content">');
 						var $valuesTableCell = $('<td>');
