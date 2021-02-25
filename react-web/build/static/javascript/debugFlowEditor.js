@@ -369,7 +369,11 @@ function refreshDebugSession() {
 	$.ajax({url:"/api/1.0/debug/"+debugSession+"/list/", type:"GET", timeout: 2000, contentType:"application/json", success: function ( flowList ) {
 			for (index in flowList["flowList"]) {
 				if (!(flowList["flowList"][index]["id"] in executedFlows)) {
-					addExecutedFlowEvent(flowList["flowList"][index]["id"],flowList["flowList"][index]["event"],flowList["flowList"][index]["preserveDataID"]);
+					var event = flowList["flowList"][index]["event"]
+					if (event.constructor === {}) {
+						event = JSON.stringify(event)
+					}
+					addExecutedFlowEvent(flowList["flowList"][index]["id"],event,flowList["flowList"][index]["preserveDataID"]);
 				}
 			}
 			if (uid != null) {
