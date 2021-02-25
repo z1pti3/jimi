@@ -370,9 +370,11 @@ function refreshDebugSession() {
 			for (index in flowList["flowList"]) {
 				if (!(flowList["flowList"][index]["id"] in executedFlows)) {
 					var event = flowList["flowList"][index]["event"]
-					if (event.constructor === {}) {
+					if (event.constructor === Object) {
+						console.log(1)
 						event = JSON.stringify(event)
 					}
+					console.log(2)
 					addExecutedFlowEvent(flowList["flowList"][index]["id"],event,flowList["flowList"][index]["preserveDataID"]);
 				}
 			}
