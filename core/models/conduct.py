@@ -194,7 +194,7 @@ class _conduct(jimi.db._document):
             jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].endEvent(flowDebugSession["eventID"])
 
 def dataTemplate(data=None):
-    if data != None and type(data) is dict():
+    if data != None and type(data) is dict:
         try:
             if "event" in data["flowData"]:
                 del data["flowData"]["event"]
