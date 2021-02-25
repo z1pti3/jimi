@@ -250,6 +250,8 @@ def getConductFlowLogic(conductID,flowID,nextflowID):
 					if nextflowID == nextFlow:
 						return {"result" : {"logic" : True}}, 200
 				elif type(nextFlow) is dict:
+					if "order" not in nextFlow:
+						nextFlow["order"] = 0
 					if nextflowID == nextFlow["flowID"]:
 						return {"result" : {"logic" : nextFlow["logic"], "order" : nextFlow["order"]}}, 200
 	return { }, 404	
