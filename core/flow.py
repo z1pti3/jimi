@@ -107,6 +107,8 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,maxDuration
         tempData = jimi.conduct.dataTemplate()
         tempData["persistentData"]["system"]["conduct"] = tempConduct
         tempData["persistentData"]["system"]["trigger"] = flow["classObject"]
+        tempData["flowData"]["conduct_id"] = tempConduct._id
+        tempData["flowData"]["trigger_id"] = flow["classObject"]._id
         for index, event in enumerate(events):
             first = True if index == 0 else False
             last = True if index == len(events) - 1 else False
