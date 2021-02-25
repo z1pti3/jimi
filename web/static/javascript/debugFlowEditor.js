@@ -73,6 +73,7 @@ function createLinkRAW(from,to,color,text) {
 		id: linkName,
 		from: flowObjects[from]["nodeID"], 
 		to: flowObjects[to]["nodeID"],
+		label: text,
 		color: {
 			color: color
 		},
