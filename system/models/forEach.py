@@ -42,7 +42,7 @@ class _forEach(jimi.action._action):
 		if self.manual:
 			events = self.events
 		else:
-			events = jimi.helpers.evalString(self.eventsField,{"data" : data})
+			events = jimi.helpers.evalString(self.eventsField,{"data" : data["flowData"]})
 		if self.skip == 0:
 			skip = 1
 		else:
