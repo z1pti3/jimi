@@ -101,7 +101,7 @@ class _conduct(jimi.db._document):
     def flowHandler(self,currentFlow,flowDict,data,flowDebugSession=None):
         if flowDebugSession or "flowDebugSession" in data["persistentData"]["system"]:
             if "flowDebugSession" in data["persistentData"]["system"]:
-                flowDebugSession = data["persistentData"]["system"]["flowDebugSession"]
+                flowDebugSession = copy.deepcopy(data["persistentData"]["system"]["flowDebugSession"])
             else:
                 data["persistentData"]["system"]["flowDebugSession"] = flowDebugSession
             flowDebugSession["eventID"] = jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].startEvent(data["flowData"]["event"],data)
@@ -197,10 +197,10 @@ class _conduct(jimi.db._document):
         if flowDebugSession:
             jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].endEvent(flowDebugSession["eventID"])
 
-def dataTemplate(data=None):
+def dataTemplate(data=None,keepEvent=False):
     if data != None and type(data) is dict:
         try:
-            if "event" in data["flowData"]:
+            if "event" in data["flowData"] and keepEvent != True:
                 del data["flowData"]["event"]
             if "var" not in data["flowData"]:
                 data["flowData"]["var"] = {}

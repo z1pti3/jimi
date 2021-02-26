@@ -54,7 +54,7 @@ class _forEach(jimi.action._action):
 			flowDebugSession = None
 		if type(events) is list:
 			cpuSaver = helpers.cpuSaver()
-			tempData = conduct.dataTemplate(data)
+			tempData = conduct.dataTemplate(data,keepEvent=True)
 			tempData["persistentData"]["system"]["trigger"] = self
 			if self.limit > 0:
 				events = events[:self.limit]
@@ -72,8 +72,12 @@ class _forEach(jimi.action._action):
 				tempDataCopy = conduct.copyData(tempData)
 
 				if self.mergeEvents:
-					tempDataCopy["flowData"]["event"] = {**data["flowData"]["event"],**event}
-					tempDataCopy["flowData"]["eventStats"] = eventStat
+					try:
+						tempDataCopy["flowData"]["event"] = {**data["flowData"]["event"],**event}
+						tempDataCopy["flowData"]["eventStats"] = eventStat
+					except:
+						tempDataCopy["flowData"]["event"] = event
+						tempDataCopy["flowData"]["eventStats"] = eventStat
 				else:
 					tempDataCopy["flowData"]["event"] = event
 					tempDataCopy["flowData"]["eventStats"] = eventStat
