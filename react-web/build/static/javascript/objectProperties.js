@@ -62,7 +62,7 @@ function savePropertiesPanel(flowID,panel) {
 		if (formItem.attr("type") == "text")
 		{
 			if (formItem.attr("required") && formItem.val() == "") {
-				dropdownAlert(panel,"error","Dont forget the required fields!",1000);
+				dropdownAlert(panel,"warning","Don't forget the required fields!",1000);
 				requiredMet = false;
 			}
 			if (formItem.attr("current") != formItem.val()) {

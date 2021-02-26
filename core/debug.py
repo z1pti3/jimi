@@ -16,9 +16,9 @@ class _flowDebug():
     def getEvent(self,eventID):
         return self.flowList[eventID]
 
-    def startEvent(self,event,data):
+    def startEvent(self,eventName,event,data):
         uid = str(uuid.uuid4())
-        self.flowList[uid] = { "id" : uid, "type" : "event", "event" : event, "startTime" : time.time(), "endTime" : 0, "execution" : {}, "preserveDataID" : len(self.preserveData) }
+        self.flowList[uid] = { "id" : uid, "type" : "event", "name" : eventName, "event" : event, "startTime" : time.time(), "endTime" : 0, "execution" : {}, "preserveDataID" : len(self.preserveData) }
         self.preserveData.append([data["persistentData"],data["eventData"]])
         return uid
 
@@ -134,9 +134,14 @@ if jimi.api.webServer:
                         if dataIn:
                             if type(dataIn) is list:
                                 events = dataIn
+                                data = jimi.conduct.dataTemplate()
                             elif type(dataIn) is dict:
-                                events = [dataIn["flowData"]["event"]]
-                                data = dataIn
+                                try:
+                                    events = [dataIn["flowData"]["event"]]
+                                    data = jimi.conduct.dataTemplate(dataIn)
+                                except KeyError:
+                                    events = [dataIn]
+                                    data = jimi.conduct.dataTemplate()
                         else:
                             t.data = { "flowData" : { "var" : {}, "plugin" : {} } }
                             events = t.doCheck()
@@ -168,7 +173,7 @@ if jimi.api.webServer:
                         event = flowValue["event"]
                         if type(event) is dict or type(event) is list:
                             event = jimi.helpers.dictToJson(event)
-                        result.append({ "id" : flowKey, "event" : event, "preserveDataID" : flowValue["preserveDataID"] })
+                        result.append({ "id" : flowKey, "event" : event, "name" : flowValue["name"], "preserveDataID" : flowValue["preserveDataID"] })
                     return {"flowList" : result }, 200
                 return {}, 404
 

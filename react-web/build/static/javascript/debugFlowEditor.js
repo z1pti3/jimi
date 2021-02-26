@@ -269,7 +269,6 @@ function setupFlowchart() {
 			selectedObject = ["flowObject",nodeObjects[params["nodes"][0]]["flowID"]]
 			nodeSelectionChange(nodeObjects[params["nodes"][0]]["flowID"]);
 		} else {
-			$('.eventItemInner').removeClass('click')
 			clearSelection();
 		}
 		return true;
@@ -371,11 +370,9 @@ function refreshDebugSession() {
 				if (!(flowList["flowList"][index]["id"] in executedFlows)) {
 					var event = flowList["flowList"][index]["event"]
 					if (event.constructor === Object) {
-						console.log(1)
-						event = JSON.stringify(event)
+						event = JSON.stringify(event, null, 5)
 					}
-					console.log(2)
-					addExecutedFlowEvent(flowList["flowList"][index]["id"],event,flowList["flowList"][index]["preserveDataID"]);
+					addExecutedFlowEvent(flowList["flowList"][index]["id"],flowList["flowList"][index]["name"],event,flowList["flowList"][index]["preserveDataID"]);
 				}
 			}
 			if (uid != null) {
@@ -393,12 +390,14 @@ function refreshDebugSession() {
 	});
 }
 
-function addExecutedFlowEvent(uid,event,preserveDataID) {
-	var parent = $('<div id="eventItem'+uid+'" class="eventItem">').attr({ "eventID" : uid, "preserveDataID" : preserveDataID }).html(event);
+function addExecutedFlowEvent(uid,eventName,event,preserveDataID) {
+	var parent = $('<div id="eventItem'+uid+'" class="eventItem">').attr({ "eventID" : uid, "preserveDataID" : preserveDataID, "event" : event }).html(eventName);
 	parent.click(function () {
 		clearSelection();
 		$(".eventItemInner").addClass("hide");
 		uid = $(this).attr("eventID")
+		$("#debugFlowEditor-in").val($(this).attr("event"), null, 5);
+		$("#debug_continue_button").prop('disabled', false);
 		$.ajax({url:"/api/1.0/debug/"+debugSession+"/"+uid+"/executionList/", type:"GET", timeout: 2000, contentType:"application/json", success: function ( executionList ) {
 				for (index in executionList["executionList"]) {
 					if (!(executionList["executionList"][index]["id"] in executedFlows[uid]["execution"])) {
@@ -455,11 +454,14 @@ function nodeSelectionChange(flowID) {
 }
 
 function setSelection(execution) {
+	$("#debug_continue_button").prop('disabled', false);
 	$("#debugFlowEditor-in").val(JSON.stringify(execution["dataIn"], null, 5));
 	$("#debugFlowEditor-out").val(JSON.stringify(execution["dataOut"], null, 5));
 }
 
 function clearSelection() {
+	$('.eventItemInner').removeClass('click')
+	$("#debug_continue_button").prop('disabled', true)
 	$("#debugFlowEditor-in").val("");
 	$("#debugFlowEditor-out").val("");
 }
