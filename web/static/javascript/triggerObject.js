@@ -42,9 +42,7 @@ function createTriggerObjectPanel(flowID) {
 	if (modelType == "trigger") {
 		if (!triggerExistingPanels.hasOwnProperty(flowID)) {
 			triggerExistingPanels[flowID] = flowID;
-			var e = window.event;
 			var panel = $(triggerObjectHTML);
-			panel.css({top : "10%", left : "10%"});
 			panel.draggable();
 			panel.resizable({
 				grid: 20
@@ -70,6 +68,13 @@ function createTriggerObjectPanel(flowID) {
 
 			// Applying object to UI
 			$('.ui-main').append(panel);
+
+			// Set Initial Position
+			height = $("#flowchart").height();
+			width = $("#flowchart").width();
+			var posX = (width/2) - (panel.width()/2);
+			var posY = (height/2) - (panel.height()/2);
+			panel.css({top : posY, left : posX});
 		}
 	}
 }

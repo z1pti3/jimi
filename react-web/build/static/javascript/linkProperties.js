@@ -65,12 +65,7 @@ function createLinkPropertiesPanel(from,to) {
 	panelID = from+"->"+to
 	if (!openLinkPanels.hasOwnProperty(panelID)) {
 		openLinkPanels[panelID] = panelID;
-		offsetLeft = $("#flowchart").offset().left;
-		var e = window.event;
-		var posX = e.clientX - offsetLeft;
-		var posY = e.clientY;
 		var panel = $(panelLinkHTML);
-		panel.css({top : posY, left : posX + 35});
 		panel.draggable();
 		panel.resizable({
 			grid: 20
@@ -111,6 +106,13 @@ function createLinkPropertiesPanel(from,to) {
 	
 		// Applying object to UI
 		$('.ui-main').append(panel);
+
+		// Set Initial Position
+		height = $("#flowchart").height();
+		width = $("#flowchart").width();
+		var posX = (width/2) - (panel.width()/2);
+		var posY = (height/2) - (panel.height()/2);
+		panel.css({top : posY, left : posX});
 	}
 }
 

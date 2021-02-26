@@ -115,7 +115,7 @@ function savePropertiesPanel(flowID,panel) {
 	});
 }
 
-function loadPropertiesPanel(flowID,panel) {
+function loadPropertiesPanel(flowID,panel,init=false) {
 	// Building properties form
 	var conductID = GetURLParameter("conductID")
 	panel.find(".propertiesPanel-body").empty();
@@ -331,6 +331,15 @@ function loadPropertiesPanel(flowID,panel) {
 			panel.find(".propertiesPanel-body").append($table);
 			// Added to fix a bug whereby the property table scroll bar does not appear
 			panel.height(panel.height());
+
+			// Set Initial Position
+			if (init) {
+				height = $("#flowchart").height();
+				width = $("#flowchart").width();
+				var posX = (width/2) - (panel.width()/2);
+				var posY = (height/2) - (panel.height()/2);
+				panel.css({top : posY, left : posX});
+			}
 		}
 	});
 
@@ -339,12 +348,7 @@ function loadPropertiesPanel(flowID,panel) {
 function createPropertiesPanel(flowID) {
 	if (!openPanels.hasOwnProperty(flowID)) {
 		openPanels[flowID] = flowID;
-		offsetLeft = $("#flowchart").offset().left;
-		var e = window.event;
-		var posX = e.clientX - offsetLeft;
-		var posY = e.clientY;
 		var panel = $(panelPropertiesHTML);
-		panel.css({top : posY, left : posX + 35});
 		panel.draggable({
 			start: function(e, ui) {
 				if (selectedObject != null)
@@ -402,17 +406,21 @@ function createPropertiesPanel(flowID) {
 				panel.find("#help").text("Show Help");
 				panel.width(panel.width()-900);
 				panel.height(panel.height());
+				left = parseInt(panel.css("left"));
+				panel.css({left: left + 450});
 			} else {
 				panel.find(".propertiesPanel-main").css("display","flex");
 				panel.find(".propertiesPanel-help").css("display","unset");
 				panel.find("#help").text("Hide Help");
 				panel.width(panel.width()+900);
 				panel.height(panel.height());
+				left = parseInt(panel.css("left"));
+				panel.css({left: left - 450});
 			}
 		})
 
 		// Loading properties form
-		loadPropertiesPanel(flowID,panel);
+		loadPropertiesPanel(flowID,panel,true);
 	
 		// Applying object to UI
 		$('.ui-main').append(panel);
