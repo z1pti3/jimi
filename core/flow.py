@@ -118,15 +118,7 @@ def executeCodifyFlow(sessionData,eventsData,codifyData,eventCount=0,maxDuration
             tempDataCopy["flowData"]["event"] = event
             tempDataCopy["flowData"]["eventStats"] = eventStat
 
-            try:
-                jid = jimi.workers.workers.new("testFire:{0}".format(tempConduct._id),tempConduct.triggerHandler,(flow["flowID"],tempDataCopy,False,True,flowDebugSession),maxDuration=maxDuration, raiseException=False)
-                jimi.workers.workers.wait(jid)
-                resultException = jimi.workers.workers.getError(jid)
-                if resultException:
-                    output = "\n\n***ERROR Start***\n{0}***ERROR End***\n\n".format(''.join(traceback.format_exception(etype=type(resultException), value=resultException, tb=resultException.__traceback__)))
-            except Exception as e:
-                output = "\n\n***ERROR Start***\n{0}***ERROR End***\n\n".format(''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
-
+            tempConduct.triggerHandler(flow["flowID"],tempDataCopy,False,True,flowDebugSession)
 
     output += json.dumps(jimi.helpers.dictToJson(jimi.debug.flowDebugSession[sessionID].flowList), indent=4)
     jimi.debug.deleteFlowDebugSession(sessionID)

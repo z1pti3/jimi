@@ -1,5 +1,6 @@
 import time
 import copy
+import traceback
 
 import jimi
 
@@ -151,7 +152,10 @@ class _conduct(jimi.db._document):
                             data["flowData"]["flow_id"] = currentFlow["flowID"]
                             if flowDebugSession:
                                 flowDebugSession["actionID"] = jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].startAction(flowDebugSession["eventID"],data["flowData"]["flow_id"],class_.name,copyData(data))
-                            data["flowData"]["action"] = class_.runHandler(data=data)
+                            try:
+                                data["flowData"]["action"] = class_.runHandler(data=data)
+                            except Exception as e:
+                                data["flowData"]["action"] = { "result" : False, "rc" : -255, "error" : traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__) }
                             data["flowData"]["action"]["action_id"] = class_._id
                             data["flowData"]["action"]["action_name"] = class_.name
                             if flowDebugSession:
