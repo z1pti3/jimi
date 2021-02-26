@@ -396,16 +396,16 @@ function createPropertiesPanel(flowID) {
 		})
 
 		panel.find("#help").click(function () { 
-			if ($(".propertiesPanel-main").css("display") == "flex") {
-				$(".propertiesPanel-main").css("display","unset");
-				$(".propertiesPanel-help").css("display","none");
-				$("#help").text("Show Help");
+			if (panel.find(".propertiesPanel-main").css("display") == "flex") {
+				panel.find(".propertiesPanel-main").css("display","unset");
+				panel.find(".propertiesPanel-help").css("display","none");
+				panel.find("#help").text("Show Help");
 				panel.width(panel.width()-900);
 				panel.height(panel.height());
 			} else {
-				$(".propertiesPanel-main").css("display","flex");
-				$(".propertiesPanel-help").css("display","unset");
-				$("#help").text("Hide Help");
+				panel.find(".propertiesPanel-main").css("display","flex");
+				panel.find(".propertiesPanel-help").css("display","unset");
+				panel.find("#help").text("Hide Help");
 				panel.width(panel.width()+900);
 				panel.height(panel.height());
 			}

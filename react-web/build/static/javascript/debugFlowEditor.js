@@ -420,7 +420,6 @@ function addExecutedFlowEventResult(uid,executionUID,executionName) {
 	child.insertBefore($("#eventItemTop"+uid));
 	child.click(function () {
 		clearSelection();
-		$('.eventItemInner').removeClass('click')
 		$(this).addClass('click');
 		executionUID = $(this).attr("executionID")
 		network.setSelection({ "nodes" : [] });
@@ -441,7 +440,6 @@ function clearExecutedFlows() {
 
 function nodeSelectionChange(flowID) {
 	clearSelection();
-	$('.eventItemInner').removeClass('click')
 	if (selectedExecutedFlowUID!=null) {
 		$.ajax({url:"/api/1.0/debug/"+debugSession+"/"+selectedExecutedFlowUID+"/"+flowID+"/flowID", type:"GET", timeout: 2000, contentType:"application/json", success: function ( executionData ) {
 				setSelection(executionData);
