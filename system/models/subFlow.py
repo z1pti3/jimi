@@ -1,8 +1,3 @@
-import time
-
-from core.models import action, conduct
-from core import helpers, logging, cache, settings
-
 import jimi
 
 class _subFlow(jimi.action._action):
@@ -18,7 +13,7 @@ class _subFlow(jimi.action._action):
 
 		events = [data["flowData"]["event"]]
 
-		tempData = conduct.copyData(conduct.dataTemplate(data,keepEvent=True))
+		tempData = jimi.conduct.copyData(jimi.conduct.dataTemplate(data,keepEvent=True))
 		tempData["flowData"]["callingTriggerID"] = data["flowData"]["trigger_id"]
 
 		if self.customEventsValue:
