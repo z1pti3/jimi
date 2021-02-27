@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import importlib
+import requests
 
 import jimi
 
@@ -175,6 +176,57 @@ if jimi.api.webServer:
                                 upgradePlugin.upgradeHandler()
                                 return { }, 200
                 return { }, 404
+
+            @jimi.api.webServer.route(jimi.api.base+"plugins/<pluginName>/update/", methods=["POST"])
+            @jimi.auth.adminEndpoint
+            def updatePluginFromFile(pluginName):
+                print(1)
+                f = jimi.api.request.files['file']
+                # BUG need to fix dir transverse
+                f.save(str(Path("plugins/{0}.zip".format(pluginName))))
+                return { }, 200
+
+        if jimi.api.webServer.name == "jimi_web":
+            @jimi.api.webServer.route(jimi.api.base+"plugins/store/get/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def updatePluginFromRemoteStore():
+                repo = jimi.api.request.args.get("githubRepo")
+                pluginName = jimi.api.request.args.get("pluginName")
+                response = requests.get("https://raw.githubusercontent.com/{0}/master/{1}.json".format(repo,pluginName))
+                if response.status_code == 200:
+                    manifest = json.loads(response.text)
+                    plugin = _plugin().getAsClass(query={ "name" : manifest["name"]})
+                    if len(plugin) == 1:
+                        plugin = plugin[0]
+                        if manifest["version"] < plugin.version:
+                            with requests.get("https://github.com/{0}/archive/master.zip".format(repo), stream=True) as r:
+                                r.raise_for_status()
+                                # BUG need to fix dir transverse
+                                with open(str(Path("data/temp/{0}.zip".format( manifest["name"]))), 'wb') as f:
+                                    for chunk in r.iter_content(chunk_size=8192):
+                                        f.write(chunk)
+
+                            headers = { "X-api-token" : jimi.api.g.sessionToken }
+                            url = jimi.cluster.getMaster()
+                            apiEndpoint = "plugins/{0}/update/".format(manifest["name"])
+                            # BUG need to fix dir transverse
+                            with open(str(Path("data/temp/{0}.zip".format(manifest["name"]))), 'rb') as f:
+                                response = requests.post("{0}/{1}{2}".format(url,jimi.api.base,apiEndpoint), headers=headers, files={"file" : f.read() })
+                            return json.loads(response.text), 200
+                        else:
+                            return { }, 205
+                    else:
+                        pass
+                else:
+                    return { }, 404
+                return { }, 200
+                # apiEndpoint = "plugins/store/get/?githubRepo={0}&pluginName={1}".format(jimi.api.request.args.get("githubRepo"),jimi.api.request.args.get("pluginName"))
+                # url = jimi.cluster.getMaster()
+                # response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
+                # return json.loads(response.text), 200
+
+
+            
 
 def load():
     updatePluginDB()
