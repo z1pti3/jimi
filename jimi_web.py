@@ -294,12 +294,12 @@ def setConductFlowLogic(conductID,flowID,nextflowID):
 						flow["next"][key]["order"] = int(data["order"])
 						# Sorting the list so we dont need to do this at flow runtime
 						try:
-							flow["next"] = sorted(flow["next"], key=itemgetter("order"), reverse=True) 
+							flow["next"] = sorted(flow["next"], key=itemgetter("order"), reverse=False) 
 						except KeyError:
 							for value in flow["next"]:
 								if "order" not in value:
 									value["order"] = 0
-							flow["next"] = sorted(flow["next"], key=itemgetter("order"), reverse=True) 
+							flow["next"] = sorted(flow["next"], key=itemgetter("order"), reverse=False) 
 						if "_id" in api.g.sessionData:
 							jimi.audit._audit().add("flowLogic","update",{ "_id" : jimi.api.g.sessionData["_id"], "user" : jimi.api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID, "nextflowID" : nextflowID, "logic" : data["logic"] })
 						else:

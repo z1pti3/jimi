@@ -82,19 +82,19 @@ class _conduct(jimi.db._document):
     def flowLogicEval(self,data,logicVar):
         if type(logicVar) is bool:
             try:
-                if logicVar == data["action"]["result"]:
+                if logicVar == data["flowData"]["action"]["result"]:
                     return True
             except:
                 pass
         elif type(logicVar) is int:
             try:
-                if logicVar == data["action"]["rc"]:
+                if logicVar == data["flowData"]["action"]["rc"]:
                     return True
             except:
                 pass
         elif type(logicVar) is str:
             if logicVar.startswith("if"):
-                if jimi.logic.ifEval(logicVar, { "data" : data }):
+                if jimi.logic.ifEval(logicVar, { "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]}):
                     return True
         return False
 
@@ -123,21 +123,25 @@ class _conduct(jimi.db._document):
                         # Logic and var defintion
                         triggerContinue = True
                         if currentTrigger.logicString:
-                            if jimi.logic.ifEval(currentTrigger.logicString,{ "data" : data["flowData"]}):
+                            if jimi.logic.ifEval(currentTrigger.logicString,{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]}):
                                 if currentTrigger.varDefinitions:
-                                    data["flowData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"]})
+                                    data["flowData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]},0)
+                                    data["eventData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["eventData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]},1)
+                                    data["persistentData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["persistentData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]},2)
                             else:
                                 triggerContinue = False
                         else:
                             if currentTrigger.varDefinitions:
-                                data["flowData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"]})
+                                data["flowData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]},0)
+                                data["eventData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["eventData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]},1)
+                                data["persistentData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["persistentData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]},2)
                         # If logic has said yes or no logic defined then move onto actions
                         if triggerContinue == True:
                             passData = data
                             for nextFlow in currentFlow["next"]:
                                 if passData == None:
                                     passData = copyData(data)
-                                if self.flowLogicEval(data["flowData"],nextFlow["logic"]):
+                                if self.flowLogicEval(data,nextFlow["logic"]):
                                     processQueue.append({ "flowID" : nextFlow["flowID"], "data" : passData })
                                 passData = None
                     except IndexError:
@@ -164,7 +168,7 @@ class _conduct(jimi.db._document):
                             for nextFlow in currentFlow["next"]:
                                 if passData == None:
                                     passData = copyData(data)
-                                if self.flowLogicEval(data["flowData"],nextFlow["logic"]):
+                                if self.flowLogicEval(data,nextFlow["logic"]):
                                     processQueue.append({ "flowID" : nextFlow["flowID"], "data" : passData })
                                 passData = None
                     except IndexError:
@@ -208,19 +212,22 @@ def dataTemplate(data=None,keepEvent=False):
                 data["flowData"]["plugin"] = {}
         except KeyError:
             data["flowData"] = { "var" : {}, "plugin" : {} }
-        try:
-            data["eventData"] = {}
-        except KeyError:
-            pass
+        if "eventData" not in data:
+            data["eventData"] = { "var" : {} }
+        else:
+            if "var" not in data["eventData"]:
+                data["eventData"]["var"] = {}
         if "persistentData" not in data:
-            data["persistentData"] = { "system" : { "trigger" : None, "conduct" : None }, "plugin" : { } }
+            data["persistentData"] = { "system" : { "trigger" : None, "conduct" : None }, "plugin" : { }, "var" : {} }
         else:
             if "system" not in data["persistentData"]:
                 data["persistentData"] = { "system" : { "trigger" : None, "conduct" : None } }
             if "plugin" not in data["persistentData"]:
-                data["persistentData"]["plugin"] = { }
+                data["persistentData"]["plugin"] = {}
+            if "var" not in data["persistentData"]:
+                data["persistentData"]["var"] = {}
     else:
-        data = { "flowData" : { "var" : {}, "plugin" : {} }, "eventData" : {}, "persistentData" : { "system" : { "trigger" : None, "conduct" : None }, "plugin" : { } } }
+        data = { "flowData" : { "var" : {}, "plugin" : {} }, "eventData" : { "var" : {} }, "persistentData" : { "system" : { "trigger" : None, "conduct" : None }, "plugin" : {}, "var" : {} } }
     return data
 
 def copyData(data):
