@@ -52,17 +52,21 @@ class _action(jimi.db._document):
         ####################################
 
         if self.logicString:
-            logicResult = jimi.logic.ifEval(self.logicString, { "data" : data["flowData"] })
+            logicResult = jimi.logic.ifEval(self.logicString, { "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]})
             if logicResult:
                 actionResult = self.doAction(data)
                 if self.varDefinitions:
-                    data["flowData"]["var"] = jimi.variable.varEval(self.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"], "action" : actionResult})
+                    data["flowData"]["var"] = jimi.variable.varEval(self.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"], "action" : actionResult},0)
+                    data["eventData"]["var"] = jimi.variable.varEval(self.varDefinitions,data["eventData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"], "action" : actionResult},1)
+                    data["persistentData"]["var"] = jimi.variable.varEval(self.varDefinitions,data["persistentData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"], "action" : actionResult},2)
             else:
                 actionResult = { "result" : False, "rc" : -100, "msg" : "Logic returned: False", "logic_string" : self.logicString }
         else:
             actionResult = self.doAction(data)
             if self.varDefinitions:
-                data["flowData"]["var"] = jimi.variable.varEval(self.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"], "action" : actionResult})
+                data["flowData"]["var"] = jimi.variable.varEval(self.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"], "action" : actionResult},0)
+                data["eventData"]["var"] = jimi.variable.varEval(self.varDefinitions,data["eventData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"], "action" : actionResult},1)
+                data["persistentData"]["var"] = jimi.variable.varEval(self.varDefinitions,data["persistentData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"], "action" : actionResult},2)
 
         ####################################
         #              Footer              #

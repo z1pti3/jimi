@@ -744,12 +744,12 @@ def newFlowLink(conductID,fromFlowID,toFlowID):
                 fromFlow["next"].append({ "flowID" : toFlowID, "logic": True, "order" : 0 })
                 # Sorting the list so we dont need to do this at flow runtime
                 try:
-                    fromFlow["next"] = sorted(fromFlow["next"], key=itemgetter("order"), reverse=True) 
+                    fromFlow["next"] = sorted(fromFlow["next"], key=itemgetter("order"), reverse=False) 
                 except KeyError:
                     for value in fromFlow["next"]:
                         if "order" not in value:
                             value["order"] = 0
-                    fromFlow["next"] = sorted(fromFlow["next"], key=itemgetter("order"), reverse=True) 
+                    fromFlow["next"] = sorted(fromFlow["next"], key=itemgetter("order"), reverse=False) 
                 if "_id" in jimi.api.g.sessionData:
                     jimi.audit._audit().add("flow","new link",{ "_id" : jimi.api.g.sessionData["_id"], "user" : jimi.api.g.sessionData["user"], "conductID" : conductID, "fromFlowID" : fromFlowID, "toFlowID": toFlowID })
                 else:
