@@ -538,6 +538,48 @@
                     }
                 }
             }
+        },
+        "subFlow" : {
+            "display_name" : "subFlow",
+            "className" : "_subFlow",
+            "class_location" : "models.subFlow",
+            "description" : "Triggers another trigger with the current event or custom event value.",
+            "fields" : [
+                { "schema_item" : "triggerID", "schema_value" : "triggerID", "type" : "input", "label" : "triggerID", "description" : "The triggerID for the flow to run.", "required" : true, "jimi_syntax" : true },
+                { "schema_item" : "mergeFinalDataValue", "schema_value" : "mergeFinalDataValue", "type" : "checkbox", "label" : "mergeFinalDataValue", "description" : "When True the last data value from the triggered flow will be merged with the current data value on this flow.", "required" : false, "jimi_syntax" : false },
+                { "schema_item" : "customEventsValue", "schema_value" : "customEventsValue", "type" : "checkbox", "label" : "customEventsValue", "description" : "When True you must populate eventsValue to override the current flows event value when triggering the subFlow.", "required" : false, "jimi_syntax" : false },
+                { "schema_item" : "eventsValue", "schema_value" : "eventsValue", "type" : "input", "label" : "eventsValue", "description" : "Only used when customEventsValue is True and overrides the existing events with the value provided.", "required" : false, "jimi_syntax" : true },
+                { "schema_item" : "customEventsList", "schema_value" : "customEventsList", "type" : "checkbox", "label" : "customEventsList", "description" : "When True and customEventsValue is also False then it overrides the existing event with the list provided within eventsList.", "required" : false, "jimi_syntax" : false },
+                { "schema_item" : "eventsList", "schema_value" : "eventsList", "type" : "json-input", "label" : "eventsList", "description" : "When customEventsList is True and customEventsValue is also False this list overrides the existing event value.", "required" : false, "jimi_syntax" : true }
+            ],
+            "data_out" : {
+                "result" : { 
+                    "description" : "Returns True when looping each event.",
+                    "type" : "boolean",
+                    "always_present" : true,
+                    "values" : {
+                        "True" : { "description" : "Successful." },
+                        "False" : { "description" : "Failed." }
+                    }
+                },
+                "rc" : {
+                    "description" : "Returns an exit code based on the outcome of the action.",
+                    "type" : "number",
+                    "always_present" : true,
+                    "values" : {
+                        "0" : { "description" : "Successful." },
+                        "5" : { "description" : "Failed - Unable to load the trigger by ID provided." }
+                    }
+                },
+                "msg" : {
+                    "description" : "A message that outlines additional information about the result.",
+                    "type" : "text",
+                    "always_present" : false,
+                    "values" : {
+                        "(string)" : { "description" : "A message that outlines additional information about the result." }
+                    }
+                }
+            }
         }
     },
     "settings" : {

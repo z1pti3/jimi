@@ -142,6 +142,9 @@ class _trigger(jimi.db._document):
         self.nextCheck = jimi.scheduler.getSchedule(self.schedule)
         self.update(["startCheck","lastCheck","nextCheck","attemptCount"])
 
+        # Return the final data value
+        return data
+
     def checkHandler(self):
         startTime = 0
         if self.log:

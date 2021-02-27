@@ -10,7 +10,7 @@ import json
 import jimi
 
 # Current System Version
-systemVersion = 2.03
+systemVersion = 2.05
 
 # Initialize 
 dbCollectionName = "system"
@@ -210,6 +210,10 @@ def systemInstall():
 	actions = jimi.action._action().query(query={"name" : "forEach"})["results"]
 	if len(actions) < 1:
 		jimi.model.registerModel("forEach","_forEach","_action","system.models.forEach")
+
+	# subFlow
+	jimi.model.registerModel("subFlow","_subFlow","_action","system.models.subFlow")
+
 	# global
 	jimi.model.registerModel("global","_global","_document","system.models.global")
 	jimi.model.registerModel("globalSet","_globalSet","_action","system.models.global")
@@ -299,6 +303,15 @@ def systemUpgrade(currentVersion):
 
 	if currentVersion < 2.03:
 		# Install system manifest
+		loadSystemManifest()
+
+	if currentVersion < 2.04:
+		# Update system manifest
+		loadSystemManifest()
+		jimi.model.registerModel("subFlow","_subFlow","_action","system.models.subFlow")
+
+	if currentVersion < 2.05:
+		# Update system manifest
 		loadSystemManifest()
 
 	return True
