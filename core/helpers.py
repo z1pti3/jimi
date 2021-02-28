@@ -31,6 +31,8 @@ regexInt = re.compile("^(-|)[0-9]+$")
 regexFloat = re.compile("^(-|)[0-9]+\.[0-9]+$")
 regexString = re.compile("^\".*\"$")
 
+baseDir = os.getcwd()
+
 systemProperties = ["classID","workerID","acl","scope","lastUpdateTime","creationTime","createdBy","attemptCount","autoRestartCount","clusterSet","systemID","startCheck","scope"]
 
 class cpuSaver:
@@ -472,3 +474,7 @@ def getFileHash(filename):
 
 def getStringHash(string):
     return hashlib.sha256(string.encode('utf-8')).hexdigest()
+
+def safeFilepath(filename,basePath=""):
+    base = str(Path("{0}/{1}".format(baseDir,basePath)))
+    return not os.path.commonprefix((os.path.realpath(filename),base)) != base
