@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 import importlib
 import requests
+import zipfile
+import shutil
 
 import jimi
 
@@ -177,19 +179,39 @@ if jimi.api.webServer:
                                 return { }, 200
                 return { }, 404
 
-            @jimi.api.webServer.route(jimi.api.base+"plugins/<pluginName>/update/files/", methods=["POST"])
+            @jimi.api.webServer.route(jimi.api.base+"plugins/<pluginName>/install/", methods=["POST"])
             @jimi.auth.adminEndpoint
-            def updatePluginFile(pluginName):
-                print(1)
+            def installPluginFile(pluginName):
                 f = jimi.api.request.files['file']
-                # BUG need to fix dir transverse
-                f.save(str(Path("plugins/{0}.zip".format(pluginName))))
-                return { }, 200
+                filename = str(Path("data/temp/{0}.jimiPlugin".format(pluginName)))
+                if not jimi.helpers.safeFilepath(filename,"plugins"):
+                    return {}, 403
+                f.save(filename)
+                with zipfile.ZipFile(filename, 'r') as zip_ref:
+                    repoFolder = zip_ref.namelist()[0]
+                    zip_ref.extractall(str(Path("data/temp")))
+                tempFilename = str(Path("data/temp/{0}".format(repoFolder)))
+                if not jimi.helpers.safeFilepath(tempFilename,"data/temp"):
+                    return {},403
+                # Merge .zip contents into plugin
+                for root, dirs, files in os.walk(tempFilename, topdown=False):
+                    for _file in files:
+                        if "__pycache__" not in root and ".git" not in root:
+                            src_filename = str(Path(os.path.join(root, _file)))
+                            dest_filename = src_filename.replace(tempFilename, str(Path("plugins/{0}/".format(pluginName))), 1)
+                            if not jimi.helpers.safeFilepath(dest_filename:
+                                return {},403
+                            if os.path.isfile(dest_filename):
+                                os.remove(dest_filename)
+                            shutil.move(src_filename,dest_filename)
+                shutil.rmtree(tempFilename)
+                os.remove(filename)
+                return {}, 200
 
         if jimi.api.webServer.name == "jimi_web":
             @jimi.api.webServer.route(jimi.api.base+"plugins/store/get/", methods=["GET"])
             @jimi.auth.adminEndpoint
-            def updatePluginFromRemoteStore():
+            def installPluginFromRemoteStore():
                 repo = jimi.api.request.args.get("githubRepo")
                 pluginName = jimi.api.request.args.get("pluginName")
 
@@ -198,34 +220,27 @@ if jimi.api.webServer:
                 if response.status_code == 200:
                     manifest = json.loads(response.text)
 
-                    plugin = _plugin().getAsClass(query={ "name" : manifest["name"]})
-                    if len(plugin) == 1:
-                        plugin = plugin[0]
-                        if manifest["version"] < plugin.version:
+                    # Download latest repo files
+                    with requests.get("https://github.com/{0}/archive/master.zip".format(repo), stream=True, timeout=60) as r:
+                        r.raise_for_status()
+                        tempFilename = str(Path("data/temp/{0}.zip".format( manifest["name"])))
+                        if not jimi.helpers.safeFilepath(tempFilename,"data/temp"):
+                            return {}, 403
+                        with open(tempFilename, 'wb') as f:
+                            for chunk in r.iter_content(chunk_size=8192):
+                                f.write(chunk)
 
-                            # Download latest repo files
-                            with requests.get("https://github.com/{0}/archive/master.zip".format(repo), stream=True, timeout=60) as r:
-                                r.raise_for_status()
-                                # BUG need to fix dir transverse
-                                with open(str(Path("data/temp/{0}.zip".format( manifest["name"]))), 'wb') as f:
-                                    for chunk in r.iter_content(chunk_size=8192):
-                                        f.write(chunk)
-
-                            # Send latest repo files to master
-                            headers = { "X-api-token" : jimi.api.g.sessionToken }
-                            url = jimi.cluster.getMaster()
-                            apiEndpoint = "plugins/{0}/update/files/".format(manifest["name"])
-                            # BUG need to fix dir transverse
-                            with open(str(Path("data/temp/{0}.zip".format(manifest["name"]))), 'rb') as f:
-                                response = requests.post("{0}/{1}{2}".format(url,jimi.api.base,apiEndpoint), headers=headers, files={"file" : f.read() }, timeout=60)
-                            return json.loads(response.text), 200
-                        else:
-                            return { }, 205
-                    else:
-                        pass
+                    # Send latest repo files to master
+                    headers = { "X-api-token" : jimi.api.g.sessionToken }
+                    url = jimi.cluster.getMaster()
+                    apiEndpoint = "plugins/{0}/install/".format(manifest["name"])
+                    with open(tempFilename, 'rb') as f:
+                        response = requests.post("{0}{1}{2}".format(url,jimi.api.base,apiEndpoint), headers=headers, files={"file" : f.read() }, timeout=60)
+                    os.remove(tempFilename)
+                    return json.loads(response.text), 200
                 else:
-                    return { }, 404
-                return { }, 200
+                    return {}, 404
+                return {}, 200
             
 
 def load():
