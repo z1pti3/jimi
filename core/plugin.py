@@ -6,6 +6,7 @@ import importlib
 import requests
 import zipfile
 import shutil
+import re
 
 import jimi
 
@@ -182,30 +183,58 @@ if jimi.api.webServer:
             @jimi.api.webServer.route(jimi.api.base+"plugins/<pluginName>/install/", methods=["POST"])
             @jimi.auth.adminEndpoint
             def installPluginFile(pluginName):
+                # Some basic checks on pluginName
+                if re.match(r"[\.\\\/]+",pluginName):
+                    return {}, 403
+                # Get latest plugin
                 f = jimi.api.request.files['file']
                 filename = str(Path("data/temp/{0}.jimiPlugin".format(pluginName)))
-                if not jimi.helpers.safeFilepath(filename,"plugins"):
-                    return {}, 403
+                # if not jimi.helpers.safeFilepath(filename,"plugins"):
+                #     return {}, 403
                 f.save(filename)
                 with zipfile.ZipFile(filename, 'r') as zip_ref:
                     repoFolder = zip_ref.namelist()[0]
                     zip_ref.extractall(str(Path("data/temp")))
                 tempFilename = str(Path("data/temp/{0}".format(repoFolder)))
-                if not jimi.helpers.safeFilepath(tempFilename,"data/temp"):
-                    return {},403
+                # if not jimi.helpers.safeFilepath(tempFilename,"data/temp"):
+                #     return {},403
                 # Merge .zip contents into plugin
                 for root, dirs, files in os.walk(tempFilename, topdown=False):
                     for _file in files:
                         if "__pycache__" not in root and ".git" not in root:
                             src_filename = str(Path(os.path.join(root, _file)))
                             dest_filename = src_filename.replace(tempFilename, str(Path("plugins/{0}/".format(pluginName))), 1)
-                            if not jimi.helpers.safeFilepath(dest_filename):
-                                return {},403
+                            # if not jimi.helpers.safeFilepath(dest_filename):
+                            #     return {},403
                             if os.path.isfile(dest_filename):
                                 os.remove(dest_filename)
                             shutil.move(src_filename,dest_filename)
                 shutil.rmtree(tempFilename)
                 os.remove(filename)
+
+                # Install / update plugin ( will need to be converted to manifest one day )
+                manifestFile = str(Path("plugins/{0}/{0}.json".format(pluginName)))
+                pluginsFolder = str(Path("plugins/{0}".format(pluginName)))
+                # if not jimi.helpers.safeFilepath(manifestFile,pluginsFolder) or not jimi.helpers.safeFilepath(pluginsFolder):
+                #     return {},403
+                with open(manifestFile, "r") as manifest_file:
+                    manifest = json.load(manifest_file)
+                if pluginName != manifest["name"]:
+                    return {}, 403
+                pluginVersion = manifest["version"]
+
+                plugin = _plugin().getAsClass(query={"name" : pluginName})
+                if len(plugin) > 0:
+                    plugin = plugin[0]
+                    pluginClass = loadPluginClass(pluginName)().get(id=plugin._id)
+                    if plugin.version < pluginClass.version:
+                        pluginClass.upgradeHandler()
+                else:
+                    plugin = _plugin().new(pluginName)
+                    plugin = _plugin().getAsClass(id=plugin.inserted_id)[0]
+                    pluginClass = loadPluginClass(pluginName)().get(id=plugin._id)
+                    pluginClass.installHandler()
+
                 return {}, 200
 
         if jimi.api.webServer.name == "jimi_web":
@@ -242,9 +271,7 @@ if jimi.api.webServer:
                     return {}, 404
                 return {}, 200
             
-
 def load():
-    updatePluginDB()
     loadPluginAPIExtensions()
     loadPluginFunctionExtensions()
 
@@ -259,37 +286,7 @@ def loadPluginClass(pluginName):
         pass
     return None
 
-# Load / Delete valid / non-valid plugins
-def updatePluginDB():
-    classID = jimi.model._model().query(query={"className" : "_plugin" })["results"][0]["_id"]
-    listedPlugins = _plugin().query()["results"]
-    plugins = os.listdir("plugins")
-    for plugin in plugins:
-        dbplugin = [ x for x in listedPlugins if x["name"] == plugin ]
-        if not dbplugin:
-            pluginClass = loadPluginClass(plugin)
-            if pluginClass:
-                newPlugin = pluginClass()
-                newPlugin.name = plugin
-                newPlugin.classID = classID
-                newPluginID = newPlugin._dbCollection.insert_one(newPlugin.parse()).inserted_id
-                newPlugin = pluginClass().get(newPluginID)
-                if newPlugin.installed != True:
-                    newPlugin.installHandler()
-                elif newPlugin.version < pluginClass.version:
-                    loadedPlugin.upgradeHandler()
-        else:
-            dbplugin = dbplugin[0]
-            pluginClass = loadPluginClass(plugin)
-            loadedPlugin =  pluginClass().get(dbplugin["_id"])
-            if loadedPlugin.installed != True:
-                loadedPlugin.installHandler()
-            elif loadedPlugin.version < pluginClass.version:
-                loadedPlugin.upgradeHandler()
-            del listedPlugins[listedPlugins.index(dbplugin)]
-    for listedPlugin in listedPlugins:
-        plugins = _plugin().api_delete(query={ "name" : listedPlugin["name"] })
-
+# Dont like these, they need to be merged into the plugin class or somthing?
 def loadPluginAPIExtensions():
     plugins = os.listdir("plugins")
     for plugin in plugins:
