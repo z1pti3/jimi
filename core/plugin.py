@@ -199,7 +199,7 @@ if jimi.api.webServer:
                         if "__pycache__" not in root and ".git" not in root:
                             src_filename = str(Path(os.path.join(root, _file)))
                             dest_filename = src_filename.replace(tempFilename, str(Path("plugins/{0}/".format(pluginName))), 1)
-                            if not jimi.helpers.safeFilepath(dest_filename:
+                            if not jimi.helpers.safeFilepath(dest_filename):
                                 return {},403
                             if os.path.isfile(dest_filename):
                                 os.remove(dest_filename)
