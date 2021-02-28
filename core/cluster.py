@@ -1,6 +1,8 @@
 import uuid
 import time
 import json
+import os
+from pathlib import Path
 
 import jimi
 
@@ -38,7 +40,7 @@ class _clusterMember(jimi.db._document):
         for clusterMember in clusterMembers:
             if clusterMember.systemID == self.systemID:
                 if clusterMember.systemUID != self.systemUID:
-                    jimi.logging.debug("ERROR: Duplicated systemID detected during sync.",-1)
+                    jimi.logging.debug("Error: Duplicated systemID detected during sync.",-1)
                     return False
                 if clusterMember.master:
                     self.master = True
@@ -203,6 +205,8 @@ class _cluster:
 
     def handler(self):
         clusterMember = loadClusterMember()
+        clusterMember.checksum = jimi.system.fileIntegrityRegister()
+        clusterMember.update(["checksum"])
         while not self.stopped:
             jimi.audit._audit().add("cluster","poll",{ "systemID" : clusterMember.systemID, "master" : clusterMember.master, "systemUID" : clusterMember.systemUID })
             now = int(time.time())
@@ -218,6 +222,7 @@ clusterSettings = jimi.settings.config["cluster"]
 apiSettings = jimi.settings.config["api"]
 
 def loadClusterMember():
+    global clusterMember
     clusterMember = _clusterMember().getAsClass(query={ "systemID" : systemSettings["systemID"] })
     if len(clusterMember) == 1:
         clusterMember = clusterMember[0]

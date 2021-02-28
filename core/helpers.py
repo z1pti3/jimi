@@ -7,6 +7,7 @@ import types
 import traceback
 import base64
 import sys
+import importlib
 from types import ModuleType, FunctionType
 from gc import get_referents
 import json
@@ -14,6 +15,7 @@ import ast
 import time
 import datetime
 from bson.objectid import ObjectId 
+import hashlib
 
 import jimi
 
@@ -382,10 +384,14 @@ def locateModel(classType,modelType):
 def reload():
     import sys
     import importlib
-    for moduleItem in sys.modules["__main__"].__dict__.items():
-        if len(moduleItem) == 2:
-            if type(moduleItem[1]) is types.ModuleType:
-                importlib.reload(moduleItem[1])
+    for mod in sys.modules:
+        try:
+            for moduleItem in mod.__dict__.items():
+                if len(moduleItem) == 2:
+                    if type(moduleItem[1]) is types.ModuleType:
+                        importlib.reload(moduleItem[1])
+        except:
+            pass
 
 apiURL = "http://{0}:{1}/{2}".format(jimi.settings.config["system"]["accessAddress"],jimi.settings.config["system"]["accessPort"],jimi.settings.config["api"]["core"]["base"])
 def apiCall(methord,apiEndpoint,jsonData=None,token=None,overrideURL=None,timeout=2,overrideAPIBase=None):
@@ -456,3 +462,13 @@ def roundTime(dt=None, roundTo=60):
    seconds = (dt.replace(tzinfo=None) - dt.min).seconds
    rounding = (seconds+roundTo/2) // roundTo * roundTo
    return dt + datetime.timedelta(0,rounding-seconds,-dt.microsecond)
+
+def getFileHash(filename):
+    sha256_hash = hashlib.sha256()
+    with open(filename, "rb") as f:
+        for byte_block in iter(lambda: f.read(4096),b""):
+            sha256_hash.update(byte_block)
+    return sha256_hash.hexdigest()
+
+def getStringHash(string):
+    return hashlib.sha256(string.encode('utf-8')).hexdigest()

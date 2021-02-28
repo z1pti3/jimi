@@ -320,8 +320,8 @@ def systemEndpoint(f):
                     return f(*args, **kwargs)
             else:
                 return f(*args, **kwargs)
-        except:
-            pass
+        except Exception as e:
+            jimi.logging.debug("Error during webservice function. Exception={0}".format(e),-1)
         return {}, 403
     return wrap
 

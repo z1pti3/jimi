@@ -10,7 +10,7 @@ import json
 import jimi
 
 # Current System Version
-systemVersion = 2.05
+systemVersion = 2.06
 
 # Initialize 
 dbCollectionName = "system"
@@ -92,7 +92,7 @@ def setup():
 	jimi.function.load()
 
 	# Initialize plugins
-	jimi.plugin.load()
+	# jimi.plugin.load()
 
 # Set startCheck to 0 so that all triggers start
 def resetTriggers():
@@ -167,6 +167,9 @@ def systemInstall():
 	if "clusterMembers" not in jimi.db.list_collection_names():
 		jimi.logging.debug("DB Collection clusterMembers Not Found : Creating...")
 		jimi.model.registerModel("clusterMember","_clusterMember","_document","core.cluster")
+
+	# System documents
+	jimi.model.registerModel("systemFiles","_systemFiles","_document","system.system")
 
 	# System - failedTriggers
 	triggers = jimi.trigger._trigger().getAsClass(query={"name" : "failedTriggers"})
@@ -314,5 +317,7 @@ def systemUpgrade(currentVersion):
 		# Update system manifest
 		loadSystemManifest()
 
+	if currentVersion < 2.06:
+		jimi.model.registerModel("systemFiles","_systemFiles","_document","system.system")
+
 	return True
-		
