@@ -159,7 +159,7 @@ class _conduct(jimi.db._document):
                             try:
                                 data["flowData"]["action"] = class_.runHandler(data=data)
                             except Exception as e:
-                                jimi.systemTrigger.failedTrigger(data["flowData"]["trigger_id"],"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
+                                # Do we need to call this out as a crashed action?
                                 data["flowData"]["action"] = { "result" : False, "rc" : -255, "error" : traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__) }
                             data["flowData"]["action"]["action_id"] = class_._id
                             data["flowData"]["action"]["action_name"] = class_.name
