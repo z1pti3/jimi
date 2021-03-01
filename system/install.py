@@ -187,7 +187,7 @@ def systemInstall():
 	if len(triggers) < 1:
 		from system.models import trigger as systemTrigger
 		jimi.model.registerModel("failedActions","_failedActions","_trigger","system.models.trigger")
-		if not systemTrigger._failedTriggers().new("failedActions"):
+		if not systemTrigger._failedActions().new("failedActions"):
 			jimi.logging.debug("Unable to register failedActions",-1)
 			return False
 	temp = jimi.model._model().getAsClass(query={ "name" : "failedActions" })
@@ -334,7 +334,7 @@ def systemUpgrade(currentVersion):
 		if len(triggers) < 1:
 			from system.models import trigger as systemTrigger
 			jimi.model.registerModel("failedActions","_failedActions","_trigger","system.models.trigger")
-			if not systemTrigger._failedTriggers().new("failedActions"):
+			if not systemTrigger._failedActions().new("failedActions"):
 				jimi.logging.debug("Unable to register failedActions",-1)
 				return False
 		temp = jimi.model._model().getAsClass(query={ "name" : "failedActions" })
