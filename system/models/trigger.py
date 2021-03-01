@@ -39,4 +39,3 @@ def failedTrigger(workerID,failureType,msg="",triggerID=None,triggerName=None):
         else:
             events = [{"type" : "systemEvent", "eventType" : failureType, "workerID" : workerID, "triggerID" : triggerID, "triggerName" : triggerName, "msg" : msg, "autoRecover" : False}]
             audit._audit().add("Error",failureType,{"type" : "systemEvent", "eventType" : failureType, "workerID" : workerID, "triggerID" : triggerID, "triggerName" : triggerName, "msg" : msg, "autoRecover" : False })
-            

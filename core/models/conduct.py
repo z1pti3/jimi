@@ -159,7 +159,7 @@ class _conduct(jimi.db._document):
                             try:
                                 data["flowData"]["action"] = class_.runHandler(data=data)
                             except Exception as e:
-                                # Do we need to call this out as a crashed action?
+                                jimi.logging.debug("Error: Action Crashed. actionID={0}, actionName={1}, error={2}".format(class_._id,class_.name,e),-1)
                                 data["flowData"]["action"] = { "result" : False, "rc" : -255, "error" : traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__) }
                             data["flowData"]["action"]["action_id"] = class_._id
                             data["flowData"]["action"]["action_name"] = class_.name
