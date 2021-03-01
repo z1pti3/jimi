@@ -157,7 +157,7 @@ class _conduct(jimi.db._document):
                         except Exception as e:
                             jimi.logging.debug("Error: Action Crashed. actionID={0}, actionName={1}, error={2}".format(class_._id,class_.name,e),-1)
                             try:
-                                if data["persistentData"]["system"]["trigger"].exitOnActionFailure:
+                                if data["persistentData"]["system"]["trigger"].failOnActionFailure:
                                     raise
                             except AttributeError:
                                 raise
