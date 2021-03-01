@@ -12,6 +12,7 @@ class _action(jimi.db._document):
     logicString = str()
     varDefinitions = dict()
     scope = int()
+    systemCrashHandler = False
 
     _dbCollection = jimi.db.db["actions"]
 

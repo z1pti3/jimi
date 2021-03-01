@@ -10,7 +10,7 @@ import json
 import jimi
 
 # Current System Version
-systemVersion = 2.05
+systemVersion = 2.06
 
 # Initialize 
 dbCollectionName = "system"
@@ -182,6 +182,20 @@ def systemInstall():
 		temp.hidden = True
 		temp.update(["hidden"])
 
+	# System - failedActions
+	triggers = jimi.trigger._trigger().getAsClass(query={"name" : "failedActions"})
+	if len(triggers) < 1:
+		from system.models import trigger as systemTrigger
+		jimi.model.registerModel("failedActions","_failedActions","_trigger","system.models.trigger")
+		if not systemTrigger._failedTriggers().new("failedActions"):
+			jimi.logging.debug("Unable to register failedActions",-1)
+			return False
+	temp = jimi.model._model().getAsClass(query={ "name" : "failedActions" })
+	if len(temp) == 1:
+		temp = temp[0]
+		temp.hidden = True
+		temp.update(["hidden"])
+
 	# System - Actions
 	# resetTrigger
 	actions = jimi.action._action().getAsClass(query={"name" : "resetTrigger"})
@@ -311,6 +325,23 @@ def systemUpgrade(currentVersion):
 		jimi.model.registerModel("subFlow","_subFlow","_action","system.models.subFlow")
 
 	if currentVersion < 2.05:
+		# Update system manifest
+		loadSystemManifest()
+
+	if currentVersion < 2.06:
+		# System - failedActions
+		triggers = jimi.trigger._trigger().getAsClass(query={"name" : "failedActions"})
+		if len(triggers) < 1:
+			from system.models import trigger as systemTrigger
+			jimi.model.registerModel("failedActions","_failedActions","_trigger","system.models.trigger")
+			if not systemTrigger._failedTriggers().new("failedActions"):
+				jimi.logging.debug("Unable to register failedActions",-1)
+				return False
+		temp = jimi.model._model().getAsClass(query={ "name" : "failedActions" })
+		if len(temp) == 1:
+			temp = temp[0]
+			temp.hidden = True
+			temp.update(["hidden"])
 		# Update system manifest
 		loadSystemManifest()
 

@@ -55,7 +55,7 @@ class _forEach(jimi.action._action):
 		if type(events) is list:
 			cpuSaver = helpers.cpuSaver()
 			tempData = conduct.dataTemplate(data,keepEvent=True)
-			tempData["persistentData"]["system"]["trigger"] = self
+			
 			if self.limit > 0:
 				events = events[:self.limit]
 			eventHandler = None

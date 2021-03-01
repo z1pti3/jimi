@@ -5,6 +5,10 @@ class _failedTriggers(trigger._trigger):
     enabled = True
     scope = 3
 
+class _failedActions(trigger._trigger):
+    enabled = True
+    scope = 3
+
 from core import model, audit, workers
 
 def failedTrigger(workerID,failureType,msg="",triggerID=None,triggerName=None):
@@ -39,3 +43,20 @@ def failedTrigger(workerID,failureType,msg="",triggerID=None,triggerName=None):
         else:
             events = [{"type" : "systemEvent", "eventType" : failureType, "workerID" : workerID, "triggerID" : triggerID, "triggerName" : triggerName, "msg" : msg, "autoRecover" : False}]
             audit._audit().add("Error",failureType,{"type" : "systemEvent", "eventType" : failureType, "workerID" : workerID, "triggerID" : triggerID, "triggerName" : triggerName, "msg" : msg, "autoRecover" : False })
+
+
+def failedAction(actionID,actionName,failureType,msg=""):
+    failedActionClass = trigger._trigger().query(query={"name" : "failedActions"})["results"]
+    if len(failedActionClass) > 0:
+        failedActionClass = failedActionClass[0]
+        _class = model._model().getAsClass(id=failedActionClass["classID"])
+        if len(_class) == 1:
+            _class = _class[0].classObject()
+        if _class:
+            triggerClass = _class().getAsClass(id=failedActionClass["_id"])
+            if len(triggerClass) == 1:
+                triggerClass = triggerClass[0]
+            if triggerClass:
+                events = [{"type" : "systemEvent", "eventType" : failureType, "actionID" : actionID, "actionName" : actionName, "msg" : msg }]                    
+                workers.workers.new("trigger:{0}".format(failedActionClass["_id"]),triggerClass.notify,(events,))
+                    
