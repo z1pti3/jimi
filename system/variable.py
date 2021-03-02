@@ -3,8 +3,9 @@ from core import logging, helpers, function
 from system import logic
 
 #Dict {
-# "varName" : { "value" : "", "if" : "", "scope" : 0 }
-# "varName2" : { "value" : "", "if" : "", "scope" : 1 }
+# "varName" : { "value" : "varValue", "if" : "if 1==1", "scope" : 0 }
+# "varName2" : { "value" : "varValue", "if" : "if 1==1", "scope" : 1 }
+# "varName3" : [{ "value" : "varValue", "if" : "if 1==2", "scope" : 1 },{ "value" : "varValue", "if" : "if 1==1", "scope" : 1 }]
 # }
 def varEval(varDict,currentVarDict,dicts={},scope=0):
     functionSafeList = function.systemFunctions
