@@ -83,16 +83,14 @@ class workerHandler:
             except SystemExit as e:
                 if self.raiseException:
                     self.crash = True
-                    if jimi.logging.debugEnabled:
-                        jimi.logging.debug("Threaded process worker killed, workerID={0}".format(self.id))
+                    jimi.logging.debug("Error: Worker Killed. workerID={0}".format(self.id,),-1)
                     systemTrigger.failedTrigger(self.id,"triggerKilled")
                 else:
                     self.resultException = e
             except Exception as e:
                 if self.raiseException:
                     self.crash = True
-                    if jimi.logging.debugEnabled:
-                        jimi.logging.debug("Threaded worker crashed, workerID={0}".format(self.id))
+                    jimi.logging.debug("Error: Worker Crashed. workerID={0}, error={1}".format(self.id,''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__))),-1)
                     systemTrigger.failedTrigger(self.id,"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
                 else:
                     self.resultException = e
@@ -121,16 +119,14 @@ class workerHandler:
             except SystemExit as e:
                 if self.raiseException:
                     self.crash = True
-                    if jimi.logging.debugEnabled:
-                        jimi.logging.debug("Threaded worker killed, workerID={0}".format(self.id))
+                    jimi.logging.debug("Error: Worker Killed. workerID={0}".format(self.id,),-1)
                     systemTrigger.failedTrigger(self.id,"triggerKilled")
                 else:
                     self.resultException = e
             except Exception as e:
                 if self.raiseException:
                     self.crash = True
-                    if jimi.logging.debugEnabled:
-                        jimi.logging.debug("Threaded worker crashed, workerID={0}".format(self.id))
+                    jimi.logging.debug("Error: Worker Crashed. workerID={0}, error={1}".format(self.id,''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__))),-1)
                     systemTrigger.failedTrigger(self.id,"triggerCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
                 else:
                     self.resultException = e
