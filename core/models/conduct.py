@@ -52,8 +52,8 @@ class _conduct(jimi.db._document):
         ####################################
         #              Header              #
         ####################################
-        startTime = 0
         if self.log:
+            startTime = 0
             startTime = time.time()
             jimi.audit._audit().add("conduct","trigger_start",{ "conduct_id" : self._id, "conduct_name" : self.name, "trigger_id" : triggerID })
         data["persistentData"]["system"]["conduct"] = self

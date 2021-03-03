@@ -45,10 +45,9 @@ class _action(jimi.db._document):
         ####################################
         #              Header              #
         ####################################
-        startTime = 0
         if self.log:
+            startTime = 0
             startTime = time.time()
-        if self.log:
             jimi.audit._audit().add("action","action_start",{ "action_id" : self._id, "action_name" : self.name })
         ####################################
 
