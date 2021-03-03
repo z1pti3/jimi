@@ -137,6 +137,8 @@ class _trigger(jimi.db._document):
             notifyEndTime = time.time()
             jimi.audit._audit().add("trigger","notify_end",{ "trigger_id" : self._id, "trigger_name" : self.name, "duration" : ( notifyEndTime - notifyStartTime ) })
 
+        print(( time.time() - notifyStartTime ))
+
         self.startCheck = 0
         self.attemptCount = 0
         self.lastCheck = time.time()

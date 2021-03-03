@@ -129,15 +129,15 @@ def getDictValue(varString,dicts={}):
 
 # Type cast string into varible types, includes dict and function calls
 def typeCast(varString,dicts={},functionSafeList=functionSafeList):
-    if type(varString) == str and varString != "":
+    if type(varString) == str and varString:
         # String defined
-        if regexString.search(varString):
+        if varString[0] == "\"" and varString[-1] == "\"":
             return str(varString[1:-1])
         # Int
-        if regexInt.search(varString): 
+        if regexInt.match(varString):
             return int(varString)
         # Float
-        if regexFloat.search(varString):
+        if regexFloat.match(varString):
             return float(varString)
         # Bool
         lower = varString.lower()
@@ -146,16 +146,16 @@ def typeCast(varString,dicts={},functionSafeList=functionSafeList):
         if lower == "false":
             return False
         # None
-        if lower == "none":
+        if lower == "none" or lower == "null":
             return None
         # Dict
-        if regexDict.search(varString):
+        if regexDict.match(varString):
             return getDictValue(varString,dicts)
         # Attempt to cast dict and list
-        if varString.startswith("{") or varString.startswith("["):
+        if varString[0] == "{" or varString[0] == "[":
             try:
                 return ast.literal_eval(varString)
-            except Exception as e:
+            except:
                 pass
         # Function
         if regexFunction.search(varString):
