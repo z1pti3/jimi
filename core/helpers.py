@@ -102,11 +102,7 @@ def evalList(varList,dicts={},functionSafeList=functionSafeList):
 # Get dict values from string dict
 def getDictValue(varString,dicts={}):
     def nested_dict_get(dictionary, keys):
-        try:
-            return functools.reduce(lambda d, key: d.get(key) if d else None, keys, dictionary)
-        # Unable to convert from dictionary to value
-        except AttributeError:
-            return None
+        return functools.reduce(lambda d, key: d.get(key) if d else None, keys, dictionary)
 
     if regexDict.search(varString):
         dictName = varString.split("[")[0]
@@ -114,7 +110,21 @@ def getDictValue(varString,dicts={}):
             dictKeys = []
             for key in regexDictKeys.findall(varString):
                 dictKeys.append(key[1])
-            return typeCast(nested_dict_get(dicts[dictName],dictKeys))
+            try:
+                return typeCast(nested_dict_get(dicts[dictName],dictKeys))
+            except AttributeError:
+                try:
+                    currentValue = dicts[dictName]
+                    for key in dictKeys:
+                        if type(currentValue) is dict:
+                            currentValue = currentValue[key]
+                        elif type(currentValue) is list:
+                            currentValue = currentValue[int(key)]
+                        else:
+                            break
+                except:
+                    return None
+                return currentValue
     return None
 
 # Type cast string into varible types, includes dict and function calls
