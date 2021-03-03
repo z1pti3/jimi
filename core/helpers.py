@@ -121,7 +121,7 @@ def getDictValue(varString,dicts={}):
                         elif type(currentValue) is list:
                             currentValue = currentValue[int(key)]
                         else:
-                            break
+                            return None
                 except:
                     return None
                 return currentValue
