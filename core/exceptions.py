@@ -31,6 +31,17 @@ class workerCrash(Exception):
     def __str__(self):
         return "Error: Worker killed. workerName='{0}', workerID='{1}', trace='{2}'".format(self.workerName,self.workerID,self.trace)
 
+class actionCrash(Exception):
+    def __init__(self,actionID,actionName,exception):
+        self.actionName = actionName
+        self.actionID = actionID
+        self.trace = ''.join(traceback.format_exception(etype=type(exception), value=exception, tb=exception.__traceback__))
+        jimi.logging.debug("Error: Action crash. actionName='{0}', actionID='{1}', trace='{2}'".format(self.actionName,self.actionID,self.trace),-1)
+        jimi.systemTrigger.failedAction(self.actionName,self.actionID,"actionCrashed",self.trace)
+
+    def __str__(self):
+        return "Error: Worker killed. workerName='{0}', workerID='{1}', trace='{2}'".format(self.workerName,self.workerID,self.trace)
+
 class functionCallFailure(Exception):
     def __init__(self,functionName,trace):
         self.functionName = functionName

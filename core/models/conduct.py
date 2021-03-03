@@ -162,7 +162,7 @@ class _conduct(jimi.db._document):
                             except AttributeError:
                                 raise
                             if class_.systemCrashHandler:
-                                jimi.systemTrigger.failedAction(class_._id,class_.name,"actionCrashed",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
+                                raise jimi.exceptions.actionCrash(class_._id,class_.name,e)
                             data["flowData"]["action"] = { "result" : False, "rc" : -255, "error" : traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__) }
                         data["flowData"]["action"]["action_id"] = class_._id
                         data["flowData"]["action"]["action_name"] = class_.name
