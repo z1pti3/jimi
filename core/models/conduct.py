@@ -158,11 +158,11 @@ class _conduct(jimi.db._document):
                             jimi.logging.debug("Error: Action Crashed. actionID={0}, actionName={1}, error={2}".format(class_._id,class_.name,''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__))),-1)
                             try:
                                 if data["persistentData"]["system"]["trigger"].failOnActionFailure:
-                                    raise
+                                    raise jimi.exceptions.actionCrash(class_._id,class_.name,e)
                             except AttributeError:
-                                raise
-                            if class_.systemCrashHandler:
                                 raise jimi.exceptions.actionCrash(class_._id,class_.name,e)
+                            if class_.systemCrashHandler:
+                                jimi.exceptions.actionCrash(class_._id,class_.name,e)
                             data["flowData"]["action"] = { "result" : False, "rc" : -255, "error" : traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__) }
                         data["flowData"]["action"]["action_id"] = class_._id
                         data["flowData"]["action"]["action_name"] = class_.name
