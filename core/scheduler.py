@@ -36,9 +36,9 @@ class _scheduler:
                         if type(t.maxDuration) is int and t.maxDuration > 0:
                             maxDuration = t.maxDuration
                         if t.schedule == "*":
-                            t.workerID = jimi.workers.workers.new("continuousTrigger:{0}".format(t._id),continuous,(t,),maxDuration=0,multiprocessing=t.threaded)
+                            t.workerID = jimi.workers.workers.new("continuousTrigger:'{0}','{1}'".format(t._id,t.name),continuous,(t,),maxDuration=0,multiprocessing=t.threaded)
                         else:
-                            t.workerID = jimi.workers.workers.new("trigger:{0}".format(t._id),t.checkHandler,(),maxDuration=maxDuration,multiprocessing=t.threaded)
+                            t.workerID = jimi.workers.workers.new("trigger:'{0}','{1}'".format(t._id,t.name),t.checkHandler,(),maxDuration=maxDuration,multiprocessing=t.threaded)
                         t.update(["startCheck","workerID","attemptCount"])      
                     else:
                         if jimi.logging.debugEnabled:

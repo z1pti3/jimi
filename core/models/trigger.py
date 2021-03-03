@@ -20,11 +20,11 @@ class _trigger(jimi.db._document):
     maxDuration = 60
     logicString = str()
     varDefinitions = dict()
-    concurrency = int()  
-    threaded = bool()
+    concurrency = 0  
+    threaded = False
     failOnActionFailure = False
     attemptCount = int()
-    autoRestartCount = int()
+    autoRestartCount = 3
     scope = int()
 
     _dbCollection = jimi.db.db["triggers"]

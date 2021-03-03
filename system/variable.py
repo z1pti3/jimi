@@ -1,4 +1,4 @@
-
+import jimi
 from core import logging, helpers, function
 from system import logic
 
@@ -8,14 +8,17 @@ from system import logic
 # "varName3" : [{ "value" : "varValue", "if" : "if 1==2", "scope" : 1 },{ "value" : "varValue", "if" : "if 1==1", "scope" : 1 }]
 # }
 def varEval(varDict,currentVarDict,dicts={},scope=0):
-    functionSafeList = function.systemFunctions
-    for key, value in varDict.items():
-        try:
-            doVarEval(key,value,currentVarDict,functionSafeList,dicts,scope)
-        except TypeError:
-            for valueItem in value:
-                if doVarEval(key,valueItem,currentVarDict,functionSafeList,dicts,scope):
-                    break
+    try:
+        functionSafeList = function.systemFunctions
+        for key, value in varDict.items():
+            try:
+                doVarEval(key,value,currentVarDict,functionSafeList,dicts,scope)
+            except TypeError:
+                for valueItem in value:
+                    if doVarEval(key,valueItem,currentVarDict,functionSafeList,dicts,scope):
+                        break
+    except Exception as e:
+        raise jimi.exceptions.variableDefineFailure(varDict,e)
     return currentVarDict
 
 def doVarEval(key,value,currentVarDict,functionSafeList,dicts,scope):

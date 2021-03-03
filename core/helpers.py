@@ -225,8 +225,7 @@ def typeCast(varString,dicts={},functionSafeList=functionSafeList):
                     else:
                         return functionSafeList[functionName]()
                 except Exception as e:
-                    from system.models import trigger as systemTrigger
-                    systemTrigger.failedTrigger(None, "FunctionCrash", "Function functionName='{0}' crashed with msg='{1}'".format(functionName,''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__))))
+                    raise jimi.exceptions.functionCallFailure(functionName,''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
     # Default to exsiting
     return varString
 
