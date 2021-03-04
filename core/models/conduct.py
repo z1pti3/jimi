@@ -122,7 +122,7 @@ class _conduct(jimi.db._document):
                     # Logic and var defintion
                     triggerContinue = True
                     if currentTrigger.logicString:
-                        if jimi.logic.ifEval(currentTrigger.logicString,{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]}):
+                        if jimi.logic.ifEval(currentTrigger.logicString,{ "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]}):
                             if currentTrigger.varDefinitions:
                                 data["flowData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]},0)
                                 data["eventData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["eventData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]},1)

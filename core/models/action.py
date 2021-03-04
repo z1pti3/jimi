@@ -54,7 +54,7 @@ class _action(jimi.db._document):
         ####################################
 
         if self.logicString:
-            logicResult = jimi.logic.ifEval(self.logicString, { "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]})
+            logicResult = jimi.logic.ifEval(self.logicString, { "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]})
             if logicResult:
                 actionResult = self.doAction(data)
                 if self.varDefinitions:
