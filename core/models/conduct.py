@@ -94,7 +94,7 @@ class _conduct(jimi.db._document):
                 pass
         elif type(logicVar) is str:
             if logicVar.startswith("if"):
-                if jimi.logic.ifEval(logicVar, { "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]}):
+                if jimi.logic.ifEval(logicVar, { "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]}):
                     return True
         return False
 
