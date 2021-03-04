@@ -90,7 +90,7 @@ class _trigger(jimi.db._document):
                 if self.concurrency > 0:
                     eventHandler = jimi.workers.workerHandler(self.concurrency)
 
-                dataCopy = jimi.conduct.copyData(tempData,resetConductData=True)
+                dataCopy = jimi.conduct.copyData(tempData,copyConductData=True)
                 dataCopy["flowData"]["conduct_id"] = loadedConduct._id
                 dataCopy["flowData"]["conduct_name"] = loadedConduct.name
 
@@ -99,7 +99,7 @@ class _trigger(jimi.db._document):
                     last = True if index == len(events) - 1 else False
                     eventStats = { "first" : first, "current" : index, "total" : len(events), "last" : last }
 
-                    data = jimi.conduct.copyData(dataCopy)
+                    data = jimi.conduct.copyData(dataCopy,copyEventData=True)
                     data["flowData"]["event"] = event
                     data["flowData"]["eventStats"] = eventStats
 
@@ -133,7 +133,6 @@ class _trigger(jimi.db._document):
             jimi.audit._audit().add("trigger","auto_disable",{ "trigger_id" : self._id, "trigger_name" : self.name })
             self.enabled = False
             self.update(["enabled"])
-        
         
         if self.log:
             notifyEndTime = time.time()
