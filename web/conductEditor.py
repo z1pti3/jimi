@@ -322,10 +322,9 @@ def conductImportData(conductID):
                         existingTrigger = existingTrigger[0]
                     else:
                         _class = classObj.classObject()
-                        newObjectID = _class().new(importData["trigger"][flow["triggerID"]]["name"]).inserted_id
+                        acl = { "ids" : [ { "accessID" : jimi.api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
+                        newObjectID = _class().new(importData["trigger"][flow["triggerID"]]["name"],acl=acl).inserted_id
                         existingTrigger = _class().getAsClass(jimi.api.g.sessionData,id=newObjectID)[0]
-                        existingTrigger.acl = conductObj.acl
-                        existingTrigger.update(["acl"])
                     members = [attr for attr in dir(existingTrigger) if not callable(getattr(existingTrigger, attr)) and not "__" in attr and attr ]
                     blacklist = ["_id","classID","className","acl","lastCheck"]
                     updateList = []
@@ -350,7 +349,8 @@ def conductImportData(conductID):
                         existingAction = existingAction[0]
                     else:
                         _class = classObj.classObject()
-                        newObjectID = _class().new(importData["action"][flow["actionID"]]["name"]).inserted_id
+                        acl = { "ids" : [ { "accessID" : jimi.api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
+                        newObjectID = _class().new(importData["action"][flow["actionID"]]["name"],acl=acl).inserted_id
                         existingAction = _class().getAsClass(jimi.api.g.sessionData,id=newObjectID)[0]
                         existingAction.acl = conductObj.acl
                         existingAction.update(["acl"])
@@ -522,7 +522,8 @@ def newFlow(conductID):
         if _class:
             subtype = _class[0].name
             _class = _class[0].classObject()
-            newFlowObjectID = _class().new(flow["flowID"],sessionData=jimi.api.g.sessionData).inserted_id
+            acl = { "ids" : [ { "accessID" : jimi.api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
+            newFlowObjectID = _class().new(flow["flowID"],acl=acl).inserted_id
             # Working out by bruteforce which type this is ( try and load it by parent class and check for error) - get on trigger if it does not exist will return None
             modelFlowObjectType = "action"
             if len(jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,id=newFlowObjectID)) > 0:
@@ -532,8 +533,6 @@ def newFlow(conductID):
                 modelFlowObject = modelFlowObject[0]
             else:
                 return { }, 404
-            modelFlowObject.acl = { "ids" : [ { "accessID" : jimi.api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
-            modelFlowObject.update(["acl"],sessionData=jimi.api.g.sessionData)
             flow["type"] = modelFlowObjectType
             if subtype != "action" and subtype != "trigger":
                 flow["subtype"] = subtype
@@ -691,7 +690,8 @@ def updateFlow(conductID,flowID):
                             if _class:
                                 _class = _class[0].classObject()
                                 # Bug exists as name value is not requried by db class but is for core models - this could result in an error if new model is added that does not accept name within new function override
-                                newFlowObjectID = _class().new(flow["flowID"],sessionData=jimi.api.g.sessionData).inserted_id
+                                acl = { "ids" : [ { "accessID" : jimi.api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
+                                newFlowObjectID = _class().new(flow["flowID"],acl=acl).inserted_id
 
                                 # Working out by bruteforce which type this is ( try and load it by parent class and check for error) - get on trigger if it does not exist will return None
                                 modelFlowObjectClone = _class().getAsClass(jimi.api.g.sessionData,id=newFlowObjectID)

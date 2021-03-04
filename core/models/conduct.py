@@ -241,11 +241,18 @@ def dataTemplate(data=None,keepEvent=False):
         data = { "flowData" : { "var" : {}, "plugin" : {} }, "eventData" : { "var" : {}, "plugin" : {} }, "conductData" : { "var" : {}, "plugin" : {} }, "persistentData" : { "system" : { "trigger" : None, "conduct" : None }, "var" : {}, "plugin" : {} } }
     return data
 
-def copyData(data):
+def copyData(data,resetConductData=False,resetPersistentData=False):
     copyOfData = {}
-    copyOfData["persistentData"] = data["persistentData"]
-    copyOfData["conductData"] = data["conductData"]
-    for dataType in ["flowData","eventData"]:
+    dataTypes = ["flowData","eventData"]
+    if resetPersistentData:
+        dataTypes.append("persistentData")
+    else:
+        copyOfData["persistentData"] = data["persistentData"]
+    if resetConductData:
+        dataTypes.append("conductData")
+    else:
+        copyOfData["conductData"] = data["conductData"]
+    for dataType in dataTypes:
         copyOfData[dataType] = data[dataType].copy()
         try:
             copyOfData[dataType]["var"] = copy.deepcopy(data[dataType]["var"])

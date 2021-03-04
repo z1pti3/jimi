@@ -33,7 +33,9 @@ class _trigger(jimi.db._document):
         jimi.cache.globalCache.newCache("conductCache")
 
     # Override parent new to include name var, parent class new run after class var update
-    def new(self,name=""):
+    def new(self,name="",acl=None):
+        if acl:
+            self.acl = acl
         result = super(_trigger, self).new()
         if result:
             if name == "":
@@ -88,17 +90,17 @@ class _trigger(jimi.db._document):
                 if self.concurrency > 0:
                     eventHandler = jimi.workers.workerHandler(self.concurrency)
 
-                tempData["flowData"]["conduct_id"] = loadedConduct._id
-                tempData["flowData"]["conduct_name"] = loadedConduct.name
+                dataCopy = jimi.conduct.copyData(tempData,resetConductData=True)
+                dataCopy["flowData"]["conduct_id"] = loadedConduct._id
+                dataCopy["flowData"]["conduct_name"] = loadedConduct.name
 
                 for index, event in enumerate(events):
                     first = True if index == 0 else False
                     last = True if index == len(events) - 1 else False
                     eventStats = { "first" : first, "current" : index, "total" : len(events), "last" : last }
 
-                    data = jimi.conduct.copyData(tempData)
+                    data = jimi.conduct.copyData(dataCopy)
                     data["flowData"]["event"] = event
-                    data["eventData"] = {"var":{}}
                     data["flowData"]["eventStats"] = eventStats
 
                     if self.log and (first or last):

@@ -17,8 +17,10 @@ class _action(jimi.db._document):
     _dbCollection = jimi.db.db["actions"]
 
     # Override parent new to include name var, parent class new run after class var update
-    def new(self,name=""):
+    def new(self,name="",acl=None):
         self.enabled = True
+        if acl:
+            self.acl = acl
         result = super(_action, self).new()
         if result:
             if name == "":
