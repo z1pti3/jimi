@@ -90,7 +90,6 @@ class _trigger(jimi.db._document):
 
                 tempData["flowData"]["conduct_id"] = loadedConduct._id
                 tempData["flowData"]["conduct_name"] = loadedConduct.name
-                tempData["eventData"] = data["eventData"]
 
                 for index, event in enumerate(events):
                     first = True if index == 0 else False
@@ -99,6 +98,7 @@ class _trigger(jimi.db._document):
 
                     data = jimi.conduct.copyData(tempData)
                     data["flowData"]["event"] = event
+                    data["eventData"] = {"var":{}}
                     data["flowData"]["eventStats"] = eventStats
 
                     if self.log and (first or last):

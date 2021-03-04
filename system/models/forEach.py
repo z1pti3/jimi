@@ -70,6 +70,7 @@ class _forEach(jimi.action._action):
 				eventStat = { "first" : first, "current" : index + 1, "total" : len(events), "last" : last }
 
 				tempDataCopy = conduct.copyData(tempData)
+				tempDataCopy["eventData"] = {"var":{}}
 
 				if self.mergeEvents:
 					try:
