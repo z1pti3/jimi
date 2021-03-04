@@ -94,10 +94,11 @@ class _trigger(jimi.db._document):
                 dataCopy["flowData"]["conduct_id"] = loadedConduct._id
                 dataCopy["flowData"]["conduct_name"] = loadedConduct.name
 
+                eventCount = len(events)
                 for index, event in enumerate(events):
                     first = True if index == 0 else False
-                    last = True if index == len(events) - 1 else False
-                    eventStats = { "first" : first, "current" : index, "total" : len(events), "last" : last }
+                    last = True if index == eventCount - 1 else False
+                    eventStats = { "first" : first, "current" : index, "total" : eventCount, "last" : last }
 
                     data = jimi.conduct.copyData(dataCopy,copyEventData=True)
                     data["flowData"]["event"] = event
@@ -114,7 +115,7 @@ class _trigger(jimi.db._document):
                             eventHandler.stop()
                             raise jimi.exceptions.concurrentCrash
                         
-                        durationRemaining = ( self.startTime + self.maxDuration ) - time.time()
+                        durationRemaining = ( self.startTime + maxDuration ) - time.time()
                         eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerHandler,(self._id,data,False,False),maxDuration=durationRemaining)
                     else:
                         loadedConduct.triggerHandler(self._id,data,False,False)
@@ -133,6 +134,8 @@ class _trigger(jimi.db._document):
             jimi.audit._audit().add("trigger","auto_disable",{ "trigger_id" : self._id, "trigger_name" : self.name })
             self.enabled = False
             self.update(["enabled"])
+
+        print((time.time() - notifyStartTime))
         
         if self.log:
             notifyEndTime = time.time()
