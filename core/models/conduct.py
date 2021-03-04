@@ -215,10 +215,19 @@ def dataTemplate(data=None,keepEvent=False):
         except KeyError:
             data["flowData"] = { "var" : {}, "plugin" : {} }
         if "eventData" not in data:
-            data["eventData"] = { "var" : {} }
+            data["eventData"] = { "var" : {}, "plugin" : {} }
         else:
             if "var" not in data["eventData"]:
                 data["eventData"]["var"] = {}
+            if "plugin" not in data["eventData"]:
+                data["eventData"]["plugin"] = {}
+        if "conductData" not in data:
+            data["conductData"] = { "var" : {}, "plugin" : {} }
+        else:
+            if "var" not in data["conductData"]:
+                data["conductData"]["var"] = {}
+            if "plugin" not in data["conductData"]:
+                data["conductData"]["plugin"] = {}
         if "persistentData" not in data:
             data["persistentData"] = { "system" : { "trigger" : None, "conduct" : None }, "plugin" : { }, "var" : {} }
         else:
@@ -229,22 +238,23 @@ def dataTemplate(data=None,keepEvent=False):
             if "var" not in data["persistentData"]:
                 data["persistentData"]["var"] = {}
     else:
-        data = { "flowData" : { "var" : {}, "plugin" : {} }, "eventData" : { "var" : {} }, "persistentData" : { "system" : { "trigger" : None, "conduct" : None }, "plugin" : {}, "var" : {} } }
+        data = { "flowData" : { "var" : {}, "plugin" : {} }, "eventData" : { "var" : {}, "plugin" : {} }, "conductData" : { "var" : {}, "plugin" : {} }, "persistentData" : { "system" : { "trigger" : None, "conduct" : None }, "var" : {}, "plugin" : {} } }
     return data
 
 def copyData(data):
     copyOfData = {}
     copyOfData["persistentData"] = data["persistentData"]
-    copyOfData["eventData"] = data["eventData"]
-    copyOfData["flowData"] = data["flowData"].copy()
-    try:
-        copyOfData["flowData"]["var"] = copy.deepcopy(data["flowData"]["var"])
-    except KeyError:
-        copyOfData["flowData"]["var"] = {}
-    try:
-        copyOfData["flowData"]["plugin"] = copy.deepcopy(data["flowData"]["plugin"])
-    except KeyError:
-        copyOfData["flowData"]["plugin"] = {}
+    copyOfData["conductData"] = data["conductData"]
+    for dataType in ["flowData","eventData"]:
+        copyOfData[dataType] = data[dataType].copy()
+        try:
+            copyOfData[dataType]["var"] = copy.deepcopy(data[dataType]["var"])
+        except KeyError:
+            copyOfData[dataType]["var"] = {}
+        try:
+            copyOfData[dataType]["plugin"] = copy.deepcopy(data[dataType]["plugin"])
+        except KeyError:
+            copyOfData[dataType]["plugin"] = {}
     return copyOfData
 
 def getAction(match,sessionData,currentflow):
