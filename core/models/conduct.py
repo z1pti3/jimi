@@ -260,14 +260,16 @@ def copyData(data,copyEventData=False,copyConductData=False,copyPersistentData=F
         copyOfData["eventData"] = data["eventData"]
     for dataType in dataTypes:
         copyOfData[dataType] = data[dataType].copy()
-        try:
-            copyOfData[dataType]["var"] = copy.deepcopy(data[dataType]["var"])
-        except KeyError:
+        if not copyOfData[dataType]["var"]:
             copyOfData[dataType]["var"] = {}
-        try:
-            copyOfData[dataType]["plugin"] = copy.deepcopy(data[dataType]["plugin"])
-        except KeyError:
+        else:
+            copyOfData[dataType]["var"] = copy.deepcopy(data[dataType]["var"])
+
+        if not copyOfData[dataType]["plugin"]:
             copyOfData[dataType]["plugin"] = {}
+        else:
+            copyOfData[dataType]["plugin"] = copy.deepcopy(data[dataType]["plugin"])
+
     return copyOfData
 
 def getAction(match,sessionData,currentflow):
