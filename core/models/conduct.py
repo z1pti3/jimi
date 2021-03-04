@@ -60,13 +60,14 @@ class _conduct(jimi.db._document):
         ####################################
 
         flowDict = jimi.cache.globalCache.get("flowDict",self._id,getFlowDict,self.flow)
-
+        
+        uid = "{0}{1}".format(self._id,triggerID)
         if actionIDType:
-            triggeredFlows = jimi.cache.globalCache.get("triggeredFlowActions",triggerID,getTriggeredFlowActions,self.flow)
+            triggeredFlows = jimi.cache.globalCache.get("triggeredFlowActions",uid,getTriggeredFlowActions,self.flow,triggerID)
         elif flowIDType:
-            triggeredFlows = jimi.cache.globalCache.get("triggeredFlowFlows",triggerID,getTriggeredFlowFlows,self.flow)
+            triggeredFlows = jimi.cache.globalCache.get("triggeredFlowFlows",uid,getTriggeredFlowFlows,self.flow,triggerID)
         else:
-            triggeredFlows = jimi.cache.globalCache.get("triggeredFlowTriggers",triggerID,getTriggeredFlowTriggers,self.flow)
+            triggeredFlows = jimi.cache.globalCache.get("triggeredFlowTriggers",uid,getTriggeredFlowTriggers,self.flow,triggerID)
 
         for triggeredFlow in triggeredFlows:
             self.flowHandler(triggeredFlow,flowDict,data,flowDebugSession=flowDebugSession)
@@ -278,13 +279,13 @@ def getAction(match,sessionData,currentflow):
 def getTrigger(match,sessionData,currentflow):
     return jimi.trigger._trigger().getAsClass(id=currentflow["triggerID"])
 
-def getTriggeredFlowTriggers(triggerID,sessionData,flowData):
+def getTriggeredFlowTriggers(uid,sessionData,flowData,triggerID):
     return [ x for x in flowData if "triggerID" in x and x["triggerID"] == triggerID and x["type"] == "trigger" ]
 
-def getTriggeredFlowActions(actionID,sessionData,flowData):
+def getTriggeredFlowActions(uid,sessionData,flowData,actionID):
     return [ x for x in flowData if "actionID" in x and x["actionID"] == actionID and x["type"] == "action" ]
 
-def getTriggeredFlowFlows(flowID,sessionData,flowData):
+def getTriggeredFlowFlows(uid,sessionData,flowData,flowID):
     # prevent cache when running as testTrigger
     try:
         classObject = flowData[0]["classObject"]
