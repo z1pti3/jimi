@@ -522,7 +522,7 @@ def newFlow(conductID):
         if _class:
             subtype = _class[0].name
             _class = _class[0].classObject()
-            newFlowObjectID = _class().new(flow["flowID"]).inserted_id
+            newFlowObjectID = _class().new(flow["flowID"],sessionData=jimi.api.g.sessionData).inserted_id
             # Working out by bruteforce which type this is ( try and load it by parent class and check for error) - get on trigger if it does not exist will return None
             modelFlowObjectType = "action"
             if len(jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,id=newFlowObjectID)) > 0:
@@ -691,7 +691,7 @@ def updateFlow(conductID,flowID):
                             if _class:
                                 _class = _class[0].classObject()
                                 # Bug exists as name value is not requried by db class but is for core models - this could result in an error if new model is added that does not accept name within new function override
-                                newFlowObjectID = _class().new(flow["flowID"]).inserted_id
+                                newFlowObjectID = _class().new(flow["flowID"],sessionData=jimi.api.g.sessionData).inserted_id
 
                                 # Working out by bruteforce which type this is ( try and load it by parent class and check for error) - get on trigger if it does not exist will return None
                                 modelFlowObjectClone = _class().getAsClass(jimi.api.g.sessionData,id=newFlowObjectID)

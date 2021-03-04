@@ -160,7 +160,7 @@ class _conduct(jimi.db._document):
                                 if data["persistentData"]["system"]["trigger"].failOnActionFailure:
                                     raise jimi.exceptions.actionCrash(class_._id,class_.name,e)
                             except AttributeError:
-                                raise jimi.exceptions.actionCrash(class_._id,class_.name,e)
+                                pass
                             if class_.systemCrashHandler:
                                 jimi.exceptions.actionCrash(class_._id,class_.name,e)
                             data["flowData"]["action"] = { "result" : False, "rc" : -255, "error" : traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__) }
