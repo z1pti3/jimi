@@ -1,4 +1,7 @@
 import sys
+import os
+
+os.chdir(os.path.dirname(sys.argv[0]))
 
 if len(sys.argv) > 1:
     if sys.argv[1] == "reset":
