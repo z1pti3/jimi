@@ -188,7 +188,7 @@ if jimi.api.webServer:
                 # Get latest plugin
                 f = jimi.api.request.files['file']
                 filename = str(Path("data/temp/{0}.jimiPlugin".format(pluginName)))
-                if not jimi.helpers.safeFilepath(filename,"plugins"):
+                if not jimi.helpers.safeFilepath(filename,"data/temp"):
                     return {}, 403
                 f.save(filename)
                 with zipfile.ZipFile(filename, 'r') as zip_ref:
@@ -207,6 +207,7 @@ if jimi.api.webServer:
                                 return {},403
                             if os.path.isfile(dest_filename):
                                 os.remove(dest_filename)
+                            os.makedirs(os.path.dirname(dest_filename), exist_ok=True)
                             shutil.move(src_filename,dest_filename)
                 shutil.rmtree(tempFilename)
                 os.remove(filename)
@@ -242,7 +243,7 @@ if jimi.api.webServer:
                 return {}, 200
 
         if jimi.api.webServer.name == "jimi_web":
-            @jimi.api.webServer.route(jimi.api.base+"plugins/store/get/", methods=["GET"])
+            @jimi.api.webServer.route(jimi.api.base+"plugins/store/install/", methods=["GET"])
             @jimi.auth.adminEndpoint
             def installPluginFromRemoteStore():
                 repo = jimi.api.request.args.get("githubRepo")
@@ -274,6 +275,41 @@ if jimi.api.webServer:
                 else:
                     return {}, 404
                 return {}, 200
+
+            @jimi.api.webServer.route(jimi.api.base+"plugins/list/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def getInstalledPlugins():
+                userPlugins = []
+                foundPlugins = jimi.plugin._plugin().getAsClass(sessionData=jimi.api.g.sessionData,query={ },sort=[("name", 1)])
+                for foundPlugin in foundPlugins:
+                    userPlugins.append({ "id" : foundPlugin._id, "name" : foundPlugin.name})
+                return { "results"  : userPlugins }, 200
+
+            
+            @jimi.api.webServer.route(jimi.api.base+"plugins/store/list/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def getStorePlugins():
+                # Get installed plugin list
+                installedPlugins = []
+                foundPlugins = jimi.plugin._plugin().getAsClass(sessionData=jimi.api.g.sessionData,query={ },sort=[("name", 1)])
+                for foundPlugin in foundPlugins:
+                    installedPlugins.append(foundPlugin.name)
+
+                # Get official plugin list
+                response = requests.get("https://raw.githubusercontent.com/z1pti3/jimiPlugins/main/plugins.json", timeout=60)
+                if response.status_code == 200:
+                    storeJson = json.loads(response.text)
+                storePlugins = []
+                for pluginName, pluginData in storeJson.items():
+                    installed = False
+                    if pluginName in installedPlugins:
+                        installed = True
+                    storePlugins.append({ "_id" : len(storePlugins), "name" : pluginName, "githubRepo" : pluginData["githubRepo"], "installed" : installed })
+
+                return { "results"  : storePlugins }, 200
+                
+                
+
             
 def load():
     loadPluginAPIExtensions()
