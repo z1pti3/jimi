@@ -13,6 +13,8 @@ if __name__ == "__main__":
 
     # Start server now loading is completed
     api.startServer(debug=True, use_reloader=False, host=apiSettings["bind"], port=apiSettings["port"], threaded=True)
+    import time
+    time.sleep(5)
 
     # Auto start the application using its API
     apiEndpoint = "workers/"
