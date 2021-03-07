@@ -312,6 +312,7 @@ if jimi.api.webServer:
 
             
 def load():
+    updatePluginDB()
     loadPluginAPIExtensions()
     loadPluginFunctionExtensions()
 
@@ -346,6 +347,30 @@ def loadPluginFunctionExtensions():
                         if func.startswith("__") == False and func.endswith("__") == False:
                             jimi.function.systemFunctions[func] = getattr(mod, func) 
 
-# Cleans all object references for non-existent plugin models
-def cleanPluginDB():
-    pass
+def updatePluginDB():
+    classID = jimi.model._model().query(query={"className" : "_plugin" })["results"][0]["_id"]
+    listedPlugins = _plugin().query()["results"]
+    plugins = os.listdir("plugins")
+    for plugin in plugins:
+        dbplugin = [ x for x in listedPlugins if x["name"] == plugin ]
+        if not dbplugin:
+            pluginClass = loadPluginClass(plugin)
+            if pluginClass:
+                newPlugin = pluginClass()
+                newPlugin.name = plugin
+                newPlugin.classID = classID
+                newPluginID = newPlugin._dbCollection.insert_one(newPlugin.parse()).inserted_id
+                newPlugin = pluginClass().get(newPluginID)
+                if newPlugin.installed != True:
+                    newPlugin.installHandler()
+                elif newPlugin.version < pluginClass.version:
+                    loadedPlugin.upgradeHandler(pluginClass.version)
+        else:
+            dbplugin = dbplugin[0]
+            pluginClass = loadPluginClass(plugin)
+            if pluginClass:
+                loadedPlugin =  pluginClass().get(dbplugin["_id"])
+                if loadedPlugin.installed != True:
+                    loadedPlugin.installHandler()
+                elif loadedPlugin.version < pluginClass.version:
+                    loadedPlugin.upgradeHandler(pluginClass.version)

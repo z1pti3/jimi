@@ -92,7 +92,7 @@ def setup():
 	jimi.function.load()
 
 	# Initialize plugins
-	# jimi.plugin.load()
+	jimi.plugin.load()
 
 # Set startCheck to 0 so that all triggers start
 def resetTriggers():
