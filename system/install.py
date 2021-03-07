@@ -341,14 +341,14 @@ def systemUpgrade(currentVersion):
 				jimi.logging.debug("Unable to register failedActions",-1)
 				return False
 		temp = jimi.model._model().getAsClass(query={ "name" : "failedActions" })
-	  if len(temp) == 1:
+		if len(temp) == 1:
 			temp = temp[0]
 			temp.hidden = True
 			temp.update(["hidden"])
 		# Update system manifest
 		loadSystemManifest()
-    
-  if currentVersion < 2.07:
-	  jimi.model.registerModel("systemFiles","_systemFiles","_document","system.system")
+	
+	if currentVersion < 2.07:
+		jimi.model.registerModel("systemFiles","_systemFiles","_document","system.system")
 
 	return True
