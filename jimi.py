@@ -10,3 +10,5 @@ from core import admin, audit, cluster, debug, flow, helpers,  model, plugin, sc
 from core.models import  action, conduct, trigger, webui
 
 from system import logic, variable, system
+
+from system.models import trigger as systemTrigger

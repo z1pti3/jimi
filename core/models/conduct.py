@@ -25,7 +25,7 @@ class _conduct(jimi.db._document):
 
     # Override parent new to include name var, parent class new run after class var update
     def new(self,name=""):
-        # Confirming that the given name is not alrady in use
+        # Confirming that the given name is not already in use
         results = self.query(query={"name" : name})["results"]
         if len(results) == 0:
             # Run parent class function ( alternative to end decorator for the new function within a class )
@@ -52,21 +52,22 @@ class _conduct(jimi.db._document):
         ####################################
         #              Header              #
         ####################################
-        startTime = 0
         if self.log:
+            startTime = 0
             startTime = time.time()
             jimi.audit._audit().add("conduct","trigger_start",{ "conduct_id" : self._id, "conduct_name" : self.name, "trigger_id" : triggerID })
         data["persistentData"]["system"]["conduct"] = self
         ####################################
 
         flowDict = jimi.cache.globalCache.get("flowDict",self._id,getFlowDict,self.flow)
-
+        
+        uid = "{0}{1}".format(self._id,triggerID)
         if actionIDType:
-            triggeredFlows = jimi.cache.globalCache.get("triggeredFlowActions",triggerID,getTriggeredFlowActions,self.flow)
+            triggeredFlows = jimi.cache.globalCache.get("triggeredFlowActions",uid,getTriggeredFlowActions,self.flow,triggerID)
         elif flowIDType:
-            triggeredFlows = jimi.cache.globalCache.get("triggeredFlowFlows",triggerID,getTriggeredFlowFlows,self.flow)
+            triggeredFlows = jimi.cache.globalCache.get("triggeredFlowFlows",uid,getTriggeredFlowFlows,self.flow,triggerID)
         else:
-            triggeredFlows = jimi.cache.globalCache.get("triggeredFlowTriggers",triggerID,getTriggeredFlowTriggers,self.flow)
+            triggeredFlows = jimi.cache.globalCache.get("triggeredFlowTriggers",uid,getTriggeredFlowTriggers,self.flow,triggerID)
 
         for triggeredFlow in triggeredFlows:
             self.flowHandler(triggeredFlow,flowDict,data,flowDebugSession=flowDebugSession)
@@ -94,7 +95,7 @@ class _conduct(jimi.db._document):
                 pass
         elif type(logicVar) is str:
             if logicVar.startswith("if"):
-                if jimi.logic.ifEval(logicVar, { "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]}):
+                if jimi.logic.ifEval(logicVar, { "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]}):
                     return True
         return False
 
@@ -115,64 +116,68 @@ class _conduct(jimi.db._document):
             if currentFlow:
                 flowObjectsUsed.append(currentFlow["flowID"])
                 if currentFlow["type"] == "trigger":
-                    try:
-                        if not codifyFlow:
-                            currentTrigger = jimi.cache.globalCache.get("triggerCache",currentFlow["triggerID"]+currentFlow["flowID"],getTrigger,currentFlow)[0]
-                        else:
-                            currentTrigger = currentFlow["classObject"]
-                        # Logic and var defintion
-                        triggerContinue = True
-                        if currentTrigger.logicString:
-                            if jimi.logic.ifEval(currentTrigger.logicString,{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]}):
-                                if currentTrigger.varDefinitions:
-                                    data["flowData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]},0)
-                                    data["eventData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["eventData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]},1)
-                                    data["persistentData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["persistentData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]},2)
-                            else:
-                                triggerContinue = False
-                        else:
+                    if not codifyFlow:
+                        currentTrigger = jimi.cache.globalCache.get("triggerCache",currentFlow["triggerID"]+currentFlow["flowID"],getTrigger,currentFlow)[0]
+                    else:
+                        currentTrigger = currentFlow["classObject"]
+                    # Logic and var defintion
+                    triggerContinue = True
+                    if currentTrigger.logicString:
+                        if jimi.logic.ifEval(currentTrigger.logicString,{ "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]}):
                             if currentTrigger.varDefinitions:
-                                data["flowData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]},0)
-                                data["eventData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["eventData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]},1)
-                                data["persistentData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["persistentData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "persistentData" : data["persistentData"]},2)
-                        # If logic has said yes or no logic defined then move onto actions
-                        if triggerContinue == True:
-                            passData = data
-                            for nextFlow in currentFlow["next"]:
-                                if passData == None:
-                                    passData = copyData(data)
-                                if self.flowLogicEval(data,nextFlow["logic"]):
-                                    processQueue.append({ "flowID" : nextFlow["flowID"], "data" : passData })
-                                passData = None
-                    except IndexError:
-                        pass
-                elif currentFlow["type"] == "action":
-                    try:
-                        if not codifyFlow:
-                            class_ = jimi.cache.globalCache.get("actionCache",currentFlow["actionID"]+currentFlow["flowID"],getAction,currentFlow)[0]
+                                data["flowData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]},0)
+                                data["eventData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["eventData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]},1)
+                                data["conductData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["conductData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]},2)
+                                data["persistentData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["persistentData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]},3)
                         else:
-                            class_ = currentFlow["classObject"]
-                        if class_.enabled:
-                            data["flowData"]["flow_id"] = currentFlow["flowID"]
-                            if flowDebugSession:
-                                flowDebugSession["actionID"] = jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].startAction(flowDebugSession["eventID"],data["flowData"]["flow_id"],class_.name,copyData(data))
+                            triggerContinue = False
+                    else:
+                        if currentTrigger.varDefinitions:
+                            data["flowData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]},0)
+                            data["eventData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["eventData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]},1)
+                            data["conductData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["conductData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]},2)
+                            data["persistentData"]["var"] = jimi.variable.varEval(currentTrigger.varDefinitions,data["persistentData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]},3)
+                    # If logic has said yes or no logic defined then move onto actions
+                    if triggerContinue == True:
+                        passData = data
+                        for nextFlow in currentFlow["next"]:
+                            if passData == None:
+                                passData = copyData(data)
+                            if self.flowLogicEval(data,nextFlow["logic"]):
+                                processQueue.append({ "flowID" : nextFlow["flowID"], "data" : passData })
+                            passData = None
+                elif currentFlow["type"] == "action":
+                    if not codifyFlow:
+                        class_ = jimi.cache.globalCache.get("actionCache",currentFlow["actionID"]+currentFlow["flowID"],getAction,currentFlow)[0]
+                    else:
+                        class_ = currentFlow["classObject"]
+                    if class_.enabled:
+                        data["flowData"]["flow_id"] = currentFlow["flowID"]
+                        if flowDebugSession:
+                            flowDebugSession["actionID"] = jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].startAction(flowDebugSession["eventID"],data["flowData"]["flow_id"],class_.name,copyData(data,copyEventData=True,copyConductData=True,copyPersistentData=True))
+                        try:
+                            data["flowData"]["action"] = class_.runHandler(data=data)
+                        except Exception as e:
+                            jimi.logging.debug("Error: Action Crashed. actionID={0}, actionName={1}, error={2}".format(class_._id,class_.name,''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__))),-1)
                             try:
-                                data["flowData"]["action"] = class_.runHandler(data=data)
-                            except Exception as e:
-                                data["flowData"]["action"] = { "result" : False, "rc" : -255, "error" : traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__) }
-                            data["flowData"]["action"]["action_id"] = class_._id
-                            data["flowData"]["action"]["action_name"] = class_.name
-                            if flowDebugSession:
-                                jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].endAction(flowDebugSession["eventID"],flowDebugSession["actionID"],copyData(data))
-                            passData = data
-                            for nextFlow in currentFlow["next"]:
-                                if passData == None:
-                                    passData = copyData(data)
-                                if self.flowLogicEval(data,nextFlow["logic"]):
-                                    processQueue.append({ "flowID" : nextFlow["flowID"], "data" : passData })
-                                passData = None
-                    except IndexError:
-                        pass
+                                if data["persistentData"]["system"]["trigger"].failOnActionFailure:
+                                    raise jimi.exceptions.actionCrash(class_._id,class_.name,e)
+                            except AttributeError:
+                                pass
+                            if class_.systemCrashHandler:
+                                jimi.exceptions.actionCrash(class_._id,class_.name,e)
+                            data["flowData"]["action"] = { "result" : False, "rc" : -255, "error" : traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__) }
+                        data["flowData"]["action"]["action_id"] = class_._id
+                        data["flowData"]["action"]["action_name"] = class_.name
+                        if flowDebugSession:
+                            jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].endAction(flowDebugSession["eventID"],flowDebugSession["actionID"],copyData(data,copyEventData=True,copyConductData=True,copyPersistentData=True))
+                        passData = data
+                        for nextFlow in currentFlow["next"]:
+                            if passData == None:
+                                passData = copyData(data)
+                            if self.flowLogicEval(data,nextFlow["logic"]):
+                                processQueue.append({ "flowID" : nextFlow["flowID"], "data" : passData })
+                            passData = None
             if len(processQueue) == 0:
                 break
             else:
@@ -213,10 +218,19 @@ def dataTemplate(data=None,keepEvent=False):
         except KeyError:
             data["flowData"] = { "var" : {}, "plugin" : {} }
         if "eventData" not in data:
-            data["eventData"] = { "var" : {} }
+            data["eventData"] = { "var" : {}, "plugin" : {} }
         else:
             if "var" not in data["eventData"]:
                 data["eventData"]["var"] = {}
+            if "plugin" not in data["eventData"]:
+                data["eventData"]["plugin"] = {}
+        if "conductData" not in data:
+            data["conductData"] = { "var" : {}, "plugin" : {} }
+        else:
+            if "var" not in data["conductData"]:
+                data["conductData"]["var"] = {}
+            if "plugin" not in data["conductData"]:
+                data["conductData"]["plugin"] = {}
         if "persistentData" not in data:
             data["persistentData"] = { "system" : { "trigger" : None, "conduct" : None }, "plugin" : { }, "var" : {} }
         else:
@@ -227,22 +241,36 @@ def dataTemplate(data=None,keepEvent=False):
             if "var" not in data["persistentData"]:
                 data["persistentData"]["var"] = {}
     else:
-        data = { "flowData" : { "var" : {}, "plugin" : {} }, "eventData" : { "var" : {} }, "persistentData" : { "system" : { "trigger" : None, "conduct" : None }, "plugin" : {}, "var" : {} } }
+        data = { "flowData" : { "var" : {}, "plugin" : {} }, "eventData" : { "var" : {}, "plugin" : {} }, "conductData" : { "var" : {}, "plugin" : {} }, "persistentData" : { "system" : { "trigger" : None, "conduct" : None }, "var" : {}, "plugin" : {} } }
     return data
 
-def copyData(data):
+def copyData(data,copyEventData=False,copyConductData=False,copyPersistentData=False):
     copyOfData = {}
-    copyOfData["persistentData"] = data["persistentData"]
-    copyOfData["eventData"] = data["eventData"]
-    copyOfData["flowData"] = data["flowData"].copy()
-    try:
-        copyOfData["flowData"]["var"] = copy.deepcopy(data["flowData"]["var"])
-    except KeyError:
-        copyOfData["flowData"]["var"] = {}
-    try:
-        copyOfData["flowData"]["plugin"] = copy.deepcopy(data["flowData"]["plugin"])
-    except KeyError:
-        copyOfData["flowData"]["plugin"] = {}
+    dataTypes = ["flowData"]
+    if copyPersistentData:
+        dataTypes.append("persistentData")
+    else:
+        copyOfData["persistentData"] = data["persistentData"]
+    if copyConductData:
+        dataTypes.append("conductData")
+    else:
+        copyOfData["conductData"] = data["conductData"]
+    if copyEventData:
+        dataTypes.append("eventData")
+    else:
+        copyOfData["eventData"] = data["eventData"]
+    for dataType in dataTypes:
+        copyOfData[dataType] = data[dataType].copy()
+        if not copyOfData[dataType]["var"]:
+            copyOfData[dataType]["var"] = {}
+        else:
+            copyOfData[dataType]["var"] = copy.deepcopy(data[dataType]["var"])
+
+        if not copyOfData[dataType]["plugin"]:
+            copyOfData[dataType]["plugin"] = {}
+        else:
+            copyOfData[dataType]["plugin"] = copy.deepcopy(data[dataType]["plugin"])
+
     return copyOfData
 
 def getAction(match,sessionData,currentflow):
@@ -251,13 +279,13 @@ def getAction(match,sessionData,currentflow):
 def getTrigger(match,sessionData,currentflow):
     return jimi.trigger._trigger().getAsClass(id=currentflow["triggerID"])
 
-def getTriggeredFlowTriggers(triggerID,sessionData,flowData):
+def getTriggeredFlowTriggers(uid,sessionData,flowData,triggerID):
     return [ x for x in flowData if "triggerID" in x and x["triggerID"] == triggerID and x["type"] == "trigger" ]
 
-def getTriggeredFlowActions(actionID,sessionData,flowData):
+def getTriggeredFlowActions(uid,sessionData,flowData,actionID):
     return [ x for x in flowData if "actionID" in x and x["actionID"] == actionID and x["type"] == "action" ]
 
-def getTriggeredFlowFlows(flowID,sessionData,flowData):
+def getTriggeredFlowFlows(uid,sessionData,flowData,flowID):
     # prevent cache when running as testTrigger
     try:
         classObject = flowData[0]["classObject"]

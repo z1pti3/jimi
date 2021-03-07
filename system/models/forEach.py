@@ -55,7 +55,7 @@ class _forEach(jimi.action._action):
 		if type(events) is list:
 			cpuSaver = helpers.cpuSaver()
 			tempData = conduct.dataTemplate(data,keepEvent=True)
-			tempData["persistentData"]["system"]["trigger"] = self
+			
 			if self.limit > 0:
 				events = events[:self.limit]
 			eventHandler = None
@@ -69,7 +69,7 @@ class _forEach(jimi.action._action):
 				last = True if index == len(events) - 1 else False
 				eventStat = { "first" : first, "current" : index + 1, "total" : len(events), "last" : last }
 
-				tempDataCopy = conduct.copyData(tempData)
+				tempDataCopy = conduct.copyData(tempData,copyEventData=True)
 
 				if self.mergeEvents:
 					try:

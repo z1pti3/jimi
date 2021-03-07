@@ -106,11 +106,7 @@ def evalList(varList,dicts={},functionSafeList=functionSafeList):
 # Get dict values from string dict
 def getDictValue(varString,dicts={}):
     def nested_dict_get(dictionary, keys):
-        try:
-            return functools.reduce(lambda d, key: d.get(key) if d else None, keys, dictionary)
-        # Unable to convert from dictionary to value
-        except AttributeError:
-            return None
+        return functools.reduce(lambda d, key: d.get(key) if d else None, keys, dictionary)
 
     if regexDict.search(varString):
         dictName = varString.split("[")[0]
@@ -118,20 +114,34 @@ def getDictValue(varString,dicts={}):
             dictKeys = []
             for key in regexDictKeys.findall(varString):
                 dictKeys.append(key[1])
-            return typeCast(nested_dict_get(dicts[dictName],dictKeys))
+            try:
+                return typeCast(nested_dict_get(dicts[dictName],dictKeys))
+            except AttributeError:
+                try:
+                    currentValue = dicts[dictName]
+                    for key in dictKeys:
+                        if type(currentValue) is dict:
+                            currentValue = currentValue[key]
+                        elif type(currentValue) is list:
+                            currentValue = currentValue[int(key)]
+                        else:
+                            return None
+                except:
+                    return None
+                return currentValue
     return None
 
 # Type cast string into varible types, includes dict and function calls
 def typeCast(varString,dicts={},functionSafeList=functionSafeList):
-    if type(varString) == str and varString != "":
+    if type(varString) == str and varString:
         # String defined
-        if regexString.search(varString):
+        if varString[0] == "\"" and varString[-1] == "\"":
             return str(varString[1:-1])
         # Int
-        if regexInt.search(varString): 
+        if regexInt.match(varString):
             return int(varString)
         # Float
-        if regexFloat.search(varString):
+        if regexFloat.match(varString):
             return float(varString)
         # Bool
         lower = varString.lower()
@@ -140,16 +150,16 @@ def typeCast(varString,dicts={},functionSafeList=functionSafeList):
         if lower == "false":
             return False
         # None
-        if lower == "none":
+        if lower == "none" or lower == "null":
             return None
         # Dict
-        if regexDict.search(varString):
+        if regexDict.match(varString):
             return getDictValue(varString,dicts)
         # Attempt to cast dict and list
-        if varString.startswith("{") or varString.startswith("["):
+        if varString[0] == "{" or varString[0] == "[":
             try:
                 return ast.literal_eval(varString)
-            except Exception as e:
+            except:
                 pass
         # Function
         if regexFunction.search(varString):
@@ -229,8 +239,7 @@ def typeCast(varString,dicts={},functionSafeList=functionSafeList):
                     else:
                         return functionSafeList[functionName]()
                 except Exception as e:
-                    from system.models import trigger as systemTrigger
-                    systemTrigger.failedTrigger(None, "FunctionCrash", "Function functionName='{0}' crashed with msg='{1}'".format(functionName,''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__))))
+                    raise jimi.exceptions.functionCallFailure(functionName,''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
     # Default to exsiting
     return varString
 

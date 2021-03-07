@@ -81,6 +81,57 @@
                     }
                 }
             }
+        },
+        "failedActions" : {
+            "display_name" : "failedActions",
+            "className" : "_failedActions",
+            "class_location" : "models.trigger",
+            "description" : "Trigger called upon action failure due to exception.",
+            "fields" : [
+
+            ],
+            "data_out" : {
+                "type" : { 
+                    "description" : "Type of error.",
+                    "type" : "string",
+                    "always_present" : true,
+                    "values" : {
+                        "systemEvent" : { "description" : "" }
+                    }
+                },
+                "eventType" : {
+                    "description" : "Failure type.",
+                    "type" : "string",
+                    "always_present" : true,
+                    "values" : {
+
+                    }
+                },
+                "actionID" : {
+                    "description" : "actionID of the trigger that has failed.",
+                    "type" : "string",
+                    "always_present" : true,
+                    "values" : {
+                        
+                    }
+                },
+                "actionName" : {
+                    "description" : "Name of the action that has failed.",
+                    "type" : "string",
+                    "always_present" : true,
+                    "values" : {
+                        
+                    }
+                },
+                "msg" : {
+                    "description" : "Any provided message with the failure.",
+                    "type" : "string",
+                    "always_present" : true,
+                    "values" : {
+                        
+                    }
+                }
+            }
         }
     },
     "actions" : {

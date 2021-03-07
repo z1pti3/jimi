@@ -85,6 +85,7 @@ def fn_timer(function):
     return function_timer
 
 def debugEventHandler(sessionID,conduct,trigger,flowID,events,data=None,preserveDataID=-1):
+    jimi.cache.globalCache.clearCache("ALL")
     if data and preserveDataID > -1:
         data["persistentData"] = flowDebugSession[sessionID].preserveData[preserveDataID][0]
         data["eventData"] =  flowDebugSession[sessionID].preserveData[preserveDataID][1]
@@ -129,6 +130,7 @@ if jimi.api.webServer:
 
                     c = jimi.conduct._conduct().getAsClass(sessionData=jimi.api.g.sessionData,id=conductID)[0]
                     flow = [ x for x in c.flow if x["flowID"] == flowID ][0]
+                    maxDuration = 60
                     if "triggerID" in flow:
                         t = jimi.trigger._trigger().getAsClass(sessionData=jimi.api.g.sessionData,id=flow["triggerID"])[0]
                         if dataIn:
@@ -145,6 +147,7 @@ if jimi.api.webServer:
                         else:
                             t.data = { "flowData" : { "var" : {}, "plugin" : {} } }
                             events = t.doCheck()
+                        maxDuration = t.maxDuration
                     else:
                         t = jimi.action._action().getAsClass(sessionData=jimi.api.g.sessionData,id=flow["actionID"])[0]
                         if dataIn:
@@ -155,7 +158,7 @@ if jimi.api.webServer:
                                 data = dataIn
                         else:
                             events = [1]
-                    jimi.workers.workers.new("debug{0}".format(sessionID),debugEventHandler,(sessionID,c,t,flowID,events,data,preserveData))
+                    jimi.workers.workers.new("debug{0}".format(sessionID),debugEventHandler,(sessionID,c,t,flowID,events,data,preserveData),maxDuration=maxDuration)
                     return {}, 200
                 return (), 404
                 

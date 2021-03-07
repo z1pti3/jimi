@@ -50,6 +50,8 @@ class _document():
             self.classID = result["_id"]
             self.creationTime = int(time.time())
             if sessionData:
+                if not self.acl:
+                    self.acl = { "ids" : [ { "accessID" : sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
                 self.createdBy = sessionData["_id"]
             result = self._dbCollection.insert_one(jimi.helpers.unicodeEscapeDict(self.parse()))
             self._id = result.inserted_id
