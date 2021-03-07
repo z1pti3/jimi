@@ -17,6 +17,7 @@
     padding-right: 10px;
     float: left;
     width: calc(100% - 190px);
+    line-height: 1.2;
 }
 
 .clusterTitle {
@@ -53,6 +54,7 @@
     padding-right: 10px;
     float: right;
     width: 190px;
+    line-height: 1.2;
 }
 
 .clusterRightItem {

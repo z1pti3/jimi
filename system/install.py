@@ -10,7 +10,7 @@ import json
 import jimi
 
 # Current System Version
-systemVersion = 2.06
+systemVersion = 2.07
 
 # Initialize 
 dbCollectionName = "system"
@@ -167,6 +167,9 @@ def systemInstall():
 	if "clusterMembers" not in jimi.db.list_collection_names():
 		jimi.logging.debug("DB Collection clusterMembers Not Found : Creating...")
 		jimi.model.registerModel("clusterMember","_clusterMember","_document","core.cluster")
+
+	# System documents
+	jimi.model.registerModel("systemFiles","_systemFiles","_document","system.system")
 
 	# System - failedTriggers
 	triggers = jimi.trigger._trigger().getAsClass(query={"name" : "failedTriggers"})
@@ -338,12 +341,14 @@ def systemUpgrade(currentVersion):
 				jimi.logging.debug("Unable to register failedActions",-1)
 				return False
 		temp = jimi.model._model().getAsClass(query={ "name" : "failedActions" })
-		if len(temp) == 1:
+	  if len(temp) == 1:
 			temp = temp[0]
 			temp.hidden = True
 			temp.update(["hidden"])
 		# Update system manifest
 		loadSystemManifest()
+    
+  if currentVersion < 2.07:
+	  jimi.model.registerModel("systemFiles","_systemFiles","_document","system.system")
 
 	return True
-		

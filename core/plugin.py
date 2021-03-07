@@ -3,6 +3,10 @@ import json
 import os
 from pathlib import Path
 import importlib
+import requests
+import zipfile
+import shutil
+import re
 
 import jimi
 
@@ -78,13 +82,11 @@ class _plugin(jimi.db._document):
     def installFooter(self):
         pass
 
-    def upgradeHandler(self):
-        LatestPluginVersion = loadPluginClass(self.name).version
-        if self.version < LatestPluginVersion:
-            self.upgradeHeader(LatestPluginVersion)
-            self.upgrade(LatestPluginVersion)
-            self.upgradeFooter(LatestPluginVersion)
-            self.loadManifest()
+    def upgradeHandler(self,LatestPluginVersion):
+        self.upgradeHeader(LatestPluginVersion)
+        self.upgrade(LatestPluginVersion)
+        self.upgradeFooter(LatestPluginVersion)
+        self.loadManifest()
 
     def upgradeHeader(self,LatestPluginVersion):
         jimi.logging.debug("Starting plugin upgrade, pluginName={0}".format(self.name),-1)
@@ -176,6 +178,139 @@ if jimi.api.webServer:
                                 return { }, 200
                 return { }, 404
 
+            @jimi.api.webServer.route(jimi.api.base+"plugins/<pluginName>/install/", methods=["POST"])
+            @jimi.auth.adminEndpoint
+            def installPluginFile(pluginName):
+                jimi.logging.debug("Info: Starting plugin install. pluginName={0}".format(pluginName),-1)
+                # Some basic checks on pluginName
+                if re.match(r"[\.\\\/]+",pluginName):
+                    return {}, 403
+                # Get latest plugin
+                f = jimi.api.request.files['file']
+                filename = str(Path("data/temp/{0}.jimiPlugin".format(pluginName)))
+                if not jimi.helpers.safeFilepath(filename,"data/temp"):
+                    return {}, 403
+                f.save(filename)
+                with zipfile.ZipFile(filename, 'r') as zip_ref:
+                    repoFolder = zip_ref.namelist()[0]
+                    zip_ref.extractall(str(Path("data/temp")))
+                tempFilename = str(Path("data/temp/{0}".format(repoFolder)))
+                if not jimi.helpers.safeFilepath(tempFilename,"data/temp"):
+                    return {},403
+                # Merge .zip contents into plugin
+                for root, dirs, files in os.walk(tempFilename, topdown=False):
+                    for _file in files:
+                        if "__pycache__" not in root and ".git" not in root:
+                            src_filename = str(Path(os.path.join(root, _file)))
+                            dest_filename = src_filename.replace(tempFilename, str(Path("plugins/{0}/".format(pluginName))), 1)
+                            if not jimi.helpers.safeFilepath(dest_filename):
+                                return {},403
+                            if os.path.isfile(dest_filename):
+                                os.remove(dest_filename)
+                            os.makedirs(os.path.dirname(dest_filename), exist_ok=True)
+                            shutil.move(src_filename,dest_filename)
+                shutil.rmtree(tempFilename)
+                os.remove(filename)
+
+                # Install / update plugin ( will need to be converted to manifest one day )
+                manifestFile = str(Path("plugins/{0}/{0}.json".format(pluginName)))
+                pluginsFolder = str(Path("plugins/{0}".format(pluginName)))
+                if not jimi.helpers.safeFilepath(manifestFile,pluginsFolder) or not jimi.helpers.safeFilepath(pluginsFolder):
+                    return {},403
+                with open(manifestFile, "r") as manifest_file:
+                    manifest = json.load(manifest_file)
+                if pluginName != manifest["name"]:
+                    return {}, 403
+                pluginVersion = manifest["version"]
+
+                plugin = _plugin().getAsClass(query={"name" : pluginName})
+                if len(plugin) > 0:
+                    plugin = plugin[0]
+                    if plugin.version < pluginVersion and plugin.installed:
+                        jimi.logging.debug("Info: Upgrading plugin. pluginName={0}, currentVersion={1}, newVersion={2}".format(pluginName,plugin.version,pluginVersion),-1)
+                        plugin.upgradeHandler(pluginVersion)
+                    elif plugin.installed:
+                        jimi.logging.debug("Info: Plugin already up to date. pluginName={0}, currentVersion={1}, newVersion={2}".format(pluginName,plugin.version,pluginVersion),-1)
+                    else:
+                        jimi.logging.debug("Info: Installing new plugin. pluginName={0}, version={1}".format(pluginName,pluginVersion),-1)
+                        plugin.installHandler()
+                else:
+                    plugin = _plugin().new(pluginName)
+                    plugin = _plugin().getAsClass(id=plugin.inserted_id)[0]
+                    jimi.logging.debug("Info: Installing new plugin. pluginName={0}, version={1}".format(pluginName,pluginVersion),-1)
+                    plugin.installHandler()
+
+                return {}, 200
+
+        if jimi.api.webServer.name == "jimi_web":
+            @jimi.api.webServer.route(jimi.api.base+"plugins/store/install/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def installPluginFromRemoteStore():
+                repo = jimi.api.request.args.get("githubRepo")
+                pluginName = jimi.api.request.args.get("pluginName")
+
+                # Get manifest from github repo
+                response = requests.get("https://raw.githubusercontent.com/{0}/master/{1}.json".format(repo,pluginName), timeout=60)
+                if response.status_code == 200:
+                    manifest = json.loads(response.text)
+
+                    # Download latest repo files
+                    with requests.get("https://github.com/{0}/archive/master.zip".format(repo), stream=True, timeout=60) as r:
+                        r.raise_for_status()
+                        tempFilename = str(Path("data/temp/{0}.zip".format( manifest["name"])))
+                        if not jimi.helpers.safeFilepath(tempFilename,"data/temp"):
+                            return {}, 403
+                        with open(tempFilename, 'wb') as f:
+                            for chunk in r.iter_content(chunk_size=8192):
+                                f.write(chunk)
+
+                    # Send latest repo files to master
+                    headers = { "X-api-token" : jimi.api.g.sessionToken }
+                    url = jimi.cluster.getMaster()
+                    apiEndpoint = "plugins/{0}/install/".format(manifest["name"])
+                    with open(tempFilename, 'rb') as f:
+                        response = requests.post("{0}{1}{2}".format(url,jimi.api.base,apiEndpoint), headers=headers, files={"file" : f.read() }, timeout=60)
+                    os.remove(tempFilename)
+                    return json.loads(response.text), 200
+                else:
+                    return {}, 404
+                return {}, 200
+
+            @jimi.api.webServer.route(jimi.api.base+"plugins/list/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def getInstalledPlugins():
+                userPlugins = []
+                foundPlugins = jimi.plugin._plugin().getAsClass(sessionData=jimi.api.g.sessionData,query={ },sort=[("name", 1)])
+                for foundPlugin in foundPlugins:
+                    userPlugins.append({ "id" : foundPlugin._id, "name" : foundPlugin.name})
+                return { "results"  : userPlugins }, 200
+
+            
+            @jimi.api.webServer.route(jimi.api.base+"plugins/store/list/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def getStorePlugins():
+                # Get installed plugin list
+                installedPlugins = []
+                foundPlugins = jimi.plugin._plugin().getAsClass(sessionData=jimi.api.g.sessionData,query={ },sort=[("name", 1)])
+                for foundPlugin in foundPlugins:
+                    installedPlugins.append(foundPlugin.name)
+
+                # Get official plugin list
+                response = requests.get("https://raw.githubusercontent.com/z1pti3/jimiPlugins/main/plugins.json", timeout=60)
+                if response.status_code == 200:
+                    storeJson = json.loads(response.text)
+                storePlugins = []
+                for pluginName, pluginData in storeJson.items():
+                    installed = False
+                    if pluginName in installedPlugins:
+                        installed = True
+                    storePlugins.append({ "_id" : len(storePlugins), "name" : pluginName, "githubRepo" : pluginData["githubRepo"], "installed" : installed })
+
+                return { "results"  : storePlugins }, 200
+                
+                
+
+            
 def load():
     updatePluginDB()
     loadPluginAPIExtensions()
@@ -192,37 +327,7 @@ def loadPluginClass(pluginName):
         pass
     return None
 
-# Load / Delete valid / non-valid plugins
-def updatePluginDB():
-    classID = jimi.model._model().query(query={"className" : "_plugin" })["results"][0]["_id"]
-    listedPlugins = _plugin().query()["results"]
-    plugins = os.listdir("plugins")
-    for plugin in plugins:
-        dbplugin = [ x for x in listedPlugins if x["name"] == plugin ]
-        if not dbplugin:
-            pluginClass = loadPluginClass(plugin)
-            if pluginClass:
-                newPlugin = pluginClass()
-                newPlugin.name = plugin
-                newPlugin.classID = classID
-                newPluginID = newPlugin._dbCollection.insert_one(newPlugin.parse()).inserted_id
-                newPlugin = pluginClass().get(newPluginID)
-                if newPlugin.installed != True:
-                    newPlugin.installHandler()
-                elif newPlugin.version < pluginClass.version:
-                    loadedPlugin.upgradeHandler()
-        else:
-            dbplugin = dbplugin[0]
-            pluginClass = loadPluginClass(plugin)
-            loadedPlugin =  pluginClass().get(dbplugin["_id"])
-            if loadedPlugin.installed != True:
-                loadedPlugin.installHandler()
-            elif loadedPlugin.version < pluginClass.version:
-                loadedPlugin.upgradeHandler()
-            del listedPlugins[listedPlugins.index(dbplugin)]
-    for listedPlugin in listedPlugins:
-        plugins = _plugin().api_delete(query={ "name" : listedPlugin["name"] })
-
+# Dont like these, they need to be merged into the plugin class or somthing?
 def loadPluginAPIExtensions():
     plugins = os.listdir("plugins")
     for plugin in plugins:
@@ -242,6 +347,30 @@ def loadPluginFunctionExtensions():
                         if func.startswith("__") == False and func.endswith("__") == False:
                             jimi.function.systemFunctions[func] = getattr(mod, func) 
 
-# Cleans all object references for non-existent plugin models
-def cleanPluginDB():
-    pass
+def updatePluginDB():
+    classID = jimi.model._model().query(query={"className" : "_plugin" })["results"][0]["_id"]
+    listedPlugins = _plugin().query()["results"]
+    plugins = os.listdir("plugins")
+    for plugin in plugins:
+        dbplugin = [ x for x in listedPlugins if x["name"] == plugin ]
+        if not dbplugin:
+            pluginClass = loadPluginClass(plugin)
+            if pluginClass:
+                newPlugin = pluginClass()
+                newPlugin.name = plugin
+                newPlugin.classID = classID
+                newPluginID = newPlugin._dbCollection.insert_one(newPlugin.parse()).inserted_id
+                newPlugin = pluginClass().get(newPluginID)
+                if newPlugin.installed != True:
+                    newPlugin.installHandler()
+                elif newPlugin.version < pluginClass.version:
+                    loadedPlugin.upgradeHandler(pluginClass.version)
+        else:
+            dbplugin = dbplugin[0]
+            pluginClass = loadPluginClass(plugin)
+            if pluginClass:
+                loadedPlugin =  pluginClass().get(dbplugin["_id"])
+                if loadedPlugin.installed != True:
+                    loadedPlugin.installHandler()
+                elif loadedPlugin.version < pluginClass.version:
+                    loadedPlugin.upgradeHandler(pluginClass.version)

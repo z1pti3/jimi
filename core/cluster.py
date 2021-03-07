@@ -1,6 +1,8 @@
 import uuid
 import time
 import json
+import os
+from pathlib import Path
 
 import jimi
 
@@ -16,6 +18,7 @@ class _clusterMember(jimi.db._document):
     master = bool()
     syncCount = int()
     lastSyncTime = int()
+    checksum = str()
 
     _dbCollection = jimi.db.db[dbCollectionName]
 
@@ -38,7 +41,7 @@ class _clusterMember(jimi.db._document):
         for clusterMember in clusterMembers:
             if clusterMember.systemID == self.systemID:
                 if clusterMember.systemUID != self.systemUID:
-                    jimi.logging.debug("ERROR: Duplicated systemID detected during sync.",-1)
+                    jimi.logging.debug("Error: Duplicated systemID detected during sync.",-1)
                     return False
                 if clusterMember.master:
                     self.master = True
@@ -196,18 +199,21 @@ class _cluster:
     stopped = False
     startTime = None
     lastHandle = None
+    clusterMember = None
 
     def __init__(self):
         self.workerID = jimi.workers.workers.new("cluster",self.handler,maxDuration=0)
         self.startTime = int(time.time())
 
     def handler(self):
-        clusterMember = loadClusterMember()
+        self.clusterMember = loadClusterMember()
+        self.clusterMember.checksum = jimi.system.fileIntegrityRegister()
+        self.clusterMember.update(["checksum"])
         while not self.stopped:
-            jimi.audit._audit().add("cluster","poll",{ "systemID" : clusterMember.systemID, "master" : clusterMember.master, "systemUID" : clusterMember.systemUID })
+            jimi.audit._audit().add("cluster","poll",{ "systemID" : self.clusterMember.systemID, "master" : self.clusterMember.master, "systemUID" : self.clusterMember.systemUID })
             now = int(time.time())
             self.lastHandle = now
-            if not clusterMember.sync():
+            if not self.clusterMember.sync():
                 self.stopped = True
             # pause
             time.sleep(clusterSettings["loopP"])
@@ -239,6 +245,23 @@ def loadClusterMember():
     clusterMember.systemUID = str(uuid.uuid4())
     clusterMember.update(["syncCount","systemUID","bindAddress","bindPort","bindSecure"])
     return clusterMember
+
+def getClusterMemberById(systemID):
+    clusterMember = _clusterMember().getAsClass(query={ "systemID" : systemID })
+    if len(clusterMember) == 1:
+        clusterMember = clusterMember[0]
+        return clusterMember
+    return None
+
+def getclusterMemberURLById(systemID):
+    clusterMember = _clusterMember().getAsClass(query={ "systemID" : systemID })
+    if len(clusterMember) == 1:
+        clusterMember = clusterMember[0]
+        propcol = "http"
+        if clusterMember.bindSecure:
+            propcol = "https"
+        return "{0}://{1}:{2}".format(propcol,clusterMember.bindAddress, clusterMember.bindPort)
+    return None
 
 def getMaster():
     clusterMaster = _clusterMember().getAsClass(query={ "master" : True })

@@ -31,9 +31,14 @@ class _model(jimi.db._document):
         try:
             mod = __import__("{0}".format(self.location), fromlist=["{0}".format(self.className)])
         except ModuleNotFoundError:
-            if jimi.logging.debugEnabled:
-                jimi.logging.debug("Error unable to find class='{0}', className='{1}', classType='{2}', location='{3}'".format(self.classID,self.className,self.classType,self.location),2)
-            return None
+            jimi.logging.debug("Error unable to find class='{0}', className='{1}', classType='{2}', location='{3}'".format(self.classID,self.className,self.classType,self.location),-1)
+            if self.classType == "_action":
+                return jimi.action._action
+            elif self.classType == "_trigger":
+                return jimi.trigger._trigger
+            else:
+                return jimi.db._document
+            
         class_ = getattr(mod, "{0}".format(self.className))
         # Injecting manifest from model into the loaded class - this is only held in memory and never committed to the database
         class_.manifest__ = self.manifest
