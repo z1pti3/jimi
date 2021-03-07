@@ -37,10 +37,12 @@ class _action(jimi.db._document):
         jimi.cache.globalCache.newCache("modelCache",sessionData=sessionData)
         # Loading json data into class
         for jsonItem in jsonList:
-            _class = jimi.cache.globalCache.get("modelCache",jsonItem["classID"],getClassObject,sessionData=sessionData)
-            if _class is not None:
+            try:
+                _class = jimi.cache.globalCache.get("modelCache",jsonItem["classID"],getClassObject,sessionData=sessionData)
                 _class = _class[0].classObject()
                 result.append(jimi.helpers.jsonToClass(_class(),jsonItem))
+            except:
+                pass
         return result
 
     def runHandler(self,data=None,debug=False):
