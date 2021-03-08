@@ -41,6 +41,7 @@ function StatusList(props) {
                     <h2 key={key}>System {key}</h2>
                     {value.map(c => <StatusItem key={c._id} name={c.name} enabled={c.enabled} startCheck={c.startCheck} lastCheck={c.lastCheck} maxDuration={c.maxDuration == 0 ? 60 : c.maxDuration} />)}
                     <span>&nbsp;&nbsp;</span>
+                    <br/>
                 </div>
             )
         )
