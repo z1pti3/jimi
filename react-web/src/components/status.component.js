@@ -16,12 +16,8 @@ function OpenWhereUsedConducts(props,triggerID) {
             return response.json()
         }
     }).then(json => {
-        if (json["results"].length > 1) {
-            for (var x in json["results"]) {
-                window.open("/conduct/?conductID="+json["results"][x]["_id"], "_blank"); 
-            }
-        } else {
-            window.location.href = '/conduct/?conductID='+json["results"][0]["_id"];
+        for (var x in json["results"]) {
+            window.open("/conduct/?conductID="+json["results"][x]["_id"], "_blank"); 
         }
     });
 }
