@@ -46,10 +46,13 @@ More options can details can be found within our document site.
 
 ## Screenshots
 
-![Screenshot](https://github.com/z1pti3/jimi/raw/v2.0/examples/screenshots/condcuts.png)
+A rich user interface supporting muliple workspaces which can be controlled via user groups and ACL:
+![Screenshot](https://github.com/z1pti3/jimi/raw/v2.0/examples/screenshots/conducts.png)
 
+Flow editor:
 ![Screenshot](https://github.com/z1pti3/jimi/raw/v2.0/examples/screenshots/flow_new.png)
 
+Debug mode:
 ![Screenshot](https://github.com/z1pti3/jimi/raw/v2.0/examples/screenshots/debug.png)
 
 If you do something more than once then use jimi to reduce repetitive tasks!
