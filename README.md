@@ -23,6 +23,8 @@ The quickest way to get started is to use our docker deployment script.
 
 `curl https://raw.githubusercontent.com/z1pti3/jimi-docker/master/jimiSetup.sh | bash`
 
+After started access jimi @ https://(YOUR SERVER ADDRESS):4443
+
 More options can details can be found within our document site.
 
 [Docs](https://z1pti3.github.io/jimiDocs)
