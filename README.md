@@ -17,7 +17,15 @@ Currently jimi has some 40 public integrations and more than 200 actions and tri
 
 View Plugins: [Plugins](https://github.com/topics/jimiplugin)
 
+## Getting Started
 
+The quickest way to get started is to use our docker deployment script.
+
+`curl https://raw.githubusercontent.com/z1pti3/jimi-docker/master/jimiSetup.sh | bash`
+
+More options can details can be found within our document site.
+
+[Docs](https://z1pti3.github.io/jimiDocs)
 
 ![Screenshot](https://github.com/z1pti3/jimi/raw/v1.5/examples/screenshots/flowEditor.png)
 
