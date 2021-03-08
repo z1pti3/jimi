@@ -39,10 +39,20 @@ More options can details can be found within our document site.
 * Execute any API request
 * React to your Humio event log results
 * Clustering
+* Codfiy flows
+* In-built docs 
+* Threaded and Multiprocessing
 * Multi-user
+* Scheduling ( Trigger, Random Ranges, Cron )
+* Debuging UI
 * 2FA
 * Object and field level ACL
 * Secure password storage
+* Audit logging
+* Import/Export
+* Loops
+* Rich no-code flow editor
+* Append to existing conducts from other condcuts
 * Variables and Logic
 * Self monitoring and automatic recovery
 
