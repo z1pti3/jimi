@@ -46,10 +46,10 @@ More options can details can be found within our document site.
 
 ## Screenshots
 
-![Screenshot](https://github.com/z1pti3/jimi/raw/v1.5/examples/screenshots/condcuts.png)
+![Screenshot](https://github.com/z1pti3/jimi/raw/master/examples/screenshots/condcuts.png)
 
-![Screenshot](https://github.com/z1pti3/jimi/raw/v1.5/examples/screenshots/flow_new.png)
+![Screenshot](https://github.com/z1pti3/jimi/raw/master/examples/screenshots/flow_new.png)
 
-![Screenshot](https://github.com/z1pti3/jimi/raw/v1.5/examples/screenshots/debug.png)
+![Screenshot](https://github.com/z1pti3/jimi/raw/master/examples/screenshots/debug.png)
 
 If you do something more than once then use jimi to reduce repetitive tasks!
