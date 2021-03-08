@@ -55,17 +55,15 @@ function StatusList(props) {
         }
         return(
             Object.entries(clusterDict).map(([key,value]) =>
-                <div>
+                <div className="statusListContainer">
                     <h2 key={key}>System {key}</h2>
                     {value.map(c => <StatusItem key={c._id} _id={c._id} name={c.name} enabled={c.enabled} startCheck={c.startCheck} lastCheck={c.lastCheck} maxDuration={c.maxDuration == 0 ? 60 : c.maxDuration} />)}
-                    <span>&nbsp;&nbsp;</span>
-                    <br/>
                 </div>
             )
         )
     }
     return (
-        <div>
+        <div className="statusListContainer">
             {props.triggers.map(c => <StatusItem key={c._id} _id={c._id} name={c.name} enabled={c.enabled} startCheck={c.startCheck} lastCheck={c.lastCheck} maxDuration={c.maxDuration == 0 ? 60 : c.maxDuration} />)}
         </div>
     )
