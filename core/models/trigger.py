@@ -192,3 +192,16 @@ def getClassObject(classID,sessionData):
 
 def getTriggerConducts(triggerID,sessionData):
     return jimi.conduct._conduct().getAsClass(query={"flow.triggerID" : triggerID, "enabled" : True})
+
+
+######### --------- API --------- #########
+if jimi.api.webServer:
+    if not jimi.api.webServer.got_first_request:
+        if jimi.api.webServer.name == "jimi_web":
+            @jimi.api.webServer.route(jimi.api.base+"trigger/<triggerID>/whereUsed/", methods=["GET"])
+            def getTriggerWhereUsed(triggerID):
+                try:
+                    conducts = jimi.conduct._conduct().query(jimi.api.g.sessionData,query={ "flow.triggerID" : triggerID },fields=["_id"])["results"]
+                    return { "results" : conducts }
+                except:
+                    return { "results" : [] }

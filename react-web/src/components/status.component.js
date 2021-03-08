@@ -1,14 +1,36 @@
 import React, { Component } from "react";
 import ConductItem from "./conductItem.component"
 
+import { URL } from"./../utils/api";
+
 import "./html.component.css"
 import "./status.component.css"
+
+function OpenWhereUsedConducts(props,triggerID) {
+    const requestOptions = {
+        method: 'GET',
+        credentials: 'include',
+    };
+    fetch(URL()+'trigger/'+triggerID+"/whereUsed/", requestOptions).then(response => {
+        if (response.ok) {
+            return response.json()
+        }
+    }).then(json => {
+        if (json["results"].length > 1) {
+            for (var x in json["results"]) {
+                window.open("/conduct/?conductID="+json["results"][x]["_id"], "_blank"); 
+            }
+        } else {
+            window.location.href = '/conduct/?conductID='+json["results"][0]["_id"];
+        }
+    });
+}
 
 function StatusItem(props) {
     const now = Date.now()/1000;
     return (
         <div className="statusItemContainer">
-            <div className={`statusItem ${props.enabled ? "statusItemEnabled" : "statusItemDisabled"} ${ ((props.startCheck > 0 && props.startCheck + props.maxDuration > now) || props.lastCheck + 2.5 > now) ? "statusItemRunning" : ""} ${props.enabled && props.startCheck > 0 && props.startCheck + props.maxDuration < now  ? "statusItemCrashed" : ""} `} title={props.name}>
+            <div onDoubleClick={() => {OpenWhereUsedConducts(props,props._id)}} className={`statusItem ${props.enabled ? "statusItemEnabled" : "statusItemDisabled"} ${ ((props.startCheck > 0 && props.startCheck + props.maxDuration > now) || props.lastCheck + 2.5 > now) ? "statusItemRunning" : ""} ${props.enabled && props.startCheck > 0 && props.startCheck + props.maxDuration < now  ? "statusItemCrashed" : ""} `} title={props.name}>
             </div>       
         </div>
     )
@@ -39,7 +61,7 @@ function StatusList(props) {
             Object.entries(clusterDict).map(([key,value]) =>
                 <div>
                     <h2 key={key}>System {key}</h2>
-                    {value.map(c => <StatusItem key={c._id} name={c.name} enabled={c.enabled} startCheck={c.startCheck} lastCheck={c.lastCheck} maxDuration={c.maxDuration == 0 ? 60 : c.maxDuration} />)}
+                    {value.map(c => <StatusItem key={c._id} _id={c._id} name={c.name} enabled={c.enabled} startCheck={c.startCheck} lastCheck={c.lastCheck} maxDuration={c.maxDuration == 0 ? 60 : c.maxDuration} />)}
                     <span>&nbsp;&nbsp;</span>
                     <br/>
                 </div>
@@ -48,7 +70,7 @@ function StatusList(props) {
     }
     return (
         <div>
-            {props.triggers.map(c => <StatusItem key={c._id} name={c.name} enabled={c.enabled} startCheck={c.startCheck} lastCheck={c.lastCheck} maxDuration={c.maxDuration == 0 ? 60 : c.maxDuration} />)}
+            {props.triggers.map(c => <StatusItem key={c._id} _id={c._id} name={c.name} enabled={c.enabled} startCheck={c.startCheck} lastCheck={c.lastCheck} maxDuration={c.maxDuration == 0 ? 60 : c.maxDuration} />)}
         </div>
     )
 }
