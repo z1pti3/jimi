@@ -27,10 +27,6 @@ More options can details can be found within our document site.
 
 [Docs](https://z1pti3.github.io/jimiDocs)
 
-## Screenshots
-
-![Screenshot](https://github.com/z1pti3/jimi/raw/v1.5/examples/screenshots/flowEditor.png)
-
 ## Features ( With Reconmended Plugins )
 * Remote commands and playbooks ( winrm, ssh )
 * Remote file trasnfer ( scp, smb )
@@ -47,5 +43,13 @@ More options can details can be found within our document site.
 * Secure password storage
 * Variables and Logic
 * Self monitoring and automatic recovery
+
+## Screenshots
+
+![Screenshot](https://github.com/z1pti3/jimi/raw/2.0/examples/screenshots/condcuts.png)
+
+![Screenshot](https://github.com/z1pti3/jimi/raw/2.0/examples/screenshots/flow_new.png)
+
+![Screenshot](https://github.com/z1pti3/jimi/raw/2.0/examples/screenshots/debug.png)
 
 If you do something more than once then use jimi to reduce repetitive tasks!
