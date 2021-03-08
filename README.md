@@ -27,9 +27,13 @@ More options can details can be found within our document site.
 
 [Docs](https://z1pti3.github.io/jimiDocs)
 
+## Screenshots
+
 ![Screenshot](https://github.com/z1pti3/jimi/raw/v1.5/examples/screenshots/flowEditor.png)
 
-## Enterprise Ready
+## Features
+
+### Enterprise Ready
 * Multi-user
 * 2FA
 * Object and field level ACL
@@ -37,23 +41,23 @@ More options can details can be found within our document site.
 * Clustering for 2 or more jimi nodes with automatic failover and recovery
 * Self monitoring
 
-## Common Uses by Role: 
+### Common Uses by Role: 
 We have provided just a few examples but with jimi the limit is your imagination.
 
-### IT Security Analyst
+#### IT Security Analyst
 * SOAR
 * SIEM
 * Event enrichment
 * Security product integration
 
-### IT Administrator
+#### IT Administrator
 * Asset management
 * Software deployment
 * ITIL ticket automation
 * Workflow automation
 * Server performance monitoring
 
-### Network Engineer
+#### Network Engineer
 * Network monitoring
 * Automated diagnostics and remediation
 * Backups
