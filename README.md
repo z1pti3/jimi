@@ -31,36 +31,21 @@ More options can details can be found within our document site.
 
 ![Screenshot](https://github.com/z1pti3/jimi/raw/v1.5/examples/screenshots/flowEditor.png)
 
-## Features
-
-### Enterprise Ready
+## Features ( With Reconmended Plugins )
+* Remote commands and playbooks ( winrm, ssh )
+* Remote file trasnfer ( scp, smb )
+* Run python scripts and script blocks
+* Alerting and monitoring
+* Send emails
+* Link flows together as functions
+* Execute any API request
+* React to your Humio event log results
+* Clustering
 * Multi-user
 * 2FA
 * Object and field level ACL
-* Password vault
-* Clustering for 2 or more jimi nodes with automatic failover and recovery
-* Self monitoring
-
-### Common Uses by Role: 
-We have provided just a few examples but with jimi the limit is your imagination.
-
-#### IT Security Analyst
-* SOAR
-* SIEM
-* Event enrichment
-* Security product integration
-
-#### IT Administrator
-* Asset management
-* Software deployment
-* ITIL ticket automation
-* Workflow automation
-* Server performance monitoring
-
-#### Network Engineer
-* Network monitoring
-* Automated diagnostics and remediation
-* Backups
-* Configuration management
+* Secure password storage
+* Variables and Logic
+* Self monitoring and automatic recovery
 
 If you do something more than once then use jimi to reduce repetitive tasks!
