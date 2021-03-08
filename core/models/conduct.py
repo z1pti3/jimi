@@ -81,22 +81,31 @@ class _conduct(jimi.db._document):
 
     # Eval logic between links 
     def flowLogicEval(self,data,logicVar):
-        if type(logicVar) is bool:
+        try:
+            if type(logicVar) is bool:
+                try:
+                    if logicVar == data["flowData"]["action"]["result"]:
+                        return True
+                except:
+                    pass
+            elif type(logicVar) is int:
+                try:
+                    if logicVar == data["flowData"]["action"]["rc"]:
+                        return True
+                except:
+                    pass
+            elif type(logicVar) is str:
+                if logicVar.startswith("if"):
+                    if jimi.logic.ifEval(logicVar, { "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]}):
+                        return True
+        except Exception as e:
+            jimi.logging.debug("Error: Flow Logic Crashed. flowID={0}, error={1}".format(data["flowData"]["flow_id"],''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__))),-1)
             try:
-                if logicVar == data["flowData"]["action"]["result"]:
-                    return True
-            except:
+                if data["persistentData"]["system"]["trigger"].failOnActionFailure:
+                    raise jimi.exceptions.linkCrash(data["flowData"]["flow_id"],e)
+            except AttributeError:
                 pass
-        elif type(logicVar) is int:
-            try:
-                if logicVar == data["flowData"]["action"]["rc"]:
-                    return True
-            except:
-                pass
-        elif type(logicVar) is str:
-            if logicVar.startswith("if"):
-                if jimi.logic.ifEval(logicVar, { "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]}):
-                    return True
+            
         return False
 
     def flowHandler(self,currentFlow,flowDict,data,flowDebugSession=None):
