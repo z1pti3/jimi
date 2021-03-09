@@ -29,7 +29,7 @@ More options can details can be found within our document site.
 
 [jimi Docs](https://z1pti3.github.io/jimiDocs)
 
-## Features ( With Reconmended Plugins )
+## Features ( With Recommended Plugins )
 * Remote commands and playbooks ( winrm, ssh )
 * Remote file trasnfer ( scp, smb )
 * Run python scripts and script blocks
