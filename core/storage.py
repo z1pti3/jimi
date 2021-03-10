@@ -19,6 +19,9 @@ class _storage(jimi.db._document):
         self.acl = acl
         return super(_storage, self).new()
 
+    def getFullFilePath(self):
+        return os.path.abspath(str(Path("data/storage/{0}".format(self._id))))
+
     def getLocalFilePath(self):
         idFilePath = "data/storage/{0}".format(self._id)
         if not jimi.helpers.safeFilepath(idFilePath,"data/storage"):
