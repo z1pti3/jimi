@@ -8,7 +8,7 @@ import jimi
 class _storage(jimi.db._document):
     fileData = str()
     systemStorage = bool()
-    systemHash = str()
+    fileHash = str()
     source = str()
 
     _dbCollection = jimi.db.db["storage"]
@@ -27,7 +27,7 @@ class _storage(jimi.db._document):
         idFilePath = "data/storage/{0}".format(self._id)
         if not jimi.helpers.safeFilepath(idFilePath,"data/storage"):
             return None
-        if not os.path.isfile(idFilePath) or self.systemHash != jimi.helpers.getFileHash(idFilePath):
+        if not os.path.isfile(idFilePath) or self.fileHash != jimi.helpers.getFileHash(idFilePath):
             # File not found on this server node, attempt to pull it from online servers within cluster
             for clusterMemeberURL in jimi.cluster.getAll():
                 if clusterMemeberURL != jimi.cluster.getclusterMemberURLById(jimi.cluster._clusterMember.systemID):
@@ -38,7 +38,7 @@ class _storage(jimi.db._document):
                             with open(idFilePath, 'wb') as f:
                                 for chunk in r.iter_content(chunk_size=8192):
                                     f.write(chunk)
-                            if jimi.helpers.getFileHash(idFilePath) == self.systemHash:
+                            if jimi.helpers.getFileHash(idFilePath) == self.fileHash:
                                 return idFilePath
                             else:
                                 os.remove(idFilePath)
@@ -49,8 +49,8 @@ class _storage(jimi.db._document):
     def calculateHash(self):
         idFilePath = "data/storage/{0}".format(self._id)
         if os.path.isfile(idFilePath):
-            self.systemHash = jimi.helpers.getFileHash(idFilePath)
-            self.update(["systemHash"])
+            self.fileHash = jimi.helpers.getFileHash(idFilePath)
+            self.update(["fileHash"])
 
 # API
 if jimi.api.webServer:
@@ -80,8 +80,8 @@ if jimi.api.webServer:
                         return {}, 403
                     f = jimi.api.request.files['file']
                     f.save(fullFilename)
-                    storageFile.systemHash = jimi.helpers.getFileHash(fullFilename)
-                    storageFile.update(["systemHash"])
+                    storageFile.fileHash = jimi.helpers.getFileHash(fullFilename)
+                    storageFile.update(["fileHash"])
                     return {  }, 200
                 return { }, 404
 
