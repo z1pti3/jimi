@@ -8,6 +8,7 @@ import jimi
 class _storage(jimi.db._document):
     fileData = str()
     systemStorage = bool()
+    systemHash = str()
     source = str()
 
     _dbCollection = jimi.db.db["storage"]
@@ -26,7 +27,7 @@ class _storage(jimi.db._document):
         idFilePath = "data/storage/{0}".format(self._id)
         if not jimi.helpers.safeFilepath(idFilePath,"data/storage"):
             return None
-        if not os.path.isfile(idFilePath):
+        if not os.path.isfile(idFilePath) or self.systemHash != jimi.helpers.getFileHash(idFilePath):
             # File not found on this server node, attempt to pull it from online servers within cluster
             for clusterMemeberURL in jimi.cluster.getAll():
                 if clusterMemeberURL != jimi.cluster.getclusterMemberURLById(jimi.cluster._clusterMember.systemID):
@@ -37,10 +38,19 @@ class _storage(jimi.db._document):
                             with open(idFilePath, 'wb') as f:
                                 for chunk in r.iter_content(chunk_size=8192):
                                     f.write(chunk)
-                            return idFilePath
+                            if jimi.helpers.getFileHash(idFilePath) == self.systemHash:
+                                return idFilePath
+                            else:
+                                os.remove(idFilePath)
         else:
             return idFilePath
         return None
+
+    def calculateHash(self):
+        idFilePath = "data/storage/{0}".format(self._id)
+        if not os.path.isfile(idFilePath):
+            self.systemHash = jimi.helpers.getFileHash(idFilePath)
+            self.update(["systemHash"])
 
 # API
 if jimi.api.webServer:
