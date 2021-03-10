@@ -485,5 +485,5 @@ def getStringHash(string):
     return hashlib.sha256(string.encode('utf-8')).hexdigest()
 
 def safeFilepath(filename,basePath=""):
-    base = str(Path("{0}/{1}".format(baseDir,basePath)))
-    return not os.path.commonprefix((os.path.realpath(filename),base)) != base
+    base = os.path.join(Path("{0}/{1}".format(baseDir,basePath)),'')
+    return not os.path.commonprefix((os.path.realpath(Path(filename)),base)) != base
