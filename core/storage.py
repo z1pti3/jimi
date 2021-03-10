@@ -80,6 +80,8 @@ if jimi.api.webServer:
                         return {}, 403
                     f = jimi.api.request.files['file']
                     f.save(fullFilename)
+                    storageFile.systemHash = jimi.helpers.getFileHash(fullFilename)
+                    storageFile.update(["systemHash"])
                     return {  }, 200
                 return { }, 404
 
