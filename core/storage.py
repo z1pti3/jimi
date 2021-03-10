@@ -28,6 +28,7 @@ class _storage(jimi.db._document):
         if not jimi.helpers.safeFilepath(idFilePath,"data/storage"):
             return None
         if not os.path.isfile(idFilePath) or self.fileHash != jimi.helpers.getFileHash(idFilePath):
+            jimi.logging.debug("Info: Storage file not found locally. storageID={0}".format(self._id),-1)
             # File not found on this server node, attempt to pull it from online servers within cluster
             for clusterMemeberURL in jimi.cluster.getAll():
                 if clusterMemeberURL != jimi.cluster.getclusterMemberURLById(jimi.cluster._clusterMember.systemID):
@@ -44,6 +45,7 @@ class _storage(jimi.db._document):
                                 os.remove(idFilePath)
         else:
             return idFilePath
+        jimi.logging.debug("ERROR: Storage file could not be found on any available server. storageID={0}".format(self._id),-1)
         return None
 
     def calculateHash(self):
@@ -63,10 +65,11 @@ if jimi.api.webServer:
                 if len(storageFile) != 1:
                     return {}, 404
                 storageFile = storageFile[0]
+                idFilePath = "data/storage/{0}".format(storageFile._id)
                 if storageFile.systemStorage:
-                    if not jimi.helpers.safeFilepath("data/storage/{0}".format(storageFile._id),"data/storage"):
+                    if not jimi.helpers.safeFilepath(idFilePath,"data/storage"):
                         return {}, 403
-                    return jimi.api.send_file(storageFile._id,attachment_filename=storageFile._id)
+                    return jimi.api.send_file(idFilePath,attachment_filename=storageFile._id)
                 return {}, 404
 
             @jimi.api.webServer.route(jimi.api.base+"storage/file/<filename>/", methods=["POST"])
