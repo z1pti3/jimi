@@ -32,17 +32,20 @@ class _storage(jimi.db._document):
             # File not found on this server node, attempt to pull it from online servers within cluster
             for clusterMemeberURL in jimi.cluster.getAll():
                 if clusterMemeberURL != jimi.cluster.getclusterMemberURLById(jimi.cluster._clusterMember.systemID):
-                    headers = { "x-api-token" : jimi.auth.generateSystemSession() }
-                    with requests.get("{0}{1}storage/file/{2}/".format(clusterMemeberURL,jimi.api.base,self._id), headers=headers, stream=True, timeout=60) as r:
-                        r.raise_for_status()
-                        if r.status_code == 200:
-                            with open(idFilePath, 'wb') as f:
-                                for chunk in r.iter_content(chunk_size=8192):
-                                    f.write(chunk)
-                            if jimi.helpers.getFileHash(idFilePath) == self.fileHash:
-                                return idFilePath
-                            else:
-                                os.remove(idFilePath)
+                    try:
+                        headers = { "x-api-token" : jimi.auth.generateSystemSession() }
+                        with requests.get("{0}{1}storage/file/{2}/".format(clusterMemeberURL,jimi.api.base,self._id), headers=headers, stream=True, timeout=60) as r:
+                            r.raise_for_status()
+                            if r.status_code == 200:
+                                with open(idFilePath, 'wb') as f:
+                                    for chunk in r.iter_content(chunk_size=8192):
+                                        f.write(chunk)
+                                if jimi.helpers.getFileHash(idFilePath) == self.fileHash:
+                                    return idFilePath
+                                else:
+                                    os.remove(idFilePath)
+                    except requests.exceptions.HTTPError:
+                        pass
         else:
             return idFilePath
         jimi.logging.debug("ERROR: Storage file could not be found on any available server. storageID={0}".format(self._id),-1)

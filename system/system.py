@@ -29,10 +29,16 @@ def fileIntegrityRegister():
 	for knownFile in knownFiles:
 		knownFilesHash[knownFile.filename] = knownFile
 
+	# Updating storage before getting and updating system files - this will pull from systems if the file does not exist locally
+	storageFiles = jimi.storage._storage().getAsClass(query={ "systemStorage" : True })
+	for storageFile in storageFiles:
+		if not storageFile.getLocalFilePath():
+			jimi.logging.debug("Error: System integrity register could not find or get storage file. storageID={0}".format(storageFile._id),-1)
+
 	checksumHash = ""
-	registerRoots = ["system","core","plugins"]
+	registerRoots = ["system","core","plugins","data/storage"]
 	for registerRoot in registerRoots:
-		for root, dirs, files in os.walk(registerRoot, topdown=False):
+		for root, dirs, files in os.walk(Path(registerRoot), topdown=False):
 			for _file in files:
 				if "__pycache__" not in root and ".git" not in root:
 					filename = os.path.join(root, _file)
@@ -45,6 +51,7 @@ def fileIntegrityRegister():
 						del knownFilesHash[filename]
 					except KeyError:
 						_systemFiles().new(_file,systemSettings["systemID"],filename,fileHash)
+
 	# Remove old files
 	for knownFile in knownFilesHash:
 		knownFilesHash[knownFile].delete()
