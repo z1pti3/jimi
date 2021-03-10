@@ -48,7 +48,7 @@ class _storage(jimi.db._document):
 
     def calculateHash(self):
         idFilePath = "data/storage/{0}".format(self._id)
-        if not os.path.isfile(idFilePath):
+        if os.path.isfile(idFilePath):
             self.systemHash = jimi.helpers.getFileHash(idFilePath)
             self.update(["systemHash"])
 
