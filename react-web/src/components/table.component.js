@@ -10,7 +10,10 @@ export default class Table extends React.Component {
     }
     
     getKeys = function(){
-      return Object.keys(this.props.data[0]);
+      if (this.props.data.length > 0) {
+        return Object.keys(this.props.data[0]);
+      }
+      return [];
     }
     
     getHeader = function(){
