@@ -16,6 +16,7 @@ var nextId = 0;
 var flowObjects = {};
 var nodeObjects = {};
 var flowLinks = {};
+var previousSelectedObject = null;
 var selectedObject = null;
 var processlist = {};
 var init = false;
@@ -416,6 +417,15 @@ function duplicateFlowObject() {
 	}
 }
 
+function connectFlowObject() {
+	if (selectedObject != null && previousSelectedObject != null)
+	{
+		if (selectedObject[0] == "flowObject" && previousSelectedObject[0] == "flowObject") {
+			createLink(previousSelectedObject[1],selectedObject[1],"#3dbeff","",true);
+		}
+	}
+}
+
 function setupFlowchart() {
 	var container = document.getElementById("flowchart");
 	nodes = new vis.DataSet([]);
@@ -459,6 +469,8 @@ function setupFlowchart() {
 				selectedObject[1]["deselect"]()
 			}
 		}
+
+		previousSelectedObject = selectedObject
 		if (params["nodes"].length == 1) {
 			if (cKeyState) {
 				if (selectedObject[0] == "flowObject")
@@ -470,6 +482,13 @@ function setupFlowchart() {
 		} else {
 			selectedObject = null;
 		}
+
+		if (previousSelectedObject != null) {
+			$("#connectFlowObject").show();
+		} else {
+			$("#connectFlowObject").hide();
+		}
+
 		return true;
 	});
 
@@ -477,6 +496,13 @@ function setupFlowchart() {
 		nodeID = (network.getNodeAt({ "x" : params["pointer"]["DOM"]["x"], "y" : params["pointer"]["DOM"]["y"] }));
 		if ((nodeID) || (nodeID == 0)) {
 			network.setSelection({ "nodes" : [nodeID] });
+			previousSelectedObject = selectedObject
+			selectedObject = ["flowObject",nodeObjects[nodeID]["flowID"]]
+			if (previousSelectedObject != null) {
+				$("#connectFlowObject").show();
+			} else {
+				$("#connectFlowObject").hide();
+			}
 			if (flowObjects[nodeObjects[nodeID]["flowID"]]["flowType"] == "trigger") {
 				var menuHTML = ".contextMenuTrigger";
 			} else {
