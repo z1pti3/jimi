@@ -19,6 +19,7 @@ import CodifyPage from '../pages/codify.page';
 import AdminPage from '../pages/admin.page'; 
 import CleanupPage from '../pages/cleanup.page';
 import MarketplacePage from '../pages/marketplace.page';
+import FilesPage from '../pages/Files.page';
 
 
 
@@ -31,6 +32,7 @@ function Topbar(props) {
                 <NavLink exact className="home" activeClassName="homeActive" to="/">jimi</NavLink>
                 <NavLink exact className="link" activeClassName="active" to="/status">Status</NavLink>
                 <NavLink exact className="link" activeClassName="active" to="/conducts">Conducts</NavLink>
+                {/* <NavLink exact className="link" activeClassName="active" to="/files">Files</NavLink> */}
                 <NavLink exact className="link" activeClassName="active" to="/plugins">Plugins</NavLink>
                 <NavLink exact className="link" activeClassName="active" to="/codify">Codify</NavLink>
                 <NavLink exact className="link" activeClassName="active" to="/modelEditor">Model Editor</NavLink>
@@ -46,6 +48,7 @@ function Topbar(props) {
                 <PrivateRoute path="/status" component={StatusPage} />
                 <PrivateRoute path="/conducts" component={ConductsPage} />
                 <PrivateRoute path="/conduct" component={ConductPage} />
+                <PrivateRoute path="/files" component={FilesPage} />
                 <PrivateRoute path="/conductSettings" component={ConductSettingsPage} />
                 <PrivateRoute path="/plugins" component={PluginsPage} />
                 <PrivateRoute path="/plugin" component={PluginPage} />

@@ -357,7 +357,7 @@ if jimi.api.webServer:
                                         if "CSRF" not in data:
                                             raise KeyError
                                     except:
-                                        data = jimi.api.request.form["CSRF"]
+                                        data = jimi.api.request.form
                                 if validSession["sessionData"]["CSRF"] != data["CSRF"]:
                                     return {}, 403
                             except:
