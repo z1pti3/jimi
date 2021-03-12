@@ -10,7 +10,7 @@ import json
 import jimi
 
 # Current System Version
-systemVersion = 2.07
+systemVersion = 2.08
 
 # Initialize 
 dbCollectionName = "system"
