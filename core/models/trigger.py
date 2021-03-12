@@ -186,6 +186,18 @@ class _trigger(jimi.db._document):
     def check(self):
         self.result["events"].append({ "tick" : True })
 
+    def whereUsed(self):
+        conductsWhereUsed = jimi.conduct._conduct().query(query={ "flow.triggerID" : self._id },fields=["_id","name","flow"])["results"]
+        usedIn = []
+        for conductWhereUsed in conductsWhereUsed:
+            for flow in conductWhereUsed["flow"]:
+                try:
+                    if flow["triggerID"] == self._id:
+                        usedIn.append({ "conductID" :  conductWhereUsed["_id"], "conductName" : conductWhereUsed["name"] })
+                except:
+                    pass
+        return usedIn
+
 
 def getClassObject(classID,sessionData):
     return jimi.model._model().getAsClass(sessionData,id=classID)

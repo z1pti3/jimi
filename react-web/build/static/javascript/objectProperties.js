@@ -329,6 +329,11 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 				$table.append($row);
 			}
 			panel.find(".propertiesPanel-body").append($table);
+
+			if (result["whereUsed"].length > 1 && panel.find("#save").html() === "Save") {
+				panel.find("#save").html(panel.find("#save").html() + " ("+result["whereUsed"].length+")");
+			}
+
 			// Added to fix a bug whereby the property table scroll bar does not appear
 			panel.height(panel.height());
 

@@ -98,5 +98,17 @@ class _action(jimi.db._document):
     def __del__(self):
         self.postRun()
 
+    def whereUsed(self):
+        conductsWhereUsed = jimi.conduct._conduct().query(query={ "flow.actionID" : self._id },fields=["_id","name","flow"])["results"]
+        usedIn = []
+        for conductWhereUsed in conductsWhereUsed:
+            for flow in conductWhereUsed["flow"]:
+                try:
+                    if flow["actionID"] == self._id:
+                        usedIn.append({ "conductID" :  conductWhereUsed["_id"], "conductName" : conductWhereUsed["name"] })
+                except:
+                    pass
+        return usedIn
+
 def getClassObject(classID,sessionData):
     return jimi.model._model().getAsClass(sessionData,id=classID)

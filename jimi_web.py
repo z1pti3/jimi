@@ -154,6 +154,7 @@ def getConductFlowProperties(conductID,flowID):
 		flow = flow[0]
 		formData = None
 		manifest = None
+		whereUsed = None
 		if "type" in flow:
 			if flow["type"] == "trigger":
 				triggerObj = jimi.trigger._trigger().query(jimi.api.g.sessionData,id=flow["triggerID"])["results"]
@@ -176,6 +177,7 @@ def getConductFlowProperties(conductID,flowID):
 				else:
 					formData = jimi.webui._properties().generate(triggerObj)
 				manifest = triggerObj.manifest__
+				whereUsed = triggerObj.whereUsed()
 			elif flow["type"] == "action":
 				actionObj = jimi.action._action().query(jimi.api.g.sessionData,id=flow["actionID"])["results"]
 				if len(actionObj) == 1:
@@ -195,7 +197,8 @@ def getConductFlowProperties(conductID,flowID):
 				else:
 					formData = jimi.webui._properties().generate(actionObj)
 				manifest = actionObj.manifest__
-		return { "formData" : formData, "manifest" : manifest }, 200
+				whereUsed = actionObj.whereUsed()
+		return { "formData" : formData, "manifest" : manifest, "whereUsed" : whereUsed }, 200
 
 @jimi.api.webServer.route("/conduct/<conductID>/flow/<flowID>/", methods=["GET"])
 def getConductFlow(conductID,flowID):
