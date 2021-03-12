@@ -10,7 +10,7 @@ import json
 import jimi
 
 # Current System Version
-systemVersion = 2.08
+systemVersion = 2.09
 
 # Initialize 
 dbCollectionName = "system"
@@ -350,5 +350,8 @@ def systemUpgrade(currentVersion):
 	
 	if currentVersion < 2.07:
 		jimi.model.registerModel("systemFiles","_systemFiles","_document","system.system")
+
+	if currentVersion < 2.09:
+		loadSystemManifest()
 
 	return True
