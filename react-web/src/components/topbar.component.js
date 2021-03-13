@@ -19,7 +19,7 @@ import CodifyPage from '../pages/codify.page';
 import AdminPage from '../pages/admin.page'; 
 import CleanupPage from '../pages/cleanup.page';
 import MarketplacePage from '../pages/marketplace.page';
-import FilesPage from '../pages/Files.page';
+import FilesPage from '../pages/files.page';
 
 
 

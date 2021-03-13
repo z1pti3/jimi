@@ -33,6 +33,7 @@ function StatusItem(props) {
 }
 
 function StatusList(props) {
+    var triggers = props.triggers;
     if (props.showDisabled == false)
     {
         var tempTriggers = [];
@@ -40,7 +41,7 @@ function StatusList(props) {
         {
             if (props.triggers[i].enabled) { tempTriggers.push(props.triggers[i]) }
         }
-        props.triggers = tempTriggers;
+        triggers = tempTriggers;
     }
     if (props.showCluster)
     {
@@ -64,7 +65,7 @@ function StatusList(props) {
     }
     return (
         <div className="statusListContainer">
-            {props.triggers.map(c => <StatusItem key={c._id} _id={c._id} name={c.name} enabled={c.enabled} startCheck={c.startCheck} lastCheck={c.lastCheck} maxDuration={c.maxDuration == 0 ? 60 : c.maxDuration} />)}
+            {triggers.map(c => <StatusItem key={c._id} _id={c._id} name={c.name} enabled={c.enabled} startCheck={c.startCheck} lastCheck={c.lastCheck} maxDuration={c.maxDuration == 0 ? 60 : c.maxDuration} />)}
         </div>
     )
 }

@@ -1,5 +1,7 @@
-import React, { Component } from "react";
+import React, { Component, PureComponent } from "react";
 import { useHistory } from 'react-router-dom';
+
+import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 import configData from "./../config/config.json";
 import { URL } from"./../utils/api";
@@ -32,9 +34,11 @@ function apiJobsRefresh() {
         method: 'GET',
         credentials: 'include',
     };
-    var triggers = fetch(URL()+'workers/', requestOptions).then(response => {
+    var triggers = fetch(URL()+'workers/stats/', requestOptions).then(response => {
         if (response.ok) {
             return response.json()
+        } else {
+            return []
         }
     }).then(json => {
         return json["results"];
@@ -48,6 +52,7 @@ export default class AdminPage extends Component {
         this.state = {
             clusterMembers : [],
             jobs : [],
+            stats: [],
             loading: true
         }
 
@@ -60,8 +65,8 @@ export default class AdminPage extends Component {
         })
 
         this.updateJobs = this.updateJobs.bind(this);
-        apiJobsRefresh().then(jobs => {
-            this.setState({ jobs : jobs });
+        apiJobsRefresh().then(servers => {
+            this.setState({ stats : servers });
             this.updateJobs();
         })
 
@@ -79,8 +84,8 @@ export default class AdminPage extends Component {
     updateJobs() {
         if (this.mounted) {
             setTimeout(() => {
-                apiJobsRefresh().then(jobs => {
-                    this.setState({ jobs : jobs });
+                apiJobsRefresh().then(servers => {
+                    this.setState({ stats : servers });
                     this.updateJobs();
                 })
             }, 2500 );
@@ -164,13 +169,9 @@ export default class AdminPage extends Component {
                 <h1>Controls</h1>
                 <hr/>
                 <button className="btn btn-primary btn-block button medium marSmall" onClick={this.clearCache}>Clear Cache</button>
-                <br/>
                 <button className="btn btn-primary btn-block button medium marSmall" onClick={this.clearStartChecks}>Clear StartChecks</button>
-                <br/>
                 <button className="btn btn-primary btn-block button medium marSmall" onClick={this.deleteDebugSessions}>Delete Debug Sessions</button>
-                <br/>
                 <button className="btn btn-primary btn-block button medium marSmall" onClick={this.redistributeCluster}>Redistribute Cluster</button>
-                <br/>
                 <button className="btn btn-primary btn-block button medium marSmall" onClick={this.deleteUnusedObjects}>Delete Unused Objects</button>
                 <br/>
                 <br/>
@@ -178,10 +179,21 @@ export default class AdminPage extends Component {
                 <hr/>
                 <ClusterList clusterMembers={this.state.clusterMembers} />
                 <br/>
-                <br/>
-                <h1>Job Status</h1>
-                <hr/>
-                <ClusterJobList jobs={this.state.jobs} />
+                <ResponsiveContainer width="100%" height={400}>
+                    <BarChart data={this.state.stats} margin={{
+                        top: 5,
+                        right: 30,
+                        left: 20,
+                        bottom: 5
+                    }}>
+                        <XAxis dataKey="url" />
+                        <YAxis />
+                        <Legend />
+                        <Bar dataKey="activeCount" fill="#82ca9d" />
+                        <Bar dataKey="queueLength" fill="#8884d8" />
+                    </BarChart>
+                </ResponsiveContainer>
+                {/* <ClusterJobList jobs={this.state.jobs} /> */}
             </div>
         ) : <Loading />
     }

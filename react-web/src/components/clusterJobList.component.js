@@ -7,7 +7,7 @@ import "./clusterJobList.component.css"
 function ClusterJobList(props) {
     return (
         <div className="clusterJobListContainer">
-            {props.jobs.map(c => <ClusterJobItem key={c.id} id={c.id} server={c.server} createdTime={c.createdTime} name={c.name} startTime={c.startTime} />)}
+            {props.jobs ? props.jobs.map(c => <ClusterJobItem key={c.id} id={c.id} server={c.server} createdTime={c.createdTime} name={c.name} startTime={c.startTime} />) : null }
         </div>
     )
 }

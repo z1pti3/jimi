@@ -86,6 +86,21 @@ def workerPage():
 				results.append(job)
 	return { "results" : results }, 200
 
+@jimi.api.webServer.route(jimi.api.base+"/workers/stats/", methods=["GET"])
+@jimi.auth.adminEndpoint
+def workerStatusPage():
+	apiEndpoint = "workers/stats/"
+	servers = jimi.cluster.getAll()
+	results = []
+	for url in servers:
+		response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
+		responseJson = json.loads(response.text)
+		if responseJson:
+			responseJson = responseJson["results"][0]
+			responseJson["url"] = url
+			results.append(responseJson)
+	return { "results" : results }, 200
+
 # Should be migrated into admin.py or cache.py
 @jimi.api.webServer.route(jimi.api.base+"/clearCache/", methods=["GET"])
 @jimi.auth.adminEndpoint
