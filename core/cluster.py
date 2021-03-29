@@ -105,8 +105,7 @@ class _clusterMember(jimi.db._document):
                             }
                         ],
                         "maxEndTime" : { "$lt" :  time.time() },
-                        "enabled" : True,
-                        "schedule" : { "$ne" : "*" }
+                        "enabled" : True
                     }
                 }
             ])
@@ -122,7 +121,7 @@ class _clusterMember(jimi.db._document):
             for failedTrigger in failedTriggers:
                 if failedTrigger["attemptsLeft"] is None:
                     failedTrigger["attemptsLeft"] = 0
-                if failedTrigger["attemptsLeft"] < 1:
+                if failedTrigger["attemptsLeft"] < 1 and failedTrigger["schedule"] != "*" and failedTrigger["schedule"] != "":
                     jimi.audit._audit().add("cluster","dead trigger",{ "triggerID" : failedTrigger["_id"], "triggerName" : failedTrigger["name"], "attemptsLeft" : failedTrigger["attemptsLeft"], "masterID" : self.systemID, "masterUID" : self.systemUID })
                 else:
                     failedTriggerClass = jimi.trigger._trigger().getAsClass(id=failedTrigger["_id"])
