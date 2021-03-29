@@ -23,9 +23,9 @@ def failedTrigger(workerName,workerID,failureType,msg=""):
             if len(triggerClass) == 1:
                 triggerClass = triggerClass[0]
             if triggerClass:
-                events = [{"type" : "systemEvent", "eventType" : failureType, "workerName" : workerName, "workerID" : workerID, "msg" : msg }]                    
+                events = [{"type" : "systemEvent", "eventType" : failureType, "workerName" : workerName, "workerID" : workerID, "msg" : msg }]
+                audit._audit().add("trigger","trigger_failure",events[0])
                 workers.workers.new("trigger:{0}".format(trigger_["_id"]),triggerClass.notify,(events,))
-
 
 def failedAction(actionID,actionName,failureType,msg=""):
     failedActionClass = trigger._trigger().query(query={"name" : "failedActions"})["results"]
@@ -39,6 +39,7 @@ def failedAction(actionID,actionName,failureType,msg=""):
             if len(triggerClass) == 1:
                 triggerClass = triggerClass[0]
             if triggerClass:
-                events = [{"type" : "systemEvent", "eventType" : failureType, "actionID" : actionID, "actionName" : actionName, "msg" : msg }]                    
+                events = [{"type" : "systemEvent", "eventType" : failureType, "actionID" : actionID, "actionName" : actionName, "msg" : msg }]     
+                audit._audit().add("action","action_failure",events[0])               
                 workers.workers.new("trigger:{0}".format(failedActionClass["_id"]),triggerClass.notify,(events,))
                     
