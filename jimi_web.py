@@ -28,7 +28,7 @@ plugins = os.listdir("plugins")
 for plugin in plugins:
 	if os.path.isfile(Path("plugins/{0}/web/{0}.py".format(plugin))):
 		mod = __import__("plugins.{0}.web.{0}".format(plugin), fromlist=["pluginPages"])
-		jimi.api.webServer.register_blueprint(mod.pluginPages,url_prefix='/plugin')
+		jimi.api.webServer.register_blueprint(mod.pluginPages,url_prefix='/plugin/{0}'.format(plugin))
 		hidden = False
 		try:
 			hidden = mod.pluginPagesHidden

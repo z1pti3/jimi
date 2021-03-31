@@ -333,7 +333,7 @@ def loadPluginAPIExtensions():
     for plugin in plugins:
         if os.path.isfile(Path("plugins/{0}/api/{0}.py".format(plugin))):
             mod = __import__("plugins.{0}.api.{0}".format(plugin), fromlist=["pluginPages"])
-            jimi.api.webServer.register_blueprint(mod.pluginPages,url_prefix='/plugin')
+            jimi.api.webServer.register_blueprint(mod.pluginPages,url_prefix='/plugin/{0}'.format(plugin))
 
 def loadPluginFunctionExtensions():
     plugins = os.listdir("plugins")
