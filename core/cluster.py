@@ -197,7 +197,7 @@ class _clusterMember(jimi.db._document):
 class _cluster:
     stopped = False
     startTime = None
-    lastHandle = None
+    lastHandle = 0
     clusterMember = None
 
     def __init__(self):
