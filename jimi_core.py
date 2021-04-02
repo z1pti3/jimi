@@ -3,6 +3,12 @@ if __name__ == "__main__":
 
     # Create webserver so we can load all routes before starting
     apiSettings = settings.config["api"]["core"]
+    try:
+        cacheSettings = jimi.settings.config["cache"]
+        garbageCollector = cacheSettings["garbageCollector"]
+    except:
+        garbageCollector = False
+
     api.createServer("jimi_core")
 
     import jimi
@@ -65,6 +71,9 @@ if __name__ == "__main__":
         except ValueError:
             print("cluster thread not running!")
             jimi.audit._audit().add("core","notrunning",{ "action" : "restart", "type" : "cluster" })
+        # Clear persistent values from Cache
+        if garbageCollector:
+            jimi.cache.globalCache.cleanCache()
         time.sleep(10)
 else:
     import jimi

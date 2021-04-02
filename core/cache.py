@@ -6,7 +6,16 @@ import jimi
 class _cache:
     objects = dict()
 
-    def newCache(self,cacheName,maxSize=10485760,cacheExpiry=60,sessionData=None):
+    def __init__(self,maxSize=10485760,cacheExpiry=60):
+        self.maxSize = maxSize
+        self.cacheExpiry = cacheExpiry
+
+    # Max size not implimented yet
+    def newCache(self,cacheName,maxSize=None,cacheExpiry=None,sessionData=None):
+        if maxSize == None:
+            maxSize = self.maxSize
+        if cacheExpiry == None:
+            cacheExpiry = self.cacheExpiry
         userID = None
         if sessionData:
             if "_id" in sessionData:
@@ -28,6 +37,16 @@ class _cache:
             self.objects[authedCacheName]["objects"].clear()
             if jimi.logging.debugEnabled:
                 jimi.logging.debug("Cache store cleared, name={0}".format(authedCacheName),20)
+
+    def cleanCache(self):
+        now = time.time()
+        for cacheItem in self.objects.items():
+            popList = []
+            for cacheObjectItem in cacheItem[1]["objects"].items():
+                if cacheObjectItem[1]["cacheExpiry"] < now:
+                    popList.append(cacheObjectItem[0])
+            for popItem in popList:
+                    del cacheItem[1]["objects"][popItem]
         
     # BUG this function does not check for size so it would be possibel to go over the defined max memory size -- Add this at a later date
     def sync(self,objects):
@@ -127,6 +146,10 @@ class _cache:
         else:
             return None
 
+    def getDisabled(self,cacheName,uid,setFunction,*args,sessionData=None,extendCacheTime=False,customCacheTime=None,forceUpdate=False,nullUpdate=False,dontCheck=False):
+        cache, objectValue = self.getObjectValue(cacheName,uid,setFunction,*args,sessionData=sessionData)
+        return objectValue
+
     def getObjectValue(self,cacheName,uid,setFunction,*args,sessionData=None):
         authedCacheName = self.checkSessionData(cacheName,sessionData)
         if authedCacheName == None:
@@ -209,4 +232,10 @@ class _cache:
         result+="\r\n\r\nTotal Size='{0}'".format(totalSize)
         return result
 
-globalCache = _cache()
+try:
+    cacheSettings = jimi.settings.config["cache"]
+    globalCache = _cache(maxSize=cacheSettings["maxSize"],cacheExpiry=cacheSettings["cacheExpiry"])
+    if cacheSettings["enabled"] == False:
+        globalCache.get = globalCache.getDisabled
+except:
+    globalCache = _cache()
