@@ -1,0 +1,74 @@
+{% macro theme() -%}
+    <link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-5.0.0-beta3/css/bootstrap.min.css') }}">
+    <script src="{{ url_for('static', filename='includes/bootstrap-5.0.0-beta3/js/bootstrap.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+{%- endmacro -%}
+
+{% macro charts() -%}
+    <script src="{{ url_for('static', filename='includes/chartjs-3.0.2/js/chartjs.js') }}"></script>
+{%- endmacro -%}
+
+{% macro radar(id,title,pollAPI) -%}
+    <canvas id="radar_{{ id }}" class="panel"></canvas>
+    <script>
+        var requestOptions = {
+            method: 'GET',
+            credentials: 'include',
+        };
+        fetch('{{ pollAPI }}',requestOptions).then(result => {
+            return result.json()
+        }).then(resultJson => {
+            var ctx = document.getElementById("radar_{{ id }}");
+            var myChart = new Chart(ctx, {
+                type: 'radar',
+                data: resultJson["data"],
+                options: {
+                    responsive: true,
+                    scale: {
+                        ticks: {
+                            display: false,
+                            maxTicksLimit: 3
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: "{{ title }}"
+                        }
+                    }
+                }
+            });
+        })
+    </script>
+{%- endmacro -%}
+
+{% macro doughnut(id,title,pollAPI) -%}
+    <canvas id="doughnut_{{ id }}" class="panel"></canvas>
+    <script>
+        var requestOptions = {
+            method: 'GET',
+            credentials: 'include',
+        };
+        fetch('{{ pollAPI }}',requestOptions).then(result => {
+            return result.json()
+        }).then(resultJson => {
+            var ctx = document.getElementById("doughnut_{{ id }}");
+            var myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: resultJson["data"],
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: "{{ title }}"
+                        }
+                    }
+                }
+            });
+        })
+    </script>
+{%- endmacro -%}

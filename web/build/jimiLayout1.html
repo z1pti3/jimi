@@ -1,0 +1,24 @@
+{% import "jimi.html" as jimi %}
+
+{{ jimi.theme() }}
+
+<html>
+    <head>
+        {% block head %}
+        {% endblock %}
+    </head>
+    <body>
+        <div class="container-sm">
+            <div class="row justify-content-md-center">
+                <div class="col col-lg-5">
+                    {% block block1 %}
+                    {% endblock %}
+                </div>
+                <div class="col col-lg-5">
+                    {% block block2 %}
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

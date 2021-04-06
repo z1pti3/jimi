@@ -15,7 +15,7 @@ from operator import itemgetter
 from core import api, settings
 apiSettings = settings.config["api"]["web"]
 
-api.createServer("jimi_web",template_folder=str(Path("react-web","build")),static_folder=str(Path("react-web","build","static")))
+api.createServer("jimi_web",template_folder=str(Path("web","build")),static_folder=str(Path("web","build","static")))
 
 import jimi
 

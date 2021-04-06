@@ -1,0 +1,36 @@
+:root {
+    /* Main */
+    --mainBackgroundColor: #222222;
+    --textColor: #adadad;
+    --textDisabledColor: #615f5f;
+    --hoverColor: #220433;
+
+    /* Panel */
+    --panelBackgroundColor: #333333;
+    --panelBorderColor: #000;
+    --panelShadowColor1: rgba(0, 0, 0, 0.12);
+    --panelShadowColor2: rgba(0, 0, 0, 0.24);
+    --panelComponentBackground: #111111;
+    --panelComponentBackground-Focus: #020202;
+    --panelComponentBorder: #2e6da4;
+    --panelComponentBorder-Focus: #167bff;
+
+    /* Alerts */
+    --errorBackgroundColor: #ffffff;
+    --errorColor: #ec0e0e;
+    --alertBackgroundColor: #ffffff;
+    --alertColor: #15b438;
+}
+
+body {
+    background-color:  var(--mainBackgroundColor);
+    color: var(--textColor);
+    padding: 15px;
+}
+
+.panel {
+    background-color:  var(--panelBackgroundColor);
+    box-shadow: 0 1px 6px var(--panelShadowColor1), 0 1px 4px var(--panelShadowColor2);
+    color: var(--textColor);
+    border-radius: 15px;
+}
