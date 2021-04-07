@@ -8,67 +8,165 @@
     <script src="{{ url_for('static', filename='includes/chartjs-3.0.2/js/chartjs.js') }}"></script>
 {%- endmacro -%}
 
-{% macro radar(id,title,pollAPI) -%}
-    <canvas id="radar_{{ id }}" class="panel"></canvas>
+{% macro chartPolling(id,pollAPI,autoPoll) -%}
     <script>
-        var requestOptions = {
-            method: 'GET',
-            credentials: 'include',
-        };
-        fetch('{{ pollAPI }}',requestOptions).then(result => {
-            return result.json()
-        }).then(resultJson => {
-            var ctx = document.getElementById("radar_{{ id }}");
-            var myChart = new Chart(ctx, {
-                type: 'radar',
-                data: resultJson["data"],
-                options: {
-                    responsive: true,
-                    scale: {
-                        ticks: {
-                            display: false,
-                            maxTicksLimit: 3
-                        }
-                    },
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: "{{ title }}"
-                        }
+        function refresh_chart{{ id }}() {
+            var bodyData = { "CSRF" : CSRF, "datasets" : chart_{{ id }}.data.datasets, "labels" : chart_{{ id }}.data.labels }
+            var requestOptions = {
+                method: 'POST',
+                credentials: 'include',
+                body: JSON.stringify(bodyData)
+            };
+            fetch('{{ pollAPI }}',requestOptions,2000).then(result => {
+                return result.json()
+            }).then(resultJson => {
+                if ( resultJson["labels"].length > 0 ) {
+                    chart_{{ id }}.data.labels = resultJson["labels"]
+                }
+                if ( resultJson["datasets"].length > 0 ) {
+                    for ( dataset in resultJson["datasets"] ) {
+                        chart_{{ id }}.data.datasets.push(resultJson["datasets"][dataset])  
                     }
                 }
-            });
-        })
+                if ( resultJson["updates"].length > 0 ) {
+                    for ( index in resultJson["updates"] ) {
+                        chart_{{ id }}.data.datasets[resultJson["updates"][index]["index"]].data = resultJson["updates"][index]["data"]
+                    }
+                }
+                if ( resultJson["deletes"].length > 0 ) {
+                    for ( index in resultJson["deletes"] ) {
+                        chart_{{ id }}.data.datasets.splice(resultJson["deletes"][index]["index"])
+                    }
+                }
+                chart_{{ id }}.update()
+            })
+            {% if autoPoll > 0 %}
+                setTimeout(refresh_chart{{ id }}, {{ autoPoll }});
+            {% endif %}
+        }
+        refresh_chart{{ id }}();
     </script>
 {%- endmacro -%}
 
-{% macro doughnut(id,title,pollAPI) -%}
-    <canvas id="doughnut_{{ id }}" class="panel"></canvas>
+{% macro radar(id,title,pollAPI,autoPoll=0) -%}
+    <canvas id="chart_{{ id }}" class="panel"></canvas>
     <script>
-        var requestOptions = {
-            method: 'GET',
-            credentials: 'include',
-        };
-        fetch('{{ pollAPI }}',requestOptions).then(result => {
-            return result.json()
-        }).then(resultJson => {
-            var ctx = document.getElementById("doughnut_{{ id }}");
-            var myChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: resultJson["data"],
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                            text: "{{ title }}"
-                        }
+        var ctx = document.getElementById("chart_{{ id }}");
+        var chart_{{ id }} = new Chart(ctx, {
+            type: 'radar',
+            data: {},
+            options: {
+                responsive: true,
+                scale: {
+                    ticks: {
+                        display: false,
+                        maxTicksLimit: 3
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: "{{ title }}"
                     }
                 }
-            });
-        })
+            }
+        });
     </script>
+    {{ chartPolling(id,pollAPI,autoPoll) }}
+{%- endmacro -%}
+
+{% macro doughnut(id,title,pollAPI,autoPoll=0) -%}
+    <canvas id="chart_{{ id }}" class="panel"></canvas>
+    <script>
+        var ctx = document.getElementById("chart_{{ id }}");
+        var chart_{{ id }} = new Chart(ctx, {
+            type: 'doughnut',
+            data: {},
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: "{{ title }}"
+                    }
+                }
+            }
+        });
+    </script>
+    {{ chartPolling(id,pollAPI,autoPoll) }}
+{%- endmacro -%}
+
+{% macro pie(id,title,pollAPI,autoPoll=0) -%}
+    <canvas id="chart_{{ id }}" class="panel"></canvas>
+    <script>
+        var ctx = document.getElementById("chart_{{ id }}");
+        var chart_{{ id }} = new Chart(ctx, {
+            type: 'pie',
+            data: {},
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: "{{ title }}"
+                    }
+                }
+            }
+        });
+    </script>
+    {{ chartPolling(id,pollAPI,autoPoll) }}
+{%- endmacro -%}
+
+{% macro bar(id,title,pollAPI,autoPoll=0) -%}
+    <canvas id="chart_{{ id }}" class="panel"></canvas>
+    <script>
+        var ctx = document.getElementById("chart_{{ id }}");
+        var chart_{{ id }} = new Chart(ctx, {
+            type: 'bar',
+            data: {},
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: "{{ title }}"
+                    }
+                }
+            }
+        });
+    </script>
+    {{ chartPolling(id,pollAPI,autoPoll) }}
+{%- endmacro -%}
+
+{% macro line(id,title,pollAPI,autoPoll=0) -%}
+    <canvas id="chart_{{ id }}" class="panel"></canvas>
+    <script>
+        var ctx = document.getElementById("chart_{{ id }}");
+        var chart_{{ id }} = new Chart(ctx, {
+            type: 'line',
+            data: {},
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: "{{ title }}"
+                    }
+                }
+            }
+        });
+    </script>
+    {{ chartPolling(id,pollAPI,autoPoll) }}
 {%- endmacro -%}
