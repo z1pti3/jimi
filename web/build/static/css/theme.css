@@ -22,17 +22,100 @@
     --alertColor: #15b438;
 }
 
+*::-webkit-scrollbar {
+    width: 12px;
+}
+
+*::-webkit-scrollbar-track {
+    background: var(--panelComponentBackground);
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: var(--panelComponentBackground-Focus);
+    border-radius: 20px;
+    border: 3px solid var(--panelComponentBackground-Focus);
+}
+
 body {
     background-color:  var(--mainBackgroundColor);
     color: var(--textColor);
-    padding: 15px;
+    padding-bottom: 25px;
+    height: 100%;
+    overflow-y: hidden;
 }
 
 .panel {
+    overflow-y: hidden;
     background-color:  var(--panelBackgroundColor);
     box-shadow: 0 1px 6px var(--panelShadowColor1), 0 1px 4px var(--panelShadowColor2);
     color: var(--textColor);
     border-radius: 5px;
-    min-height: 300px;
-    max-height: 300px;
+    padding: 5px;
+}
+
+.panelHeader {
+    font-size: 15px;
+    text-align: center;
+    width: 100%;
+}
+
+.chartContainer {
+    height: calc(100% - 22px);;
+}
+
+.chart {
+    width: unset!important;
+    height: unset!important;
+}
+
+
+/* dataTable */
+div.dts {
+    height: calc(100% - 85px);
+}
+
+div.dts div.dataTables_scrollBody {
+    background: unset;
+    background-color: var(--panelComponentBackground);
+}
+
+.dataTables_scrollHead div table {
+    border-bottom-color: var(--panelComponentBorder);
+    border-bottom-width: 1px;
+    border-bottom-style: solid;  
+}
+
+.theme-table {
+    background-color: var(--panelComponentBackground);
+    color: var(--textColor);
+    border-color: var(--panelBorderColor);
+    border-width: 1px;
+    border-style: solid;
+}
+
+.theme-tableRowOdd {
+    background-color: var(--panelComponentBackground);
+}
+
+.theme-tableRowEven {
+    background-color: var(--panelComponentBackground-Focus);
+}
+
+/* bootstrap extras */
+
+.h-40 {
+    height: 40%!important;
+}
+
+.h-60 {
+    height: 60%!important;
+}
+
+.unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }

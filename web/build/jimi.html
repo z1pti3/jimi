@@ -49,7 +49,10 @@
 {%- endmacro -%}
 
 {% macro radar(id,title,pollAPI,autoPoll=0) -%}
-    <canvas id="chart_{{ id }}" class="panel"></canvas>
+    <label class="unselectable panelHeader">{{ title }}</label>
+    <div class="chartContainer">
+        <canvas id="chart_{{ id }}" class="chart"></canvas>
+    </div>
     <script>
         var ctx = document.getElementById("chart_{{ id }}");
         var chart_{{ id }} = new Chart(ctx, {
@@ -57,6 +60,7 @@
             data: {},
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 scale: {
                     ticks: {
                         display: false,
@@ -65,8 +69,7 @@
                 },
                 plugins: {
                     title: {
-                        display: true,
-                        text: "{{ title }}"
+                        display: false
                     }
                 }
             }
@@ -76,7 +79,10 @@
 {%- endmacro -%}
 
 {% macro doughnut(id,title,pollAPI,autoPoll=0) -%}
-    <canvas id="chart_{{ id }}" class="panel"></canvas>
+    <label class="unselectable panelHeader">{{ title }}</label>
+    <div class="chartContainer">
+        <canvas id="chart_{{ id }}" class="chart"></canvas>
+    </div>
     <script>
         var ctx = document.getElementById("chart_{{ id }}");
         var chart_{{ id }} = new Chart(ctx, {
@@ -84,13 +90,13 @@
             data: {},
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         position: 'top',
                     },
                     title: {
-                        display: true,
-                        text: "{{ title }}"
+                        display: false
                     }
                 }
             }
@@ -100,7 +106,10 @@
 {%- endmacro -%}
 
 {% macro pie(id,title,pollAPI,autoPoll=0) -%}
-    <canvas id="chart_{{ id }}" class="panel"></canvas>
+    <label class="unselectable panelHeader">{{ title }}</label>
+    <div class="chartContainer">
+        <canvas id="chart_{{ id }}" class="chart"></canvas>
+    </div>
     <script>
         var ctx = document.getElementById("chart_{{ id }}");
         var chart_{{ id }} = new Chart(ctx, {
@@ -108,13 +117,13 @@
             data: {},
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         position: 'top',
                     },
                     title: {
-                        display: true,
-                        text: "{{ title }}"
+                        display: false
                     }
                 }
             }
@@ -124,7 +133,10 @@
 {%- endmacro -%}
 
 {% macro bar(id,title,pollAPI,autoPoll=0) -%}
-    <canvas id="chart_{{ id }}" class="panel"></canvas>
+    <label class="unselectable panelHeader">{{ title }}</label>
+    <div class="chartContainer">
+        <canvas id="chart_{{ id }}" class="chart"></canvas>
+    </div>
     <script>
         var ctx = document.getElementById("chart_{{ id }}");
         var chart_{{ id }} = new Chart(ctx, {
@@ -132,13 +144,13 @@
             data: {},
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         position: 'top',
                     },
                     title: {
-                        display: true,
-                        text: "{{ title }}"
+                        display: false
                     }
                 }
             }
@@ -148,7 +160,10 @@
 {%- endmacro -%}
 
 {% macro line(id,title,pollAPI,autoPoll=0) -%}
-    <canvas id="chart_{{ id }}" class="panel"></canvas>
+    <label class="unselectable panelHeader">{{ title }}</label>
+    <div class="chartContainer">
+        <canvas id="chart_{{ id }}" class="chart"></canvas>
+    </div>
     <script>
         var ctx = document.getElementById("chart_{{ id }}");
         var chart_{{ id }} = new Chart(ctx, {
@@ -156,17 +171,57 @@
             data: {},
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         position: 'top',
                     },
                     title: {
-                        display: true,
-                        text: "{{ title }}"
+                        display: false
                     }
                 }
             }
         });
     </script>
     {{ chartPolling(id,pollAPI,autoPoll) }}
+{%- endmacro -%}
+
+{% macro tables() -%}
+    <script src="{{ url_for('static', filename='includes/jquery-3.6.0/js/jquery-3.6.0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='includes/datatables-1.10.24/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='includes/datatables-1.10.24/js/dataTables.bootstrap5.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables-1.10.24/css/dataTables.bootstrap5.min.css') }}">
+    <script src="{{ url_for('static', filename='includes/datatables-scroller-2.0.3/js/dataTables.scroller.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables-scroller-2.0.3/css/scroller.dataTables.min.css') }}">
+{%- endmacro -%}
+
+{% macro table(id,title,pollAPI) -%}
+    <label class="unselectable panelHeader">{{ title }}</label>
+    <table id="table_{{ id }}" class="display theme-table" style="width:100%;"></table>
+    <script>
+        $(document).ready(function() {
+            $('#table_{{ id }}').DataTable( { 
+                ajax: '{{ pollAPI }}',
+                processing: true,
+                serverSide: true,
+                scrollY: "100%",
+                deferRender: true,
+                scroller: true,
+                "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
+                columns : [
+                    { "title" : "a" },
+                    { "title" : "b" },
+                    { "title" : "c" },
+                    { "title" : "d" },
+                ],
+                language: {
+                    search: ""
+                },
+                dom: '<"pull-left"f><"pull-right"l>tip'
+            });
+            $('#table_{{ id }}_filter input').hide();
+            var height = $('#panel_{{ id }}').height();
+            $('#table_{{ id }}').height(height);
+        });
+    </script>
 {%- endmacro -%}
