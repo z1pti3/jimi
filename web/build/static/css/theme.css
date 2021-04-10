@@ -2,6 +2,7 @@
     /* Main */
     --mainBackgroundColor: #222222;
     --textColor: #adadad;
+    --textColorHover: #f1f1f1;
     --textDisabledColor: #615f5f;
     --hoverColor: #220433;
 
@@ -34,6 +35,16 @@
     background-color: var(--panelComponentBackground-Focus);
     border-radius: 20px;
     border: 3px solid var(--panelComponentBackground-Focus);
+}
+
+a {
+    color: var(--textColor);
+    text-decoration: unset;
+}
+
+a:hover {
+    color: var(--textColorHover);
+    text-decoration: underline;
 }
 
 body {
@@ -73,6 +84,12 @@ body {
 }
 
 .panelTextbox {
+    background-color: var(--panelComponentBackground);; 
+    color: var(--textColor);
+    border: none;
+}
+
+.panelTextbox:focus {
     background-color: var(--panelComponentBackground);; 
     color: var(--textColor);
     border: none;
