@@ -2,7 +2,7 @@ import html
 import copy
 import random
 from json2html import *
-
+import urllib.parse
 
 class chartjs():
 
@@ -108,27 +108,31 @@ class line(chartjs):
 
 class table():
 
-    def __init__(self,columns,rows=[],pageSize=200,totalRows=0):
+    def __init__(self,columns,pageSize=200,totalRows=0):
         self.columns = []
         for column in columns:
             self.columns.append({ "name" : column, "title" : column })
-        self.data = rows
         self.totalRows = totalRows
         self.pageSize = pageSize
 
     def getColumns(self):
         return { "columns" : self.columns }
 
-    def setRows(self,rows):
+    def setRows(self,rows,links=[]):
         self.data = []
         for row in rows:
             rowData = []
             for column in self.columns:
+                hyperLink = None
+                for link in links:
+                    if link["field"] == column["name"]:
+                        hyperLink = link["url"]
                 value = safe(row[column["name"]])
                 if type(value) is dict or type(value) is list:
-                    rowData.append(json2html.convert(json=value))
-                else:
-                    rowData.append(value)
+                    value = json2html.convert(json=value)
+                if hyperLink:
+                    value = "<a href=\"{0}assetItem/?value={1}\">{1}</a>".format(hyperLink,value)
+                rowData.append(value)
             self.data.append(rowData)
 
     def generate(self,draw):
@@ -153,7 +157,11 @@ def safe(value):
     elif type(value) is list:
         result = []
         for v in value:
-            result += safe(v)
+            result.append(safe(v))
         return result
     else:
         return html.escape(str(value))
+
+def dictTable(dictData):
+    table_attributes = {"style": "width:100%"}
+    return json2html.convert(safe(dictData),table_attributes=table_attributes)

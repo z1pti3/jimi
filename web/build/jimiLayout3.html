@@ -1,0 +1,48 @@
+{% import "jimi.html" as jimi %}
+
+<script>
+    var CSRF="{{ CSRF }}";
+</script>
+
+<html>
+    <head>
+        {% block head %}
+        {% endblock %}
+        {{ jimi.theme() }}
+    </head>
+    <body>
+        <div class="container-fluid">
+            <div class="row g-0 m-1 justify-content-md-center h-40">
+                <div class="col col-lg mr-1 h-100 panel">
+                    {% block block1 %}
+                    {% endblock %}
+                </div>
+                <div class="col col-lg mx-1 h-100 panel">
+                    {% block block2 %}
+                    {% endblock %}
+                </div>
+                <div class="col col-lg ml-1 h-100 panel">
+                    {% block block3 %}
+                    {% endblock %}
+                </div>
+            </div>
+            <div class="row g-0 m-1 justify-content-md-center h-search">
+                <div class="col col-lg-12 mx-1 h-100 panel">
+                    <input id="search" class="form-control input-lg panelTextbox" placeholder="Search" onkeyup="searchInputChange(this.value)"></input>
+                    <script>
+                        function searchInputChange(value) {
+                            $('.dataTables_filter input').val(value);
+                            $('.dataTables_filter input').keyup();
+                        }
+                    </script>
+                </div>
+            </div>
+            <div class="row g-0 m-1 justify-content-md-center h-60-search">
+                <div class="col col-lg-12 mx-1 h-100 panel">
+                    {% block block4 %}
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

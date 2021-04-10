@@ -37,7 +37,7 @@
 }
 
 body {
-    background-color:  var(--mainBackgroundColor);
+    background-color: var(--mainBackgroundColor);
     color: var(--textColor);
     padding-bottom: 25px;
     height: 100%;
@@ -45,12 +45,16 @@ body {
 }
 
 .panel {
-    overflow-y: hidden;
-    background-color:  var(--panelBackgroundColor);
+    overflow-y: auto;
+    background-color: var(--panelBackgroundColor);
     box-shadow: 0 1px 6px var(--panelShadowColor1), 0 1px 4px var(--panelShadowColor2);
     color: var(--textColor);
     border-radius: 5px;
     padding: 5px;
+}
+
+.content {
+    overflow-y: auto;
 }
 
 .panelHeader {
@@ -60,7 +64,7 @@ body {
 }
 
 .chartContainer {
-    height: calc(100% - 22px);;
+    height: calc(100% - 22px);
 }
 
 .chart {
@@ -68,10 +72,15 @@ body {
     height: unset!important;
 }
 
+.panelTextbox {
+    background-color: var(--panelComponentBackground);; 
+    color: var(--textColor);
+    border: none;
+}
 
 /* dataTable */
 div.dts {
-    height: calc(100% - 85px);
+    height: calc(100% - 86px);
 }
 
 div.dts div.dataTables_scrollBody {
@@ -121,12 +130,33 @@ div.dts div.dataTables_scrollBody {
 
 /* bootstrap extras */
 
+.h-search {
+    height: 46px;
+}
+
+.h-10 {
+    height: 10%!important;
+}
+
+.h-20 {
+    height: 20%!important;
+}
+
+
+.h-30 {
+    height: 30%!important;
+}
+
 .h-40 {
     height: 40%!important;
 }
 
 .h-60 {
     height: 60%!important;
+}
+
+.h-60-search {
+    height: calc(60% - 46px);
 }
 
 .unselectable {

@@ -1,0 +1,23 @@
+{% import "jimi.html" as jimi %}
+
+<script>
+    var CSRF="{{ CSRF }}";
+</script>
+
+<html>
+    <head>
+        {% block head %}
+        {% endblock %}
+        {{ jimi.theme() }}
+    </head>
+    <body>
+        <div class="container">
+            <div class="row justify-content-md-center h-100">
+                <div class="col col-lg-7 h-100 panel">
+                    {% block block1 %}
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

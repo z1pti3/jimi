@@ -201,6 +201,7 @@
     <label class="unselectable panelHeader">{{ title }}</label>
     <table id="table_{{ id }}" class="display theme-table" style="width:100%;"></table>
     <script>
+        var table = null;
         window.addEventListener("load", function(){
             var requestOptions = {
                 method: 'GET',
@@ -209,7 +210,7 @@
             fetch('{{ pollAPI }}build/',requestOptions,2000).then(result => {
                 return result.json()
             }).then(resultJson => {
-                $('#table_{{ id }}').DataTable( { 
+                table = $('#table_{{ id }}').DataTable( { 
                     ajax: '{{ pollAPI }}poll/',
                     processing: true,
                     serverSide: true,
