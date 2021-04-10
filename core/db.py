@@ -358,7 +358,7 @@ class _document():
         return distinct
 
     @mongoConnectionWrapper
-    def groupby(self,sessionData=None,field=None):
+    def groupby(self,sessionData=None,field=None,customGroup={}):
         result = { "results" : [] }
         query = {}
         # Builds list of permitted ACL
@@ -373,15 +373,41 @@ class _document():
                 # Adds ACL check to provided query to ensure requester is authorised and had read acess
                 aclQuery = { "$or" : [ { "acl.ids.accessID" : { "$in" : accessIDs }, "acl.ids.read" : True }, { "acl" : { "$exists" : False } }, { "acl" : {} } ] }
                 aggregate.append({"$match" : aclQuery})
-        aggregate.append({
-            "$group" : {
-                "_id" : "${0}".format(field),
-                "_count" : { "$sum" : 1 }
-            }
-        })
+        if customGroup:
+            aggregate+=customGroup
+        else:
+            aggregate.append({
+                "$group" : {
+                    "_id" : "${0}".format(field),
+                    "_count" : { "$sum" : 1 }
+                }
+            })
         groupby = self._dbCollection.aggregate(aggregate)
         result = []
         for item in groupby:
+            result.append(item)
+        return result
+
+    @mongoConnectionWrapper
+    def aggregate(self,sessionData=None,aggregateStatement=None):
+        result = { "results" : [] }
+        query = {}
+        # Builds list of permitted ACL
+        adminBypass = False
+        aggregate = []
+        if sessionData and authSettings["enabled"]:
+            if "admin" in sessionData:
+                if sessionData["admin"]:
+                    adminBypass = True
+            if not adminBypass:
+                accessIDs = sessionData["accessIDs"]
+                # Adds ACL check to provided query to ensure requester is authorised and had read acess
+                aclQuery = { "$or" : [ { "acl.ids.accessID" : { "$in" : accessIDs }, "acl.ids.read" : True }, { "acl" : { "$exists" : False } }, { "acl" : {} } ] }
+                aggregate.append({"$match" : aclQuery})
+        aggregate += aggregateStatement
+        aggregateResult = self._dbCollection.aggregate(aggregate)
+        result = []
+        for item in aggregateResult:
             result.append(item)
         return result
 
