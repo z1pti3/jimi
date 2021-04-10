@@ -332,6 +332,60 @@ class _document():
         return result
 
     @mongoConnectionWrapper
+    def distinct(self,sessionData=None,field=None,query=None):
+        result = { "results" : [] }
+        if not query:
+            query = {}
+        # Builds list of permitted ACL
+        accessIDs = []
+        adminBypass = False
+        if sessionData and authSettings["enabled"]:
+            if "admin" in sessionData:
+                if sessionData["admin"]:
+                    adminBypass = True
+            if not adminBypass:
+                accessIDs = sessionData["accessIDs"]
+                # Adds ACL check to provided query to ensure requester is authorised and had read acess
+                aclQuery = { "$or" : [ { "acl.ids.accessID" : { "$in" : accessIDs }, "acl.ids.read" : True }, { "acl" : { "$exists" : False } }, { "acl" : {} } ] }
+                if "$and" in query:
+                    query["$and"].append(aclQuery)
+                elif "$or" in query:
+                    query["$and"] = [ aclQuery ]
+                else: 
+                    query["$or"] = [ aclQuery ]
+        # Base query
+        distinct = self._dbCollection.distinct(field,query)    
+        return distinct
+
+    @mongoConnectionWrapper
+    def groupby(self,sessionData=None,field=None):
+        result = { "results" : [] }
+        query = {}
+        # Builds list of permitted ACL
+        adminBypass = False
+        aggregate = []
+        if sessionData and authSettings["enabled"]:
+            if "admin" in sessionData:
+                if sessionData["admin"]:
+                    adminBypass = True
+            if not adminBypass:
+                accessIDs = sessionData["accessIDs"]
+                # Adds ACL check to provided query to ensure requester is authorised and had read acess
+                aclQuery = { "$or" : [ { "acl.ids.accessID" : { "$in" : accessIDs }, "acl.ids.read" : True }, { "acl" : { "$exists" : False } }, { "acl" : {} } ] }
+                aggregate.append({"$match" : aclQuery})
+        aggregate.append({
+            "$group" : {
+                "_id" : "${0}".format(field),
+                "_count" : { "$sum" : 1 }
+            }
+        })
+        groupby = self._dbCollection.aggregate(aggregate)
+        result = []
+        for item in groupby:
+            result.append(item)
+        return result
+
+    @mongoConnectionWrapper
     def api_getByModelName(self,modelName):
         classID = jimi.model.getClassID(modelName)
         if classID:

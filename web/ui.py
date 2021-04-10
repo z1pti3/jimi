@@ -2,8 +2,10 @@ import copy
 import random
 
 class chartjs():
-    labels = []
-    datasets = {}
+    
+    def __init__(self):
+        self.labels = []
+        self.datasets = {}
 
     def addLabel(self,name):
         self.labels.append(name)
