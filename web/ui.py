@@ -1,8 +1,11 @@
+import html
 import copy
 import random
+from json2html import *
+
 
 class chartjs():
-    
+
     def __init__(self):
         self.labels = []
         self.datasets = {}
@@ -121,7 +124,11 @@ class table():
         for row in rows:
             rowData = []
             for column in self.columns:
-                rowData.append(row[column["name"]])
+                value = safe(row[column["name"]])
+                if type(value) is dict or type(value) is list:
+                    rowData.append(json2html.convert(json=value))
+                else:
+                    rowData.append(value)
             self.data.append(rowData)
 
     def generate(self,draw):
@@ -134,3 +141,19 @@ def randomColor():
     b = random.randint(0,255)
     color = f"rgba({r}, {g}, {b}, 0.5)"
     return color
+
+def safe(value):
+    if type(value) is str:
+        return html.escape(value)
+    elif type(value) is dict:
+        result = {}
+        for k, v in value.items():
+            result[k] = safe(v)
+        return result
+    elif type(value) is list:
+        result = []
+        for v in value:
+            result += safe(v)
+        return result
+    else:
+        return html.escape(str(value))
