@@ -10,41 +10,43 @@
 
 {% macro chartPolling(id,pollAPI,autoPoll) -%}
     <script>
-        function refresh_chart{{ id }}() {
-            var bodyData = { "CSRF" : CSRF, "datasets" : chart_{{ id }}.data.datasets, "labels" : chart_{{ id }}.data.labels }
-            var requestOptions = {
-                method: 'POST',
-                credentials: 'include',
-                body: JSON.stringify(bodyData)
-            };
-            fetch('{{ pollAPI }}',requestOptions,2000).then(result => {
-                return result.json()
-            }).then(resultJson => {
-                if ( resultJson["labels"].length > 0 ) {
-                    chart_{{ id }}.data.labels = resultJson["labels"]
-                }
-                if ( resultJson["datasets"].length > 0 ) {
-                    for ( dataset in resultJson["datasets"] ) {
-                        chart_{{ id }}.data.datasets.push(resultJson["datasets"][dataset])  
+        window.addEventListener("load", function(){
+            function refresh_chart{{ id }}() {
+                var bodyData = { "CSRF" : CSRF, "datasets" : chart_{{ id }}.data.datasets, "labels" : chart_{{ id }}.data.labels }
+                var requestOptions = {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: JSON.stringify(bodyData)
+                };
+                fetch('{{ pollAPI }}',requestOptions,2000).then(result => {
+                    return result.json()
+                }).then(resultJson => {
+                    if ( resultJson["labels"].length > 0 ) {
+                        chart_{{ id }}.data.labels = resultJson["labels"]
                     }
-                }
-                if ( resultJson["updates"].length > 0 ) {
-                    for ( index in resultJson["updates"] ) {
-                        chart_{{ id }}.data.datasets[resultJson["updates"][index]["index"]].data = resultJson["updates"][index]["data"]
+                    if ( resultJson["datasets"].length > 0 ) {
+                        for ( dataset in resultJson["datasets"] ) {
+                            chart_{{ id }}.data.datasets.push(resultJson["datasets"][dataset])  
+                        }
                     }
-                }
-                if ( resultJson["deletes"].length > 0 ) {
-                    for ( index in resultJson["deletes"] ) {
-                        chart_{{ id }}.data.datasets.splice(resultJson["deletes"][index]["index"])
+                    if ( resultJson["updates"].length > 0 ) {
+                        for ( index in resultJson["updates"] ) {
+                            chart_{{ id }}.data.datasets[resultJson["updates"][index]["index"]].data = resultJson["updates"][index]["data"]
+                        }
                     }
-                }
-                chart_{{ id }}.update()
-            })
-            {% if autoPoll > 0 %}
-                setTimeout(refresh_chart{{ id }}, {{ autoPoll }});
-            {% endif %}
-        }
-        refresh_chart{{ id }}();
+                    if ( resultJson["deletes"].length > 0 ) {
+                        for ( index in resultJson["deletes"] ) {
+                            chart_{{ id }}.data.datasets.splice(resultJson["deletes"][index]["index"])
+                        }
+                    }
+                    chart_{{ id }}.update()
+                })
+                {% if autoPoll > 0 %}
+                    setTimeout(refresh_chart{{ id }}, {{ autoPoll }});
+                {% endif %}
+            }
+            refresh_chart{{ id }}();
+        });
     </script>
 {%- endmacro -%}
 
@@ -199,29 +201,133 @@
     <label class="unselectable panelHeader">{{ title }}</label>
     <table id="table_{{ id }}" class="display theme-table" style="width:100%;"></table>
     <script>
-        $(document).ready(function() {
-            $('#table_{{ id }}').DataTable( { 
-                ajax: '{{ pollAPI }}',
-                processing: true,
-                serverSide: true,
-                scrollY: "100%",
-                deferRender: true,
-                scroller: true,
-                "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
-                columns : [
-                    { "title" : "a" },
-                    { "title" : "b" },
-                    { "title" : "c" },
-                    { "title" : "d" },
-                ],
-                language: {
-                    search: ""
-                },
-                dom: '<"pull-left"f><"pull-right"l>tip'
+        window.addEventListener("load", function(){
+            var requestOptions = {
+                method: 'GET',
+                credentials: 'include',
+            };
+            fetch('{{ pollAPI }}build/',requestOptions,2000).then(result => {
+                return result.json()
+            }).then(resultJson => {
+                $('#table_{{ id }}').DataTable( { 
+                    ajax: '{{ pollAPI }}poll/',
+                    processing: true,
+                    serverSide: true,
+                    scrollY: "100%",
+                    deferRender: true,
+                    scroller: true,
+                    "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
+                    columns : resultJson["columns"],
+                    language: {
+                        search: ""
+                    },
+                    dom: '<"pull-left"f><"pull-right"l>tip'
+                });
+                $('#table_{{ id }}_filter input').hide();
+                var height = $('#panel_{{ id }}').height();
+                $('#table_{{ id }}').height(height);
             });
-            $('#table_{{ id }}_filter input').hide();
-            var height = $('#panel_{{ id }}').height();
-            $('#table_{{ id }}').height(height);
+        });
+    </script>
+{%- endmacro -%}
+
+{% macro visjs() -%}
+    <script src="{{ url_for('static', filename='includes/visjs/js/vis-data.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='includes/visjs/js/moment.js') }}"></script>
+    <script src="{{ url_for('static', filename='includes/visjs/js/vis-timeline-graph2d.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='includes/visjs/css/vis-timeline-graph2d.min.css') }}">
+    <script src="{{ url_for('static', filename='includes/visjs/js/vis-network.min.js') }}"></script>
+{%- endmacro -%}
+
+{% macro visjsnetwork(id,title,pollAPI,physics="false") -%}
+    <label class="unselectable panelHeader">{{ title }}</label>
+    <div class="flowchart visjsnetwork" id="visjsnetwork_{{ id }}"></div>
+    <script>
+        window.addEventListener("load", function(){
+            var requestOptions = {
+                method: 'GET',
+                credentials: 'include',
+            };
+            fetch('{{ pollAPI }}',requestOptions,2000).then(result => {
+                return result.json()
+            }).then(resultJson => {
+                var nodes = new vis.DataSet(resultJson["nodes"]);
+                var edges = new vis.DataSet(resultJson["edges"]);
+                var container = document.getElementById("visjsnetwork_{{ id }}");
+                var data = {
+                    nodes: nodes,
+                    edges: edges
+                };
+                var options = {
+                    interaction: {
+                        tooltipDelay: 200,
+                        hideEdgesOnDrag: true,
+                        hideEdgesOnZoom: true,
+                    },
+                    layout: {
+                        improvedLayout: false
+                    },
+                    physics: {
+                        enabled: {{ physics }},
+                        timestep: 1,
+                        solver: "repulsion",
+                        repulsion: {
+                            nodeDistance: 300
+                        }
+                    },
+                    nodes: {
+                        shape: "dot",
+                        color: {
+                            background: "#4090c9",
+                            highlight: {
+                                background: "#000",
+                                border: "#FFF"
+                            }
+                        },
+                        font: {
+                            size: 10,
+                            face: "Tahoma",
+                            color: "#bfbfbf"
+                        }
+                    },
+                    edges: {
+                        width: 1,
+                        selectionWidth: 1,
+                        color: {
+                            color: "#ffffff2f", 
+                            highlight: "#FFF",
+                        },
+                        smooth: {
+                            type: "continuous",
+                        }
+                    }
+                };
+                var visjsnetwork_{{ id }} = new vis.Network(container, data, options);
+                visjsnetwork_{{ id }}.stabilize(5000);
+            });
+        });
+    </script>
+{%- endmacro -%}
+
+{% macro visjstimeline(id,title,pollAPI) -%}
+    <label class="unselectable panelHeader">{{ title }}</label>
+    <div class="visjstimeline" id="visjstimeline_{{ id }}"></div>
+    <script>
+        window.addEventListener("load", function(){
+            var requestOptions = {
+                method: 'GET',
+                credentials: 'include',
+            };
+            fetch('{{ pollAPI }}',requestOptions,2000).then(result => {
+                return result.json()
+            }).then(resultJson => {
+                var data = new vis.DataSet(resultJson["timeline"]);      
+                var container = document.getElementById("visjstimeline_{{ id }}");
+                var options = {
+                    height: "100%",
+                }
+                var visjstimeline_{{ id }} = new vis.Timeline(container, data, options);
+            });
         });
     </script>
 {%- endmacro -%}

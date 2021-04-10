@@ -101,6 +101,24 @@ div.dts div.dataTables_scrollBody {
     background-color: var(--panelComponentBackground-Focus);
 }
 
+/* visjs */
+
+.visjsnetwork {
+    height: calc(100% - 22px);
+}
+
+.vis-network:focus {
+    outline: none;
+}
+
+.visjstimeline {
+    height: calc(100% - 22px);  
+}
+
+.vis-time-axis .vis-text {
+    color: var(--textColor);
+}
+
 /* bootstrap extras */
 
 .h-40 {

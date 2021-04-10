@@ -404,10 +404,19 @@ class _paged():
         self.pages = int(self.total / self.maxResults)
         
     def count(self):
-        return self.dbClass().count(sessionData=self.sessionData,query=self.query)
+        return self.dbClass().count(sessionData=self.sessionData,query=self.query)["results"][0]["count"]
 
-    def get(self,page=0):
-        return self.dbClass().getAsClass(sessionData=self.sessionData,query=self.query,sort=self.sort,limit=self.maxResults,skip=int(page*self.maxResults))
+    def get(self,page=0,queryMode=0):
+        if queryMode == 0:
+            return self.dbClass().getAsClass(sessionData=self.sessionData,query=self.query,sort=self.sort,limit=self.maxResults,skip=int(page*self.maxResults))
+        else:
+            return self.dbClass().query(sessionData=self.sessionData,query=self.query,sort=self.sort,limit=self.maxResults,skip=int(page*self.maxResults))["results"]
+
+    def getOffset(self,offset,queryMode=0):
+        if queryMode == 0:
+            return self.dbClass().getAsClass(sessionData=self.sessionData,query=self.query,sort=self.sort,limit=self.maxResults,skip=offset)
+        else:
+            return self.dbClass().query(sessionData=self.sessionData,query=self.query,sort=self.sort,limit=self.maxResults,skip=offset)["results"]
 
 class _bulk():
     def __init__(self,processPollTime=10):
