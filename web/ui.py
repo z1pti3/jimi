@@ -127,11 +127,15 @@ class table():
                 for link in links:
                     if link["field"] == column["name"]:
                         hyperLink = link["url"]
+                        if "fieldValue" in link:
+                            hyperLinkValue = row[link["fieldValue"]]
+                        else:
+                            hyperLinkValue = ""
                 value = safe(row[column["name"]])
                 if type(value) is dict or type(value) is list:
                     value = json2html.convert(json=value)
                 if hyperLink:
-                    value = "<a href=\"{0}{1}/\">{1}</a>".format(hyperLink,value)
+                    value = "<a href=\"{0}{1}/\">{2}</a>".format(hyperLink,hyperLinkValue,value)
                 rowData.append(value)
             self.data.append(rowData)
 
