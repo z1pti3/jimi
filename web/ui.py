@@ -131,7 +131,10 @@ class table():
                             hyperLinkValue = row[link["fieldValue"]]
                         else:
                             hyperLinkValue = ""
-                value = safe(row[column["name"]])
+                try:
+                    value = safe(row[column["name"]])
+                except KeyError:
+                    value = ""
                 if type(value) is dict or type(value) is list:
                     value = json2html.convert(json=value)
                 if hyperLink:
@@ -167,5 +170,5 @@ def safe(value):
         return html.escape(str(value))
 
 def dictTable(dictData):
-    table_attributes = {"style": "width:100%"}
+    table_attributes = "class=\"dictTable\""
     return json2html.convert(safe(dictData),table_attributes=table_attributes)

@@ -134,7 +134,7 @@
     {{ chartPolling(id,pollAPI,autoPoll) }}
 {%- endmacro -%}
 
-{% macro bar(id,title,pollAPI,autoPoll=0) -%}
+{% macro bar(id,title,pollAPI,autoPoll=0,stacked="false") -%}
     <label class="unselectable panelHeader">{{ title }}</label>
     <div class="chartContainer">
         <canvas id="chart_{{ id }}" class="chart"></canvas>
@@ -155,6 +155,17 @@
                         display: false
                     }
                 }
+                {% if stacked == "true" %}
+                , 
+                scales: {
+                    x: {
+                        stacked: true
+                    },
+                    y: {
+                        stacked: true
+                    }
+                }
+                {% endif %}
             }
         });
     </script>
@@ -250,55 +261,57 @@
             fetch('{{ pollAPI }}',requestOptions,2000).then(result => {
                 return result.json()
             }).then(resultJson => {
-                var nodes = new vis.DataSet(resultJson["nodes"]);
-                var edges = new vis.DataSet(resultJson["edges"]);
                 var container = document.getElementById("visjsnetwork_{{ id }}");
                 var data = {
-                    nodes: nodes,
-                    edges: edges
+                    nodes: resultJson["nodes"],
+                    edges: resultJson["edges"]
                 };
-                var options = {
-                    interaction: {
-                        tooltipDelay: 200,
-                        hideEdgesOnDrag: true,
-                        hideEdgesOnZoom: true,
-                    },
-                    layout: {
-                        improvedLayout: false
-                    },
-                    physics: {
-                        enabled: {{ physics }},
-                        timestep: 0.1
-                    },
-                    nodes: {
-                        shape: "dot",
-                        color: {
-                            background: "#4090c9",
-                            highlight: {
-                                background: "#000",
-                                border: "#FFF"
+                if(resultJson.hasOwnProperty('options')){
+                    var options = resultJson["options"];
+                } else {
+                    var options = {
+                        interaction: {
+                            tooltipDelay: 200,
+                            hideEdgesOnDrag: true,
+                            hideEdgesOnZoom: true,
+                        },
+                        layout: {
+                            improvedLayout: false
+                        },
+                        physics: {
+                            enabled: {{ physics }},
+                            timestep: 0.1
+                        },
+                        nodes: {
+                            shape: "dot",
+                            color: {
+                                background: "#4090c9",
+                                highlight: {
+                                    background: "#000",
+                                    border: "#FFF"
+                                }
+                            },
+                            font: {
+                                size: 10,
+                                face: "Tahoma",
+                                color: "#bfbfbf"
                             }
                         },
-                        font: {
-                            size: 10,
-                            face: "Tahoma",
-                            color: "#bfbfbf"
+                        edges: {
+                            width: 1,
+                            selectionWidth: 1,
+                            color: {
+                                color: "#ffffff2f", 
+                                highlight: "#FFF",
+                            },
+                            smooth: {
+                                type: "continuous",
+                            }
                         }
-                    },
-                    edges: {
-                        width: 1,
-                        selectionWidth: 1,
-                        color: {
-                            color: "#ffffff2f", 
-                            highlight: "#FFF",
-                        },
-                        smooth: {
-                            type: "continuous",
-                        }
-                    }
-                };
+                    };
+                }
                 var visjsnetwork_{{ id }} = new vis.Network(container, data, options);
-                visjsnetwork_{{ id }}.stabilize(5000);
+                visjsnetwork_{{ id }}.stabilize(50);
             });
         });
     </script>

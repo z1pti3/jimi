@@ -95,6 +95,12 @@ body {
     border: none;
 }
 
+.dictTable {
+    width: 100%;
+    border-style: solid;
+    border-color: var(--panelComponentBackground);
+}
+
 /* dataTable */
 div.dts {
     height: calc(100% - 86px);
