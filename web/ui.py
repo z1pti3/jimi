@@ -131,7 +131,7 @@ class table():
                 if type(value) is dict or type(value) is list:
                     value = json2html.convert(json=value)
                 if hyperLink:
-                    value = "<a href=\"{0}assetItem/?value={1}\">{1}</a>".format(hyperLink,value)
+                    value = "<a href=\"{0}{1}/\">{1}</a>".format(hyperLink,value)
                 rowData.append(value)
             self.data.append(rowData)
 
