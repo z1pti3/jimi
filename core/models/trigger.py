@@ -111,7 +111,7 @@ class _trigger(jimi.db._document):
 
                     if eventHandler:
                         while eventHandler.countIncomplete() >= self.concurrency:
-                            cpuSaver.tick()
+                            cpuSaver.tick(ignoreEnabledState=True)
                         if eventHandler.failures:
                             jimi.audit._audit().add("trigger","conccurent_crash",{ "trigger_id" : self._id, "trigger_name" : self.name })
                             eventHandler.stop()

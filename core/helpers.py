@@ -41,8 +41,8 @@ class cpuSaver:
     def __init__(self):
         self.cpuSaver = jimi.settings.config["cpuSaver"]
 
-    def tick(self,runAfter=0,sleepFor=0):
-        if self.cpuSaver and self.cpuSaver["enabled"]:
+    def tick(self,runAfter=0,sleepFor=0,ignoreEnabledState=False):
+        if self.cpuSaver and ( self.cpuSaver["enabled"] or ignoreEnabledState ):
             sleep = False
             if runAfter > 0:
                 if self.loops > runAfter:
