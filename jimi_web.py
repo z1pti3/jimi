@@ -304,6 +304,8 @@ def setConductFlowLogic(conductID,flowID,nextflowID):
 							flow["next"][key] = {"flowID" : nextFlow["flowID"], "logic" : False, "order" : 0}
 						elif data["logic"].startswith("if"):
 							flow["next"][key] = {"flowID" : nextFlow["flowID"], "logic" : data["logic"], "order" : 0}
+						elif data["logic"] == "*":
+							flow["next"][key] = {"flowID" : nextFlow["flowID"], "logic" : data["logic"], "order" : 0}
 						else:
 							try:
 								flow["next"][key] = {"flowID" : nextFlow["flowID"], "logic" : int(data["logic"]), "order" : 0}
