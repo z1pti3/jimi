@@ -98,6 +98,8 @@ class _conduct(jimi.db._document):
                 if logicVar.startswith("if"):
                     if jimi.logic.ifEval(logicVar, { "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]}):
                         return True
+                elif logicVar == "*":
+                    return True
         except Exception as e:
             jimi.logging.debug("Error: Flow Logic Crashed. flowID={0}, error={1}".format(data["flowData"]["flow_id"],''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__))),-1)
             try:
