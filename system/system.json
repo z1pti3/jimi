@@ -1,7 +1,7 @@
 {
     "name" : "system",
     "author" : "system",
-    "version" : 2.08,
+    "version" : 2.10,
     "categories" : ["system"],
     "description" : "System installed triggers and actions.",
     "icon" : null,
@@ -630,6 +630,47 @@
                     "always_present" : false,
                     "values" : {
                         "(string)" : { "description" : "A message that outlines additional information about the result." }
+                    }
+                }
+            }
+        },
+        "generatePassword" : {
+            "display_name" : "generatePassword",
+            "className" : "_generatePassword",
+            "class_location" : "models.action",
+            "description" : "Generates a random password based on complexity and length criteria",
+            "fields" : [
+                { "schema_item" : "length", "schema_value" : "length", "type" : "input", "label" : "length", "description" : "The length of the password to generate", "required" : true, "jimi_syntax" : false },
+                { "schema_item" : "lowercase", "schema_value" : "lowercase", "type" : "checkbox", "label" : "lowercase", "description" : "Generate a password with at least one lowercase character", "required" : false, "jimi_syntax" : false },
+                { "schema_item" : "uppercase", "schema_value" : "uppercase", "type" : "checkbox", "label" : "uppercase", "description" : "Generate a password with at least one uppercase character", "required" : false, "jimi_syntax" : false },
+                { "schema_item" : "digits", "schema_value" : "digits", "type" : "checkbox", "label" : "digits", "description" : "Generate a password with at least one numerical character", "required" : false, "jimi_syntax" : false },
+                { "schema_item" : "symbols", "schema_value" : "symbols", "type" : "checkbox", "label" : "symbols", "description" : "Generate a password with at least one symbol character", "required" : false, "jimi_syntax" : false },
+                { "schema_item" : "blacklist", "schema_value" : "blacklist", "type" : "input", "label" : "blacklist", "description" : "Any character to avoid within the generated password, e.g. \"abc!'#\"", "required" : false, "jimi_syntax" : false },
+            ],
+            "data_out" : {
+                "result" : { 
+                    "description" : "Returns True when a suitable password has been generated.",
+                    "type" : "boolean",
+                    "always_present" : true,
+                    "values" : {
+                        "True" : { "description" : "Password generated" },
+                        "False" : { "description" : "Password could not be generated" }
+                    }
+                },
+                "rc" : {
+                    "description" : "Returns an exit code based on the outcome of the action.",
+                    "type" : "number",
+                    "always_present" : true,
+                    "values" : {
+                        "0" : { "description" : "Password generated" },
+                        "100" : { "description" : "Password could not be generated" }
+                    }
+                },
+                "password" : {
+                    "description" : "The generated password",
+                    "type" : "string",
+                    "always_present" : false,
+                    "values" : {
                     }
                 }
             }

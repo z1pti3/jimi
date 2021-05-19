@@ -10,7 +10,7 @@ import json
 import jimi
 
 # Current System Version
-systemVersion = 2.09
+systemVersion = 2.10
 
 # Initialize 
 dbCollectionName = "system"
@@ -253,6 +253,9 @@ def systemInstall():
 	jimi.model.registerModel("group","_group","_document","core.auth")
 	jimi.model.registerModel("session","_session","_document","core.auth")
 
+	# Generate password function	
+	jimi.model.registerModel("generatePassword","_generatePassword","_action","system.models.action")
+
 
 	# Adding default admin group
 	adminGroup = jimi.auth._group().getAsClass(query={ "name" : "admin" })
@@ -353,5 +356,9 @@ def systemUpgrade(currentVersion):
 
 	if currentVersion < 2.09:
 		loadSystemManifest()
+
+	if currentVersion < 2.10:
+		# New generate password system function
+		jimi.model.registerModel("generatePassword","_generatePassword","_action","system.models.action")
 
 	return True

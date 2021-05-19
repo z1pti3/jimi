@@ -1,6 +1,6 @@
 from core.models import action
 from core.models import trigger
-
+import string, secrets
 import jimi
 
 class _resetTrigger(action._action):
@@ -165,4 +165,51 @@ class _disableAction(action._action):
             return actionResult
         actionResult["result"] = False
         actionResult["rc"] = 404
+        return actionResult
+
+class _generatePassword(action._action):
+    length = 16
+    lowercase = bool()
+    uppercase = bool()
+    digits = bool()
+    symbols = bool()
+    blacklist = str()
+
+    def run(self,data,persistentData,actionResult):
+        alphabet = ""
+        if self.lowercase:
+            alphabet += string.ascii_lowercase
+        if self.uppercase:
+            alphabet += string.ascii_uppercase
+        if self.digits:
+            alphabet += string.digits
+        if self.symbols:
+            alphabet += string.punctuation
+        
+        for character in self.blacklist:
+            alphabet = alphabet.replace(character,"")
+
+        if len(alphabet) > 0:
+            while True:
+                failedRequirements = False
+                generatedPassword = ''.join(secrets.choice(alphabet) for i in range(self.length))
+                if self.lowercase and not any(c.islower() for c in generatedPassword):
+                    failedRequirements = True
+                elif self.uppercase and not any(c.isupper() for c in generatedPassword):
+                    failedRequirements = True
+                elif self.digits and not any(c.isdigit() for c in generatedPassword):
+                    failedRequirements = True
+                elif self.symbols and not any(c in string.punctuation for c in generatedPassword):
+                    failedRequirements = True
+                
+                if not failedRequirements:
+                    break
+        
+            actionResult["result"] = True
+            actionResult["rc"] = 0
+            actionResult["password"] = generatedPassword
+            return actionResult
+        actionResult["result"] = False
+        actionResult["rc"] = 100
+        actionResult["msg"] = "Could not generate password"
         return actionResult

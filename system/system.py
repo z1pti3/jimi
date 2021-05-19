@@ -148,7 +148,7 @@ if jimi.api.webServer:
 				if not url:
 					return {}, 404
 				apiEndpoint = "system/update/{0}/".format(pullFromSystemID)
-				response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
+				response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url,timeout=60)
 				return { "url" : url, "response" : response.status_code }, 200
 
 			@jimi.api.webServer.route(jimi.api.base+"system/checksum/<systemID>/", methods=["GET"])
@@ -158,5 +158,5 @@ if jimi.api.webServer:
 				if not url:
 					return {}, 404
 				apiEndpoint = "system/checksum/"
-				response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
+				response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url,timeout=60)
 				return { "url" : url, "response" : response.status_code }, 200
