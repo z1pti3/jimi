@@ -342,7 +342,10 @@ def unicodeEscapeDict(dictVar):
 def unicodeUnescapeDict(dictVar):
     resultItem = {}
     for key, value in dictVar.items():
-        newKey = key.replace("\\u002E",".").replace("\\u0024","$")
+        try:
+            newKey = key.replace("\\u002E",".").replace("\\u0024","$")
+        except AttributeError:
+            pass
         if type(value) is dict:
             resultItem[newKey] = unicodeUnescapeDict(value)
         elif type(value) is list:

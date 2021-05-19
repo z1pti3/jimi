@@ -2,6 +2,7 @@ import os
 import requests
 from pathlib import Path
 import json
+import time
 
 import jimi
 
@@ -10,6 +11,7 @@ class _storage(jimi.db._document):
     systemStorage = bool()
     fileHash = str()
     source = str()
+    accessTokens = list()
 
     _dbCollection = jimi.db.db["storage"]
 
@@ -18,6 +20,7 @@ class _storage(jimi.db._document):
         self.fileData = fileData
         self.systemStorage = systemStorage
         self.acl = acl
+        self.accessTokens = []
         return super(_storage, self).new()
 
     def getFullFilePath(self):
@@ -114,4 +117,30 @@ if jimi.api.webServer:
                     del storageFile["acl"]
                     del storageFile["classID"]
                 return { "results" : storageFiles }, 200
+
+            @jimi.api.webServer.route(jimi.api.base+"storage/file/<accessToken>/", methods=["GET"])
+            def __PUBLIC__getStorageFile(accessToken):
+                storageFile = jimi.storage._storage().query(query={"accessTokens.token" : accessToken, "accessTokens.expiry" : { "$gt" : int(time.time()) }},fields=["_id","fileHash"])["results"]
+                if len(storageFile) == 1:
+                    storageFile = storageFile[0]
+                    idFilePath = "data/temp/{0}".format(storageFile["_id"])
+                    if not jimi.helpers.safeFilepath(idFilePath,"data/temp"):
+                        return {}, 404
+                    fileWithinTemp = False
+                    if os.path.exists(Path(idFilePath)):
+                        if jimi.helpers.getFileHash(idFilePath) == storageFile["fileHash"]:
+                            fileWithinTemp = True
+                    if fileWithinTemp == False:
+                        apiToken = jimi.auth.generateSystemSession()
+                        url = jimi.cluster.getMaster()
+                        apiEndpoint = "storage/file/{0}/".format(storageFile["_id"])
+                        headers = { "X-api-token" : apiToken }
+                        with requests.get("{0}{1}{2}".format(url,jimi.api.base,apiEndpoint), headers=headers, stream=True) as r:
+                            r.raise_for_status()
+                            with open(idFilePath, 'wb') as f:
+                                for chunk in r.iter_content(chunk_size=8192):
+                                    f.write(chunk)
+                        return jimi.api.send_file(idFilePath,attachment_filename=storageFile["_id"])
+                return {}, 404
+
   
