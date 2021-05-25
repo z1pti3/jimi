@@ -465,6 +465,7 @@ if jimi.api.webServer:
                 response = jimi.api.make_response()
 
                 # Deleting active session
+                session = jimi.cache.globalCache.delete("sessions",jimi.api.g.sessionData["sessionID"])
                 if authSettings["singleUserSessions"]:
                     _session().api_delete(query={ "user" : jimi.api.g.sessionData["user"] })
                 else:
