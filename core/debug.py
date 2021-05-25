@@ -18,6 +18,8 @@ class _flowDebug():
 
     def startEvent(self,eventName,event,data):
         uid = str(uuid.uuid4())
+        if not eventName:
+            eventName = uid
         self.flowList[uid] = { "id" : uid, "type" : "event", "name" : eventName, "event" : event, "startTime" : time.time(), "endTime" : 0, "execution" : {}, "preserveDataID" : len(self.preserveData) }
         self.preserveData.append([data["persistentData"],data["eventData"]])
         return uid
