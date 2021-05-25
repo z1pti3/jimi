@@ -645,7 +645,7 @@
                 { "schema_item" : "uppercase", "schema_value" : "uppercase", "type" : "checkbox", "label" : "uppercase", "description" : "Generate a password with at least one uppercase character", "required" : false, "jimi_syntax" : false },
                 { "schema_item" : "digits", "schema_value" : "digits", "type" : "checkbox", "label" : "digits", "description" : "Generate a password with at least one numerical character", "required" : false, "jimi_syntax" : false },
                 { "schema_item" : "symbols", "schema_value" : "symbols", "type" : "checkbox", "label" : "symbols", "description" : "Generate a password with at least one symbol character", "required" : false, "jimi_syntax" : false },
-                { "schema_item" : "blacklist", "schema_value" : "blacklist", "type" : "input", "label" : "blacklist", "description" : "Any character to avoid within the generated password, e.g. \"abc!'#\"", "required" : false, "jimi_syntax" : false },
+                { "schema_item" : "blacklist", "schema_value" : "blacklist", "type" : "input", "label" : "blacklist", "description" : "Any character to avoid within the generated password, e.g. \"abc!'#\"", "required" : false, "jimi_syntax" : false }
             ],
             "data_out" : {
                 "result" : { 
