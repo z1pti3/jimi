@@ -4,6 +4,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
 {%- endmacro -%}
 
+{% macro jquery() -%}
+    <script src="{{ url_for('static', filename='includes/jquery-3.6.0/js/jquery-3.6.0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/helpers.js') }}"></script>
+{% endmacro -%}
+
 {% macro charts() -%}
     <script src="{{ url_for('static', filename='includes/chartjs-3.0.2/js/chartjs.js') }}"></script>
 {%- endmacro -%}

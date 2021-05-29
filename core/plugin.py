@@ -1,3 +1,4 @@
+from sys import modules
 import time
 import json
 import os
@@ -184,19 +185,19 @@ if jimi.api.webServer:
                 jimi.logging.debug("Info: Starting plugin install. pluginName={0}".format(pluginName),-1)
                 # Some basic checks on pluginName
                 if re.match(r"[\.\\\/]+",pluginName):
-                    return {}, 403
+                    return { "message" : "Failed" }, 403
                 # Get latest plugin
                 f = jimi.api.request.files['file']
                 filename = str(Path("data/temp/{0}.jimiPlugin".format(pluginName)))
                 if not jimi.helpers.safeFilepath(filename,"data/temp"):
-                    return {}, 403
+                    return { "message" : "Failed" }, 403
                 f.save(filename)
                 with zipfile.ZipFile(filename, 'r') as zip_ref:
                     repoFolder = zip_ref.namelist()[0]
                     zip_ref.extractall(str(Path("data/temp")))
                 tempFilename = str(Path("data/temp/{0}".format(repoFolder)))
                 if not jimi.helpers.safeFilepath(tempFilename,"data/temp"):
-                    return {},403
+                    return { "message" : "Failed" },403
                 # Merge .zip contents into plugin
                 for root, dirs, files in os.walk(tempFilename, topdown=False):
                     for _file in files:
@@ -204,7 +205,7 @@ if jimi.api.webServer:
                             src_filename = str(Path(os.path.join(root, _file)))
                             dest_filename = src_filename.replace(tempFilename, str(Path("plugins/{0}/".format(pluginName))), 1)
                             if not jimi.helpers.safeFilepath(dest_filename):
-                                return {},403
+                                return { "message" : "Failed" },403
                             if os.path.isfile(dest_filename):
                                 os.remove(dest_filename)
                             os.makedirs(os.path.dirname(dest_filename), exist_ok=True)
@@ -216,22 +217,25 @@ if jimi.api.webServer:
                 manifestFile = str(Path("plugins/{0}/{0}.json".format(pluginName)))
                 pluginsFolder = str(Path("plugins/{0}".format(pluginName)))
                 if not jimi.helpers.safeFilepath(manifestFile,pluginsFolder) or not jimi.helpers.safeFilepath(pluginsFolder):
-                    return {},403
+                    return { "message" : "Failed" },403
                 with open(manifestFile, "r") as manifest_file:
                     manifest = json.load(manifest_file)
                 if pluginName != manifest["name"]:
-                    return {}, 403
+                    return { "message" : "Failed" }, 403
                 pluginVersion = manifest["version"]
 
                 plugin = _plugin().getAsClass(query={"name" : pluginName})
+                installType = -1
                 if len(plugin) > 0:
                     plugin = plugin[0]
                     if plugin.version < pluginVersion and plugin.installed:
+                        installType = 1
                         jimi.logging.debug("Info: Upgrading plugin. pluginName={0}, currentVersion={1}, newVersion={2}".format(pluginName,plugin.version,pluginVersion),-1)
                         plugin.upgradeHandler(pluginVersion)
                     elif plugin.installed:
                         jimi.logging.debug("Info: Plugin already up to date. pluginName={0}, currentVersion={1}, newVersion={2}".format(pluginName,plugin.version,pluginVersion),-1)
                     else:
+                        installType = 0
                         jimi.logging.debug("Info: Installing new plugin. pluginName={0}, version={1}".format(pluginName,pluginVersion),-1)
                         plugin.installHandler()
                 else:
@@ -240,9 +244,58 @@ if jimi.api.webServer:
                     jimi.logging.debug("Info: Installing new plugin. pluginName={0}, version={1}".format(pluginName,pluginVersion),-1)
                     plugin.installHandler()
 
-                return {}, 200
+                # Apply system updates
+                if installType > -1:
+                    jimi.system.regenerateSystemFileIntegrity()
+                    if installType == 1:
+                        module = "plugins.{0}".format(pluginName)
+                        clusterMembers = jimi.cluster.getAll()
+                        for clusterMember in clusterMembers:
+                            headers = { "x-api-token" : jimi.auth.generateSystemSession() }
+                            requests.get("{0}{1}system/update/{2}/".format(clusterMember,jimi.api.base,jimi.cluster.getMasterId()),headers=headers, timeout=60)
+                            requests.get("{0}{1}system/reload/module/{2}/".format(clusterMember,jimi.api.base,module),headers=headers, timeout=60)
+
+                return { "message" : "Success" }, 200
 
         if jimi.api.webServer.name == "jimi_web":
+            from flask import Flask, request, render_template
+            from web import ui
+
+            @jimi.api.webServer.route("/plugins/store/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def store():
+                # Get installed plugin list
+                installedPlugins = []
+                foundPlugins = jimi.plugin._plugin().getAsClass(sessionData=jimi.api.g.sessionData,query={ },sort=[("name", 1)])
+                for foundPlugin in foundPlugins:
+                    installedPlugins.append(foundPlugin.name)
+
+                # Get official plugin list
+                response = requests.get("https://raw.githubusercontent.com/z1pti3/jimiPlugins/main/plugins.json", timeout=60)
+                if response.status_code == 200:
+                    storeJson = json.loads(response.text)
+                storePlugins = []
+                for pluginName, pluginData in storeJson.items():
+                    installed = False
+                    if pluginName in installedPlugins:
+                        installed = True
+                    storePlugins.append({ "_id" : len(storePlugins), "name" : pluginName, "githubRepo" : pluginData["githubRepo"], "installed" : installed })
+                
+                return render_template("store.html",plugins=storePlugins,CSRF=jimi.api.g.sessionData["CSRF"])
+
+            @jimi.api.webServer.route("/plugins/store/list/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def storeItem():
+                repo = jimi.api.request.args.get("githubRepo")
+                pluginName = jimi.api.request.args.get("pluginName")
+
+                # Get manifest from github repo
+                response = requests.get("https://raw.githubusercontent.com/{0}/master/{1}.json".format(repo,pluginName), timeout=60)
+                if response.status_code == 200:
+                    manifest = json.loads(response.text)
+        
+                return render_template("storeItem.html",manifest=ui.dictTable(manifest),CSRF=jimi.api.g.sessionData["CSRF"])
+
             @jimi.api.webServer.route(jimi.api.base+"plugins/store/install/", methods=["GET"])
             @jimi.auth.adminEndpoint
             def installPluginFromRemoteStore():
@@ -259,7 +312,7 @@ if jimi.api.webServer:
                         r.raise_for_status()
                         tempFilename = str(Path("data/temp/{0}.zip".format( manifest["name"])))
                         if not jimi.helpers.safeFilepath(tempFilename,"data/temp"):
-                            return {}, 403
+                            return { "message" : "Failed" }, 403
                         with open(tempFilename, 'wb') as f:
                             for chunk in r.iter_content(chunk_size=8192):
                                 f.write(chunk)
@@ -273,8 +326,8 @@ if jimi.api.webServer:
                     os.remove(tempFilename)
                     return json.loads(response.text), 200
                 else:
-                    return {}, 404
-                return {}, 200
+                    return { "message" : "Failed" }, 404
+                return { "message" : "Success" }, 200
 
             @jimi.api.webServer.route(jimi.api.base+"plugins/list/", methods=["GET"])
             @jimi.auth.adminEndpoint

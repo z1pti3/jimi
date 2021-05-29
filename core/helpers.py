@@ -16,6 +16,7 @@ import time
 import datetime
 from bson.objectid import ObjectId 
 import hashlib
+import inspect
 
 import jimi
 
@@ -489,4 +490,12 @@ def getStringHash(string):
 
 def safeFilepath(filename,basePath=""):
     base = os.path.join(Path("{0}/{1}".format(baseDir,basePath)),'')
-    return not os.path.commonprefix((os.path.realpath(Path(filename)),base)) != base
+    return not os.path.commonprefix((os.path.abspath(Path(filename)),base)) != base
+
+def reloadModulesWithinPath(moduleName):
+    modules = []
+    for key, module in sys.modules.items():
+        if moduleName in module.__name__:
+            modules.append(module)
+    for module in modules:
+        importlib.reload(module)

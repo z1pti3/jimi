@@ -139,6 +139,12 @@ if jimi.api.webServer:
 				jimi.cluster.cluster.clusterMember.checksum = fileIntegrityRegister()
 				jimi.cluster.cluster.clusterMember.update(["checksum"])
 				return {}, 200
+
+			@jimi.api.webServer.route(jimi.api.base+"system/reload/module/<moduleName>/", methods=["GET"])
+			@jimi.auth.systemEndpoint
+			def reloadModule(moduleName):
+				jimi.helpers.reloadModulesWithinPath(moduleName)
+				return {}, 200
 		
 		if jimi.api.webServer.name == "jimi_web":
 			@jimi.api.webServer.route(jimi.api.base+"system/update/<systemID>/<pullFromSystemID>/", methods=["GET"])

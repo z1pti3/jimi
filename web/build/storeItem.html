@@ -1,0 +1,27 @@
+{% extends "main.html" %}
+
+{% block head %}
+    {{ jimi.jquery() }}
+{% endblock %}
+
+{% block main %}
+    <button type="submit" class="btn btn-primary btn-block button" onclick=requestInstall()>Install</button>
+    <br><br>
+    {% autoescape false %}
+        {{ manifest }}
+    {% endautoescape %}
+
+    <script>
+        function requestInstall() {
+            var githubRepo = GetURLParameter("githubRepo");
+            var pluginName = GetURLParameter("pluginName");
+            $.ajax({ url: "/api/1.0/plugins/store/install/?githubRepo="+githubRepo+"&pluginName="+pluginName, type:"GET", success: function ( result ) {
+                    alert(JSON.stringify(result));
+                },
+                error: function ( result ) {
+                    alert(JSON.stringify(result));
+                }
+            });
+        }
+    </script>
+{% endblock %}

@@ -273,7 +273,7 @@ def conductImportData(conductID):
     access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
     if access:
         data = json.loads(jimi.api.request.data)
-        importData = jimi.helpers.typeCast(data["importData"])
+        importData = json.loads(data["importData"])
 
         if data["appendObjects"]:
             conductObj.flow = conductObj.flow + importData["flow"]

@@ -272,6 +272,12 @@ def getMaster():
         return "{0}://{1}:{2}".format(propcol,clusterMaster.bindAddress, clusterMaster.bindPort)
     return "http://127.0.0.1:5000"
 
+def getMasterId():
+    clusterMaster = _clusterMember().getAsClass(query={ "master" : True })
+    if len(clusterMaster) > 0:
+        clusterMaster = clusterMaster[0]
+        return clusterMaster.systemID
+
 def getAll():
     clusterMembers = _clusterMember().getAsClass(query={ "lastSyncTime" : { "$gt" : (time.time()-60) } })
     if len(clusterMembers) > 0:
