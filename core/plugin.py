@@ -324,6 +324,8 @@ if jimi.api.webServer:
                     with open(tempFilename, 'rb') as f:
                         response = requests.post("{0}{1}{2}".format(url,jimi.api.base,apiEndpoint), headers=headers, files={"file" : f.read() }, timeout=60)
                     os.remove(tempFilename)
+                    module = "plugins.{0}".format(pluginName)
+                    jimi.helpers.reloadModulesWithinPath(module)
                     return json.loads(response.text), 200
                 else:
                     return { "message" : "Failed" }, 404
