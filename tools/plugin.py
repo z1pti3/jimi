@@ -82,7 +82,7 @@ if hasManifest(pluginName,pluginPath):
 else:
     print("[X] Checking Manifest - Creating new")
     manifest = {
-        "name" : "",
+        "name" : pluginName.lower(),
         "author" : "",
         "version" : 0.0,
         "categories" : [],
