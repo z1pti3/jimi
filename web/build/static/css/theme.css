@@ -195,6 +195,10 @@ div.dts div.dataTables_scrollBody {
     height: calc(60% - 46px);
 }
 
+.noHover:hover {
+    text-decoration: none;
+}
+
 .unselectable {
     -webkit-touch-callout: none;
     -webkit-user-select: none;

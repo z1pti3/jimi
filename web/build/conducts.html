@@ -9,25 +9,24 @@
         <div class="text-start" >
             <input type="text" class="form-control textbox w-50" id="conductsSearch" onkeyup="doConductsSearch()" placeholder="Search for conducts">
         </div>
-        <div class="row row-cols-1 row-cols-lg-1 align-items-stretch g-2 py-4">
+        <ul class="list-group list-group-flush mt-3">
+        <!-- <div class="row row-cols-1 row-cols-lg-3 align-items-stretch g-2 py-4"> -->
             {% for conduct in conducts|sort(attribute='name') %}
-                <div class="col conductsContainer" data-name="{{ conduct["name"] }}">
-                    <div class="card h-100 panel text-start">
-                        <div class="card-header">
-                            <h5 class="card-title"><a href="/conduct/?conductID={{ conduct["_id"] }}">{{ conduct["name"] }}</a></h5>
-                        </div>
-                        <div class="card-body">
-                            <p class="card-text">{{ conduct["comment"] }}</p>
-                            <!-- <a href="/conduct/?conductID={{ conduct["_id"] }}" class="btn btn-primary btn-block button">Open</a> -->
-                            <a href="/conductSettings/?conductID={{ conduct["_id"] }}&edit=True" class="btn btn-primary btn-block button">Edit</a>
-                        </div>
-                        <div class="card-footer">
-                            Last Update : <span class="lastUpdate">{{ conduct["lastUpdateTime"] }}</span>
-                        </div>
-                    </div>
-                </div>
+                <li class="list-group-item text-start conductsContainer" data-name="{{ conduct["name"] }}" style="background-color: var(--mainBackgroundColor); border-color: var(--panelComponentBorder); color: var(--textColor);"">
+                    <a href="/conduct/?conductID={{ conduct["_id"] }}">
+                        <h5 class="mb-2">{{ conduct["name"] }}</h5>
+                    </a>
+                    <p class="mb-3 noHover">{{ conduct["comment"] }}</p>
+                    <small>
+                        <a href="/conductSettings/?conductID={{ conduct["_id"] }}&edit=True" class="pe-3">Edit</a>
+                        Updated <span class="lastUpdate">{{ conduct["lastUpdateTime"] }}</span>
+                    </small>
+                </li>
+
+
+                
             {% endfor %}
-        </div>
+        </ul>
     </div>
     <script>
         function doConductsSearch() {
