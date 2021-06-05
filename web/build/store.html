@@ -9,22 +9,22 @@
         <div class="text-start" >
             <input type="text" class="form-control textbox w-50" id="pluginSearch" onkeyup="doPluginSearch()" placeholder="Search for plugins">
         </div>
-        <div class="row row-cols-1 row-cols-lg-3 align-items-stretch g-4 py-5">
+        <div class="row row-cols-1 row-cols-lg-3 align-items-stretch g-2 py-4">
             {% for plugin in plugins|sort(attribute='name') %}
                 <div class="col pluginContainer" data-name="{{ plugin["name"] }}">
-                    <div class="card card-cover h-100 overflow-hidden panel">
-                        <div class="d-flex flex-column h-100 p-5 pb-3">
-                            <a href="list/?githubRepo={{ plugin["githubRepo"] }}&pluginName={{ plugin["name"] }}"><h2 class="pt-1 mt-1 mb-4 display-6 lh-1 fw-bold">{{ plugin["name"] }}</h2></a>
-                            <ul class="d-flex list-unstyled mt-auto">
-                                <li class="d-flex align-items-center me-3">
-                                    <small>Installed: {{ plugin["installed"] }}</small>
-                                </li>
-                            </ul>
-                            <ul class="d-flex list-unstyled mt-auto">
-                                <li class="d-flex align-items-center me-3">
-                                    <small>{{ plugin["githubRepo"] }}</small>
-                                </li>
-                            </ul>
+                    <div class="card h-100 panel">
+                        <img src="{{ plugin["image"] }}" class="" style="width: 150px; text-align:center; margin-left: auto; margin-right: auto;">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ plugin["name"] }}</h5>
+                            <hr>
+                            <p class="card-text">{{ plugin["description"] }}</p>
+                        </div>
+                        <div class="card-footer">
+                            {% if plugin["installed"] %}
+                                <a href="list/?githubRepo={{ plugin["githubRepo"] }}&pluginName={{ plugin["name"] }}" class="btn btn-primary btn-block button">Install</a>
+                            {% else %}
+                                <a href="list/?githubRepo={{ plugin["githubRepo"] }}&pluginName={{ plugin["name"] }}" class="btn btn-primary btn-block button">Update</a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

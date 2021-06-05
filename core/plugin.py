@@ -279,7 +279,7 @@ if jimi.api.webServer:
                     installed = False
                     if pluginName in installedPlugins:
                         installed = True
-                    storePlugins.append({ "_id" : len(storePlugins), "name" : pluginName, "githubRepo" : pluginData["githubRepo"], "installed" : installed })
+                    storePlugins.append({ "_id" : len(storePlugins), "name" : pluginName, "githubRepo" : pluginData["githubRepo"], "installed" : installed, "description" : pluginData["description"], "image" : pluginData["image"] })
                 
                 return render_template("store.html",plugins=storePlugins,CSRF=jimi.api.g.sessionData["CSRF"])
 
