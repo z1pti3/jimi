@@ -14,12 +14,12 @@
             {% for conduct in conducts|sort(attribute='name') %}
                 <li class="list-group-item text-start conductsContainer" data-name="{{ conduct["name"] }}" style="background-color: var(--mainBackgroundColor); border-color: var(--panelComponentBorder); color: var(--textColor);"">
                     <a href="/conduct/?conductID={{ conduct["_id"] }}">
-                        <h5 class="mb-2">{{ conduct["name"] }}</h5>
+                        <h5 class="mb-2 bi-diagram-2">{{ conduct["name"] }}</h5>
                     </a>
                     <p class="mb-3 noHover">{{ conduct["comment"] }}</p>
                     <small>
-                        <a href="/conductSettings/?conductID={{ conduct["_id"] }}&edit=True" class="pe-3">Edit</a>
-                        Updated <span class="lastUpdate">{{ conduct["lastUpdateTime"] }}</span>
+                        </i><a href="/conductSettings/?conductID={{ conduct["_id"] }}&edit=True" class="pe-3 bi-tools">Edit</a>
+                        <span class="lastUpdate bi-calendar">{{ conduct["lastUpdateTime"] }}</span>
                     </small>
                 </li>
 
