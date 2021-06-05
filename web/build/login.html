@@ -1,0 +1,132 @@
+{% import "jimi.html" as jimi %}
+
+<html>
+    <head>
+        {{ jimi.theme() }}
+        {{ jimi.jquery() }}
+        <style>
+            body {
+                display: flex;
+                align-items: center;
+                padding-top: 40px;
+                padding-bottom: 40px;
+            }
+
+            .panel {
+                border-radius: 15px;
+            }
+
+            .form-signin {
+                width: 100%;
+                max-width: 510px;
+                padding: 15px;
+                margin: auto;
+            }
+
+            .form-signin .checkbox {
+                font-weight: 400;
+            }
+
+            .form-signin .form-floating:focus-within {
+                z-index: 2;
+            }
+
+            .form-signin input[type="username"] {
+                margin-bottom: 5px;
+                border-bottom-right-radius: 0;
+                border-bottom-left-radius: 0;
+            }
+
+            .form-signin input[type="password"] {
+                margin-bottom: 5px;
+                border-top-left-radius: 0;
+                border-top-right-radius: 0;
+            }
+
+            .form-signin input[type="otp"] {
+                margin-top: 15px;
+                margin-bottom: 5px;
+                border-top-left-radius: 0;
+                border-top-right-radius: 0;
+            }
+
+            .hidden {
+                display: none;
+            }
+
+            .header {
+                top: 0;
+                left: 0;
+                width: 100%;
+                text-align: center;
+                position: fixed;
+            }
+
+            .headerText {
+                font-size: 15vh;
+                display: inline;
+            }
+
+            @media (min-width: 768px) {
+                .bd-placeholder-img-lg {
+                    font-size: 3.5rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1 class="text-center headerText">jimi</h1>
+        </div>
+        <main class="form-signin">
+            <form class="p-3 panel" id="login">
+                <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
+            
+                <div class="form-floating">
+                    <input type="username" class="form-control textbox" id="username" autoComplete="off" placeholder="Username" onkeyup="removeError()">
+                    <label for="username">Username</label>
+                </div>
+                <div class="form-floating">
+                    <input type="password" class="form-control textbox" id="password" autoComplete="off" placeholder="Password" onkeyup="removeError()">
+                    <label for="password">Password</label>
+                </div>
+                <div class="form-floating hidden">
+                    <input type="otp" class="form-control textbox" id="otp" autoComplete="off" placeholder="One Time Password">
+                    <label for="otp" style="margin-top: 15px;">One Time Password</label>
+                </div>
+            
+                <button class="w-100 btn btn-primary btn-block button" type="submit">Sign in</button>
+            </form>
+        </main>
+    </body>
+    <script>
+        $("#login").submit(function(e) {
+            e.preventDefault();
+            if ($("#otp").parent().hasClass("hidden")) {
+                var body = JSON.stringify({ username: $("#username").val(), password: $("#password").val() })
+            } else {
+                var body = JSON.stringify({ username: $("#username").val(), password: $("#password").val(), otp: $("#otp").val() })
+            }
+            $.ajax({ url: "/api/1.0/auth/", type : "POST", data:body, contentType:"application/json", success: function ( result ) {
+                    window.location.replace(result["redirect"]);
+                },
+                error: function ( result ) {
+                    $("#otp").val("")
+                    $("#otp").parent().toggleClass("hidden");
+                    if ($("#otp").parent().hasClass("hidden")) {
+                        $("#username").addClass("textboxError");
+                        $("#password").addClass("textboxError");
+                    } else {
+                        $("#otp").focus();
+                        $("#username").removeClass("textboxError");
+                        $("#password").removeClass("textboxError");
+                    }
+                }
+            });
+        })
+        function removeError() {
+            $("#username").removeClass("textboxError");
+            $("#password").removeClass("textboxError");
+        }
+    </script>
+</html>

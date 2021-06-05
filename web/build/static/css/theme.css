@@ -66,6 +66,10 @@ body {
     color: var(--textColor);
     border-radius: 5px;
     padding: 5px;
+    border-style: solid;
+    border-color: var(--panelBorderColor);
+    border-width: 1px;
+    border-radius: 5px;
 }
 
 .content {
@@ -207,6 +211,11 @@ div.dts div.dataTables_scrollBody {
     border-width: 1px;
     border-color: var(--panelComponentBorder);
     display:inline;
+}
+
+.textboxError {
+    border-width: 1px;
+    border-color: var(--errorColor);
 }
 
 .textbox:disabled {

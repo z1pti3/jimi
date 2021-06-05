@@ -1,0 +1,64 @@
+{% extends "main.html" %}
+
+{% block head %}
+    {{ jimi.jquery() }}
+{% endblock %}
+
+{% block main %}
+    <div class="container px-4 py-5 text-center" id="custom-cards">
+        <div class="text-start" >
+            <input type="text" class="form-control textbox w-50" id="conductsSearch" onkeyup="doConductsSearch()" placeholder="Search for conducts">
+        </div>
+        <div class="row row-cols-1 row-cols-lg-1 align-items-stretch g-2 py-4">
+            {% for conduct in conducts|sort(attribute='name') %}
+                <div class="col conductsContainer" data-name="{{ conduct["name"] }}">
+                    <div class="card h-100 panel text-start">
+                        <div class="card-header">
+                            <h5 class="card-title"><a href="/conduct/?conductID={{ conduct["_id"] }}">{{ conduct["name"] }}</a></h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">{{ conduct["comment"] }}</p>
+                            <!-- <a href="/conduct/?conductID={{ conduct["_id"] }}" class="btn btn-primary btn-block button">Open</a> -->
+                            <a href="/conductSettings/?conductID={{ conduct["_id"] }}&edit=True" class="btn btn-primary btn-block button">Edit</a>
+                        </div>
+                        <div class="card-footer">
+                            Last Update : <span class="lastUpdate">{{ conduct["lastUpdateTime"] }}</span>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <script>
+        function doConductsSearch() {
+            var input = document.getElementById("conductsSearch");
+            var searchFilter = input.value.toUpperCase();
+            var regex = new RegExp('\\b\\w*' + searchFilter + '\\w*\\b');
+            $('.conductsContainer').hide().filter(function () {
+                var nr = regex.test($(this).data('name').toUpperCase());
+                if (nr) {
+                    return true;
+                }
+                return false;
+            }).show();
+        }
+        $(document).ready(function() {
+            doConductsSearch();
+            $('.lastUpdate').each(function(i, obj) {
+                $(obj).text(localTime($(obj).text()))
+            });
+        });
+        function appendLeadingZeroes(n){
+            if(n <= 9){
+                return "0" + n;
+            }
+            return n
+        }
+        function localTime(epoch) {
+            var d = new Date(0);
+            d.setUTCSeconds(epoch);
+            var formattedDate = appendLeadingZeroes(d.getDate()) + "-" + appendLeadingZeroes(d.getMonth()+1) + "-" + appendLeadingZeroes(d.getFullYear()) + " " + appendLeadingZeroes(d.getHours()) + ":" + appendLeadingZeroes(d.getMinutes()) + ":" + appendLeadingZeroes(d.getSeconds());
+            return formattedDate;
+        }
+    </script>
+{% endblock %}
