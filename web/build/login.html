@@ -18,6 +18,7 @@
 
             .form-signin {
                 width: 100%;
+                height: 100%;
                 max-width: 510px;
                 padding: 15px;
                 margin: auto;
@@ -55,15 +56,14 @@
             }
 
             .header {
-                top: 0;
-                left: 0;
                 width: 100%;
+                height: 100%;
                 text-align: center;
-                position: fixed;
+                margin: auto;
             }
 
             .headerText {
-                font-size: 15vh;
+                font-size: 25vw;
                 display: inline;
             }
 
@@ -75,29 +75,37 @@
         </style>
     </head>
     <body>
-        <div class="header">
-            <h1 class="text-center headerText">jimi</h1>
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col h-100">
+                    <div class="header">
+                        <h1 class="headerText">jimi</h1>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <main class="form-signin">
+                        <form class="p-4 panel" id="login">
+                            <h1 class="h4 mb-2 fw-normal">Please sign in</h1>
+                        
+                            <div class="form-floating">
+                                <input type="username" class="form-control textbox" id="username" autoComplete="off" placeholder="Username" onkeyup="removeError()">
+                                <label for="username">Username</label>
+                            </div>
+                            <div class="form-floating">
+                                <input type="password" class="form-control textbox" id="password" autoComplete="off" placeholder="Password" onkeyup="removeError()">
+                                <label for="password">Password</label>
+                            </div>
+                            <div class="form-floating hidden">
+                                <input type="otp" class="form-control textbox" id="otp" autoComplete="off" placeholder="One Time Password">
+                                <label for="otp" style="margin-top: 15px;">One Time Password</label>
+                            </div>
+                        
+                            <button class="w-100 btn btn-primary btn-block button" type="submit">Sign in</button>
+                        </form>
+                    </main>
+                </div>
+            </div>
         </div>
-        <main class="form-signin">
-            <form class="p-3 panel" id="login">
-                <h1 class="h4 mb-2 fw-normal">Please sign in</h1>
-            
-                <div class="form-floating">
-                    <input type="username" class="form-control textbox" id="username" autoComplete="off" placeholder="Username" onkeyup="removeError()">
-                    <label for="username">Username</label>
-                </div>
-                <div class="form-floating">
-                    <input type="password" class="form-control textbox" id="password" autoComplete="off" placeholder="Password" onkeyup="removeError()">
-                    <label for="password">Password</label>
-                </div>
-                <div class="form-floating hidden">
-                    <input type="otp" class="form-control textbox" id="otp" autoComplete="off" placeholder="One Time Password">
-                    <label for="otp" style="margin-top: 15px;">One Time Password</label>
-                </div>
-            
-                <button class="w-100 btn btn-primary btn-block button" type="submit">Sign in</button>
-            </form>
-        </main>
     </body>
     <script>
         $("#login").submit(function(e) {
