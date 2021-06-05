@@ -6,6 +6,11 @@
     --textDisabledColor: #615f5f;
     --hoverColor: #220433;
 
+    /* Scrollbar */
+    --scrollbarColor: #111111;
+    --scrollbarBackgroundColor: #333333;
+    --scrollbarBorderColor: #f1f1f1;
+
     /* Panel */
     --panelBackgroundColor: #333333;
     --panelBorderColor: #000;
@@ -28,13 +33,11 @@
 }
 
 *::-webkit-scrollbar-track {
-    background: var(--panelComponentBackground);
+    background: var(--scrollbarColor);
 }
 
 *::-webkit-scrollbar-thumb {
-    background-color: var(--panelComponentBackground-Focus);
-    border-radius: 20px;
-    border: 3px solid var(--panelComponentBackground-Focus);
+    background-color: var(--scrollbarBackgroundColor);
 }
 
 a {
