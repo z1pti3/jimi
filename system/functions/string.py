@@ -24,3 +24,6 @@ def strLower(string):
 
 def replace(string,match,replacement):
     return string.replace(match,replacement)
+
+def strip(string):
+    return string.strip()

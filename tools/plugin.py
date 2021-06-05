@@ -13,13 +13,16 @@ print("")
 
 def scan(path):
     def extractFunction(defLine):
-        defType = defLine.split("(")[1].split(")")[0]
-        defName = defLine.split("(")[0].split(" ")[1]
-        return defName, defType
+        if "(" in defLine and ")" in defLine:
+            defType = defLine.split("(")[1].split(")")[0]
+            defName = defLine.split("(")[0].split(" ")[1]
+            return defName, defType
+        return defLine.split(" ")[1].split(":")[0], ""
     def extractVariables(variableLines):
         vars = []
         for variableLine in variableLines:
-            vars.append([variableLine.split("=")[0].strip(),variableLine.split("=")[1].strip()])
+            if "=" in variableLine:
+                vars.append([variableLine.split("=")[0].strip(),variableLine.split("=")[1].strip()])
         return vars
     modules = {}
     for path, subdirs, files in os.walk(Path(path)):
@@ -79,7 +82,7 @@ if hasManifest(pluginName,pluginPath):
 else:
     print("[X] Checking Manifest - Creating new")
     manifest = {
-        "name" : "",
+        "name" : pluginName.lower(),
         "author" : "",
         "version" : 0.0,
         "categories" : [],
@@ -99,6 +102,10 @@ else:
 print("[] Updating Manifest", end="\r")
 for classType in modules:
     for module in modules[classType]:
+        if f"_{pluginName}" == module and classType == "plugin._plugin":
+            for field in modules[classType][module]["vars"]:
+                if field[0] == "version":
+                    manifest["version"] = float(field[1])
         objectType = ""
         if classType == "db._document":
             objectType = "collections"
@@ -129,7 +136,7 @@ for classType in modules:
                 manifest[objectType][objectName] = {
                     "display_name" : objectName,
                     "className" : module,
-                    "class_location" : modules[classType]["path"],
+                    "class_location" : modules[classType][module]["path"],
                     "description" : "",
                     "fields" : fields,
                     "data_out" : {
