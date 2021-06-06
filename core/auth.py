@@ -429,7 +429,15 @@ if jimi.api.webServer:
                         userSession = validateUser(data["username"],data["password"],data["otp"])
                     if userSession:
                         sessionData = validateSession(userSession)["sessionData"]
-                        response = jimi.api.make_response({ "CSRF" : sessionData["CSRF"], "redirect" : "/" },200)
+                        redirect = jimi.api.request.args.get("return")
+                        if redirect:
+                            if "." in redirect or ".." in redirect:
+                                redirect = "/"
+                            if not redirect.startswith("/"):
+                                redirect = "/" + redirect
+                        else:
+                            redirect = "/"
+                        response = jimi.api.make_response({ "CSRF" : sessionData["CSRF"], "redirect" : redirect },200)
                         response.set_cookie("jimiAuth", value=userSession, max_age=600, httponly=True, secure=True)
                         response.set_cookie("jimiCSRF", value=sessionData["CSRF"], max_age=600, httponly=True, secure=True)
                         return response, 200
