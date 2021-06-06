@@ -16,6 +16,8 @@ def scan(path):
         if "(" in defLine and ")" in defLine:
             defType = defLine.split("(")[1].split(")")[0]
             defName = defLine.split("(")[0].split(" ")[1]
+            if defType.startswith("jimi."):
+                defType = defType.split("jimi.")[1]
             return defName, defType
         return defLine.split(" ")[1].split(":")[0], ""
     def extractVariables(variableLines):
