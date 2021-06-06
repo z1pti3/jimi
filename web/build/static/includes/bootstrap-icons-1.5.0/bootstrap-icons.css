@@ -16,7 +16,6 @@
     vertical-align: -.125em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    padding-right: 10px;
   }
   
   .bi-alarm-fill::before { content: "\f101"; }

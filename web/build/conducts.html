@@ -8,18 +8,25 @@
     <div class="container px-4 py-5 text-center" id="custom-cards">
         <div class="text-start" >
             <input type="text" class="form-control textbox w-50" id="conductsSearch" onkeyup="doConductsSearch()" placeholder="Search for conducts">
+            <a href="/conductSettings/" class="btn btn-primary btn-block button bi-plus" title="Create new conduct"></a>
         </div>
         <ul class="list-group list-group-flush mt-3">
         <!-- <div class="row row-cols-1 row-cols-lg-3 align-items-stretch g-2 py-4"> -->
             {% for conduct in conducts|sort(attribute='name') %}
                 <li class="list-group-item text-start conductsContainer" data-name="{{ conduct["name"] }}" style="background-color: var(--mainBackgroundColor); border-color: var(--panelComponentBorder); color: var(--textColor);"">
-                    <a href="/conduct/?conductID={{ conduct["_id"] }}">
-                        <h5 class="mb-2 bi-diagram-2">{{ conduct["name"] }}</h5>
-                    </a>
+                    <div class="d-flex" style="justify-content: space-between;">
+                        <div>
+                            <a href="/conduct/?conductID={{ conduct["_id"] }}">
+                                <i class="bi-cpu" style="font-size: 1.25rem; padding-right: 15px;"></i><span class="fs-4 mb-2">{{ conduct["name"] }}</span>
+                            </a>
+                        </div>
+                        <div>
+                            <a href="/conductSettings/?conductID={{ conduct["_id"] }}&edit=True" class="pe-3 bi-pencil" title="Edit"></a>
+                        </div>
+                    </div>
                     <p class="mb-3 noHover">{{ conduct["comment"] }}</p>
                     <small>
-                        </i><a href="/conductSettings/?conductID={{ conduct["_id"] }}&edit=True" class="pe-3 bi-tools">Edit</a>
-                        <span class="lastUpdate bi-calendar">{{ conduct["lastUpdateTime"] }}</span>
+                        <i class="bi-calendar" style="font-size: 1rem; padding-right: 15px;"></i><span class="lastUpdate">{{ conduct["lastUpdateTime"] }}</span>
                     </small>
                 </li>
 
