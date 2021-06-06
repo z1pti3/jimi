@@ -21,9 +21,9 @@
                         </div>
                         <div class="card-footer">
                             {% if plugin["installed"] %}
-                                <a href="list/?githubRepo={{ plugin["githubRepo"] }}&pluginName={{ plugin["name"] }}" class="btn btn-primary btn-block button">Install</a>
-                            {% else %}
                                 <a href="list/?githubRepo={{ plugin["githubRepo"] }}&pluginName={{ plugin["name"] }}" class="btn btn-primary btn-block button">Update</a>
+                            {% else %}
+                                <a href="list/?githubRepo={{ plugin["githubRepo"] }}&pluginName={{ plugin["name"] }}" class="btn btn-primary btn-block button">Install</a>
                             {% endif %}
                         </div>
                     </div>
