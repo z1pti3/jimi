@@ -1,0 +1,60 @@
+{% extends "main.html" %}
+
+{% block head %}
+    {{ jimi.jquery() }}
+{% endblock %}
+
+{% block main %}
+    <div class="container px-4 py-5 text-center">
+            <h2>{{ user["name"] }}</h2>
+            {{user["username"]}}
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab" aria-controls="home" aria-selected="true">Details</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="groups-tab" data-bs-toggle="tab" data-bs-target="#groups" type="button" role="tab" aria-controls="groups" aria-selected="false">Groups</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="danger-zone-tab" data-bs-toggle="tab" data-bs-target="#danger-zone" type="button" role="tab" aria-controls="danger-zone" aria-selected="false">Danger Zone</button>
+                </li>
+              </ul>
+              <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
+                    Some details about the user
+                    Perhaps information such as email, country, etc
+                </div>
+                <div class="tab-pane fade" id="groups" role="tabpanel" aria-labelledby="groups-tab">
+                    <div class="row align-items-start">
+                        <div id="existingGroups" class="col" ondrop="drop(event)" ondragover="allowDrop(event)" style="width: 150px; height: 150px; background-color:rgb(39, 39, 39);">
+                            {% for group in groups if group.name != user["primaryGroupName"] %}
+                                <div id="{{ group["_id"] }}" draggable="true" ondragstart="drag(event)" width="150px" style="background-color:rgba(172, 49, 255, 0.712);">{{ group["name"] }}</div>
+                            {% endfor %}
+                        </div>
+                        <div id="currentGroups" ondrop="drop(event)" class="col" ondragover="allowDrop(event)" style="width: 150px; height: 150px; background-color: rgb(39, 39, 39);">
+                            <div id="{{ user["primaryGroupName"] }}" draggable="true" ondragstart="drag(event)" width="150px" style="background-color:rgba(172, 49, 255, 0.712);">{{ user["primaryGroupName"] }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="danger-zone" role="tabpanel" aria-labelledby="danger-zone-tab">
+
+                </div>
+                <button class="btn btn-primary btn-block button" type="submit">Save</a>
+              </div>
+    </div>
+    <script>
+        function allowDrop(ev) {
+          ev.preventDefault();
+        }
+        
+        function drag(ev) {
+          ev.dataTransfer.setData("text", ev.target.id);
+        }
+        
+        function drop(ev) {
+          ev.preventDefault();
+          var data = ev.dataTransfer.getData("text");
+          ev.target.appendChild(document.getElementById(data));
+        }
+        </script>
+{% endblock %}

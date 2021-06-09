@@ -7,20 +7,20 @@
 {% block main %}
     <div class="container px-4 py-5 text-center" id="custom-cards">
         <div class="text-start" >
-            <input type="text" class="form-control textbox w-50" id="userSearch" onkeyup="doSearch()" placeholder="Search for groups">
+            <input type="text" class="form-control textbox w-50" id="groupSearch" onkeyup="doSearch()" placeholder="Search for groups">
         </div>
         <div class="row row-cols-1 row-cols-lg-3 align-items-stretch g-2 py-4">
-            {% for user in users|sort(attribute='name') %}
-                <div class="col userContainer" data-name="{{ user["name"] }}">
+            {% for group in groups|sort(attribute='name') %}
+                <div class="col groupContainer" data-name="{{ group["name"] }}">
                     <div class="card h-100 panel">
                         <div class="card-body">
-                            <h5 class="card-title">{{ user["name"] }}</h5>
+                            <h5 class="card-title">{{ group["name"] }}</h5>
                             <hr>
-                            <p class="card-text">{{ user["primaryGroupName"] }}</p>
+                            <p class="card-text">Members: {{ group["userCount"] }}</p>
                         </div>
                         <div class="card-footer">
-                            <a href="edit/?user={{ user["_id"] }}" class="btn btn-primary btn-block button">Edit</a>
-                            <a href="delete/?user={{ user["_id"] }}" class="btn btn-primary btn-block button">Delete</a>
+                            <a href="edit/?id={{ id["_id"] }}" class="btn btn-primary btn-block button">Edit</a>
+                            <a href="delete/?id={{ id["_id"] }}" class="btn btn-primary btn-block button">Delete</a>
                         </div>
                     </div>
                 </div>
@@ -29,10 +29,10 @@
     </div>
     <script>
         function doSearch() {
-            var input = document.getElementById("userSearch");
+            var input = document.getElementById("groupSearch");
             var searchFilter = input.value.toUpperCase();
             var regex = new RegExp('\\b\\w*' + searchFilter + '\\w*\\b');
-            $('.userContainer').hide().filter(function () {
+            $('.groupContainer').hide().filter(function () {
                 var nr = regex.test($(this).data('name').toUpperCase());
                 if (nr) {
                     return true;

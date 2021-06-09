@@ -9,6 +9,7 @@ import hmac
 import math
 import functools
 import onetimepass
+import bson
 from pathlib import Path
 from Crypto.Cipher import AES, PKCS1_OAEP # pycryptodome
 from Crypto.PublicKey import RSA
@@ -564,3 +565,33 @@ if jimi.api.webServer:
                     users.append(user)
                 
                 return render_template("users.html",users=users,CSRF=jimi.api.g.sessionData["CSRF"])
+
+            @jimi.api.webServer.route("/auth/users/edit/", methods=["GET"])
+            def editUser():
+                #Get group data for later
+                groups = []
+                foundGroups = _group().getAsClass(sessionData=jimi.api.g.sessionData,query={ })
+                for group in foundGroups:
+                    groups.append(group)
+
+                #Get user details based on ID
+                foundUser = _user().getAsClass(sessionData=jimi.api.g.sessionData,query={"_id":bson.ObjectId(request.args.get("id"))})
+                if foundUser:
+                    foundUser = foundUser[0]
+                    #Get friendly names for groups
+                    for group in groups:
+                        if group._id == foundUser.primaryGroup:
+                            foundUser.primaryGroupName = group.name
+                    return render_template("userDetailed.html",user=foundUser,groups=groups,CSRF=jimi.api.g.sessionData["CSRF"])
+                return 404
+
+            @jimi.api.webServer.route("/auth/groups/", methods=["GET"])
+            def listGroups():
+                #Get groups
+                groups = []
+                foundGroups = _group().getAsClass(sessionData=jimi.api.g.sessionData,query={ })
+                for group in foundGroups:
+                    group.userCount = len(group.members)
+                    groups.append(group)
+                
+                return render_template("groups.html",groups=groups,CSRF=jimi.api.g.sessionData["CSRF"])
