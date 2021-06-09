@@ -2,10 +2,16 @@ def contains(string,contents):
     return contents in string
 
 def split(string,spliton,position):
-    return string.split(spliton)[position]
+    try:
+        return string.split(spliton)[position]
+    except:
+        return ""
 
 def strCount(string,searchString):
-    return string.count(searchString)
+    try:
+        return string.count(searchString)
+    except:
+        return 0
 
 def join(stringList,by=None):
     if by:
@@ -14,16 +20,28 @@ def join(stringList,by=None):
         return "".join(stringList)
 
 def concat(*args):
-    stringResult = 0
-    for arg in args:
-        stringResult += arg
-    return stringResult
+    stringResult = ""
+    try:
+        for arg in args:
+            stringResult += str(arg)
+        return stringResult
+    except:
+        return stringResult
 
 def strLower(string):
-    return string.lower()
+    try:
+        return string.lower()
+    except:
+        return string
 
 def replace(string,match,replacement):
-    return string.replace(match,replacement)
+    try:
+        return string.replace(match,replacement)
+    except:
+        return string
 
 def strip(string):
-    return string.strip()
+    try:
+        return string.strip()
+    except:
+        return string
