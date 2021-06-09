@@ -314,3 +314,14 @@ def getFlowDict(uid,sessionData,flowData):
         return (False, result)
     except:
         return result
+
+# API
+if jimi.api.webServer:
+    if not jimi.api.webServer.got_first_request:
+        if jimi.api.webServer.name == "jimi_web":
+            from flask import Flask, request, render_template
+
+            @jimi.api.webServer.route("/conducts/", methods=["GET"])
+            def conductsPage():
+                conducts = jimi.conduct._conduct().query(sessionData=jimi.api.g.sessionData,query={})["results"]
+                return render_template("conducts.html",CSRF=jimi.api.g.sessionData["CSRF"],conducts=conducts)

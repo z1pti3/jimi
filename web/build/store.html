@@ -1,27 +1,51 @@
 {% extends "main.html" %}
 
+{% block head %}
+    {{ jimi.jquery() }}
+{% endblock %}
+
 {% block main %}
     <div class="container px-4 py-5 text-center" id="custom-cards">
-        <div class="row row-cols-1 row-cols-lg-3 align-items-stretch g-4 py-5">
-            {% for plugin in plugins %}
-                <div class="col">
-                    <div class="card card-cover h-100 overflow-hidden text-white bg-dark rounded-5 shadow-lg">
-                        <div class="d-flex flex-column h-100 p-5 pb-3 text-white text-shadow-1">
-                            <a href="list/?githubRepo={{ plugin["githubRepo"] }}&pluginName={{ plugin["name"] }}"><h2 class="pt-1 mt-1 mb-4 display-6 lh-1 fw-bold">{{ plugin["name"] }}</h2></a>
-                            <ul class="d-flex list-unstyled mt-auto">
-                                <li class="d-flex align-items-center me-3">
-                                    <small>Installed: {{ plugin["installed"] }}</small>
-                                </li>
-                            </ul>
-                            <ul class="d-flex list-unstyled mt-auto">
-                                <li class="d-flex align-items-center me-3">
-                                    <small>{{ plugin["githubRepo"] }}</small>
-                                </li>
-                            </ul>
+        <div class="text-start" >
+            <input type="text" class="form-control textbox w-50" id="pluginSearch" onkeyup="doPluginSearch()" placeholder="Search for plugins">
+        </div>
+        <div class="row row-cols-1 row-cols-lg-3 align-items-stretch g-2 py-4">
+            {% for plugin in plugins|sort(attribute='name') %}
+                <div class="col pluginContainer" data-name="{{ plugin["name"] }}">
+                    <div class="card h-100 panel">
+                        <img src="{{ plugin["image"] }}" class="" style="width: 150px; text-align:center; margin-left: auto; margin-right: auto;">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ plugin["name"] }}</h5>
+                            <hr>
+                            <p class="card-text">{{ plugin["description"] }}</p>
+                        </div>
+                        <div class="card-footer">
+                            {% if plugin["installed"] %}
+                                <a href="list/?githubRepo={{ plugin["githubRepo"] }}&pluginName={{ plugin["name"] }}" class="btn btn-primary btn-block button">Update</a>
+                            {% else %}
+                                <a href="list/?githubRepo={{ plugin["githubRepo"] }}&pluginName={{ plugin["name"] }}" class="btn btn-primary btn-block button">Install</a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             {% endfor %}
         </div>
     </div>
+    <script>
+        function doPluginSearch() {
+            var input = document.getElementById("pluginSearch");
+            var searchFilter = input.value.toUpperCase();
+            var regex = new RegExp('\\b\\w*' + searchFilter + '\\w*\\b');
+            $('.pluginContainer').hide().filter(function () {
+                var nr = regex.test($(this).data('name').toUpperCase());
+                if (nr) {
+                    return true;
+                }
+                return false;
+            }).show();
+        }
+        $(document).ready(function() {
+            doPluginSearch();
+        });
+    </script>
 {% endblock %}

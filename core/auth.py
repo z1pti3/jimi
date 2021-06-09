@@ -1,5 +1,6 @@
 import secrets
 import base64
+import urllib
 import hashlib
 import time
 import json
@@ -342,7 +343,7 @@ if jimi.api.webServer:
                     if "jimiAuth" in jimi.api.request.cookies:
                         validSession = validateSession(jimi.api.request.cookies["jimiAuth"])
                         if not validSession:
-                                return {}, 403
+                                return jimi.api.redirect("/login?return={0}".format(urllib.parse.quote(jimi.api.request.full_path)), code=302)
                         jimi.api.g.type = "cookie"
                         # Confirm CSRF
                         if jimi.api.request.method in ["POST","PUT","DELETE"]:
@@ -359,9 +360,9 @@ if jimi.api.webServer:
                                     except:
                                         data = jimi.api.request.form
                                 if validSession["sessionData"]["CSRF"] != data["CSRF"]:
-                                    return {}, 403
+                                    return jimi.api.redirect("/login?return={0}".format(urllib.parse.quote(jimi.api.request.full_path)), code=302)
                             except:
-                                return {}, 403
+                                return jimi.api.redirect("/login?return={0}".format(urllib.parse.quote(jimi.api.request.full_path)), code=302)
                     elif "x-api-token" in jimi.api.request.headers:
                         validSession = validateSession(jimi.api.request.headers.get("x-api-token"))
                         if not validSession:
@@ -370,7 +371,7 @@ if jimi.api.webServer:
                         #    return {}, 403
                         jimi.api.g.type = "x-api-token"
                     else: 
-                        return jimi.api.redirect("/login?return={0}".format(jimi.api.request.full_path), code=302)
+                        return jimi.api.redirect("/login?return={0}".format(urllib.parse.quote(jimi.api.request.full_path)), code=302)
                     # Data that is returned to the Flask request handler function
                     jimi.api.g.sessionData = validSession["sessionData"]
                     jimi.api.g.sessionToken = validSession["sessionToken"]
@@ -429,8 +430,16 @@ if jimi.api.webServer:
                         userSession = validateUser(data["username"],data["password"],data["otp"])
                     if userSession:
                         sessionData = validateSession(userSession)["sessionData"]
-                        response = jimi.api.make_response({ "CSRF" : sessionData["CSRF"] },200)
-                        response.set_cookie("jimiAuth", value=userSession, max_age=600, httponly=True) # Need to add secure=True before production
+                        redirect = jimi.api.request.args.get("return")
+                        if redirect:
+                            if "." in redirect or ".." in redirect:
+                                redirect = "/"
+                            if not redirect.startswith("/"):
+                                redirect = "/" + redirect
+                        else:
+                            redirect = "/"
+                        response = jimi.api.make_response({ "CSRF" : sessionData["CSRF"], "redirect" : redirect },200)
+                        response.set_cookie("jimiAuth", value=userSession, max_age=600, httponly=True, secure=True)
                         return response, 200
                 else:
                     return { "CSRF" : "" }, 200

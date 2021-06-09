@@ -6,6 +6,11 @@
     --textDisabledColor: #615f5f;
     --hoverColor: #220433;
 
+    /* Scrollbar */
+    --scrollbarColor: #111111;
+    --scrollbarBackgroundColor: #333333;
+    --scrollbarBorderColor: #f1f1f1;
+
     /* Panel */
     --panelBackgroundColor: #333333;
     --panelBorderColor: #000;
@@ -28,13 +33,11 @@
 }
 
 *::-webkit-scrollbar-track {
-    background: var(--panelComponentBackground);
+    background: var(--scrollbarColor);
 }
 
 *::-webkit-scrollbar-thumb {
-    background-color: var(--panelComponentBackground-Focus);
-    border-radius: 20px;
-    border: 3px solid var(--panelComponentBackground-Focus);
+    background-color: var(--scrollbarBackgroundColor);
 }
 
 a {
@@ -63,6 +66,10 @@ body {
     color: var(--textColor);
     border-radius: 5px;
     padding: 5px;
+    border-style: solid;
+    border-color: var(--panelBorderColor);
+    border-width: 1px;
+    border-radius: 5px;
 }
 
 .content {
@@ -100,6 +107,11 @@ body {
     width: 100%;
     border-style: solid;
     border-color: var(--panelComponentBackground);
+}
+
+.pluginPanel {
+    min-height: 250px;
+    min-width: 250px;
 }
 
 /* dataTable */
@@ -183,6 +195,10 @@ div.dts div.dataTables_scrollBody {
     height: calc(60% - 46px);
 }
 
+.noHover:hover {
+    text-decoration: none;
+}
+
 .unselectable {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -199,6 +215,11 @@ div.dts div.dataTables_scrollBody {
     border-width: 1px;
     border-color: var(--panelComponentBorder);
     display:inline;
+}
+
+.textboxError {
+    border-width: 1px;
+    border-color: var(--errorColor);
 }
 
 .textbox:disabled {

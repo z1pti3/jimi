@@ -51,6 +51,10 @@ def notFound(e):
 def indexPage():
 	return render_template("index.html")
 
+@jimi.api.webServer.route("/login/")
+def loginPage():
+	return render_template("login.html")
+
 @jimi.api.webServer.route("/debugFlow/")
 def debugFlowPage():
 	return render_template("debugFlowEditor.html",CSRF=jimi.api.g.sessionData["CSRF"])
@@ -128,9 +132,9 @@ def clearStartChecksPage():
 	else:
 		return { "server" : url, "result" : True }, 200
 
-@jimi.api.webServer.route("/login")
-def loginPage():
-	return render_template("index.html")
+# @jimi.api.webServer.route("/login")
+# def loginPage():
+# 	return render_template("index.html")
 
 @jimi.api.webServer.route("/conduct/PropertyTypes/", methods=["GET"])
 def getConductPropertyTypes():
