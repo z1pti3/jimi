@@ -409,6 +409,9 @@ if jimi.api.webServer:
             return response
 
         if jimi.api.webServer.name == "jimi_web":
+            from flask import Flask, request, render_template
+            from web import ui
+
             # Checks that username and password are a match
             @jimi.api.webServer.route(jimi.api.base+"auth/", methods=["POST"])
             def api_validateUser():
@@ -545,3 +548,19 @@ if jimi.api.webServer:
                     if totpSecret != "":
                         return "otpauth://totp/JIMI:{}?secret={}&issuer=JIMI".format(user.username,totpSecret), 200
                 return { }, 404
+
+            @jimi.api.webServer.route("/auth/users/", methods=["GET"])
+            def listUsers():
+                #Get groups to match against
+                groups = {}
+                foundGroups = _group().getAsClass(sessionData=jimi.api.g.sessionData,query={ })
+                for group in foundGroups:
+                    groups[group._id] = group
+                users = []
+                foundUsers =  _user().getAsClass(sessionData=jimi.api.g.sessionData,query={ })
+                for user in foundUsers:
+                    if user.primaryGroup in groups:
+                        user.primaryGroupName = groups[user.primaryGroup].name
+                    users.append(user)
+                
+                return render_template("users.html",users=users,CSRF=jimi.api.g.sessionData["CSRF"])

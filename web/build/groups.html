@@ -1,0 +1,47 @@
+{% extends "main.html" %}
+
+{% block head %}
+    {{ jimi.jquery() }}
+{% endblock %}
+
+{% block main %}
+    <div class="container px-4 py-5 text-center" id="custom-cards">
+        <div class="text-start" >
+            <input type="text" class="form-control textbox w-50" id="userSearch" onkeyup="doSearch()" placeholder="Search for groups">
+        </div>
+        <div class="row row-cols-1 row-cols-lg-3 align-items-stretch g-2 py-4">
+            {% for user in users|sort(attribute='name') %}
+                <div class="col userContainer" data-name="{{ user["name"] }}">
+                    <div class="card h-100 panel">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ user["name"] }}</h5>
+                            <hr>
+                            <p class="card-text">{{ user["primaryGroupName"] }}</p>
+                        </div>
+                        <div class="card-footer">
+                            <a href="edit/?user={{ user["_id"] }}" class="btn btn-primary btn-block button">Edit</a>
+                            <a href="delete/?user={{ user["_id"] }}" class="btn btn-primary btn-block button">Delete</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <script>
+        function doSearch() {
+            var input = document.getElementById("userSearch");
+            var searchFilter = input.value.toUpperCase();
+            var regex = new RegExp('\\b\\w*' + searchFilter + '\\w*\\b');
+            $('.userContainer').hide().filter(function () {
+                var nr = regex.test($(this).data('name').toUpperCase());
+                if (nr) {
+                    return true;
+                }
+                return false;
+            }).show();
+        }
+        $(document).ready(function() {
+            doSearch();
+        });
+    </script>
+{% endblock %}
