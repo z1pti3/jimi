@@ -39,6 +39,8 @@ class _user(jimi.db._document):
     name = str()
     enabled = bool()
     username = str()
+    email = str()
+    roles = list()
     passwordHash = str()
     passwordHashType = str()
     failedLoginCount = int()
@@ -595,3 +597,12 @@ if jimi.api.webServer:
                     groups.append(group)
                 
                 return render_template("groups.html",groups=groups,CSRF=jimi.api.g.sessionData["CSRF"])
+
+            @jimi.api.webServer.route("/auth/groups/edit/", methods=["GET"])
+            def editGroups():
+                #Get group details based on ID
+                foundGroup = _group().getAsClass(sessionData=jimi.api.g.sessionData,query={"_id":bson.ObjectId(request.args.get("id"))})
+                if foundGroup:
+                    foundGroup = foundGroup[0]
+                    return render_template("groupDetailed.html",group=foundGroup,CSRF=jimi.api.g.sessionData["CSRF"])
+                return 404

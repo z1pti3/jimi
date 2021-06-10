@@ -7,7 +7,7 @@
 {% block main %}
     <div class="container px-4 py-5">
             <h2>{{ user["name"] }}</h2>
-            <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <ul class="nav nav-tabs bg-dark" id="myTab" role="tablist">
                 <li class="nav-item" role="presentation">
                   <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab" aria-controls="home" aria-selected="true">Details</button>
                 </li>
@@ -20,7 +20,7 @@
               </ul>
               <div class="tab-content text-left" id="myTabContent">
                 <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
-                  <br><br>
+                  <br>
                   <form>
                     <div class="form-group">
                       <label for="username">Username</label>
@@ -40,13 +40,10 @@
                     <div class="form-group">
                       <label class="form-check-label" for="group">Primary Group</label>
                       <select class="form-control textbox" id="group" aria-describedby="groupHelp">
-                        {% if user["enabled"] %}
-                        <option selected="selected">Yes</option>
-                        <option>No</option>
-                        {% else %}
-                        <option >Yes</option>
-                        <option selected="selected">No</option>
-                        {% endif %}
+                        <option selected="selected">{{ user["primaryGroupName"] }}</option>
+                        {% for group in groups if group.name != user["primaryGroupName"] %}
+                        <option>{{ group["name"] }}</option>
+                        {% endfor %}
                       </select>
                       <small id="groupHelp" class="form-text text-muted">The main group the user belongs to</small>
                     </div>
@@ -60,27 +57,35 @@
                         <option >Yes</option>
                         <option selected="selected">No</option>
                         {% endif %}
-                      </select>activeHelp
-                      <small id="emailHelp" class="form-text text-muted">Whether the user is active or not</small>
+                      </select>
+                      <small id="activeHelp" class="form-text text-muted">Whether the user is active or not</small>
                     </div>
                   </form>
-                  <button class="btn btn-primary btn-block button" type="submit">Save</a>
+                  <button class="btn btn-success btn-block button" type="submit">Save</a>
 
                 </div>
                 <div class="tab-pane fade" id="groups" role="tabpanel" aria-labelledby="groups-tab">
+                  <br>
                     <div class="row align-items-start">
-                        <div id="existingGroups" class="col" ondrop="drop(event)" ondragover="allowDrop(event)" style="width: 150px; height: 150px; background-color:rgb(39, 39, 39);">
+                      <div class="col">
+                        <h2>Available Groups</h2>
+                        <div id="availableGroups" ondrop="drop(event)" ondragover="allowDrop(event)" style="height: 150px; background-color:rgb(39, 39, 39);">
                             {% for group in groups if group.name != user["primaryGroupName"] %}
-                                <div id="{{ group["_id"] }}" draggable="true" ondragstart="drag(event)" width="150px" style="background-color:rgba(172, 49, 255, 0.712);">{{ group["name"] }}</div>
+                                <div id="{{ group["_id"] }}" draggable="true" ondragstart="drag(event)" width="150px" style="border: 1px solid #2e6da4; text-align: center; background-color: #111;">{{ group["name"] }}</div>
                             {% endfor %}
                         </div>
-                        <div id="currentGroups" ondrop="drop(event)" class="col" ondragover="allowDrop(event)" style="width: 150px; height: 150px; background-color: rgb(39, 39, 39);">
-                            <div id="{{ user["primaryGroupName"] }}" draggable="true" ondragstart="drag(event)" width="150px" style="background-color:rgba(172, 49, 255, 0.712);">{{ user["primaryGroupName"] }}</div>
+                      </div>
+                      <div class="col">
+                        <h2>Current Groups</h2>
+                        <div id="currentGroups" ondrop="drop(event)" ondragover="allowDrop(event)" style="height: 150px; background-color: rgb(39, 39, 39);">
+                            <div id="{{ user["primaryGroupName"] }}" draggable="true" ondragstart="drag(event)" width="150px" style="border: 1px solid #2e6da4; text-align: center; background-color: #111;">{{ user["primaryGroupName"] }}</div>
                         </div>
+                      </div>
                     </div>
                 </div>
                 <div class="tab-pane fade" id="danger-zone" role="tabpanel" aria-labelledby="danger-zone-tab">
-                  <a href="delete/?id={{ user["_id"] }}" class="btn btn-lg btn-outline-danger button bi-trash"></a>
+                  <br>
+                  <a href="delete/?id={{ user["_id"] }}" class="btn btn-lg btn-outline-danger button"><i class="bi-trash" style="padding-right: 15px;"></i>Delete User</a>
                 </div>
 
               </div>
