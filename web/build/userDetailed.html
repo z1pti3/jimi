@@ -5,9 +5,8 @@
 {% endblock %}
 
 {% block main %}
-    <div class="container px-4 py-5 text-center">
+    <div class="container px-4 py-5">
             <h2>{{ user["name"] }}</h2>
-            {{user["username"]}}
             <ul class="nav nav-tabs" id="myTab" role="tablist">
                 <li class="nav-item" role="presentation">
                   <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab" aria-controls="home" aria-selected="true">Details</button>
@@ -19,10 +18,54 @@
                   <button class="nav-link" id="danger-zone-tab" data-bs-toggle="tab" data-bs-target="#danger-zone" type="button" role="tab" aria-controls="danger-zone" aria-selected="false">Danger Zone</button>
                 </li>
               </ul>
-              <div class="tab-content" id="myTabContent">
+              <div class="tab-content text-left" id="myTabContent">
                 <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
-                    Some details about the user
-                    Perhaps information such as email, country, etc
+                  <br><br>
+                  <form>
+                    <div class="form-group">
+                      <label for="username">Username</label>
+                      <input type="text" class="form-control textbox" id="username" value="{{user["username"]}}" disabled="" aria-describedby="usernameHelp">
+                      <small id="emailHelp" class="form-text text-muted">The username for the user</small>
+                    </div>
+                    <div class="form-group">
+                      <label for="name">Name</label>
+                      <input type="text" class="form-control textbox" id="name" value="{{user["name"]}}" aria-describedby="nameHelp">
+                      <small id="emailHelp" class="form-text text-muted">The name of the user</small>
+                    </div>
+                    <div class="form-group">
+                      <label for="email">Email</label>
+                      <input type="email" class="form-control textbox" id="email" value="" aria-describedby="emailHelp">
+                      <small id="emailHelp" class="form-text text-muted">The user's email</small>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-check-label" for="group">Primary Group</label>
+                      <select class="form-control textbox" id="group" aria-describedby="groupHelp">
+                        {% if user["enabled"] %}
+                        <option selected="selected">Yes</option>
+                        <option>No</option>
+                        {% else %}
+                        <option >Yes</option>
+                        <option selected="selected">No</option>
+                        {% endif %}
+                      </select>
+                      <small id="groupHelp" class="form-text text-muted">The main group the user belongs to</small>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-check-label" for="active">Active</label>
+                      <select class="form-control textbox" id="active" aria-describedby="activeHelp">
+                        {% if user["enabled"] %}
+                        <option selected="selected">Yes</option>
+                        <option>No</option>
+                        {% else %}
+                        <option >Yes</option>
+                        <option selected="selected">No</option>
+                        {% endif %}
+                      </select>activeHelp
+                      <small id="emailHelp" class="form-text text-muted">Whether the user is active or not</small>
+                    </div>
+                  </form>
+                  <button class="btn btn-primary btn-block button" type="submit">Save</a>
+
                 </div>
                 <div class="tab-pane fade" id="groups" role="tabpanel" aria-labelledby="groups-tab">
                     <div class="row align-items-start">
@@ -37,9 +80,9 @@
                     </div>
                 </div>
                 <div class="tab-pane fade" id="danger-zone" role="tabpanel" aria-labelledby="danger-zone-tab">
-
+                  <a href="delete/?id={{ user["_id"] }}" class="btn btn-lg btn-outline-danger button bi-trash"></a>
                 </div>
-                <button class="btn btn-primary btn-block button" type="submit">Save</a>
+
               </div>
     </div>
     <script>

@@ -16,11 +16,11 @@
                         <div class="card-body">
                             <h5 class="card-title">{{ user["name"] }}</h5>
                             <hr>
-                            <p class="card-text">{{ user["primaryGroupName"] }}</p>
+                            <i class="bi-people" style="font-size: 1.25rem;"></i><p class="card-text">{{ user["primaryGroupName"] }}</p>
                         </div>
                         <div class="card-footer">
-                            <a href="edit/?id={{ user["_id"] }}" class="btn btn-primary btn-block button">Edit</a>
-                            <a href="delete/?id={{ user["_id"] }}" class="btn btn-primary btn-block button">Delete</a>
+                            <a href="edit/?id={{ user["_id"] }}" class="btn btn-primary btn-block button bi-pencil"></a>
+                            <a href="delete/?id={{ user["_id"] }}" class="btn btn-primary btn-block button bi-trash"></a>
                         </div>
                     </div>
                 </div>

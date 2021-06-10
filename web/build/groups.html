@@ -16,11 +16,11 @@
                         <div class="card-body">
                             <h5 class="card-title">{{ group["name"] }}</h5>
                             <hr>
-                            <p class="card-text">Members: {{ group["userCount"] }}</p>
+                            <i class="bi-people" style="padding-right: 5px;"></i><span class="card-text">{{ group["userCount"] }}</span>
                         </div>
                         <div class="card-footer">
-                            <a href="edit/?id={{ id["_id"] }}" class="btn btn-primary btn-block button">Edit</a>
-                            <a href="delete/?id={{ id["_id"] }}" class="btn btn-primary btn-block button">Delete</a>
+                            <a href="edit/?id={{ group["_id"] }}" class="btn btn-primary btn-block button bi-pencil"></a>
+                            <a href="delete/?id={{ group["_id"] }}" class="btn btn-primary btn-block button bi-trash"></a>
                         </div>
                     </div>
                 </div>
