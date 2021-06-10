@@ -57,17 +57,75 @@
                   <div class="row align-items-start">
                     <div class="col">
                       <h2>Available Conducts</h2>
-                      <div id="availableConducts" ondrop="drop(event)" ondragover="allowDrop(event)" style="height: 150px; background-color:rgb(39, 39, 39);">
+                      <div id="availableConducts" ondrop="drop(event)" ondragover="allowDrop(event)" style="height: 500px; background-color:rgb(39, 39, 39);">
                           {% for conduct in conductList if conduct.enabled == false %}
-                              <div id="{{ conduct["id"] }}" draggable="true" ondragstart="drag(event)" width="150px" style="border: 1px solid #2e6da4; text-align: center; background-color: #111;">{{ conduct["name"] }}</div>
+                            <div class="container" id="{{ conduct["id"] }}" draggable="true" ondragstart="drag(event)" width="150px" style="border: 1px solid #2e6da4; text-align: center; background-color: #111;">
+                              <div class="row">
+                                <div class="col">{{ conduct["name"] }}</div>
+                              </div>
+                                <div class="row">
+                                  <div class="btn-group-toggle" data-toggle="buttons">
+                                    <label class="btn btn-secondary active bi-book">
+                                      {% if conduct["acl"]["read"] %}
+                                        <input type="checkbox" autocomplete="off" checked>
+                                      {% else %}
+                                        <input type="checkbox" autocomplete="off">
+                                      {% endif %}
+                                    </label>
+                                  <label class="btn btn-secondary active bi-pencil">
+                                    {% if conduct["acl"]["write"] %}
+                                      <input type="checkbox" autocomplete="off" checked>
+                                    {% else %}
+                                      <input type="checkbox" autocomplete="off">
+                                    {% endif %}
+                                  </label>
+                                  <label class="btn btn-secondary active bi-trash">
+                                    {% if conduct["acl"]["delete"] %}
+                                      <input type="checkbox" autocomplete="off" checked>
+                                    {% else %}
+                                      <input type="checkbox" autocomplete="off">
+                                    {% endif %}
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
                           {% endfor %}
                       </div>
                     </div>
                     <div class="col">
                       <h2>Current Conducts</h2>
-                      <div id="currentConducts" ondrop="drop(event)" ondragover="allowDrop(event)" style="height: 150px; background-color: rgb(39, 39, 39);">
+                      <div id="currentConducts" ondrop="drop(event)" ondragover="allowDrop(event)" style="height: 500px; background-color: rgb(39, 39, 39);">
                         {% for conduct in conductList if conduct.enabled %}
-                        <div id="{{ conduct["id"] }}" draggable="true" ondragstart="drag(event)" width="150px" style="border: 1px solid #2e6da4; text-align: center; background-color: #111;">{{ conduct["name"] }}</div>
+                        <div class="container" id="{{ conduct["id"] }}" draggable="true" ondragstart="drag(event)" width="150px" style="border: 1px solid #2e6da4; text-align: center; background-color: #111;">
+                          <div class="row">
+                            <div class="col">{{ conduct["name"] }}</div>
+                          </div>
+                          <div class="row">
+                            <div class="btn-group-toggle" data-toggle="buttons">
+                              <label class="btn btn-secondary active bi-book">
+                                {% if conduct["acl"]["read"] %}
+                                  <input type="checkbox" autocomplete="off" checked>
+                                {% else %}
+                                  <input type="checkbox" autocomplete="off">
+                                {% endif %}
+                              </label>
+                            <label class="btn btn-secondary active bi-pencil">
+                              {% if conduct["acl"]["write"] %}
+                                <input type="checkbox" autocomplete="off" checked>
+                              {% else %}
+                                <input type="checkbox" autocomplete="off">
+                              {% endif %}
+                            </label>
+                            <label class="btn btn-secondary active bi-trash">
+                              {% if conduct["acl"]["delete"] %}
+                                <input type="checkbox" autocomplete="off" checked>
+                              {% else %}
+                                <input type="checkbox" autocomplete="off">
+                              {% endif %}
+                            </label>
+                          </div>
+                        </div>
+                        </div>
                         {% endfor %}
                       </div>
                     </div>
