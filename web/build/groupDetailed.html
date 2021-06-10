@@ -12,7 +12,10 @@
                   <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab" aria-controls="home" aria-selected="true">Details</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="access-tab" data-bs-toggle="tab" data-bs-target="#access" type="button" role="tab" aria-controls="access" aria-selected="false">Access Control</button>
+                  <button class="nav-link" id="conducts-tab" data-bs-toggle="tab" data-bs-target="#conducts" type="button" role="tab" aria-controls="access" aria-selected="false">Conducts</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="objects-tab" data-bs-toggle="tab" data-bs-target="#objects" type="button" role="tab" aria-controls="access" aria-selected="false">Objects</button>
                 </li>
                 <li class="nav-item" role="presentation">
                   <button class="nav-link" id="danger-zone-tab" data-bs-toggle="tab" data-bs-target="#danger-zone" type="button" role="tab" aria-controls="danger-zone" aria-selected="false">Danger Zone</button>
@@ -49,7 +52,28 @@
                   <button class="btn btn-success btn-block button" type="submit">Save</a>
 
                 </div>
-                <div class="tab-pane fade" id="access" role="tabpanel" aria-labelledby="access-tab">
+                <div class="tab-pane fade" id="conducts" role="tabpanel" aria-labelledby="access-tab">
+                  <br>
+                  <div class="row align-items-start">
+                    <div class="col">
+                      <h2>Available Conducts</h2>
+                      <div id="availableConducts" ondrop="drop(event)" ondragover="allowDrop(event)" style="height: 150px; background-color:rgb(39, 39, 39);">
+                          {% for conduct in conductList if conduct.enabled == false %}
+                              <div id="{{ conduct["id"] }}" draggable="true" ondragstart="drag(event)" width="150px" style="border: 1px solid #2e6da4; text-align: center; background-color: #111;">{{ conduct["name"] }}</div>
+                          {% endfor %}
+                      </div>
+                    </div>
+                    <div class="col">
+                      <h2>Current Conducts</h2>
+                      <div id="currentConducts" ondrop="drop(event)" ondragover="allowDrop(event)" style="height: 150px; background-color: rgb(39, 39, 39);">
+                        {% for conduct in conductList if conduct.enabled %}
+                        <div id="{{ conduct["id"] }}" draggable="true" ondragstart="drag(event)" width="150px" style="border: 1px solid #2e6da4; text-align: center; background-color: #111;">{{ conduct["name"] }}</div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="tab-pane fade" id="objects" role="tabpanel" aria-labelledby="access-tab">
                   <br>
                     <div class="row align-items-start">
                     </div>

@@ -604,5 +604,17 @@ if jimi.api.webServer:
                 foundGroup = _group().getAsClass(sessionData=jimi.api.g.sessionData,query={"_id":bson.ObjectId(request.args.get("id"))})
                 if foundGroup:
                     foundGroup = foundGroup[0]
-                    return render_template("groupDetailed.html",group=foundGroup,CSRF=jimi.api.g.sessionData["CSRF"])
+
+
+                    #Get ACL info about each conduct
+                    conductList = []
+                    conducts = jimi.conduct._conduct().getAsClass(sessionData=jimi.api.g.sessionData,query={})
+                    for conduct in conducts:
+                        matches = [item for item in conduct.acl["ids"] if item["accessID"] == foundGroup._id]
+                        if any(matches):
+                            conductList.append({"id":conduct._id, "name":conduct.name, "acl":matches[0], "enabled":True})
+                        else:
+                            conductList.append({"id":conduct._id, "name":conduct.name, "acl":{"accessID":foundGroup._id,"read":False,"write":False,"delete":False}, "enabled":False})
+
+                    return render_template("groupDetailed.html",group=foundGroup,conductList=conductList,CSRF=jimi.api.g.sessionData["CSRF"])
                 return 404
