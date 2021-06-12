@@ -38,7 +38,7 @@ if __name__ == "__main__":
     apiSettings = jimi.settings.config["api"]["core"]
     jimi.api.createServer("jimi_core")
     logging.info("Starting API interface on %s:%i",apiSettings["bind"],apiSettings["port"])
-    jimi.api.startServer(host=apiSettings["bind"], port=apiSettings["port"], threaded=True)
+    jimi.api.startServer(True,host=apiSettings["bind"], port=apiSettings["port"], threaded=True)
 
     # Starting workers
     manager = multiprocessing.Manager() # Need to replace this so that the cluster controls this without sharing a variable as this does not scale for containers

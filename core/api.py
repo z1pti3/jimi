@@ -10,8 +10,9 @@ def createServer(name, **kwargs):
 	global webServer
 	webServer = Flask(name,**kwargs)
 
-def startServer(**kwargs):
+def startServer(threaded,**kwargs):
 	global webServer
-	_thread.start_new_thread(waitress.serve, (webServer,), kwargs)
-
-
+	if threaded:
+		_thread.start_new_thread(waitress.serve, (webServer,), kwargs)
+	else:
+		waitress.serve(webServer,**kwargs)
