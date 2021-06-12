@@ -370,7 +370,7 @@ def cleanupPage():
 		return { },200
 	return render_template("cleanupObjects.html", unusedActionObjects=unusedActionObjects, unusedTriggerObjects=unusedTriggerObjects, CSRF=api.g.sessionData["CSRF"])
 
-api.startServer(debug=True, use_reloader=False, host=apiSettings["bind"], port=apiSettings["port"], threaded=True)
+api.startServer(host=apiSettings["bind"], port=apiSettings["port"])
 
 while True:
 	time.sleep(1)

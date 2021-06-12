@@ -10,3 +10,4 @@ pyreadline
 cryptography
 onetimepass
 json2html
+waitress

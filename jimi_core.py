@@ -1,4 +1,3 @@
-from core.workers import workerHandler
 import multiprocessing
 import logging
 
@@ -35,8 +34,14 @@ if __name__ == "__main__":
     clusterMember.checksum = checksum
     clusterMember.update(["checksum"])
 
+    # Loading API
+    apiSettings = jimi.settings.config["api"]["core"]
+    jimi.api.createServer("jimi_core")
+    logging.info("Starting API interface on %s:%i",apiSettings["bind"],apiSettings["port"])
+    jimi.api.startServer(host=apiSettings["bind"], port=apiSettings["port"], threaded=True)
+
     # Starting workers
-    manager = multiprocessing.Manager()
+    manager = multiprocessing.Manager() # Need to replace this so that the cluster controls this without sharing a variable as this does not scale for containers
     cpuCount = os.cpu_count()
     systemIndexes = []
     logging.debug("Detected %i CPU",cpuCount)

@@ -1,3 +1,5 @@
+from os import wait
+import waitress
 from flask import Flask, request, make_response, redirect, g, send_file
 import _thread
 
@@ -10,6 +12,6 @@ def createServer(name, **kwargs):
 
 def startServer(**kwargs):
 	global webServer
-	_thread.start_new_thread(webServer.run, (), kwargs)
+	_thread.start_new_thread(waitress.serve, (webServer,), kwargs)
 
 
