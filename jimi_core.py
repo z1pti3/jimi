@@ -1,11 +1,10 @@
 import multiprocessing
 import logging
 
-import jimi
-
 logging.basicConfig(level=logging.DEBUG)
 
 def startWorker(systemId,systemIndex,manager):
+    import jimi
     logging.info("Index %i booting on system %i",systemIndex,systemId)
     logging.info("Starting worker handler")
     workerHandler = jimi.workers.workerHandler()
@@ -14,9 +13,21 @@ def startWorker(systemId,systemIndex,manager):
     scheduler.handler()
 
 if __name__ == "__main__":
+    # Loading API - Has to be done before jimi import or the pages will not be loaded
+    from core import settings, api
+    apiSettings = settings.config["api"]["core"]
+    api.createServer("jimi_core")
+
     import os
+    import jimi
+
     systemId = jimi.cluster.getSystemId()
     logging.info("System starting system_id is %i",systemId)
+
+    # Running installers
+    logging.info("Running system startup installers")
+    from system import install
+    install.setup()
 
     # File system integrity
     logging.info("Checking cluster integrity")
@@ -34,11 +45,13 @@ if __name__ == "__main__":
     clusterMember.checksum = checksum
     clusterMember.update(["checksum"])
 
-    # Loading API
-    apiSettings = jimi.settings.config["api"]["core"]
-    jimi.api.createServer("jimi_core")
-    logging.info("Starting API interface on %s:%i",apiSettings["bind"],apiSettings["port"])
-    jimi.api.startServer(True,host=apiSettings["bind"], port=apiSettings["port"], threaded=True)
+    # Starting API
+    logging.info("Starting API interface")
+    api.startServer(True,host=apiSettings["bind"], port=apiSettings["port"])
+
+    # Starting workers for API based calls
+    logging.info("Starting cluster worker handler for API based calls")
+    jimi.workers.workers = jimi.workers.workerHandler()
 
     # Starting workers
     manager = multiprocessing.Manager() # Need to replace this so that the cluster controls this without sharing a variable as this does not scale for containers

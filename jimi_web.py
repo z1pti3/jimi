@@ -10,6 +10,9 @@ import re
 import subprocess
 import os
 from operator import itemgetter
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 # Setup and define API ( required before other modules )
 from core import api, settings
