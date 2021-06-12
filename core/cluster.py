@@ -79,8 +79,9 @@ class _clusterMember(jimi.db._document):
         # Check which system indexes are online
         onlineIndexes = []
         for systemIndex in systemIndexes:
-            if systemIndex["manager"]["lastHandle"] < ( now - clusterSettings["deadTimer"] ):
-                onlineIndexes.append(systemIndex["systemIndex"])
+            # Disabled index dead check
+            #if systemIndex["manager"]["lastHandle"] < ( now - clusterSettings["deadTimer"] ):
+            onlineIndexes.append(systemIndex["systemIndex"])
         # Get and check all triggers assigned to this system
         allocatedTriggers = jimi.trigger._trigger().getAsClass(query={ "systemID" : self.systemID })
         for allocatedTrigger in allocatedTriggers:

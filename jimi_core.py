@@ -49,7 +49,7 @@ if __name__ == "__main__":
     logging.info("Starting API interface")
     api.startServer(True,host=apiSettings["bind"], port=apiSettings["port"])
 
-    # Starting workers for API based calls
+    # Starting workers for API based calls - i.e. debug and triggering flows that are run on the master node
     logging.info("Starting cluster worker handler for API based calls")
     jimi.workers.workers = jimi.workers.workerHandler()
 
