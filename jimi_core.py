@@ -1,81 +1,57 @@
+from core.workers import workerHandler
+import multiprocessing
+import logging
+
+import jimi
+
+logging.basicConfig(level=logging.DEBUG)
+
+def startWorker(systemId,systemIndex,manager):
+    logging.info("Index %i booting on system %i",systemIndex,systemId)
+    logging.info("Starting worker handler")
+    workerHandler = jimi.workers.workerHandler()
+    logging.info("Starting scheduler")
+    scheduler = jimi.scheduler._scheduler(workerHandler,systemId,systemIndex)
+    scheduler.handler()
+
 if __name__ == "__main__":
-    from core import settings, api
+    import os
+    systemId = jimi.cluster.getSystemId()
+    logging.info("System starting system_id is %i",systemId)
 
-    # Create webserver so we can load all routes before starting
-    apiSettings = settings.config["api"]["core"]
-    try:
-        cacheSettings = jimi.settings.config["cache"]
-        garbageCollector = cacheSettings["garbageCollector"]
-    except:
-        garbageCollector = False
+    # File system integrity
+    logging.info("Checking cluster integrity")
+    checksum = jimi.system.fileIntegrityRegister()
+    logging.debug("System integrity hash generated. hash=%s",checksum)
+    masterId = jimi.cluster.getMasterId()
+    clusterMember = jimi.cluster.getClusterMemberById(systemId)
+    masterMember = jimi.cluster.getMaster()
+    logging.info("Current jimi master is on %i",masterId)
+    if masterId != systemId and checksum != masterMember.checksum:
+        logging.debug("Fixing file integrity mismatch using master")
+        checksum = jimi.system.fixChecksum(masterId)
+        if checksum != masterMember.checksum:
+            logging.error("Checksum mismatch between system %i and master %i",systemId,masterId)
+    clusterMember.checksum = checksum
+    clusterMember.update(["checksum"])
 
-    api.createServer("jimi_core")
+    # Starting workers
+    manager = multiprocessing.Manager()
+    cpuCount = os.cpu_count()
+    systemIndexes = []
+    logging.debug("Detected %i CPU",cpuCount)
+    if cpuCount == 1:
+        logging.info("Selected single cluster mode")
+        systemIndexes.append({ "systemIndex" : 1, "manager" : manager.dict({ "lastHandle" : 0, "assigned" : 0 })})
+    else:
+        logging.info("Selected multi cluster mode")
+        for index in range(1,len(cpuCount)):
+            systemIndexes.append({ "systemIndex" : index, "manager" : manager.dict({ "lastHandle" : 0, "assigned" : 0 })})
+    for systemIndex in systemIndexes:
+        logging.debug("Starting index %i",systemIndex["systemIndex"])
+        p = multiprocessing.Process(target=startWorker,args=(systemId,systemIndex["systemIndex"],systemIndex["manager"]))
+        p.start()
 
-    import jimi
-
-    # Running setup
-    from system import install
-    install.setup()
-
-    # Start server now loading is completed
-    api.startServer(debug=True, use_reloader=False, host=apiSettings["bind"], port=apiSettings["port"], threaded=True)
-    import time
-    time.sleep(5)
-
-    # Auto start the application using its API
-    apiEndpoint = "workers/"
-    apiToken = jimi.auth.generateSystemSession()
-    jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
-    apiEndpoint = "scheduler/"
-    jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
-    apiEndpoint = "cluster/"
-    jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
-
-    import time
-    time.sleep(10)
-    if jimi.workers.workers.lastHandle == None:
-        print("Failed to start workers")
-    if jimi.cluster.cluster.lastHandle == None:
-        print("Failed to start cluster")
-    if jimi.scheduler.scheduler.lastHandle == None:
-        print("Failed to start scheduler")
-    while True:
-        now = time.time()
-        try:
-            if jimi.workers.workers.lastHandle + 60 < now:
-                print("worker thread has crashed!")
-                jimi.audit._audit().add("core","crash",{ "action" : "restart", "type" : "workers" })
-                apiEndpoint = "workers/"
-                apiToken = jimi.auth.generateSystemSession()
-                jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
-        except ValueError:
-            print("worker thread not running!")
-            jimi.audit._audit().add("core","notrunning",{ "action" : "restart", "type" : "workers" })
-        try:
-            if jimi.scheduler.scheduler.lastHandle + 60 < now:
-                jimi.audit._audit().add("core","crash",{ "action" : "restart", "type" : "scheduler" })
-                print("scheduler thread has crashed!")
-                apiEndpoint = "scheduler/"
-                apiToken = jimi.auth.generateSystemSession()
-                jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
-        except ValueError:
-            print("scheduler thread not running!")
-            jimi.audit._audit().add("core","notrunning",{ "action" : "restart", "type" : "scheduler" })
-        try:
-            if jimi.cluster.cluster.lastHandle + 60 < now:
-                jimi.audit._audit().add("core","crash",{ "action" : "restart", "type" : "cluster" })
-                print("cluster thread has crashed!")
-                apiEndpoint = "cluster/"
-                apiToken = jimi.auth.generateSystemSession()
-                jimi.helpers.apiCall("POST",apiEndpoint,{"action" : "start"},token=apiToken)
-        except ValueError:
-            print("cluster thread not running!")
-            jimi.audit._audit().add("core","notrunning",{ "action" : "restart", "type" : "cluster" })
-        # Clear persistent values from Cache
-        if garbageCollector:
-            jimi.cache.globalCache.cleanCache()
-        time.sleep(10)
-else:
-    import jimi
-    # Disable CPU saver for multiprocessing
-    jimi.settings.config["cpuSaver"]["enabled"] = False
+    logging.info("Starting cluster processing")
+    cluster = jimi.cluster._cluster()
+    cluster.handler(systemIndexes)
