@@ -83,6 +83,7 @@ if __name__ == "__main__":
         logging.debug("Starting index %i",systemIndex["systemIndex"])
         p = multiprocessing.Process(target=startWorker,args=(systemId,systemIndex["systemIndex"]))
         p.start()
+        systemIndex["pid"] = p.pid
         logging.debug("Started index %i, PID=%i",systemIndex["systemIndex"],p.pid)
 
     logging.info("Starting cluster processing")
