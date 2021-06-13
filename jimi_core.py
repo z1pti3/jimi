@@ -3,7 +3,7 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG)
 
-def startWorker(systemId,systemIndex,manager):
+def startWorker(systemId,systemIndex):
     def healthChecker(garbageCollector=False):
         logging.info("Starting health checker")
         import time
@@ -69,20 +69,19 @@ if __name__ == "__main__":
     jimi.workers.workers = jimi.workers.workerHandler()
 
     # Starting workers
-    manager = multiprocessing.Manager() # Need to replace this so that the cluster controls this without sharing a variable as this does not scale for containers
     cpuCount = os.cpu_count()
     systemIndexes = []
     logging.debug("Detected %i CPU",cpuCount)
     if cpuCount == 1:
         logging.info("Selected single cluster mode")
-        systemIndexes.append({ "systemIndex" : 1, "manager" : manager.dict({ "lastHandle" : 0, "assigned" : 0 })})
+        systemIndexes.append({ "systemIndex" : 1 })
     else:
         logging.info("Selected multi cluster mode")
         for index in range(1,cpuCount):
-            systemIndexes.append({ "systemIndex" : index, "manager" : manager.dict({ "lastHandle" : 0, "assigned" : 0 })})
+            systemIndexes.append({ "systemIndex" : index })
     for systemIndex in systemIndexes:
         logging.debug("Starting index %i",systemIndex["systemIndex"])
-        p = multiprocessing.Process(target=startWorker,args=(systemId,systemIndex["systemIndex"],systemIndex["manager"]))
+        p = multiprocessing.Process(target=startWorker,args=(systemId,systemIndex["systemIndex"]))
         p.start()
 
     logging.info("Starting cluster processing")
