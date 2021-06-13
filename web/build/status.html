@@ -1,0 +1,18 @@
+{% extends "main.html" %}
+
+{% block head %}
+    {{ jimi.jquery() }}
+    {{ jimi.charts() }}
+{% endblock %}
+
+{% block main %}
+    <div class="container h-50">
+        {{ jimi.doughnut("1","Trigger Statuses","triggerStatus/",1000) }}
+    </div> 
+    Failed Triggers:
+    <br>
+    {% for trigger in triggers["failed"] %}
+        {{ trigger["name"] }}
+        <br>
+    {% endfor %}
+{% endblock %}
