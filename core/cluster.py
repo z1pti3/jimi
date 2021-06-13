@@ -1,3 +1,4 @@
+from math import trunc
 import sys
 import uuid
 import time
@@ -77,24 +78,46 @@ class _clusterMember(jimi.db._document):
             lowestMaster[0].update(["master"])
 
         # Check which system indexes are online
-        onlineIndexes = []
+        onlineIndexes = {}
         for systemIndex in systemIndexes:
             # Disabled index dead check
             #if systemIndex["manager"]["lastHandle"] < ( now - clusterSettings["deadTimer"] ):
-            onlineIndexes.append(systemIndex["systemIndex"])
+            onlineIndexes[str(systemIndex["systemIndex"])] = 0
         # Get and check all triggers assigned to this system
-        allocatedTriggers = jimi.trigger._trigger().getAsClass(query={ "systemID" : self.systemID })
+        allocatedTriggers = jimi.trigger._trigger().getAsClass(query={ "systemID" : self.systemID, "enabled" : True })
+        # Building cluster set groups so we can ensure certain triggers are kept together
+        groups = {}
         for allocatedTrigger in allocatedTriggers:
+            if str(allocatedTrigger.systemIndex) in onlineIndexes.keys():
+                onlineIndexes[str(allocatedTrigger.systemIndex)] += 1
+                if allocatedTrigger.clusterSet > 0:
+                    if str(allocatedTrigger.clusterSet) not in groups:
+                        groups[str(allocatedTrigger.clusterSet)] = allocatedTrigger.systemIndex
+        for allocatedTrigger in allocatedTriggers:
+            if allocatedTrigger.clusterSet > 0:
+                if str(allocatedTrigger.clusterSet) in groups:
+                    onlineIndexes[str(groups[str(allocatedTrigger.clusterSet)])] += 1
+                    allocatedTrigger.systemIndex = int(groups[str(allocatedTrigger.clusterSet)])
+                    allocatedTrigger.update(["systemIndex"])
+                else:
+                    leastAssigned = [1,65535]
+                    for systemIndex in onlineIndexes.keys():
+                        if onlineIndexes[systemIndex] < leastAssigned[1]:
+                            leastAssigned[0] = systemIndex
+                            leastAssigned[1] = onlineIndexes[str(systemIndex)]
+                    onlineIndexes[leastAssigned[0]] += 1
+                    allocatedTrigger.systemIndex = int(leastAssigned[0])
+                    allocatedTrigger.update(["systemIndex"])
+                    groups[str(allocatedTrigger.clusterSet)] = int(leastAssigned[0])
             # Check that a trigger is assigned to a system index or if the system index is still alive
-            if allocatedTrigger.systemIndex == 0 or allocatedTrigger.systemIndex not in onlineIndexes:
+            elif allocatedTrigger.systemIndex == 0 or str(allocatedTrigger.systemIndex) not in onlineIndexes.keys():
                 leastAssigned = [1,65535]
-                for systemIndex in systemIndexes:
-                    if systemIndex["manager"]["lastHandle"] in onlineIndexes:
-                        if systemIndex["manager"]["assigned"] < leastAssigned[1]:
-                            leastAssigned[0] = systemIndex["systemIndex"]
-                            leastAssigned[1] = systemIndex["manager"]["assigned"]
-                            systemIndex["manager"]["assigned"] += 1
-                allocatedTrigger.systemIndex = leastAssigned[0]
+                for systemIndex in onlineIndexes.keys():
+                    if onlineIndexes[systemIndex] < leastAssigned[1]:
+                        leastAssigned[0] = systemIndex
+                        leastAssigned[1] = onlineIndexes[systemIndex]
+                onlineIndexes[leastAssigned[0]] += 1
+                allocatedTrigger.systemIndex = int(leastAssigned[0])
                 allocatedTrigger.update(["systemIndex"])
 
         if self.master:
@@ -326,5 +349,5 @@ if jimi.api.webServer:
             @jimi.api.webServer.route(jimi.api.base+"cluster/distribute/", methods=["GET"])
             @jimi.auth.adminEndpoint
             def distributeCluster():
-                jimi.trigger._trigger().api_update(query={ "startCheck" : 0 },update={ "$set" : { "systemID" : None } })
+                jimi.trigger._trigger().api_update(query={ "startCheck" : 0 },update={ "$set" : { "systemID" : None, "systemIndex" : 0 } })
                 return { "result" : True }, 200

@@ -56,6 +56,7 @@ if __name__ == "__main__":
     # Starting workers
     manager = multiprocessing.Manager() # Need to replace this so that the cluster controls this without sharing a variable as this does not scale for containers
     cpuCount = os.cpu_count()
+    cpuCount = 4
     systemIndexes = []
     logging.debug("Detected %i CPU",cpuCount)
     if cpuCount == 1:
@@ -63,7 +64,7 @@ if __name__ == "__main__":
         systemIndexes.append({ "systemIndex" : 1, "manager" : manager.dict({ "lastHandle" : 0, "assigned" : 0 })})
     else:
         logging.info("Selected multi cluster mode")
-        for index in range(1,len(cpuCount)):
+        for index in range(1,cpuCount):
             systemIndexes.append({ "systemIndex" : index, "manager" : manager.dict({ "lastHandle" : 0, "assigned" : 0 })})
     for systemIndex in systemIndexes:
         logging.debug("Starting index %i",systemIndex["systemIndex"])
