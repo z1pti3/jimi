@@ -1,40 +1,29 @@
-<script src="{{ url_for('static', filename='/includes/jquery-3.6.0/js/jquery-3.6.0.min.js') }}"></script>
-<script src="{{ url_for('static', filename='includes/jquery/js/jquery.datatables.min.js') }}"></script>
+{% extends "main.html" %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/dataTables.bootstrap.css') }}">
-<script src="{{ url_for('static', filename='includes/datatables/js/dataTables.bootstrap.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/fixedHeader.dataTables.min.css') }}">
-<script src="{{ url_for('static', filename='includes/datatables/js/dataTables.fixedHeader.min.js') }}"></script>
+{% block head %}
+    {{ jimi.jquery() }}
+    <script src="{{ url_for('static', filename='includes/jquery/js/jquery.datatables.min.js') }}"></script>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
-<script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
-<script src="{{ url_for('static', filename='includes/visjs/js/moment.js') }}"></script>
-<script src="{{ url_for('static', filename='includes/datatables/js/datetime.moment.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/dataTables.bootstrap.css') }}">
+    <script src="{{ url_for('static', filename='includes/datatables/js/dataTables.bootstrap.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/fixedHeader.dataTables.min.css') }}">
+    <script src="{{ url_for('static', filename='includes/datatables/js/dataTables.fixedHeader.min.js') }}"></script>
 
-<script src="{{ url_for('static', filename='javascript/helpers.js') }}"></script>
+    <script src="{{ url_for('static', filename='includes/visjs/js/moment.js') }}"></script>
+    <script src="{{ url_for('static', filename='includes/datatables/js/datetime.moment.js') }}"></script>
 
-<script src="{{ url_for('static', filename='javascript/hotkeys.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/helpers.js') }}"></script>
+{% endblock %}
 
-
-<link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
-
-<link rel="stylesheet" href="{{ url_for('static', filename='css/modelEditor.css') }}">
-
-<link rel="stylesheet" href="{{ url_for('static', filename='themes/default/default.css') }}">
-
-
-<html>
-    <head>
-        
-    </head>
-    <body class="theme-panelContainer">
-        <div class="alert-container alert alert-success hidden" role="alert">
+{% block main %}
+    <div class="container">
+        <div class="alert-container alert alert-success hide" role="alert">
             <div class="alert">
                 <p id="alertMessage"></p>
             </div>
         </div>
         <div id="createObjectContainer" class="hidden">
-            <button class="btn btn-primary createObject theme-panelButton" onclick="createObject()">Create Object</button>
+            <button class="btn btn-primary createObject button" onclick="createObject()">Create Object</button>
         </div>
         <table id="table" class="table table-sm theme-table" cellspacing="0" width="100%">
             <thead class="theme-tableHeader">
@@ -42,245 +31,245 @@
             <tbody class="theme-tableBody">
             </tbody>
         </table>
-    </body>
-</html>
+    </div>
 
-<script>
-    var CSRF = "{{CSRF}}"
-</script>
+    <script>
+        var CSRF = "{{CSRF}}"
+    </script>
 
-<script>
-    $(document).ready(function () {
-        $.fn.dataTable.moment('DD-MMM-YY HH:mm:ss');
-    });
+    <script>
+        $(document).ready(function () {
+            $.fn.dataTable.moment('DD-MMM-YY HH:mm:ss');
+        });
 
-    function buildTable_ListModels() {
-        $('#table').DataTable({
-            "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
-            fixedHeader: {
-                header: true,
-                footer: true
-            },
-            "paging" : false,
-            "order" : [[ 0, "asc" ]],
-            columns : [
-                { "data": null, "name": "name", "title": "Name", "autoWidth": true, render: $.fn.dataTable.render.text() },
-                { 
-                    "data": "options", "name": "options", "title": "Options", "autoWidth": true, render: function (data, type, row) {
-                        return '<button class="btn btn-primary theme-panelButton">Edit</button>';
-                    }
+        function buildTable_ListModels() {
+            $('#table').DataTable({
+                "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
+                fixedHeader: {
+                    header: true,
+                    footer: true
                 },
-            ],
-            columnDefs: [
-                {
-                    orderable: true
-                }
-            ]
-        });
-
-        var table = $('#table').DataTable();
-
-        $('.dataTables_length').addClass('bs-select');
-        $('.dataTables_filter input[type="search"]').css({'width':'200px'});
-        $('.dataTables_filter input[type="search"]').addClass("theme-panelTextbox")
-
-        $('#table tbody').on('click', 'tr', function () {
-            var data = table.row( this ).data();
-            table.destroy();
-            $('#table').empty();
-            window.location.search += '?modelName='+data[0];
-        } );
-
-        $.ajax({url:"/api/1.0/models/", type:"GET", success: function ( result ) {
-                for ( resultItem in result["models"] ) {
-                    table.row.add([result["models"][resultItem]]);
-                }
-                table.draw();
-            }
-        })
-    }
-
-    function buildTable_ListModel( modelName ) {
-        $('#createObjectContainer').toggleClass("hidden");
-        $('#table').DataTable({
-            "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
-            fixedHeader: {
-                header: true,
-                footer: true
-            },
-            "paging" : false,
-            "order" : [[ 0, "asc" ]],
-            columns : [
-                { "data": "_id", "name": "_id", "title": "_id", "autoWidth": true, render: $.fn.dataTable.render.text() },
-                { "data": "name", "name": "name", "title": "Name", "autoWidth": true, render: $.fn.dataTable.render.text() },
-                { 
-                    "data": "options", "name": "options", "title": "Options", "autoWidth": true, render: function (data, type, row) {
-                        return '<button class="btn btn-primary theme-panelButton" onclick="editObject(\''+data+'\')">Edit</button> <button class="btn btn-primary theme-panelButton" onclick="deleteObject(\''+data+'\')">Del</button>';
-                    }
-                },
-                { "data": "whereUsed", "name": "whereUsed", "title": "whereUsed", "autoWidth": true, render: $.fn.dataTable.render.text() },
-                { "data": "lastUpdateTime", "name": "lastUpdateTime", "title": "lastUpdateTime", "autoWidth": true, render: $.fn.dataTable.render.text() }
-            ],
-            columnDefs: [
-                {
-                    orderable: true
-                }
-            ]
-        });
-
-        var table = $('#table').DataTable();
-
-        $('.dataTables_length').addClass('bs-select');
-        $('.dataTables_filter input[type="search"]').css({'width':'200px'});
-        $('.dataTables_filter input[type="search"]').addClass("theme-panelTextbox")
-
-        $.ajax({url:"/api/1.0/models/"+modelName+"/extra/", type:"GET", success: function ( result ) {
-                for ( resultItem in result["results"] ) {
-                    if (!result["results"][resultItem].hasOwnProperty("name"))
-                    {
-                        result["results"][resultItem]["name"] = "";
-                    }
-                    if (!result["results"][resultItem].hasOwnProperty("lastUpdateTime"))
-                    {
-                        result["results"][resultItem]["lastUpdateTime"] = "";
-                    }
-                    table.row.add({ "_id" : result["results"][resultItem]["_id"], "name" : result["results"][resultItem]["name"], "options" : result["results"][resultItem]["_id"], "whereUsed" : JSON.stringify(result["results"][resultItem]["whereUsed"]), "lastUpdateTime" : result["results"][resultItem]["lastUpdateTime"] });
-                }
-                table.draw();
-            }
-        })
-    } 
-
-    function EditModel(modelName,id) {
-        $('#table').DataTable({
-            "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
-            fixedHeader: {
-                header: true,
-                footer: true
-            },
-            "paging" : false,
-            "order" : [[ 0, "asc" ]],
-            columns : [
-                { "data": "property", "name": "property", "title": "Property", "autoWidth": true, render: $.fn.dataTable.render.text() },
-                { 
-                    "data": "value", "name": "value", "title": "Value", "autoWidth": true, render: function (data, type, row) {
-                        return '<textarea type="text" class="form-control form-control-sm full-width theme-panelTextArea" id="property_'+ data[0] +'">'+data[1]+'</textarea>';
-                    }
-                }
-            ],
-            columnDefs: [
-                {
-                    orderable: true
-                }
-            ]
-        });
-
-        var table = $('#table').DataTable();
-
-        $('.dataTables_length').addClass('bs-select');
-        $('.dataTables_filter input[type="search"]').css({'width':'200px'});
-        $('.dataTables_filter input[type="search"]').addClass("theme-panelTextbox")
-
-        $.ajax({url:"/api/1.0/models/"+modelName+"/"+id+"/", type:"GET", success: function ( result ) {
-                for ( resultItem in result ) {
-                    if (typeof result[resultItem] == "object") {
-                        table.row.add({ "property" : resultItem, "value" : [ resultItem, JSON.stringify(result[resultItem]) ], "initalValue" : JSON.stringify(result[resultItem]) });
-                    } else {
-                        table.row.add({ "property" : resultItem, "value" : [ resultItem, result[resultItem] ], "initalValue" : String(result[resultItem]) });
-                    }
-                }
-                table.draw();
-            }
-        })
-
-        $(window).bind('keydown', function(event) {
-            if (event.ctrlKey || event.metaKey) {
-                switch (String.fromCharCode(event.which).toLowerCase()) {
-                case 's':
-                    event.preventDefault();
-                    var jsonData = {}
-                    table.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
-                        var data = this.data();
-                        if (data["initalValue"] != $("#property_"+data["value"][0]).val())
-                        {
-                            jsonData[data["value"][0]] = $("#property_"+data["value"][0]).val()
+                "paging" : false,
+                "order" : [[ 0, "asc" ]],
+                columns : [
+                    { "data": null, "name": "name", "title": "Name", "autoWidth": true, render: $.fn.dataTable.render.text() },
+                    { 
+                        "data": "options", "name": "options", "title": "Options", "autoWidth": true, render: function (data, type, row) {
+                            return '<button class="btn btn-primary button">Edit</button>';
                         }
-                    } );
-                    jsonData["CSRF"] = CSRF
-                    $.ajax({url:"/api/1.0/models/"+modelName+"/"+id+"/", type:"POST", data: JSON.stringify(jsonData), contentType:"application/json", success: function ( result ) {
-                            alertNow("Object saved!");
-                        }
-                    });
-                    break;
-                }
-            }
-        })
-    }
+                    },
+                ],
+                columnDefs: [
+                    {
+                        orderable: true
+                    }
+                ]
+            });
 
-    function alertNow(message) {
-        var alert = $(".alert-container");
-        $("#alertMessage").text(message);
-        alert.toggleClass("hidden");
-        alert.slideDown();
-        window.setTimeout(function() {
-            alert.slideUp();
-            alert.toggleClass("hidden");
-            location.reload();
-        }, 750);
-    }
+            var table = $('#table').DataTable();
 
-    function deleteObject(objectID) {
-        if (confirm("Are you sure you want to delete object ("+objectID+")?")) {
-            var pathname = window.location.pathname;
-            $.ajax({url:"/api/1.0/models/"+GetURLParameter("modelName")+"/"+objectID+"/", data: JSON.stringify({CSRF: CSRF}), type:"DELETE", success: function ( result ) {
-                    alertNow("Object deleted!");
+            $('.dataTables_length').addClass('bs-select');
+            $('.dataTables_filter input[type="search"]').css({'width':'200px'});
+            $('.dataTables_filter input[type="search"]').addClass("textbox")
+
+            $('#table tbody').on('click', 'tr', function () {
+                var data = table.row( this ).data();
+                table.destroy();
+                $('#table').empty();
+                window.location.search += '?modelName='+data[0];
+            } );
+
+            $.ajax({url:"/api/1.0/models/", type:"GET", success: function ( result ) {
+                    for ( resultItem in result["models"] ) {
+                        table.row.add([result["models"][resultItem]]);
+                    }
+                    table.draw();
                 }
             })
         }
-    }
 
-    function editObject(objectID) {
-        window.location.search += '&_id='+objectID;
-    }
+        function buildTable_ListModel( modelName ) {
+            $('#createObjectContainer').toggleClass("hidden");
+            $('#table').DataTable({
+                "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
+                fixedHeader: {
+                    header: true,
+                    footer: true
+                },
+                "paging" : false,
+                "order" : [[ 0, "asc" ]],
+                columns : [
+                    { "data": "_id", "name": "_id", "title": "_id", "autoWidth": true, render: $.fn.dataTable.render.text() },
+                    { "data": "name", "name": "name", "title": "Name", "autoWidth": true, render: $.fn.dataTable.render.text() },
+                    { 
+                        "data": "options", "name": "options", "title": "Options", "autoWidth": true, render: function (data, type, row) {
+                            return '<button class="btn btn-primary button" onclick="editObject(\''+data+'\')">Edit</button> <button class="btn btn-primary button" onclick="deleteObject(\''+data+'\')">Del</button>';
+                        }
+                    },
+                    { "data": "whereUsed", "name": "whereUsed", "title": "whereUsed", "autoWidth": true, render: $.fn.dataTable.render.text() },
+                    { "data": "lastUpdateTime", "name": "lastUpdateTime", "title": "lastUpdateTime", "autoWidth": true, render: $.fn.dataTable.render.text() }
+                ],
+                columnDefs: [
+                    {
+                        orderable: true
+                    }
+                ]
+            });
 
-    function createObject() {
-        $.ajax({url:"/api/1.0/models/"+GetURLParameter("modelName")+"/", data: JSON.stringify({CSRF: CSRF}), type:"PUT", success: function ( result ) {
-                editObject(result["result"]["_id"]);
-            }
-        })
-    }
+            var table = $('#table').DataTable();
 
-    function GetURLParameter(sParam)
-    {
-        var sPageURL = window.location.search.substring(1);
-        var sURLVariables = sPageURL.split('&');
-        for (var i = 0; i < sURLVariables.length; i++) 
-        {
-            var sParameterName = sURLVariables[i].split('=');
-            if (sParameterName[0] == sParam) 
-            {
-                return sParameterName[1];
+            $('.dataTables_length').addClass('bs-select');
+            $('.dataTables_filter input[type="search"]').css({'width':'200px'});
+            $('.dataTables_filter input[type="search"]').addClass("textbox")
+
+            $.ajax({url:"/api/1.0/models/"+modelName+"/extra/", type:"GET", success: function ( result ) {
+                    for ( resultItem in result["results"] ) {
+                        if (!result["results"][resultItem].hasOwnProperty("name"))
+                        {
+                            result["results"][resultItem]["name"] = "";
+                        }
+                        if (!result["results"][resultItem].hasOwnProperty("lastUpdateTime"))
+                        {
+                            result["results"][resultItem]["lastUpdateTime"] = "";
+                        }
+                        table.row.add({ "_id" : result["results"][resultItem]["_id"], "name" : result["results"][resultItem]["name"], "options" : result["results"][resultItem]["_id"], "whereUsed" : JSON.stringify(result["results"][resultItem]["whereUsed"]), "lastUpdateTime" : result["results"][resultItem]["lastUpdateTime"] });
+                    }
+                    table.draw();
+                }
+            })
+        } 
+
+        function EditModel(modelName,id) {
+            $('#table').DataTable({
+                "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
+                fixedHeader: {
+                    header: true,
+                    footer: true
+                },
+                "paging" : false,
+                "order" : [[ 0, "asc" ]],
+                columns : [
+                    { "data": "property", "name": "property", "title": "Property", "autoWidth": true, render: $.fn.dataTable.render.text() },
+                    { 
+                        "data": "value", "name": "value", "title": "Value", "autoWidth": true, render: function (data, type, row) {
+                            return '<textarea type="text" class="form-control form-control-sm full-width textbox" id="property_'+ data[0] +'">'+data[1]+'</textarea>';
+                        }
+                    }
+                ],
+                columnDefs: [
+                    {
+                        orderable: true
+                    }
+                ]
+            });
+
+            var table = $('#table').DataTable();
+
+            $('.dataTables_length').addClass('bs-select');
+            $('.dataTables_filter input[type="search"]').css({'width':'200px'});
+            $('.dataTables_filter input[type="search"]').addClass("textbox")
+
+            $.ajax({url:"/api/1.0/models/"+modelName+"/"+id+"/", type:"GET", success: function ( result ) {
+                    for ( resultItem in result ) {
+                        if (typeof result[resultItem] == "object") {
+                            table.row.add({ "property" : resultItem, "value" : [ resultItem, JSON.stringify(result[resultItem]) ], "initalValue" : JSON.stringify(result[resultItem]) });
+                        } else {
+                            table.row.add({ "property" : resultItem, "value" : [ resultItem, result[resultItem] ], "initalValue" : String(result[resultItem]) });
+                        }
+                    }
+                    table.draw();
+                }
+            })
+
+            $(window).bind('keydown', function(event) {
+                if (event.ctrlKey || event.metaKey) {
+                    switch (String.fromCharCode(event.which).toLowerCase()) {
+                    case 's':
+                        event.preventDefault();
+                        var jsonData = {}
+                        table.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
+                            var data = this.data();
+                            if (data["initalValue"] != $("#property_"+data["value"][0]).val())
+                            {
+                                jsonData[data["value"][0]] = $("#property_"+data["value"][0]).val()
+                            }
+                        } );
+                        jsonData["CSRF"] = CSRF
+                        $.ajax({url:"/api/1.0/models/"+modelName+"/"+id+"/", type:"POST", data: JSON.stringify(jsonData), contentType:"application/json", success: function ( result ) {
+                                alertNow("Object saved!");
+                            }
+                        });
+                        break;
+                    }
+                }
+            })
+        }
+
+        function alertNow(message) {
+            var alert = $(".alert-container");
+            $("#alertMessage").text(message);
+            alert.toggleClass("hidden");
+            alert.slideDown();
+            window.setTimeout(function() {
+                alert.slideUp();
+                alert.toggleClass("hidden");
+                location.reload();
+            }, 750);
+        }
+
+        function deleteObject(objectID) {
+            if (confirm("Are you sure you want to delete object ("+objectID+")?")) {
+                var pathname = window.location.pathname;
+                $.ajax({url:"/api/1.0/models/"+GetURLParameter("modelName")+"/"+objectID+"/", data: JSON.stringify({CSRF: CSRF}), type:"DELETE", success: function ( result ) {
+                        alertNow("Object deleted!");
+                    }
+                })
             }
         }
-    }
 
-    function locationHandler() {
-        var modelName = GetURLParameter("modelName")
-        if (modelName) { 
-            var id = GetURLParameter("_id")
-            if (id) {
-                EditModel(modelName,id); 
+        function editObject(objectID) {
+            window.location.search += '&_id='+objectID;
+        }
+
+        function createObject() {
+            $.ajax({url:"/api/1.0/models/"+GetURLParameter("modelName")+"/", data: JSON.stringify({CSRF: CSRF}), type:"PUT", success: function ( result ) {
+                    editObject(result["result"]["_id"]);
+                }
+            })
+        }
+
+        function GetURLParameter(sParam)
+        {
+            var sPageURL = window.location.search.substring(1);
+            var sURLVariables = sPageURL.split('&');
+            for (var i = 0; i < sURLVariables.length; i++) 
+            {
+                var sParameterName = sURLVariables[i].split('=');
+                if (sParameterName[0] == sParam) 
+                {
+                    return sParameterName[1];
+                }
+            }
+        }
+
+        function locationHandler() {
+            var modelName = GetURLParameter("modelName")
+            if (modelName) { 
+                var id = GetURLParameter("_id")
+                if (id) {
+                    EditModel(modelName,id); 
+                    return
+                }
+                buildTable_ListModel(modelName); 
                 return
             }
-            buildTable_ListModel(modelName); 
-            return
+            buildTable_ListModels();
         }
-        buildTable_ListModels();
-    }
 
-    $(document).ready(function () {
-        var alert = $(".alert-container");
-        locationHandler();
-    });
-</script>
+        $(document).ready(function () {
+            var alert = $(".alert-container");
+            locationHandler();
+        });
+    </script>
 
+{% endblock %}
