@@ -1,0 +1,41 @@
+{% extends "main.html" %}
+
+{% block head %}
+    {{ jimi.jquery() }}
+{% endblock %}
+
+{% block main %}
+    <div class="container px-4 py-5 text-center" id="custom-cards">
+        <div class="text-start" >
+            <input type="text" class="form-control textbox w-50" id="pluginSearch" onkeyup="doPluginSearch()" placeholder="Search for plugins">
+        </div>
+        <div class="row row-cols-1 row-cols-lg-5 align-items-stretch g-2 py-4">
+            {% for plugin in plugins|sort(attribute='name') %}
+                <div class="col pluginContainer" data-name="{{ plugin["name"] }}" style="height: 125px;">
+                    <a href="/plugin/{{ plugin["name"] }}/" class="noHover">
+                        <div class="card h-100 panel">
+                            <h5 class="card-title">{{ plugin["name"] }}</h5>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <script>
+        function doPluginSearch() {
+            var input = document.getElementById("pluginSearch");
+            var searchFilter = input.value.toUpperCase();
+            var regex = new RegExp('\\b\\w*' + searchFilter + '\\w*\\b');
+            $('.pluginContainer').hide().filter(function () {
+                var nr = regex.test($(this).data('name').toUpperCase());
+                if (nr) {
+                    return true;
+                }
+                return false;
+            }).show();
+        }
+        $(document).ready(function() {
+            doPluginSearch();
+        });
+    </script>
+{% endblock %}

@@ -117,6 +117,8 @@ class _plugin(jimi.db._document):
     def uninstallFooter(self):
         pass
 
+loadedPluginPages = []
+
 # API
 if jimi.api.webServer:
     if not jimi.api.webServer.got_first_request:
@@ -261,6 +263,15 @@ if jimi.api.webServer:
             from flask import Flask, request, render_template
             from web import ui
 
+            @jimi.api.webServer.route("/plugins/", methods=["GET"])
+            def pluginPages():
+                userPlugins = []
+                userModels = _plugin().getAsClass(sessionData=jimi.api.g.sessionData,query={ "name" : { "$in" : loadedPluginPages } },sort=[("name", 1)])
+                for userModel in userModels:
+                    if userModel.name in loadedPluginPages:
+                        userPlugins.append({ "id" : userModel._id, "name" : userModel.name})
+                return render_template("plugins.html",CSRF=jimi.api.g.sessionData["CSRF"], plugins=userPlugins)
+
             @jimi.api.webServer.route("/plugins/store/", methods=["GET"])
             @jimi.auth.adminEndpoint
             def store():
@@ -340,7 +351,6 @@ if jimi.api.webServer:
                     userPlugins.append({ "id" : foundPlugin._id, "name" : foundPlugin.name})
                 return { "results"  : userPlugins }, 200
 
-            
             @jimi.api.webServer.route(jimi.api.base+"plugins/store/list/", methods=["GET"])
             @jimi.auth.adminEndpoint
             def getStorePlugins():
@@ -363,9 +373,6 @@ if jimi.api.webServer:
 
                 return { "results"  : storePlugins }, 200
                 
-                
-
-            
 def load():
     updatePluginDB()
     loadPluginAPIExtensions()
