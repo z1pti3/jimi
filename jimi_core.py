@@ -4,10 +4,25 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 def startWorker(systemId,systemIndex,manager):
+    def healthChecker(garbageCollector=False):
+        logging.info("Starting health checker")
+        import time
+        while True:
+            if garbageCollector:
+                logging.debug("Running cache garbage collector")
+                jimi.cache.globalCache.cleanCache()
+            time.sleep(10)
     import jimi
     logging.info("Index %i booting on system %i",systemIndex,systemId)
     logging.info("Starting worker handler")
     workerHandler = jimi.workers.workerHandler()
+    try:
+        cacheSettings = jimi.settings.config["cache"]
+        garbageCollector = cacheSettings["garbageCollector"]
+    except:
+        garbageCollector = False
+    logging.debug("Garbage Collector %s",garbageCollector)
+    workerHandler.new("healthChecker",healthChecker,(garbageCollector,),True,0)
     logging.info("Starting scheduler")
     scheduler = jimi.scheduler._scheduler(workerHandler,systemId,systemIndex)
     scheduler.handler()
