@@ -15,6 +15,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
+from werkzeug.utils import redirect
 
 import jimi
 
@@ -468,6 +469,21 @@ if jimi.api.webServer:
                 if authSettings["enabled"]:
                     result = { "CSRF" : jimi.api.g.sessionData["CSRF"] }
                 return result, 200
+
+            @jimi.api.webServer.route("/logout/", methods=["GET"])
+            def logout():
+                # Deleting active session
+                session = jimi.cache.globalCache.delete("sessions",jimi.api.g.sessionData["sessionID"])
+                if authSettings["singleUserSessions"]:
+                    _session().api_delete(query={ "user" : jimi.api.g.sessionData["user"] })
+                else:
+                    session = _session().getAsClass(query={"sessionID" : jimi.api.g.sessionData["sessionID"]})
+                    if len(session) == 1:
+                        session = session[0]
+                        session.delete()
+
+                jimi.audit._audit().add("auth","logout",{ "action" : "success", "_id" : jimi.api.g.sessionData["_id"] })
+                return jimi.api.make_response(redirect("/login/"))
 
             @jimi.api.webServer.route(jimi.api.base+"auth/logout/", methods=["GET"])
             def api_logout():
