@@ -39,6 +39,7 @@ for plugin in plugins:
 			pass
 		if not hidden:
 			pluginPages.append(plugin)
+jimi.plugin.loadedPluginPages = pluginPages
 
 # Installing
 if "webui" not in jimi.db.list_collection_names():

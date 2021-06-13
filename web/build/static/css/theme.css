@@ -199,6 +199,10 @@ div.dts div.dataTables_scrollBody {
     text-decoration: none;
 }
 
+.hide {
+    display: none;
+}
+
 .unselectable {
     -webkit-touch-callout: none;
     -webkit-user-select: none;

@@ -5,12 +5,12 @@ var existingObjectHTML = `
 		<label id="title">Insert Existing Object</label>
 	</div>
 	<div class="container-fluid propertiesPanel-body theme-panelBody">
-		<input type='text' class="inputFullWidth theme-panelTextbox" id='existingPropertiesPanel-SearchInput'>
+		<input type='text' class="form-control form-control-sm full-width textbox" id='existingPropertiesPanel-SearchInput'>
 		<div class="existingPropertiesPanel-SearchResults" id="existingPropertiesPanel-SearchResults">
 		</div>
 	</div>
 	<div class="container-fluid propertiesPanel-footer theme-panelFooter">
-		<button id="close" class="btn btn-primary theme-panelButton">Close</button>
+		<button id="close" class="btn btn-primary button">Close</button>
 	</div>
 </div>
 `
