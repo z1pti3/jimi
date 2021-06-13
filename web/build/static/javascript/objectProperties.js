@@ -11,10 +11,10 @@ var panelPropertiesHTML = `
 		</div>
 	</div>
 	<div class="container-fluid propertiesPanel-footer theme-panelFooter">
-		<button id="save" class="btn btn-primary theme-panelButton">Save</button>
-		<button id="refresh" class="btn btn-primary theme-panelButton">Refresh</button>
-		<button id="close" class="btn btn-primary theme-panelButton">Close</button>
-		<button id="help" class="btn btn-primary theme-panelButton">Show Help</button>
+		<button id="save" class="btn btn-primary button">Save</button>
+		<button id="refresh" class="btn btn-primary button">Refresh</button>
+		<button id="close" class="btn btn-primary button">Close</button>
+		<button id="help" class="btn btn-primary button">Show Help</button>
 	</div>
 </div>
 `
@@ -219,7 +219,7 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], title : tooltip, class: "theme-panelLabel"}).text(label+":").tooltip());
 					$row.append($cell);
 					var $cell = $('<td>');
-					$cell.append($('<input class="inputFullWidth theme-panelTextbox">').attr({type: 'text', value: result["formData"][objectItem]["textbox"], current: result["formData"][objectItem]["textbox"], required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
+					$cell.append($('<input class="form-control form-control-sm full-width textbox">').attr({type: 'text', value: result["formData"][objectItem]["textbox"], current: result["formData"][objectItem]["textbox"], required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
 					$row.append($cell);
 				}
 				if (result["formData"][objectItem]["type"] == "checkbox") {
@@ -245,7 +245,7 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 					// output
 					// <textarea class="inputFullWidth theme-panelTextArea" type="text" id="properties_itemsdelay" current="0" key="delay" tag="formItem"></textarea>
 					var $cell = $('<td>');
-					$cell.append($('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: JSON.stringify(result["formData"][objectItem]["textbox"]), key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
+					$cell.append($('<textarea class="form-control form-control-sm full-width textbox">').attr({type: 'text', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: JSON.stringify(result["formData"][objectItem]["textbox"]), key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
 					$cell.find('#properties_items'+result["formData"][objectItem]["schemaitem"]).val(JSON.stringify(result["formData"][objectItem]["textbox"]));
 					$row.append($cell);
 				}

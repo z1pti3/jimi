@@ -8,18 +8,18 @@ var panelLinkHTML = `
 	<table width="100%">
 		<tr>
 			<td width="100px"><label class="theme-panelLabel">Link Order:</label></td>
-			<td><input id="propertiesPanelLinkOrder" class="inputFullWidth theme-panelTextbox" value="0"/></td>
+			<td><input id="propertiesPanelLinkOrder" class="form-control form-control-sm full-width textbox" value="0"/></td>
 		</tr>
 		<tr>
 			<td width="100px"><label class="theme-panelLabel">Link Logic:</label></td>
-			<td><textarea id="propertiesPanelLinkValue" class="inputFullWidth theme-panelTextArea"></textarea></td>
+			<td><textarea id="propertiesPanelLinkValue" class="form-control form-control-sm full-width textbox"></textarea></td>
 		</tr>
 	</table>
 	</div>
 	<div class="propertiesPanel-footer theme-panelFooter">
-		<button id="save" class="btn btn-primary theme-panelButton">Save</button>
-		<button id="refresh" class="btn btn-primary theme-panelButton">Refresh</button>
-		<button id="close" class="btn btn-primary theme-panelButton">Close</button>
+		<button id="save" class="btn btn-primary button">Save</button>
+		<button id="refresh" class="btn btn-primary button">Refresh</button>
+		<button id="close" class="btn btn-primary button">Close</button>
 	</div>
 </div>
 `
