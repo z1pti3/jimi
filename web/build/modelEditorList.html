@@ -22,7 +22,7 @@
                 <p id="alertMessage"></p>
             </div>
         </div>
-        <div id="createObjectContainer" class="hidden">
+        <div id="createObjectContainer" class="hide">
             <button class="btn btn-primary createObject button" onclick="createObject()">Create Object</button>
         </div>
         <table id="table" class="table table-sm theme-table" cellspacing="0" width="100%">
@@ -89,7 +89,7 @@
         }
 
         function buildTable_ListModel( modelName ) {
-            $('#createObjectContainer').toggleClass("hidden");
+            $('#createObjectContainer').toggleClass("hide");
             $('#table').DataTable({
                 "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
                 fixedHeader: {
