@@ -56,7 +56,6 @@ if __name__ == "__main__":
     # Starting workers
     manager = multiprocessing.Manager() # Need to replace this so that the cluster controls this without sharing a variable as this does not scale for containers
     cpuCount = os.cpu_count()
-    cpuCount = 4
     systemIndexes = []
     logging.debug("Detected %i CPU",cpuCount)
     if cpuCount == 1:
