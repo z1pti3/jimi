@@ -22,6 +22,8 @@ api.createServer("jimi_web",template_folder=str(Path("web","build")),static_fold
 
 import jimi
 
+from web import ui
+
 # Other pages
 from web import modelEditor, conductEditor, codify
 
@@ -373,5 +375,37 @@ def cleanupPage():
 		jimi.trigger._trigger().api_delete(query={ "_id" : { "$in" : unusedTriggerObjectsIds } })
 		return { },200
 	return render_template("cleanupObjects.html", unusedActionObjects=unusedActionObjects, unusedTriggerObjects=unusedTriggerObjects, CSRF=api.g.sessionData["CSRF"])
+
+@jimi.api.webServer.route("/status/")
+def statusPage():
+	triggers = jimi.trigger._trigger().query(sessionData=api.g.sessionData,query={})["results"]
+	data = { "running" : [], "pending" : [], "failed" : [] }
+	for trigger in triggers:
+		if ((trigger["startCheck"] > 0 and trigger["startCheck"] + trigger["maxDuration"] > time.time()) or (trigger["lastCheck"] > (time.time() - 1))):
+			data["running"].append(trigger)
+		elif trigger["startCheck"] == 0:
+			data["pending"].append(trigger)
+		else:
+			data["failed"].append(trigger)
+	return render_template("status.html",CSRF=jimi.api.g.sessionData["CSRF"],triggers=data)
+
+@jimi.api.webServer.route("/status/triggerStatus/", methods=["POST"])
+def statusPageTriggerStatusAPI():
+	doughnut = ui.doughnut()
+	triggers = jimi.trigger._trigger().getAsClass(sessionData=api.g.sessionData,query={})
+	doughnut.addLabel("Running")
+	doughnut.addLabel("Pending")
+	doughnut.addLabel("Failed")
+	data = [0,0,0]
+	for trigger in triggers:
+		if ((trigger.startCheck > 0 and trigger.startCheck + trigger.maxDuration > time.time()) or (trigger.lastCheck > (time.time() - 1))):
+			data[0] += 1
+		elif trigger.startCheck == 0:
+			data[1] += 1
+		else:
+			data[2] += 1
+	doughnut.addDataset("Triggers",data)
+	data = json.loads(jimi.api.request.data)
+	return doughnut.generate(data), 200
 
 api.startServer(False,host=apiSettings["bind"], port=apiSettings["port"])

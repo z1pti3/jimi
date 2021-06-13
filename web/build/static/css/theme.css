@@ -87,8 +87,8 @@ body {
 }
 
 .chart {
-    width: unset!important;
-    height: unset!important;
+    /* width: unset!important;
+    height: unset!important; */
 }
 
 .panelTextbox {
