@@ -439,6 +439,7 @@ if jimi.api.webServer:
                                 redirect = "/" + redirect
                         else:
                             redirect = "/conducts/"
+                        # Default redirect forced update to /conducts/
                         if redirect == "/?":
                             redirect = "/conducts/"
                         response = jimi.api.make_response({ "CSRF" : sessionData["CSRF"], "redirect" : redirect },200)
