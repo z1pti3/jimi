@@ -434,11 +434,13 @@ if jimi.api.webServer:
                         redirect = jimi.api.request.args.get("return")
                         if redirect:
                             if "." in redirect or ".." in redirect:
-                                redirect = "/"
+                                redirect = "/conducts/"
                             if not redirect.startswith("/"):
                                 redirect = "/" + redirect
                         else:
-                            redirect = "/"
+                            redirect = "/conducts/"
+                        if redirect == "/?":
+                            redirect = "/conducts/"
                         response = jimi.api.make_response({ "CSRF" : sessionData["CSRF"], "redirect" : redirect },200)
                         response.set_cookie("jimiAuth", value=userSession, max_age=600, httponly=True, secure=True)
                         return response, 200
