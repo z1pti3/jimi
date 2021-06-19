@@ -143,7 +143,7 @@ class _document():
                 value = jimi.helpers.unicodeEscapeDict(value)
             update["$set"][field] = value
 
-        bulkClass.newBulkOperaton(self._dbCollection.name,"update",{"_id" : self._id, "update" : update})
+        bulkClass.newBulkOperaton(self._dbCollection.name,"update",{ "query" : { "_id" : ObjectId(self._id) }, "update" : update})
 
         # Updated DB with latest values
     @mongoConnectionWrapper
@@ -515,34 +515,29 @@ class _bulk():
 
     def bulkOperatonProcessing(self):
         self.lock.acquire()
-        cpuSaver = jimi.helpers.cpuSaver()
         for bulkOperatonCollection, bulkOperatonMethod in self.bulkOperatons.items():
             # Insert
             bulkInsert = []
             for insert in bulkOperatonMethod["insert"]:
                 bulkInsert.append(jimi.helpers.unicodeEscapeDict(insert.parse()))
-                cpuSaver.tick()
             if len(bulkInsert) > 0:
                 collection = db[bulkOperatonCollection]
                 results = collection.insert_many(bulkInsert)
                 for index,item in enumerate(results.inserted_ids):
                     bulkOperatonMethod["insert"][index]._id = str(item)
-                    cpuSaver.tick()
                 bulkOperatonMethod["insert"] = []
             # Update
             if len(bulkOperatonMethod["update"]) > 0:
                 bulkUpdate = db[bulkOperatonCollection].initialize_unordered_bulk_op()
                 for update in bulkOperatonMethod["update"]:
-                    bulkUpdate.find({ "_id" : ObjectId(update["_id"]) }).update_one(update["update"])
-                    cpuSaver.tick()
+                    bulkUpdate.find(update["query"]).update_one(update["update"])
                 bulkUpdate.execute()
-                bulkOperatonMethod["insert"] = []
+                bulkOperatonMethod["update"] = []
             # Upsert
             if len(bulkOperatonMethod["upsert"]) > 0:
                 upsertArray = []
                 for upsert in bulkOperatonMethod["upsert"]:
                     upsertArray.append(pymongo.UpdateOne(upsert[0], upsert[1], upsert=True))
-                    cpuSaver.tick()
                 bulkUpdate = db[bulkOperatonCollection].bulk_write(upsertArray)
                 bulkOperatonMethod["upsert"] = []
         self.lock.release()
