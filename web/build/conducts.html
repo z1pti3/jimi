@@ -8,7 +8,7 @@
     <div class="container px-4 py-5 text-center" id="custom-cards">
         <div class="text-start" >
             <input type="text" class="form-control textbox w-50" id="conductsSearch" onkeyup="doConductsSearch()" placeholder="Search for conducts">
-            <a href="/conductSettings/" class="bi-plus-square" style="font-size: 25px; display: inline-block; vertical-align: middle;" title="Create new conduct"></a>
+            <a href="#" class="bi-plus-square" style="font-size: 25px; display: inline-block; vertical-align: middle;" title="Create new conduct" data-bs-toggle="modal" data-bs-target="#newConductModal"></a>
         </div>
         <ul class="list-group list-group-flush mt-3">
         <!-- <div class="row row-cols-1 row-cols-lg-3 align-items-stretch g-2 py-4"> -->
@@ -34,6 +34,45 @@
                 
             {% endfor %}
         </ul>
+    </div>
+    <div class="modal fade" id="newConductModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content panel">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Create new conduct</h5>
+                    <button type="button" class="close button" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-floating">
+                        <input type="conductName" class="form-control textbox" id="conductName" placeholder="Name">
+                        <label for="conductName">Name</label>
+                    </div>
+                    <br>
+                    <div class="form-floating">
+                        <textarea type="conductDescription" class="form-control textbox" id="conductDescription" placeholder="Description" style="height: 250px;"></textarea>
+                        <label for="conductDescription">Description</label>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-start">
+                    <button type="button" class="btn btn-primary button" onclick="createConduct()">Create</button>
+                    <button type="button" class="btn btn-primary button" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+        <script>
+            function createConduct() {
+                var body = JSON.stringify({ CSRF : CSRF, name: $("#conductName").val(), comment: $("#conductDescription").val(), enabled: true })
+                $.ajax({ url: "/api/1.0/models/conduct/", type : "PUT",  data:body, contentType:"application/json", success: function ( result ) {
+                        $.ajax({ url: "/api/1.0/models/conduct/"+result["_id"]+"/", type : "POSt", data:body, contentType:"application/json", success: function ( result ) {
+                                window.location.reload();
+                            }
+                        });
+                    }
+                });
+            }
+        </script>
     </div>
     <script>
         function doConductsSearch() {
