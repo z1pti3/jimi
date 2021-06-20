@@ -196,25 +196,26 @@ p {
 }
 
 .theme-dropdown-menu {
-    background-color: #222222;
-    border-color: #2e6da4;
-    border-width: 1px;
-    border-style: solid;
+    background-color: #222222 !important;
+    border-color: #2e6da4 !important;
+    border-width: 1px !important;
+    border-style: solid !important;
 }
 
 .theme-dropdown-menu > li > a {
-    color: #adadad;
+    color: #adadad !important;
+    width: 100%;
 }
 
 .theme-dropdown-menu > li:hover > a {
-    background-color: #220433;
-    color: #adadad;
+    background-color: #220433 !important;
+    color: #adadad !important;
 }
 
 .theme-dropdown-menu-divider {
-    border-color: #2e6da4;
-    border-style: solid;
-    border-width: 1px;
+    border-color: #2e6da4 !important;
+    border-style: solid !important;
+    border-width: 1px !important;
 }
 
 
