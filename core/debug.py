@@ -164,6 +164,14 @@ if jimi.api.webServer:
                     return {}, 200
                 return (), 404
                 
+            @jimi.api.webServer.route(jimi.api.base+"debug/", methods=["GET"])
+            def getFlowDebugSessions():
+                results = []
+                for key, session in flowDebugSession.items():
+                    if jimi.db.ACLAccess(jimi.api.g.sessionData, session.acl):
+                        results.append(key)
+                return { "results" : results }, 200
+
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/", methods=["GET"])
             def getFlowDebugSession(sessionID):
                 if jimi.db.ACLAccess(jimi.api.g.sessionData, flowDebugSession[sessionID].acl):
@@ -232,6 +240,14 @@ if jimi.api.webServer:
                 return {}, 200
 
         if jimi.api.webServer.name == "jimi_web":
+            @jimi.api.webServer.route(jimi.api.base+"debug/", methods=["GET"])
+            def getFlowDebugSessions():
+                apiEndpoint = "debug/"
+                # NOTE - sessions can only persist on the same server so if the master changes debug will stop
+                url = jimi.cluster.getMaster()
+                response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
+                return json.loads(response.text), 200
+
             @jimi.api.webServer.route(jimi.api.base+"debug/", methods=["PUT"])
             def startFlowDebugSession():
                 apiEndpoint = "debug/"
