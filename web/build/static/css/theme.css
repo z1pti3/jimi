@@ -155,11 +155,6 @@ div.dts div.dataTables_scrollBody {
 }
 
 /* visjs */
-
-.visjsnetwork {
-    height: calc(100% - 22px);
-}
-
 .vis-network:focus {
     outline: none;
 }
