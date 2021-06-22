@@ -398,7 +398,7 @@ def statusPageTriggerStatusAPI():
 	doughnut.addLabel("Failed")
 	data = [0,0,0]
 	for trigger in triggers:
-		if ((trigger.startCheck > 0 and trigger.startCheck + trigger.maxDuration > time.time()) or (trigger.lastCheck > (time.time() - 1))):
+		if ((trigger.startCheck > 0 and trigger.startCheck + trigger.maxDuration > time.time()) or (trigger.lastCheck + 2.5 > (time.time()))):
 			data[0] += 1
 		elif trigger.startCheck == 0:
 			data[1] += 1
@@ -407,5 +407,33 @@ def statusPageTriggerStatusAPI():
 	doughnut.addDataset("Triggers",data)
 	data = json.loads(jimi.api.request.data)
 	return doughnut.generate(data), 200
+
+@jimi.api.webServer.route("/status/conductStatus/", methods=["POST"])
+def statusPageConductStatusAPI():
+	pie = ui.pie()
+	conducts = jimi.conduct._conduct().getAsClass(sessionData=api.g.sessionData,query={})
+	pie.addLabel("Enabled")
+	pie.addLabel("Disabled")
+	data = [0,0]
+	for conduct in conducts:
+		if conduct.enabled:
+			data[0] += 1
+		else:
+			data[1] += 1
+	pie.addDataset("Conducts",data)
+	data = json.loads(jimi.api.request.data)
+	return pie.generate(data), 200
+
+@jimi.api.webServer.route("/status/triggerChart/", methods=["GET"])
+def statusPageTriggerChartAPI():
+	triggers = jimi.trigger._trigger().query(sessionData=api.g.sessionData,query={},fields=["_id","name","enabled","startCheck","maxDuration","lastCheck"])
+	for trigger in triggers["results"]:
+		if ((trigger["startCheck"] > 0 and trigger["startCheck"] + trigger["maxDuration"] > time.time()) or (trigger["lastCheck"] + 2.5 > (time.time()))):
+			trigger["status"] = "Running"
+		elif trigger["startCheck"] == 0:
+			trigger["status"] = "Enabled"
+		else:
+			trigger["status"] = "Failed"
+	return triggers, 200
 
 api.startServer(False,host=apiSettings["bind"], port=apiSettings["port"])

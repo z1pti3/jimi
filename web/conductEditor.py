@@ -157,14 +157,16 @@ def conductFlowchartPoll(conductID):
                     color = "green"
                     if type(nextFlow["logic"]) is bool:
                         if nextFlow["logic"] == True:
-                            color = "#3dbeff"
+                            color = "#3DBEFF"
                         else:
-                            color = "#ff2c10"
+                            color = "#FF171F"
+                    elif type(nextFlow["logic"]) is int:
+                        color = "#FFBD38"
                     elif type(nextFlow["logic"]) is str:
                         if nextFlow["logic"].startswith("if "):
-                            color = "purple"
+                            color = "#DE38FF"
                         elif nextFlow["logic"] == "*":
-                            color = "pink"
+                            color = "#63FF38"
                     linksList.append(linkName)
                     if linkName not in flowchartLinks.keys():
                         flowchartResponse["links"]["create"][linkName] = { "from" : flowID, "to" : nextFlow["flowID"], "logic" : nextFlow["logic"], "color" : color, "text" : text }
