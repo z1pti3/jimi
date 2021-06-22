@@ -45,3 +45,15 @@ def strip(string):
         return string.strip()
     except:
         return string
+    
+def startsWith(string, startswithString):
+    try:
+        return string.startswith(startswithString)
+    except:
+        return False
+    
+def endsWith(string, endswithString):
+    try:
+        return string.endswith(endswithString)
+    except:
+        return False
