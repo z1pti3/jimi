@@ -6,13 +6,91 @@
 {% endblock %}
 
 {% block main %}
-    <div class="container h-50">
-        {{ jimi.doughnut("1","Trigger Statuses","triggerStatus/",1000) }}
-    </div> 
-    Failed Triggers:
-    <br>
-    {% for trigger in triggers["failed"] %}
-        {{ trigger["name"] }}
-        <br>
-    {% endfor %}
+    <div class="container-fluid">
+        <div class="row g-0 m-1 justify-content-md-center">
+            <div class="col col-lg m-1 h-100 panel">
+                <label class="unselectable panelHeader">Enabled Triggers</label>
+                <div class="text-center">
+                    <label class="fs-1 unselectable" id="enabledTriggers"></label>
+                </div>
+            </div>
+            <div class="col col-lg m-1 h-100 panel">
+                <label class="unselectable panelHeader">Running Triggers</label>
+                <div class="text-center">
+                    <label class="fs-1 unselectable" id="runningTriggers"></label>
+                </div>
+            </div>
+            <div class="col col-lg m-1 h-100 panel">
+                <label class="unselectable panelHeader">Failed Triggers</label>
+                <div class="text-center">
+                    <label class="fs-1 unselectable" id="failedTriggers"></label>
+                </div>
+            </div>
+        </div>
+        <div class="row g-0 m-1 justify-content-md-center">
+            <div class="col col-lg m-1 h-100 panel">
+                {{ jimi.doughnut("1","Trigger Statuses","triggerStatus/",2500) }}
+            </div>
+            <div class="col col-lg m-1 h-100 panel">
+                {{ jimi.pie("2","Conduct Statuses","conductStatus/",10000) }}
+            </div>
+        </div>
+        <div class="row g-0 m-1 justify-content-md-center">
+            <div class="col col-lg m-1 h-100 panel">
+                <label class="unselectable panelHeader">Trigger Details</label>
+                <div class="row g-0 justify-content-md-center" id="triggerChart">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+            triggerChartPoll();
+        });
+        function triggerChartPoll() {
+            $.ajax({ url: "/status/triggerChart/", type : "GET", contentType:"application/json", success: function ( results ) {
+                    $("#triggerChart").empty();
+                    var triggers = 0;
+                    var runningTriggers = 0;
+                    var failedTriggers = 0;
+                    var now = new Date().getTime()/1000;
+                    for (result in results["results"]) {
+                        triggers += 1;
+                        if (!results["results"][result]["enabled"]) {
+                            color = "var(--panelComponentBorder)";
+                        }
+                        if (results["results"][result]["status"] == "Enabled") {
+                            color = "var(--panelBackgroundColor)";
+                        }
+                        if (results["results"][result]["status"] == "Running") {
+                            color = "var(--alertColor)";
+                            runningTriggers += 1;
+                        }
+                        if (results["results"][result]["status"] == "Failed") {
+                            color = "var(--errorColor)";
+                            failedTriggers += 1;
+                        }
+                        var div = $("<div class='col m-1 panel' style='height:50px; max-width:50px; background-color: "+color+"'>");
+                        div.attr("data-bs-toggle","tooltip")
+                        div.attr("data-id",results["results"][result]["_id"])
+                        div.attr('title', results["results"][result]["name"]);
+                        div.dblclick(function() { 
+                            $.ajax({ url: "/api/1.0/trigger/"+$(this).attr("data-id")+"/whereUsed/", type : "GET", contentType:"application/json", success: function ( jsonResult ) {
+                                    for (var x in jsonResult["results"]) {
+                                        window.open("/conductEditor/?conductID="+jsonResult["results"][x]["_id"], "_blank"); 
+                                    }
+                                }
+                            });
+                        })
+                        $("#triggerChart").append(div)
+                    }
+                    $("#enabledTriggers").text(triggers);
+                    $("#runningTriggers").text(runningTriggers);
+                    $("#failedTriggers").text(failedTriggers);
+                }
+            });
+            setTimeout(triggerChartPoll, 2500);
+        }
+    </script>
 {% endblock %}
