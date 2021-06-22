@@ -233,7 +233,7 @@
 
         function createObject() {
             $.ajax({url:"/api/1.0/models/"+GetURLParameter("modelName")+"/", data: JSON.stringify({CSRF: CSRF}), type:"PUT", success: function ( result ) {
-                    editObject(result["result"]["_id"]);
+                    editObject(result["_id"]);
                 }
             })
         }
