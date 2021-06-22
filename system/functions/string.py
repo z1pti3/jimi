@@ -50,10 +50,10 @@ def startsWith(string, startswithString):
     try:
         return string.startswith(startswithString)
     except:
-        return string
+        return False
     
 def endsWith(string, endswithString):
     try:
         return string.endswith(endswithString)
     except:
-        return string
+        return False
