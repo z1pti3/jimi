@@ -36,7 +36,7 @@ def fileIntegrityRegister():
 			jimi.logging.debug("Error: System integrity register could not find or get storage file. storageID={0}".format(storageFile._id),-1)
 
 	checksumHash = ""
-	registerRoots = ["system","core","plugins","data/storage"]
+	registerRoots = ["system","core","web","screens","tools","plugins","data/storage"]
 	for registerRoot in registerRoots:
 		for root, dirs, files in os.walk(Path(registerRoot), topdown=False):
 			for _file in files:
@@ -108,9 +108,10 @@ def fixChecksum(pullFromSystemID):
 		jimi.logging.debug("Info: File does not exist on master - Deleting. filename={0}".format(str(Path(ourSystemFile))),-1)
 		if jimi.helpers.safeFilepath(ourSystemFile):
 			os.remove(ourSystemFile)
-	jimi.cluster.cluster.clusterMember.checksum = fileIntegrityRegister()
-	jimi.cluster.cluster.clusterMember.update(["checksum"])
-	return True
+
+	# Regenerate checksum now we have pulled all of the files
+	checksum = fileIntegrityRegister()
+	return checksum
 
 # API
 if jimi.api.webServer:
