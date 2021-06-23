@@ -257,8 +257,9 @@
 
 {% macro visjsnetwork(id,title,pollAPI,physics="false") -%}
     <label class="unselectable panelHeader">{{ title }}</label>
-    <div class="flowchart visjsnetwork" id="visjsnetwork_{{ id }}"></div>
+    <div class="flowchart" id="visjsnetwork_{{ id }}"></div>
     <script>
+        $("#visjsnetwork_{{ id }}").height($("#visjsnetwork_{{ id }}").parent().height())
         window.addEventListener("load", function(){
             var requestOptions = {
                 method: 'GET',
