@@ -1,5 +1,6 @@
 import time
 import datetime
+import calendar
 
 def now(milliseconds=False):
     if milliseconds:
@@ -17,6 +18,15 @@ def month():
 
 def dt(format="%d-%m-%Y"):
     return datetime.datetime.now().strftime(format)
+
+def isLastDay(workingDays=False):
+    lastDay = calendar.monthrange(year(), month())[1]
+    if workingDays:
+        if datetime.datetime.now().strptime(f"{lastDay}-{month()}-{year()}","%d-%m-%Y").strftime('%A') == "Saturday":
+            lastDay -= 1
+        elif datetime.datetime.now().strptime(f"{lastDay}-{month()}-{year()}","%d-%m-%Y").strftime('%A') == "Sunday":   
+            lastDay -= 2
+    return lastDay == datetime.datetime.now().strftime('%-d')
 
 def dateBetween(startDateStr, endDateStr, dateStr=None):
     if dateStr == None:
