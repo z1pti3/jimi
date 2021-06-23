@@ -11,10 +11,10 @@ var panelPropertiesHTML = `
 		</div>
 	</div>
 	<div class="container-fluid propertiesPanel-footer theme-panelFooter">
-		<button id="save" class="btn btn-primary button">Save</button>
-		<button id="refresh" class="btn btn-primary button">Refresh</button>
+		<button id="save" class="btn btn-primary button bi-save"> Save</button>
+		<button id="refresh" class="btn btn-primary button bi-recycle"> Refresh</button>
 		<button id="close" class="btn btn-primary button">Close</button>
-		<button id="help" class="btn btn-primary button">Show Help</button>
+		<button id="help" class="btn btn-primary button bi-question-lg"> Show Help</button>
 	</div>
 </div>
 `
