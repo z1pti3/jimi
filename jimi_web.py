@@ -184,7 +184,7 @@ def getConductFlowProperties(conductID,flowID):
 					triggerObj = triggerObj[0]
 				else:
 					return {}, 404
-				_class = jimi.model._model().getAsClass(jimi.api.g.sessionData,id=triggerObj["classID"])
+				_class = jimi.model._model().getAsClass(id=triggerObj["classID"])
 				if len(_class) == 1:
 					_class = _class[0].classObject()
 				else:
@@ -206,7 +206,7 @@ def getConductFlowProperties(conductID,flowID):
 					actionObj = actionObj[0]
 				else:
 					return {},404
-				_class = jimi.model._model().getAsClass(jimi.api.g.sessionData,id=actionObj["classID"])
+				_class = jimi.model._model().getAsClass(id=actionObj["classID"])
 				if len(_class) == 1:
 					_class = _class[0].classObject()
 				actionObj = _class().getAsClass(jimi.api.g.sessionData,id=actionObj["_id"])

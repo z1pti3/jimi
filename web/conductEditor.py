@@ -239,7 +239,7 @@ def conductExport(conductID):
                     obj = a
                     break
         if obj:
-            classObj = _class = jimi.model._model().getAsClass(jimi.api.g.sessionData,id=obj.classID)
+            classObj = _class = jimi.model._model().getAsClass(id=obj.classID)
             classObj = classObj[0]
             if obj._id not in result[flow["type"]]:
                 result[flow["type"]][obj._id] = { "className" : classObj.name }
@@ -403,7 +403,7 @@ def getConductFlowCodify(conductID):
                         if nextFlow["flowID"] not in backLoopDetectionList:
                             processQueue.append({ "flowID" : nextFlow["flowID"], "indentLevel": indentLevel+1, "logic" : nextFlow["logic"] })
                 if obj:
-                    classObj = _class = jimi.model._model().getAsClass(jimi.api.g.sessionData,id=obj.classID)
+                    classObj = _class = jimi.model._model().getAsClass(id=obj.classID)
                     classObj = classObj[0]
                     blacklist = ["_id","acl","classID","workerID","startCheck","nextCheck","lastUpdateTime","lastCheck","clusterSet","concurrency","creationTime","schedule","systemID"]
                     typeList = [str,int,float,dict,list,bool]
