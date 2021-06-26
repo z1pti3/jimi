@@ -54,7 +54,7 @@ def scan(path):
                     vars = extractVariables(c[1:])
                     try:
                         modulePath = "{0}.{1}".format(path.split(pluginPath)[1].replace("/",".").replace("\\","."),name.split(".py")[0])
-                        modules[defType][defName] =  { "path" : modulePath, "vars" : vars }
+                        modules[defType][defName] =  { "path" : modulePath[1:], "vars" : vars }
                     except:
                         pass
     return modules
@@ -107,11 +107,11 @@ for classType in modules:
                 if field[0] == "version":
                     manifest["version"] = float(field[1])
         objectType = ""
-        if classType == "db._document":
+        if classType.endswith("db._document"):
             objectType = "collections"
-        elif classType == "trigger._trigger":
+        elif classType.endswith("trigger._trigger"):
             objectType = "triggers"
-        elif classType == "action._action":
+        elif classType.endswith("action._action"):
             objectType = "actions"
         if objectType:
             objectName = module
