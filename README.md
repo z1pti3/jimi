@@ -1,19 +1,9 @@
 
-```
-           8 8888            8 8888                    ,8.       ,8.                     8 8888
-           8 8888            8 8888                   ,888.     ,888.                    8 8888
-           8 8888            8 8888                  .`8888.   .`8888.                   8 8888
-           8 8888            8 8888                 ,8.`8888. ,8.`8888.                  8 8888
-           8 8888            8 8888                ,8'8.`8888,8^8.`8888.                 8 8888
-           8 8888            8 8888               ,8' `8.`8888' `8.`8888.                8 8888
-88.        8 8888            8 8888              ,8'   `8.`88'   `8.`8888.               8 8888
-`88.       8 888'            8 8888             ,8'     `8.`'     `8.`8888.              8 8888
-  `88o.    8 88'             8 8888            ,8'       `8        `8.`8888.             8 8888
-    `Y888888 '               8 8888           ,8'         `         `8.`8888.            8 8888
-```
-Jimi is an automation first platform designed from the ground by IT and Cyber Security. Automation first means that the usual product limitations are removed opening the possibilities of automation to all aspects of IT. Jimi features a rich no-code user interface creating a single pane of glass that effortlessly integrate your existing tools unlocking new possibilities and enabling cross functional automation.
+![jimi sample 1](https://user-images.githubusercontent.com/66521110/123510485-cf27b080-d673-11eb-9a41-0a82de0b8115.gif)
 
-Currently jimi has some 40 public integrations and more than 200 actions and triggers. - Somthing missing? Ask us and we will be happy to help.
+Jimi is an automation first no-code platform designed and developed originally for Security Orchestration and Response. Since its launch jimi has developed into a fully fledged IT automation platform which effortlessly integrates with your existing tools unlocking the potential for autonomous IT and Security operations.
+
+Jimi’s power comes from the over 50 open source integrations that extend the functionally to include alerting and monitoring, asset management, software packaging and deployment, security playbooks, SIEM and XDR. – We are always looking to build new integrations so if something is missing let us know.
 
 View Plugins: [Plugins](https://github.com/topics/jimiplugin)
 
@@ -35,9 +25,11 @@ More options can details can be found within our document site.
 * Run python scripts and script blocks
 * Alerting and monitoring
 * Send emails
+* Asset Management
 * Link flows together as functions
 * Execute any API request
 * React to your Humio event log results
+* SIEM and XDR
 * Clustering
 * Codfiy flows
 * In-built docs 
@@ -55,16 +47,5 @@ More options can details can be found within our document site.
 * Append to existing conducts from other condcuts
 * Variables and Logic
 * Self monitoring and automatic recovery
-
-## Screenshots
-
-A rich user interface supporting muliple workspaces which can be controlled via user groups and ACL:
-![Screenshot](https://github.com/z1pti3/jimi/raw/v2.0/examples/screenshots/conducts.png)
-
-Flow editor:
-![Screenshot](https://github.com/z1pti3/jimi/raw/v2.0/examples/screenshots/flow_new.png)
-
-Debug mode:
-![Screenshot](https://github.com/z1pti3/jimi/raw/v2.0/examples/screenshots/debug.png)
 
 If you do something more than once then use jimi to reduce repetitive tasks!
