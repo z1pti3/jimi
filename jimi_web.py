@@ -46,13 +46,9 @@ if "webui" not in jimi.db.list_collection_names():
 		jimi.logging.debug("DB Collection webui Not Found : Creating...")
 	jimi.model.registerModel("flowData","_flowData","_document","core.models.webui")
 
-@jimi.api.webServer.errorhandler(404)
-def notFound(e):
-	return render_template("index.html")
-
 @jimi.api.webServer.route("/")
 def indexPage():
-	return render_template("index.html")
+	return jimi.api.make_response(redirect("/status/"))
 
 @jimi.api.webServer.route("/login/")
 def loginPage():
@@ -61,6 +57,12 @@ def loginPage():
 @jimi.api.webServer.route("/debugFlow/")
 def debugFlowPage():
 	return render_template("debugFlowEditor.html",CSRF=jimi.api.g.sessionData["CSRF"])
+
+@jimi.api.webServer.route("/administration/", methods=["GET"])
+@jimi.auth.adminEndpoint
+def administrationPage():
+	clusterMembers = jimi.cluster._clusterMember().query()["results"]
+	return render_template("administration.html",CSRF=jimi.api.g.sessionData["CSRF"],clusterMembers=clusterMembers)
 
 # Should be migrated into plugins.py
 @jimi.api.webServer.route(jimi.api.base+"plugins/")

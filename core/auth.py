@@ -410,6 +410,12 @@ if jimi.api.webServer:
             return response
 
         if jimi.api.webServer.name == "jimi_web":
+            from flask import Flask, request, render_template
+
+            @jimi.api.webServer.route("/myAccount/")
+            def myAccountPage():
+                return render_template("myAccount.html",CSRF=jimi.api.g.sessionData["CSRF"])
+
             # Checks that username and password are a match
             @jimi.api.webServer.route(jimi.api.base+"auth/", methods=["POST"])
             def api_validateUser():
@@ -520,8 +526,7 @@ if jimi.api.webServer:
                                     return { "msg" : "New password does not meet complexity requirements" }, 400
                             else:
                                 return { "msg" : "Current password does not match" }, 400
-                        user.setAttribute("name",data["name"],sessionData=jimi.api.g.sessionData)
-                        user.update(["name","passwordHash","apiTokens"])
+                        user.update(["passwordHash","apiTokens"])
                         return {}, 200
                 else:
                     return {}, 200

@@ -1,0 +1,53 @@
+{% extends "main.html" %}
+
+{% block head %}
+    {{ jimi.jquery() }}
+{% endblock %}
+
+{% block main %}
+    <div class="container px-4 py-5 text-center">
+        <main class="form-signin">
+            <form class="p-4 panel" id="updatePassword">
+                <h1 class="h4 mb-2 fw-normal">Change Password</h1>
+            
+                <div class="form-floating">
+                    <input type="password" class="form-control textbox" id="currentPassword" autoComplete="off" placeholder="Current Password" onkeyup="removeError()">
+                    <label for="currentPassword" class="bi-person"> Current Password</label>
+                </div>
+                <div class="form-floating">
+                    <input type="password" class="form-control textbox" id="newPassword" autoComplete="off" placeholder="New Password" onkeyup="removeError()">
+                    <label for="newPassword" class="bi-key"> New Password</label>
+                </div>
+                <div class="form-floating">
+                    <input type="password" class="form-control textbox" id="confirmNewPassword" autoComplete="off" placeholder="Confirm New Password" onkeyup="removeError()">
+                    <label for="confirmNewPassword" class="bi-key"> Confirm New Password</label>
+                </div>
+            
+                <button class="w-100 btn btn-primary btn-block button bi-lock" type="submit"> Save</button>
+            </form>
+        </main>
+    </div>
+    <script>
+        $("#updatePassword").submit(function(e) {
+            e.preventDefault();
+            if ($("#newPassword").val() != $("#confirmNewPassword").val()) {
+                $("#newPassword").addClass("textboxError");
+                $("#confirmNewPassword").addClass("textboxError");
+            } else {
+                var body = JSON.stringify({ CSRF : CSRF, password: $("#currentPassword").val(), password1: $("#newPassword").val() })
+                $.ajax({ url: "/api/1.0/auth/myAccount/", type : "POST", data:body, contentType:"application/json", success: function ( result ) {
+                        window.location.reload();
+                    },
+                    error: function ( result ) {
+                        $("#currentPassword").addClass("textboxError");
+                    }
+                });
+            }
+        })
+        function removeError() {
+            $("#currentPassword").removeClass("textboxError");
+            $("#newPassword").removeClass("textboxError");
+            $("#confirmNewPassword").removeClass("textboxError");
+        }
+    </script>
+{% endblock %}
