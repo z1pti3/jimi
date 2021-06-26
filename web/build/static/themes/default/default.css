@@ -11,7 +11,7 @@ p {
 }
 
 .theme-content {
-    background-color: #111111;
+    background-color: var(--mainBackgroundColor);
     border: none;
     color: var(--textColor);
 }
