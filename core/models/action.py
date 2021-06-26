@@ -111,4 +111,4 @@ class _action(jimi.db._document):
         return usedIn
 
 def getClassObject(classID,sessionData):
-    return jimi.model._model().getAsClass(sessionData,id=classID)
+    return jimi.model._model().getAsClass(id=classID)

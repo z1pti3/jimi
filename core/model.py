@@ -83,7 +83,7 @@ def loadModel(modelName):
     return None
 
 def getClassObject(classID,sessionData):
-    return _model().getAsClass(sessionData,id=classID)
+    return _model().getAsClass(id=classID)
 
 ######### --------- API --------- #########
 if jimi.api.webServer:
