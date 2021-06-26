@@ -3,7 +3,7 @@
 
 Jimi is an automation first no-code platform designed and developed originally for Security Orchestration and Response. Since its launch jimi has developed into a fully fledged IT automation platform which effortlessly integrates with your existing tools unlocking the potential for autonomous IT and Security operations.
 
-Jimi’s power comes from the over 40 open source integrations that extend the functionally to include alerting and monitoring, asset management, software packaging and deployment, security playbooks, SIEM and XDR. – We are always looking to build new integrations so if something is missing let us know.
+Jimi’s power comes from the over 50 open source integrations that extend the functionally to include alerting and monitoring, asset management, software packaging and deployment, security playbooks, SIEM and XDR. – We are always looking to build new integrations so if something is missing let us know.
 
 View Plugins: [Plugins](https://github.com/topics/jimiplugin)
 
