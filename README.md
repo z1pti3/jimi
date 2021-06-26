@@ -1,21 +1,9 @@
 
-```
-           8 8888            8 8888                    ,8.       ,8.                     8 8888
-           8 8888            8 8888                   ,888.     ,888.                    8 8888
-           8 8888            8 8888                  .`8888.   .`8888.                   8 8888
-           8 8888            8 8888                 ,8.`8888. ,8.`8888.                  8 8888
-           8 8888            8 8888                ,8'8.`8888,8^8.`8888.                 8 8888
-           8 8888            8 8888               ,8' `8.`8888' `8.`8888.                8 8888
-88.        8 8888            8 8888              ,8'   `8.`88'   `8.`8888.               8 8888
-`88.       8 888'            8 8888             ,8'     `8.`'     `8.`8888.              8 8888
-  `88o.    8 88'             8 8888            ,8'       `8        `8.`8888.             8 8888
-    `Y888888 '               8 8888           ,8'         `         `8.`8888.            8 8888
-```
-Jimi is an automation first platform designed from the ground by IT and Cyber Security. Automation first means that the usual product limitations are removed opening the possibilities of automation to all aspects of IT. Jimi features a rich no-code user interface creating a single pane of glass that effortlessly integrate your existing tools unlocking new possibilities and enabling cross functional automation.
-
 ![jimi sample 1](https://user-images.githubusercontent.com/66521110/123510485-cf27b080-d673-11eb-9a41-0a82de0b8115.gif)
 
-Currently jimi has some 40 public integrations and more than 200 actions and triggers. - Somthing missing? Ask us and we will be happy to help.
+Jimi is an automation first platform designed from the ground by IT and Cyber Security. Automation first means that the usual product limitations are removed opening the possibilities of automation to all aspects of IT. Jimi features a rich no-code user interface creating a single pane of glass that effortlessly integrate your existing tools unlocking new possibilities and enabling cross functional automation.
+
+Currently jimi has over 40 public integrations and more than 200 actions and triggers. - Somthing missing? Ask us and we will be happy to help.
 
 View Plugins: [Plugins](https://github.com/topics/jimiplugin)
 
