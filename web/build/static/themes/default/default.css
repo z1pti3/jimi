@@ -1,83 +1,59 @@
-*::-webkit-scrollbar {
-    width: 12px;
-}
-
-*::-webkit-scrollbar-track {
-    background: #333333;
-}
-
-*::-webkit-scrollbar-thumb {
-    background-color: #020202;
-    border-radius: 20px;
-    border: 3px solid #020202;
-}
-
-body {
-    background: #222222;
-}
-
 p {
-    color: #adadad;
+    color: var(--textColor);
 }
 
 .theme-navButton {
-    background-color: #111111;
+    background-color: var(--componentBackground2);
 }
 
 .theme-navButton:hover {
-    background-color: #220433;
+    background-color: var(--componentBackgroundSelect);
 }
 
 .theme-content {
     background-color: #111111;
     border: none;
-    color: #adadad;
-}
-
-.theme-popupContainer {
-
-}
-
-.theme-popup {
-
+    color: var(--textColor);
 }
 
 .theme-panelContainer {
-    background-color: #222222;
-    color: #adadad;
-    border-color: #2e6da4;
+    background-color: var(--mainBackgroundColor);
+    color: var(--textColor);
+    border-color: var(--panelBorderColor);
     border-radius: 2px;
 }
 
 .theme-panelHeader {
-    background-color: #222222;
-    color: #8a8a8a;
+    background-color: var(--mainBackgroundColor);
+    color: var(--textColor);
 }
 
 .theme-panelHeader-Active {
-    background-color: #333333;
-    color: #cacaca;
+    background-color: var(--panelBackgroundColor);
+    color: var(--textColor);
 }
 
 .theme-panelBody {
-    background-color: #222222;
+    background-color: var(--mainBackgroundColor);
 }
 
 .theme-panelFooter {
-    background-color: #222222;
+    background-color: var(--mainBackgroundColor);
 }
 
 .theme-panelButton {
-    background-color: #222222;
-    border-color: #2e6da4;
-    color: #adadad;
+    background-color: var(--componentBackground2);
+    border-color: var(--componentBorderColor);
+    color: var(--textColor);
+    border-style: solid;
+    border-width: 1px;
 }
 
 .theme-panelButton:hover {
-    background-color: #220433;
-}
-
-.theme-panelLabel {
+    background-color: var(--componentBackgroundSelect);
+    border-color: var(--componentBorderColor);
+    border-style: solid;
+    border-width: 1px;
 }
 
 .theme-panelBreakTitle {
@@ -89,7 +65,7 @@ p {
 .theme-panelBreakLine {
     height: 1px;
     border: 0;
-    border-top: 1px solid #ccc;
+    border-top: 1px solid var(--textColor);;
     margin: 1em 0;
     padding: 0;
     width: 100%;
@@ -97,86 +73,59 @@ p {
 }
 
 .theme-panelTextArea {
-    background-color: #0f0f0f;
+    background-color: var(--panelComponentBackground); 
     min-height: 75px;
-    color: #adadad;
+    color: var(--textColor);
     border: none;
 }
 
 .theme-panelTextArea-half {
-    background-color: #0f0f0f;
-    color: #adadad;
+    background-color: var(--panelComponentBackground); 
+    color: var(--textColor);
     border: none;
     width: 50%;
 }
 
 .theme-panelTextArea-14 {
-    background-color: #0f0f0f;
-    color: #adadad;
+    background-color: var(--panelComponentBackground); 
+    color: var(--textColor);
     border: none;
     width: 25%;
 }
 
 .theme-panelTextbox {
-    background-color: #0f0f0f; 
-    color: #adadad;
+    background-color: var(--panelComponentBackground); 
+    color: var(--textColor);
     border: none;
 }
 
 .theme-panelTextbox-half {
-    background-color: #0f0f0f; 
-    color: #adadad;
+    background-color: var(--panelComponentBackground); 
+    color: var(--textColor);
     border: none;
     width: 50%;
 }
 
 .theme-panelTextbox-34 {
-    background-color: #0f0f0f; 
-    color: #adadad;
+    background-color: var(--panelComponentBackground); 
+    color: var(--textColor);
     border: none;
     width: 75%;
 }
 
 .theme-panelSelect {
-    background-color: #0f0f0f; 
+    background-color: var(--panelComponentBackground); 
     border: none;
 }
 
 .theme-panelCheckbox {
-    background-color: #0f0f0f;
+    background-color: var(--panelComponentBackground); 
     border: none;
-}
-
-.theme-table {
-    background-color: #0f0f0f;
-    color: #adadad;
-    border-color: #2e6da4;
-    border-width: 1px;
-    border-style: solid;
-}
-
-.theme-tableHeader {
-    background-color: #111111;
-    color: #adadad;
-}
-
-.theme-tableBody {
-    border: none;
-}
-
-.theme-tableRowOdd {
-    background-color: #222222;
-    color: #adadad;
-}
-
-.theme-tableRowEven {
-    background-color: #0f0f0f;
-    color: #adadad;
 }
 
 .theme-json {
-    background-color: #0f0f0f;
-    color: #adadad;
+    background-color: var(--panelComponentBackground);
+    color: var(--textColor);
 }
 
 .theme-jsonkey {
@@ -196,24 +145,24 @@ p {
 }
 
 .theme-dropdown-menu {
-    background-color: #222222 !important;
-    border-color: #2e6da4 !important;
+    background-color: var(--panelBackgroundColor) !important;
+    border-color: var(--panelComponentBorder) !important;
     border-width: 1px !important;
     border-style: solid !important;
 }
 
 .theme-dropdown-menu > li > a {
-    color: #adadad !important;
+    color: var(--textColor) !important;
     width: 100%;
 }
 
 .theme-dropdown-menu > li:hover > a {
-    background-color: #220433 !important;
-    color: #adadad !important;
+    background-color: var(--panelComponentBackground) !important;
+    color: var(--textColor) !important;
 }
 
 .theme-dropdown-menu-divider {
-    border-color: #2e6da4 !important;
+    border-color: var(--panelComponentBorder) !important;
     border-style: solid !important;
     border-width: 1px !important;
 }
@@ -221,21 +170,21 @@ p {
 
 /* selectbox */
 .select2-container--theme-panelSelect .select2-selection--single {
-    background-color: #0f0f0f;
+    background-color: var(--panelComponentBackground);
     border: none;
     height: 20px;
 }
 
 /* item hover */
 .select2-container--theme-panelSelect .select2-results__option[aria-selected=true] {
-    background-color: #220433;
-    color: #adadad;
+    background-color: var(--panelComponentBackground);
+    color: var(--textColor);
 }
 
 /* search box */
 .select2-container--theme-panelSelect .select2-search--dropdown .select2-search__field {
-    background-color: #0f0f0f;
-    color: #adadad;
+    background-color: var(--panelComponentBackground);
+    color: var(--textColor);
     border: none;
 }
 
@@ -249,8 +198,8 @@ p {
 
 /* search results */
 .select2-container--theme-panelSelect .select2-results {
-    background-color: #0f0f0f;
-    color: #adadad;
+    background-color: var(--panelComponentBackground);
+    color: var(--textColor);
 }
 
 .select2-container--theme-panelSelect .select2-results > .select2-results__options {

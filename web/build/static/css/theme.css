@@ -106,7 +106,7 @@ body {
 }
 
 .panelTextbox:focus {
-    background-color: var(--panelComponentBackground);;
+    background-color: var(--panelComponentBackground);
     color: var(--textColor);
     border: none;
 }
