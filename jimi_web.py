@@ -10,6 +10,9 @@ import re
 import subprocess
 import os
 from operator import itemgetter
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 # Setup and define API ( required before other modules )
 from core import api, settings
@@ -435,7 +438,4 @@ def statusPageTriggerChartAPI():
 			trigger["status"] = "Failed"
 	return triggers, 200
 
-api.startServer(debug=True, use_reloader=False, host=apiSettings["bind"], port=apiSettings["port"], threaded=True)
-
-while True:
-	time.sleep(1)
+api.startServer(False,host=apiSettings["bind"], port=apiSettings["port"])

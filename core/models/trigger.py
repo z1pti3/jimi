@@ -16,6 +16,7 @@ class _trigger(jimi.db._document):
     log = bool()
     clusterSet = int()
     systemID = int()
+    systemIndex = int()
     comment = str()
     maxDuration = 60
     logicString = str()
