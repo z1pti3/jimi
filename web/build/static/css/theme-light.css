@@ -1,0 +1,37 @@
+:root {
+    /* Main */
+    --mainBackgroundColor: #fafafa;
+    --textColor: #333333;
+    --textColorHover: #464646;
+    --textDisabledColor: #615f5f;
+    --hoverColor: #bdbdbd;
+
+    /* Scrollbar */
+    --scrollbarColor: #ececec;
+    --scrollbarBackgroundColor: #dbdada;
+    --scrollbarBorderColor: #464646;
+
+    /* Panel */
+    --panelBackgroundColor: #dbdada;
+    --panelBorderColor: #000;
+    --panelShadowColor1: rgba(0, 0, 0, 0.12);
+    --panelShadowColor2: rgba(0, 0, 0, 0.24);
+    --panelComponentBackground: #ececec;
+    --panelComponentBackground-Focus: #bdbdbd;
+    --panelComponentBorder: #2e6da4;
+    --panelComponentBorder-Focus: #167bff;
+
+    /* Component */
+    --componentBorderColor: #000000;
+    --componentBorderColorSelect: #167bff;
+    --componentBackground1: #ececec;
+    --componentBackground2: #d8d8d8;
+    --componentBackgroundSelect: #bdbdbd;
+
+
+    /* Alerts */
+    --errorBackgroundColor: #ffffff;
+    --errorColor: #ec0e0e;
+    --alertBackgroundColor: #ffffff;
+    --alertColor: #15b438;
+}
