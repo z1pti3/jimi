@@ -25,9 +25,11 @@ More options can details can be found within our document site.
 * Run python scripts and script blocks
 * Alerting and monitoring
 * Send emails
+* Asset Management
 * Link flows together as functions
 * Execute any API request
 * React to your Humio event log results
+* SIEM and XDR
 * Clustering
 * Codfiy flows
 * In-built docs 
