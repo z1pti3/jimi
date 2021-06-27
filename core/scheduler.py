@@ -14,8 +14,7 @@ class _scheduler:
     systemId = None
     systemIndex = None
 
-    def __init__(self,workerHandler,systemId,systemIndex):
-        self.workerHandler = workerHandler
+    def __init__(self,systemId,systemIndex):
         self.systemId = systemId
         self.systemIndex = systemIndex
 
@@ -31,16 +30,16 @@ class _scheduler:
                     t.nextCheck = getSchedule(t.schedule)
                     t.update(["nextCheck"]) 
                 else:
-                    if self.workerHandler.activeCount() < self.workerHandler.concurrent:
+                    if jimi.workers.workers.activeCount() < jimi.workers.workers.concurrent:
                         t.startCheck = time.time()
                         t.attemptCount += 1
                         maxDuration = 60
                         if type(t.maxDuration) is int and t.maxDuration > 0:
                             maxDuration = t.maxDuration
                         if t.schedule == "*":
-                            t.workerID = self.workerHandler.new("continuousTrigger:'{0}','{1}'".format(t._id,t.name),continuous,(t,),maxDuration=0,multiprocessing=t.threaded)
+                            t.workerID = jimi.workers.workers.new("continuousTrigger:'{0}','{1}'".format(t._id,t.name),continuous,(t,),maxDuration=0,multiprocessing=t.threaded)
                         else:
-                            t.workerID = self.workerHandler.new("trigger:'{0}','{1}'".format(t._id,t.name),t.checkHandler,(),maxDuration=maxDuration,multiprocessing=t.threaded)
+                            t.workerID = jimi.workers.workers.new("trigger:'{0}','{1}'".format(t._id,t.name),t.checkHandler,(),maxDuration=maxDuration,multiprocessing=t.threaded)
                         t.update(["startCheck","workerID","attemptCount"])      
                     else:
                         if jimi.logging.debugEnabled:
