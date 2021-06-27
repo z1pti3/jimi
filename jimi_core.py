@@ -29,7 +29,7 @@ def startWorker(systemId,systemIndex):
     workerAPISettings = settings.config["api"]["worker"]
     api.createServer("jimi_worker")
     import jimi
-    api.startServer(True,host=workerAPISettings["bind"], port=workerAPISettings["startPort"]+systemIndex)
+    api.startServer(True, host=workerAPISettings["bind"], port=workerAPISettings["startPort"]+systemIndex, threads=1)
     logging.info("Index %i booting on system %i",systemIndex,systemId)
     logging.info("Starting worker handler")
     jimi.workers.workers = jimi.workers.workerHandler()
@@ -51,6 +51,7 @@ if __name__ == "__main__":
         p.start()
         systemIndex["process"] = p
         systemIndex["pid"] = p.pid
+        systemIndex["apiAddress"] = "http://{0}:{1}".format(workerAPISettings["bind"],workerAPISettings["startPort"]+systemIndex["systemIndex"])
         logging.debug("Started index %i, PID=%i API=%s:%i",systemIndex["systemIndex"],p.pid,workerAPISettings["bind"],workerAPISettings["startPort"]+systemIndex["systemIndex"])
 
     def healthChecker(cluster,systemIndexes):
@@ -122,19 +123,19 @@ if __name__ == "__main__":
 
     # Starting workers
     cpuCount = os.cpu_count()
-    systemIndexes = []
+    jimi.cluster.systemIndexes = []
     logging.debug("Detected %i CPU",cpuCount)
     if cpuCount == 1:
         logging.info("Selected single cluster mode")
-        systemIndexes.append({ "systemIndex" : 0 })
+        jimi.cluster.systemIndexes.append({ "systemIndex" : 0 })
     else:
         logging.info("Selected multi cluster mode")
         for index in range(0,cpuCount):
-            systemIndexes.append({ "systemIndex" : index })
-    for systemIndex in systemIndexes:
+            jimi.cluster.systemIndexes.append({ "systemIndex" : index })
+    for systemIndex in jimi.cluster.systemIndexes:
         startProcess(systemIndex)
 
     cluster = jimi.cluster._cluster()
-    jimi.workers.workers.new("healthChecker",healthChecker,(cluster,systemIndexes),True,0)
+    jimi.workers.workers.new("healthChecker",healthChecker,(cluster,jimi.cluster.systemIndexes),True,0)
     logging.info("Starting cluster processing")
-    cluster.handler(systemIndexes)
+    cluster.handler()

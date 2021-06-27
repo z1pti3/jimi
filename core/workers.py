@@ -1,12 +1,18 @@
 from multiprocessing import Process, Queue
 import multiprocessing
+from re import L
 import threading
 import time
 import uuid
 import ctypes
 import traceback
+import json
+
+import requests
 
 import jimi
+
+workers = None
 
 class _threading(threading.Thread):
     def __init__(self, *args, **keywords):
@@ -319,3 +325,73 @@ def multiprocessingThreadStart(Q,threadCall,args):
         error = e
         rc = 1
     Q.put((rc,error))
+
+######### --------- API --------- #########
+if jimi.api.webServer:
+    if not jimi.api.webServer.got_first_request:
+        if jimi.api.webServer.name == "jimi_core":
+            @jimi.api.webServer.route(jimi.api.base+"worker/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def getWorkers():
+                results = []
+                global workers
+                workersData = workers.getAll()
+                for workerData in workersData:
+                    results.append({
+                        "system" : "Cluster System {0}".format(jimi.cluster.getSystemId()),
+                        "name" : workerData.name,
+                        "call" : workerData.call.__name__,
+                        "id" : workerData.id,
+                        "createdTime" : workerData.createdTime,
+                        "startTime" : workerData.startTime,
+                        "endTime" : workerData.endTime,
+                        "duration" : workerData.duration,
+                        "running" : workerData.running
+                    })
+                apiToken = jimi.auth.generateSystemSession()
+                headers = { "X-api-token" : apiToken }
+                for systemIndex in jimi.cluster.systemIndexes:
+                    url = systemIndex["apiAddress"]
+                    apiEndpoint = "worker/"
+                    response = requests.get("{0}{1}{2}".format(url,jimi.api.base,apiEndpoint),headers=headers, timeout=10)
+                    if response.status_code == 200:
+                        jsonResponse = json.loads(response.text)["results"]
+                        for jsonResult in jsonResponse: 
+                            jsonResult["system"] = "Cluster System {0}, index {1}".format(jimi.cluster.getSystemId(),systemIndex["systemIndex"])
+                        results += jsonResponse
+                return { "results" : results }, 200
+
+        if jimi.api.webServer.name == "jimi_worker":
+            @jimi.api.webServer.route(jimi.api.base+"worker/", methods=["GET"])
+            @jimi.auth.systemEndpoint
+            def getWorkers():
+                results = []
+                global workers
+                workersData = workers.getAll()
+                for workerData in workersData:
+                    results.append({
+                        "name" : workerData.name,
+                        "call" : workerData.call.__name__,
+                        "id" : workerData.id,
+                        "createdTime" : workerData.createdTime,
+                        "startTime" : workerData.startTime,
+                        "endTime" : workerData.endTime,
+                        "duration" : workerData.duration,
+                        "running" : workerData.running
+                    })
+                return { "results" : results }, 200
+
+        if jimi.api.webServer.name == "jimi_web":
+            from flask import Flask, request, render_template
+            
+            @jimi.api.webServer.route("/taskManager/", methods=["GET"])
+            def taskManagerPage():
+                workers = []
+                apiEndpoint = "worker/"
+                servers = jimi.cluster.getAll()
+                for url in servers:
+                    response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
+                    if response.status_code == 200:
+                        workers += json.loads(response.text)["results"]
+                return render_template("taskManager.html",CSRF=jimi.api.g.sessionData["CSRF"], workers=workers)
+

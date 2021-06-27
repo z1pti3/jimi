@@ -8,8 +8,7 @@ from pathlib import Path
 
 import jimi
 
-# Initialize
-dbCollectionName = "clusterMembers"
+systemIndexes = []
 
 class _clusterMember(jimi.db._document):
     systemID = int()
@@ -22,7 +21,7 @@ class _clusterMember(jimi.db._document):
     lastSyncTime = int()
     checksum = str()
 
-    _dbCollection = jimi.db.db[dbCollectionName]
+    _dbCollection = jimi.db.db["clusterMembers"]
 
     def new(self,systemID):
         self.systemID = systemID
@@ -30,7 +29,8 @@ class _clusterMember(jimi.db._document):
         self.acl = { "ids":[ { "accessID":"0","delete": True,"read": True,"write": True } ] } 
         return super(_clusterMember, self).new()
 
-    def sync(self,systemIndexes):
+    def sync(self):
+        global systemIndexes
         now = time.time()
         self.syncCount+=1
         self.lastSyncTime = int(now)
@@ -247,14 +247,14 @@ class _cluster:
     lastHandle = 0
     clusterMember = None
 
-    def handler(self,systemIndexes):
+    def handler(self):
         self.startTime = int(time.time())
         self.clusterMember = loadClusterMember()
         while not self.stopped:
             jimi.audit._audit().add("cluster","poll",{ "systemID" : self.clusterMember.systemID, "master" : self.clusterMember.master, "systemUID" : self.clusterMember.systemUID })
             now = int(time.time())
             self.lastHandle = now
-            if not self.clusterMember.sync(systemIndexes):
+            if not self.clusterMember.sync():
                 self.stopped = True
             # pause
             time.sleep(clusterSettings["loopP"])

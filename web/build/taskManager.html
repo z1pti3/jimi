@@ -1,0 +1,56 @@
+{% extends "main.html" %}
+
+{% block head %}
+    {{ jimi.jquery() }}
+    {{ jimi.tables() }}
+{% endblock %}
+
+{% block main %}
+    <table id="orderTableTaskManager" class="table table-sm theme-table" cellspacing="0" width="100%">
+        <thead class="theme-tableHeader">
+            <tr>
+                <th class="th-sm">system</th>
+                <th class="th-sm">name</th>
+                <th class="th-sm">call</th>
+                <th class="th-sm">_id</th>
+                <th class="th-sm">createdTime</th>
+                <th class="th-sm">startTime</th>
+                <th class="th-sm">endTime</th>
+                <th class="th-sm">duration</th>
+                <th class="th-sm">running</th>
+            </tr>
+        </thead>
+        <tbody class="theme-tableBody">
+            {% for worker in workers %}
+                <tr>
+                    <td>{{ worker['system'] }}</td>
+                    <td>{{ worker['name'] }}</td>
+                    <td>{{ worker['call'] }}</td>
+                    <td>{{ worker['_id'] }}</td>
+                    <td>{{ worker['createdTime'] }}</td>
+                    <td>{{ worker['startTime'] }}</td>
+                    <td>{{ worker['endTime'] }}</td>
+                    <td>{{ worker['duration'] }}</td>
+                    <td>{{ worker['running'] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <script>
+        $(document).ready(function () {
+            $('#orderTableTaskManager').DataTable({
+                "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
+                fixedHeader: {
+                    header: true,
+                    footer: true
+                },
+                "paging" : false,
+                "order" : [[ 0, "desc" ]],
+                "autoWidth": false,
+            });
+            $('.dataTables_length').addClass('bs-select');
+            $('.dataTables_filter input[type="search"]').css({'width':'200px'});
+            $('.dataTables_filter input[type="search"]').addClass("theme-panelTextbox")
+        });
+    </script>
+{% endblock %}
