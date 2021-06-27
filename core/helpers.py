@@ -80,17 +80,18 @@ def evalString(varString,dicts={},functionSafeList=functionSafeList):
 def evalDict(varDict,dicts={},functionSafeList=functionSafeList):
     result = {}
     for key, value in varDict.items():
+        newKey = evalString(key,dicts,functionSafeList)
         if type(value) is str:
-            result[key] = evalString(varDict[key],dicts,functionSafeList)
+            result[newKey] = evalString(varDict[key],dicts,functionSafeList)
         elif type(value) is dict:
-            if key not in result:
-                result[key] = evalDict(value,dicts,functionSafeList)
+            if newKey not in result:
+                result[newKey] = evalDict(value,dicts,functionSafeList)
             else:
-                result[key].update(evalDict(value,dicts,functionSafeList))
+                result[newKey].update(evalDict(value,dicts,functionSafeList))
         elif type(value) is list:
-            result[key] = evalList(value,dicts,functionSafeList)
+            result[newKey] = evalList(value,dicts,functionSafeList)
         else:
-            result[key] = varDict[key]
+            result[newKey] = varDict[key]
     return result
 
 def evalList(varList,dicts={},functionSafeList=functionSafeList):
