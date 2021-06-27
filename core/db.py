@@ -49,6 +49,7 @@ class _document():
             result = result[0]
             self.classID = result["_id"]
             self.creationTime = int(time.time())
+            self.lastUpdateTime = int(time.time())
             if sessionData:
                 if not self.acl:
                     self.acl = { "ids" : [ { "accessID" : sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
@@ -67,6 +68,7 @@ class _document():
             result = result[0]
             self.classID = result["_id"]
             self.creationTime = int(time.time())
+            self.lastUpdateTime = int(time.time())
             bulkClass.newBulkOperaton(self._dbCollection.name,"insert",self)
             return self
         else:
@@ -110,9 +112,9 @@ class _document():
                 for field in fields:
                     if not fieldACLAccess(sessionData,self.acl,field,"write"):
                         return False
-            # Appendingh last update time to every update
+            # Appending last update time to every update
             fields.append("lastUpdateTime")
-            self.lastUpdateTime = time.time()
+            self.lastUpdateTime = int(time.time())
 
             update = { "$set" : {} }
             for field in fields:
@@ -132,9 +134,9 @@ class _document():
             for field in fields:
                 if not fieldACLAccess(sessionData,self.acl,field,"write"):
                     return False
-        # Appendingh last update time to every update
+        # Appending last update time to every update
         fields.append("lastUpdateTime")
-        self.lastUpdateTime = time.time()
+        self.lastUpdateTime = int(time.time())
 
         update = { "$set" : {} }
         for field in fields:
