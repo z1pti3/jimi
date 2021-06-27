@@ -29,6 +29,7 @@ def startWorker(systemId,systemIndex):
     workerAPISettings = settings.config["api"]["worker"]
     api.createServer("jimi_worker")
     import jimi
+    jimi.function.load()
     api.startServer(True, host=workerAPISettings["bind"], port=workerAPISettings["startPort"]+systemIndex, threads=1)
     logging.info("Index %i booting on system %i",systemIndex,systemId)
     logging.info("Starting worker handler")
