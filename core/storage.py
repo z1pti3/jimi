@@ -47,7 +47,7 @@ class _storage(jimi.db._document):
                                     return idFilePath
                                 else:
                                     os.remove(idFilePath)
-                    except requests.exceptions.HTTPError:
+                    except:
                         pass
         else:
             return idFilePath

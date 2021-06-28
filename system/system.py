@@ -66,24 +66,27 @@ def getSystemFile(url,fileID,filename,fileHash):
 	if not jimi.helpers.safeFilepath(filename,filepath):
 		return False
 	headers = { "x-api-token" : jimi.auth.generateSystemSession() }
-	with requests.get("{0}{1}system/file/{2}/".format(url,jimi.api.base,fileID), headers=headers, stream=True, timeout=60) as r:
-		r.raise_for_status()
-		tempFilename = str(Path("data/temp/{0}".format(fileID)))
-		if not jimi.helpers.safeFilepath(tempFilename,"data/temp"):
-			return False
-		with open(tempFilename, 'wb') as f:
-			for chunk in r.iter_content(chunk_size=8192):
-				f.write(chunk)
-		if jimi.helpers.getFileHash(tempFilename) == fileHash:
-			if os.path.isfile(filename):
-				os.remove(filename)
-			if not os.path.isdir(filepath):
-				os.makedirs(filepath)
-			os.rename(tempFilename,filename)
-			return True
-		else:
-			jimi.logging.debug("Error: File obtained from master failed integrity checks. fileID={0}, filename={1}".format(fileID,filename),-1)
-		os.remove(tempFilename)
+	try:
+		with requests.get("{0}{1}system/file/{2}/".format(url,jimi.api.base,fileID), headers=headers, stream=True, timeout=60) as r:
+			r.raise_for_status()
+			tempFilename = str(Path("data/temp/{0}".format(fileID)))
+			if not jimi.helpers.safeFilepath(tempFilename,"data/temp"):
+				return False
+			with open(tempFilename, 'wb') as f:
+				for chunk in r.iter_content(chunk_size=8192):
+					f.write(chunk)
+			if jimi.helpers.getFileHash(tempFilename) == fileHash:
+				if os.path.isfile(filename):
+					os.remove(filename)
+				if not os.path.isdir(filepath):
+					os.makedirs(filepath)
+				os.rename(tempFilename,filename)
+				return True
+			else:
+				jimi.logging.debug("Error: File obtained from master failed integrity checks. fileID={0}, filename={1}".format(fileID,filename),-1)
+			os.remove(tempFilename)
+	except:
+		pass
 	return False
 
 def fixChecksum(pullFromSystemID):
