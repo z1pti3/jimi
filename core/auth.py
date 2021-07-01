@@ -556,9 +556,11 @@ if jimi.api.webServer:
             def listUsers():
                 #Get groups to match against
                 groups = {}
+                groupsList = []
                 foundGroups = _group().getAsClass(sessionData=jimi.api.g.sessionData,query={ })
                 for group in foundGroups:
                     groups[group._id] = group
+                    groupsList.append(group)
                 users = []
                 foundUsers =  _user().getAsClass(sessionData=jimi.api.g.sessionData,query={ })
                 for user in foundUsers:
@@ -566,7 +568,7 @@ if jimi.api.webServer:
                         user.primaryGroupName = groups[user.primaryGroup].name
                     users.append(user)
                 
-                return render_template("users.html",users=users,CSRF=jimi.api.g.sessionData["CSRF"])
+                return render_template("users.html",users=users,groups=groupsList,CSRF=jimi.api.g.sessionData["CSRF"])
 
             @jimi.api.webServer.route("/auth/users/edit/", methods=["GET"])
             def editUser():
@@ -585,6 +587,12 @@ if jimi.api.webServer:
                         if group._id == foundUser.primaryGroup:
                             foundUser.primaryGroupName = group.name
                     return render_template("userDetailed.html",user=foundUser,groups=groups,CSRF=jimi.api.g.sessionData["CSRF"])
+                return 404
+
+            @jimi.api.webServer.route("/auth/users/create/", methods=["PUT"])
+            def createUser():
+                if 1==1:
+                    return 201
                 return 404
 
             @jimi.api.webServer.route("/auth/groups/", methods=["GET"])
