@@ -383,6 +383,9 @@ def statusPage():
 	triggers = jimi.trigger._trigger().query(sessionData=api.g.sessionData,query={})["results"]
 	data = { "running" : [], "pending" : [], "failed" : [] }
 	for trigger in triggers:
+		# Apply fix for default 60 seconds if not defined ( new installs not affected as DB defines this now )
+		if trigger["maxDuration"] == 0:
+			trigger["maxDuration"] = 60
 		if ((trigger["startCheck"] > 0 and trigger["startCheck"] + trigger["maxDuration"] > time.time()) or (trigger["lastCheck"] > (time.time() - 1))):
 			data["running"].append(trigger)
 		elif trigger["startCheck"] == 0:
@@ -400,6 +403,9 @@ def statusPageTriggerStatusAPI():
 	doughnut.addLabel("Failed")
 	data = [0,0,0]
 	for trigger in triggers:
+		# Apply fix for default 60 seconds if not defined ( new installs not affected as DB defines this now )
+		if trigger.maxDuration == 0:
+			trigger.maxDuration = 60
 		if ((trigger.startCheck > 0 and trigger.startCheck + trigger.maxDuration > time.time()) or (trigger.lastCheck + 2.5 > (time.time()))):
 			data[0] += 1
 		elif trigger.startCheck == 0:
@@ -430,6 +436,9 @@ def statusPageConductStatusAPI():
 def statusPageTriggerChartAPI():
 	triggers = jimi.trigger._trigger().query(sessionData=api.g.sessionData,query={},fields=["_id","name","enabled","startCheck","maxDuration","lastCheck"])
 	for trigger in triggers["results"]:
+		# Apply fix for default 60 seconds if not defined ( new installs not affected as DB defines this now )
+		if trigger["maxDuration"] == 0:
+			trigger["maxDuration"] = 60
 		if ((trigger["startCheck"] > 0 and trigger["startCheck"] + trigger["maxDuration"] > time.time()) or (trigger["lastCheck"] + 2.5 > (time.time()))):
 			trigger["status"] = "Running"
 		elif trigger["startCheck"] == 0:
