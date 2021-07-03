@@ -7,6 +7,8 @@ Jimi’s power comes from the over 50 open source integrations that extend the f
 
 View Plugins: [Plugins](https://github.com/topics/jimiplugin)
 
+View Sample Flows: [Samples](https://github.com/z1pti3/jimiFlows)
+
 ## Getting Started
 
 The quickest way to get started is to use our docker deployment script.
