@@ -591,9 +591,14 @@ if jimi.api.webServer:
 
             @jimi.api.webServer.route("/auth/users/create/", methods=["PUT"])
             def createUser():
-                if 1==1:
-                    return 201
-                return 404
+                response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Could not create user" },400)
+                userData = request.json
+                #Check user ID is new and valid
+                if userData["username"]:
+                    foundUser = _user().getAsClass(sessionData=jimi.api.g.sessionData,query={"username":userData["username"]})
+                    if foundUser:
+                        return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Username already in use" },400)
+                return response
 
             @jimi.api.webServer.route("/auth/groups/", methods=["GET"])
             def listGroups():
@@ -612,7 +617,6 @@ if jimi.api.webServer:
                 foundGroup = _group().getAsClass(sessionData=jimi.api.g.sessionData,query={"_id":bson.ObjectId(request.args.get("id"))})
                 if foundGroup:
                     foundGroup = foundGroup[0]
-
 
                     #Get ACL info about each conduct
                     conductList = []

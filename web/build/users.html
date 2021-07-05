@@ -32,72 +32,115 @@
     <div class="modal fade" id="newUserModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content panel">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLongTitle">Create new user</h5>
-                    <button type="button" class="close button" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-floating">
-                        <input type="username" class="form-control textbox" id="username" placeholder="username">
-                        <label for="username">Username</label>
+                <form class="needs-validation" novalidate>
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLongTitle">Create new user</h5>
+                        <button type="button" class="close button" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
-                    <br>
-                    <div class="form-floating">
-                        <input type="name" class="form-control textbox" id="name" placeholder="name">
-                        <label for="name">Name</label>
+                    <!-- <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <strong>Error!</strong> 
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div> -->
+                    <div class="modal-body">
+                            <div class="form-floating">
+                                <input type="username" class="form-control textbox" id="username" placeholder="username" required>
+                                <label for="username">Username</label>
+                                <div class="invalid-feedback">
+                                    Please choose a username
+                                </div>
+                            </div>
+                            <br>
+                            <div class="form-floating">
+                                <input type="name" class="form-control textbox" id="name" placeholder="name">
+                                <label for="name">Name</label>
+                            </div>
+                            <br>
+                            <div class="form-floating">
+                                <input type="email" class="form-control textbox" id="email" placeholder="email">
+                                <label for="email">Email</label>
+                                <div class="invalid-feedback">
+                                    Please provide a valid email
+                                </div>
+                            </div>
+                            <br>
+                            <div class="form-floating">
+                                <select class="form-control textbox" id="group" required>
+                                    {% for group in groups %}
+                                    <option>{{ group["name"] }}</option>
+                                    {% endfor %}
+                                </select>
+                                <label for="group">Primary Group</label>
+                            </div>
+                            <br>
+                            <div class="form-floating">
+                                <input type="password" class="form-control textbox" id="password" placeholder="password" required>
+                                <label for="password">Password</label>
+                                <div class="invalid-feedback">
+                                    Please provide a password
+                                </div>
+                            </div>
+                            <br>
+                            <div class="form-floating">
+                                <select class="form-control textbox" id="active">
+                                    <option>Yes</option>
+                                    <option>No</option>
+                                </select>
+                                <label for="active">Active</label>
+                            </div>
+                            <br>
+                            <div class="form-floating">
+                                <select class="form-control textbox" id="sandbox">
+                                    <option>Yes</option>
+                                    <option>No</option>
+                                </select>
+                                <label for="sandbox">Create Sandbox Conduct</label>
+                            </div>
                     </div>
-                    <br>
-                    <div class="form-floating">
-                        <input type="email" class="form-control textbox" id="email" placeholder="email">
-                        <label for="email">Email</label>
+                    <div class="modal-footer justify-content-start">
+                        <button type="button" class="btn btn-primary button bi-save submission" onclick="createUser()"> Create</button>
+                        <button type="button" class="btn btn-primary button" data-bs-dismiss="modal">Close</button>
                     </div>
-                    <br>
-                    <div class="form-floating">
-                        <select class="form-control textbox" id="group">
-                            {% for group in groups %}
-                            <option>{{ group["name"] }}</option>
-                            {% endfor %}
-                          </select>
-                        <label for="group">Primary Group</label>
-                    </div>
-                    <br>
-                    <div class="form-floating">
-                        <input type="password" class="form-control textbox" id="password" placeholder="password">
-                        <label for="password">Password</label>
-                    </div>
-                    <br>
-                    <div class="form-floating">
-                        <select class="form-control textbox" id="active">
-                            <option>Yes</option>
-                            <option>No</option>
-                          </select>
-                        <label for="active">Active</label>
-                    </div>
-                    <br>
-                    <div class="form-floating">
-                        <select class="form-control textbox" id="sandbox">
-                            <option>Yes</option>
-                            <option>No</option>
-                          </select>
-                        <label for="active">Create Sandbox Conduct</label>
-                    </div>
-                </div>
-                <div class="modal-footer justify-content-start">
-                    <button type="button" class="btn btn-primary button bi-save" onclick="createUser()"> Create</button>
-                    <button type="button" class="btn btn-primary button" data-bs-dismiss="modal">Close</button>
-                </div>
+                </form>
             </div>
         </div>
         <script>
-            function createUser() {
-                var body = JSON.stringify({ CSRF : CSRF, username: $("#username").val(), name: $("#name").val(), enabled: true })
-                $.ajax({ url: "/create/", type : "PUT",  data:body, contentType:"application/json", success: function ( result ) 
+            function validateForm(){
+                var forms = document.querySelectorAll('.needs-validation');
+                Array.prototype.slice.call( forms ).forEach( function( form )
+                {
+                    form.addEventListener( 'click', function ( event )
                     {
-                        window.location.reload();
-                    }
+                        if ( !form.checkValidity( ) )
+                        {
+                            event.preventDefault( )
+                            event.stopPropagation( );
+                            console.log("failed to validate");
+                            return false
+                        }
+                        form.classList.add( 'was-validated' );
+                        console.log("was success");
+                        return true
+                }, false );
                 });
+            }
+
+            function createUser() {
+                if (validateForm() == true)
+                {
+                    var body = JSON.stringify({ CSRF : CSRF, username: $("#username").val(), name: $("#name").val(), email: $("#email").val(), group: $("#group").val(), password: $("#password").val(), active: $("#active").val(), sandbox: $("#sandbox").val(), enabled: true })
+                    $.ajax({ url: "create/", type : "PUT",  data:body, contentType:"application/json", 
+                        success: function ( result ) 
+                        {
+                            window.location.reload();
+                        },
+                        error: function ( result )
+                        {
+                            console.log(result)
+                        }
+                    });
+                }
             }
         </script>
     </div>
