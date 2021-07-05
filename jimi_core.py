@@ -49,6 +49,7 @@ if __name__ == "__main__":
     def startProcess(systemIndex):
         logging.debug("Starting index %i",systemIndex["systemIndex"])
         p = multiprocessing.Process(target=startWorker,args=(systemId,systemIndex["systemIndex"]))
+        p.name = "jimi_worker"
         p.start()
         systemIndex["process"] = p
         systemIndex["pid"] = p.pid
@@ -140,3 +141,7 @@ if __name__ == "__main__":
     jimi.workers.workers.new("healthChecker",healthChecker,(cluster,jimi.cluster.systemIndexes),True,0)
     logging.info("Starting cluster processing")
     cluster.handler()
+else:
+    if multiprocessing.current_process().name != "jimi_worker":
+        import jimi
+        jimi.function.load()
