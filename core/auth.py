@@ -49,6 +49,7 @@ class _user(jimi.db._document):
     apiTokens = list()
     primaryGroup = str()
     additionalGroups = list()
+    icon = str()
 
     _dbCollection = jimi.db.db["users"]
 
@@ -625,24 +626,25 @@ if jimi.api.webServer:
                         return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Username already in use" },403)
                     #Check password provided
                     if userData["password"]:
-                        if meetsPasswordPolicy(userData["password"]):
-                            #If no name provided, use the username
-                            if len(userData["name"]) == 0:
-                                userData["name"] = userData["username"] 
-                            #Create a new user
-                            if _user().new(userData["name"],userData["username"],userData["password"]):
-                                user = _user().getAsClass(sessionData=jimi.api.g.sessionData,query={"username":userData["username"]})[0]
-                                #Define the users primary group
-                                user.setAttribute("primaryGroup",userData["group"],sessionData=jimi.api.g.sessionData)
-                                #Set email if it exists
-                                if userData["email"]:
-                                    user.setAttribute("email",userData["email"],sessionData=jimi.api.g.sessionData)
-                                user.update(["email","primaryGroup"])
-                                #Check for sandbox creation
-                                if userData["sandbox"] == "Yes":
-                                    #Create a sandbox conduct using the user's name
-                                    sandboxConduct = jimi.conduct._conduct().new(f"{userData['name']} - Sandbox")
-                                return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User created succesfully" },201)
+                        if not meetsPasswordPolicy(userData["password"]):
+                            return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Password does not meet minimum requirements" },403)
+                        #If no name provided, use the username
+                        if len(userData["name"]) == 0:
+                            userData["name"] = userData["username"] 
+                        #Create a new user
+                        if _user().new(userData["name"],userData["username"],userData["password"]):
+                            user = _user().getAsClass(sessionData=jimi.api.g.sessionData,query={"username":userData["username"]})[0]
+                            #Define the users primary group
+                            user.setAttribute("primaryGroup",userData["group"],sessionData=jimi.api.g.sessionData)
+                            #Set email if it exists
+                            if userData["email"]:
+                                user.setAttribute("email",userData["email"],sessionData=jimi.api.g.sessionData)
+                            user.update(["email","primaryGroup"])
+                            #Check for sandbox creation
+                            if userData["sandbox"] == "Yes":
+                                #Create a sandbox conduct using the user's name
+                                sandboxConduct = jimi.conduct._conduct().new(f"{userData['name']} - Sandbox")
+                            return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User created succesfully" },201)
                     response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Please provide a password" },403)
                 return response
 
