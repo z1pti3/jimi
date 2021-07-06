@@ -23,7 +23,7 @@ class _trigger(jimi.db._document):
     varDefinitions = dict()
     concurrency = 0  
     threaded = False
-    failOnActionFailure = False
+    failOnActionFailure = True
     attemptCount = int()
     autoRestartCount = 3
     scope = int()
