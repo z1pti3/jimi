@@ -646,28 +646,19 @@ if jimi.api.webServer:
                     response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Please provide a password" },403)
                 return response
 
-            @jimi.api.webServer.route("/auth/users/delete/", methods=["PUT"])
-            def createUser():
+            @jimi.api.webServer.route("/auth/users/edit/", methods=["DELETE"])
+            def deleteUser():
                 response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Could not delete user" },403)
-                userData = request.json
-                if userData["enabled"] == "No":
-                    userData["enabled"] = False
-                else:
-                    userData["enabled"] = True
                 #Get user details based on username
-                foundUser = _user().getAsClass(sessionData=jimi.api.g.sessionData,query={"username":userData["username"]})
+                foundUser = _user().getAsClass(sessionData=jimi.api.g.sessionData,query={"_id":bson.ObjectId(request.args.get("id"))})
                 if foundUser:
                     foundUser = foundUser[0]
-                    updateList = []
-                    for item in userData:
-                        if item != "CSRF" and userData[item] != foundUser.getAttribute(item,sessionData=jimi.api.g.sessionData):
-                            foundUser.setAttribute(item,userData[item],sessionData=jimi.api.g.sessionData)
-                            updateList.append(item)
-                    if any(updateList):
-                        foundUser.update(updateList)
-                        response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User updated succesfully" },201)
+                    #Cannot delete the root user
+                    if foundUser.username != "root":
+                        if _user().api_delete(query={"_id":bson.ObjectId(request.args.get("id"))}):
+                            response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User updated succesfully" },201)
                     else:
-                        response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Nothing to update" },200)
+                        response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Cannot delete root user" },403)
                 return response
 
 
