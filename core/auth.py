@@ -591,13 +591,34 @@ if jimi.api.webServer:
 
             @jimi.api.webServer.route("/auth/users/create/", methods=["PUT"])
             def createUser():
-                response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Could not create user" },400)
+                response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Please provide a username" },400)
                 userData = request.json
                 #Check user ID is new and valid
                 if userData["username"]:
                     foundUser = _user().getAsClass(sessionData=jimi.api.g.sessionData,query={"username":userData["username"]})
                     if foundUser:
                         return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Username already in use" },400)
+                    #Check password provided
+                    if userData["password"]:
+                        if meetsPasswordPolicy(userData["password"]):
+                            #If no name provided, use the username
+                            if len(userData["name"]) == 0:
+                                userData["name"] = userData["username"] 
+                            #Create a new user
+                            if _user().new(userData["name"],userData["username"],userData["password"]):
+                                user = _user().getAsClass(sessionData=jimi.api.g.sessionData,query={"username":userData["username"]})[0]
+                                #Define the users primary group
+                                user.setAttribute("primaryGroup",userData["group"],sessionData=jimi.api.g.sessionData)
+                                #Set email if it exists
+                                if userData["email"]:
+                                    user.setAttribute("email",userData["email"],sessionData=jimi.api.g.sessionData)
+                                user.update(["email","primaryGroup"])
+                                #Check for sandbox creation
+                                if userData["sandbox"] == "Yes":
+                                    #Create a sandbox conduct using the user's name
+                                    sandboxConduct = jimi.conduct._conduct().new(f"{userData['name']} - Sandbox")
+                                return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User created succesfully" },201)
+                    response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Please provide a password" },400)
                 return response
 
             @jimi.api.webServer.route("/auth/groups/", methods=["GET"])
