@@ -105,7 +105,7 @@ if __name__ == "__main__":
     logging.debug("System integrity hash generated. hash=%s",checksum)
     masterId = jimi.cluster.getMasterId()
     clusterMember = jimi.cluster.getClusterMemberById(systemId)
-    masterMember = jimi.cluster.getMaster()
+    masterMember = jimi.cluster.getClusterMemberById(jimi.cluster.getMasterId())
     logging.info("Current jimi master is on %i",masterId)
     if masterId != systemId and checksum != masterMember.checksum:
         logging.debug("Fixing file integrity mismatch using master")
