@@ -48,6 +48,7 @@ class _user(jimi.db._document):
     totpSecret = str()
     apiTokens = list()
     primaryGroup = str()
+    additionalGroups = list()
 
     _dbCollection = jimi.db.db["users"]
 
@@ -589,15 +590,39 @@ if jimi.api.webServer:
                     return render_template("userDetailed.html",user=foundUser,groups=groups,CSRF=jimi.api.g.sessionData["CSRF"])
                 return 404
 
+            @jimi.api.webServer.route("/auth/users/edit/", methods=["POST"])
+            def updateUser():
+                response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Could not update the user" },403)
+                userData = request.json
+                if userData["enabled"] == "No":
+                    userData["enabled"] = False
+                else:
+                    userData["enabled"] = True
+                #Get user details based on username
+                foundUser = _user().getAsClass(sessionData=jimi.api.g.sessionData,query={"username":userData["username"]})
+                if foundUser:
+                    foundUser = foundUser[0]
+                    updateList = []
+                    for item in userData:
+                        if item != "CSRF" and userData[item] != foundUser.getAttribute(item,sessionData=jimi.api.g.sessionData):
+                            foundUser.setAttribute(item,userData[item],sessionData=jimi.api.g.sessionData)
+                            updateList.append(item)
+                    if any(updateList):
+                        foundUser.update(updateList)
+                        response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User updated succesfully" },201)
+                    else:
+                        response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Nothing to update" },200)
+                return response
+
             @jimi.api.webServer.route("/auth/users/create/", methods=["PUT"])
             def createUser():
-                response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Please provide a username" },400)
+                response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Please provide a username" },403)
                 userData = request.json
                 #Check user ID is new and valid
                 if userData["username"]:
                     foundUser = _user().getAsClass(sessionData=jimi.api.g.sessionData,query={"username":userData["username"]})
                     if foundUser:
-                        return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Username already in use" },400)
+                        return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Username already in use" },403)
                     #Check password provided
                     if userData["password"]:
                         if meetsPasswordPolicy(userData["password"]):
@@ -618,8 +643,33 @@ if jimi.api.webServer:
                                     #Create a sandbox conduct using the user's name
                                     sandboxConduct = jimi.conduct._conduct().new(f"{userData['name']} - Sandbox")
                                 return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User created succesfully" },201)
-                    response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Please provide a password" },400)
+                    response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Please provide a password" },403)
                 return response
+
+            @jimi.api.webServer.route("/auth/users/delete/", methods=["PUT"])
+            def createUser():
+                response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Could not delete user" },403)
+                userData = request.json
+                if userData["enabled"] == "No":
+                    userData["enabled"] = False
+                else:
+                    userData["enabled"] = True
+                #Get user details based on username
+                foundUser = _user().getAsClass(sessionData=jimi.api.g.sessionData,query={"username":userData["username"]})
+                if foundUser:
+                    foundUser = foundUser[0]
+                    updateList = []
+                    for item in userData:
+                        if item != "CSRF" and userData[item] != foundUser.getAttribute(item,sessionData=jimi.api.g.sessionData):
+                            foundUser.setAttribute(item,userData[item],sessionData=jimi.api.g.sessionData)
+                            updateList.append(item)
+                    if any(updateList):
+                        foundUser.update(updateList)
+                        response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User updated succesfully" },201)
+                    else:
+                        response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Nothing to update" },200)
+                return response
+
 
             @jimi.api.webServer.route("/auth/groups/", methods=["GET"])
             def listGroups():

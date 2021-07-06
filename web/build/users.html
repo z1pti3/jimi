@@ -33,7 +33,7 @@
     <div class="modal fade" id="newUserModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content panel">
-                <form class="needs-validation" id="testing1234" novalidate>
+                <form class="needs-validation" novalidate>
                     <div class="modal-header">
                         <h5 class="modal-title" id="exampleModalLongTitle">Create new user</h5>
                         <button type="button" class="close button" data-bs-dismiss="modal" aria-label="Close">
@@ -104,7 +104,7 @@
                         },
                         error: function ( result )
                         {
-                            dropdownAlert($("#alertArea"),"danger",result.responseJSON.message,2500);
+                            dropdownAlert($("#alertArea"),"error",result.responseJSON.message,2500);
                         }
                     });
             }

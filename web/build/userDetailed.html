@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block main %}
+    <script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
     <div class="container px-4 py-5">
             <h2>{{ user["name"] }}</h2>
             <ul class="nav nav-tabs bg-dark" id="myTab" role="tablist">
@@ -22,6 +23,7 @@
                 <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
                   <br>
                   <form>
+                    <div id="alertArea"></div>
                     <div class="form-group">
                       <label for="username">Username</label>
                       <input type="text" class="form-control textbox" id="username" value="{{user["username"]}}" disabled="" aria-describedby="usernameHelp">
@@ -40,9 +42,9 @@
                     <div class="form-group">
                       <label class="form-check-label" for="group">Primary Group</label>
                       <select class="form-control textbox" id="group" aria-describedby="groupHelp">
-                        <option selected="selected">{{ user["primaryGroupName"] }}</option>
+                        <option selected="selected" value={{ user["primaryGroup"] }}>{{ user["primaryGroupName"] }}</option>
                         {% for group in groups if group.name != user["primaryGroupName"] %}
-                        <option>{{ group["name"] }}</option>
+                        <option value={{ group["_id"] }}>{{ group["name"] }}</option>
                         {% endfor %}
                       </select>
                       <small id="groupHelp" class="form-text text-muted">The main group the user belongs to</small>
@@ -61,8 +63,7 @@
                       <small id="activeHelp" class="form-text text-muted">Whether the user is active or not</small>
                     </div>
                   </form>
-                  <button class="btn btn-success btn-block button" type="submit">Save</a>
-
+                  <button type="button" class="btn btn-primary button bi-save submission" onclick="editUser()"> Save</button>
                 </div>
                 <div class="tab-pane fade" id="groups" role="tabpanel" aria-labelledby="groups-tab">
                   <br>
@@ -91,6 +92,19 @@
               </div>
     </div>
     <script>
+        function editUser() {
+                var body = JSON.stringify({ CSRF : CSRF, username: $("#username").val(), name: $("#name").val(), email: $("#email").val(), primaryGroup: $("#group").val(), enabled: $("#active").val()})
+                $.ajax({ type : "POST",  data:body, contentType:"application/json", 
+                    success: function ( result ) 
+                    {
+                        window.location.reload();
+                    },
+                    error: function ( result )
+                    {
+                        dropdownAlert($("#alertArea"),"error",result.responseJSON.message,2500);
+                    }
+                });
+        }
         function allowDrop(ev) {
           ev.preventDefault();
         }
