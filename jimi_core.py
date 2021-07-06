@@ -145,3 +145,4 @@ else:
     if multiprocessing.current_process().name != "jimi_worker":
         import jimi
         jimi.function.load()
+        jimi.settings.config["cpuSaver"]["enabled"] = False
