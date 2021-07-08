@@ -394,7 +394,7 @@ if jimi.api.webServer:
                             if "renew" in jimi.api.g:
                                 response.set_cookie("jimiAuth", value=generateSession(jimi.api.g.sessionData), max_age=600, httponly=True) # Need to add secure=True before production, httponly=False cant be used due to auth polling
             # Cache Weakness
-            if jimi.api.request.endpoint != "static": 
+            if jimi.api.request.endpoint and jimi.api.request.endpoint != "static" and "__STATIC__" not in jimi.api.request.endpoint:
                 response.headers['Cache-Control'] = 'no-cache, no-store'
                 response.headers['Pragma'] = 'no-cache'
             # Permit CORS when web and web API ( Flask ) are seperated
