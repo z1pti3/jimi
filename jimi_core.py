@@ -1,7 +1,7 @@
 import multiprocessing
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARNING)
 
 def startWorker(systemId,systemIndex):
     def healthChecker(scheduler):
@@ -80,7 +80,7 @@ if __name__ == "__main__":
                     startProcess(systemIndex)
                 else:
                     p = psutil.Process(pid=systemIndex["pid"])
-                    logging.info("Index %i, PID=%i, CPU=%f, MEM=%f",systemIndex["systemIndex"],systemIndex["pid"],p.cpu_percent(interval=1),p.memory_percent())
+                    print("Index {0}, PID={1}, CPU={2}, MEM={3}".format(systemIndex["systemIndex"],systemIndex["pid"],p.cpu_percent(interval=1),p.memory_percent()))
             time.sleep(10)
     # Loading API - Has to be done before jimi import or the pages will not be loaded
     from core import settings, api
