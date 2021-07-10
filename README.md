@@ -21,6 +21,12 @@ More options can details can be found within our document site.
 
 [jimi Docs](https://z1pti3.github.io/jimiDocs)
 
+## Getting Help
+
+Start a discussion, log and issues or join us on discord.
+
+[discord](https://discord.gg/XWKkbDdJF9)
+
 ## Features ( With Recommended Plugins )
 * Remote commands and playbooks ( winrm, ssh )
 * Remote file trasnfer ( scp, smb )
