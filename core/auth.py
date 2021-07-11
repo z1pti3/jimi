@@ -140,12 +140,15 @@ def meetsPasswordPolicy(password):
         return False
     return True
 
-def getPasswordFromENC(enc):
+def getPasswordFromENC(enc,customSecure=None):
     if enc[:6] == "ENC j1":
         cipher_rsa = PKCS1_OAEP.new(RSA.import_key(sessionPrivateKey))
         encSecureKey = base64.b64decode(enc[7:].split(" ")[2].encode())
         secureKey = cipher_rsa.decrypt(encSecureKey)
-        key = install.getSecure().encode() + secureKey
+        if customSecure is None:
+            key = install.getSecure().encode() + secureKey
+        else:
+            key = customSecure.encode() + secureKey
         key = hashlib.sha256(key).digest()
         nonce = base64.b64decode(enc[7:].split(" ")[0].encode())
         tag = base64.b64decode(enc[7:].split(" ")[1].encode())
@@ -171,12 +174,15 @@ def getPasswordFromENC(enc):
             return None
     return None
 
-def getENCFromPassword(password):
+def getENCFromPassword(password,customSecure=None):
     if requiredhType == "j1":
         cipher_rsa = PKCS1_OAEP.new(RSA.import_key(sessionPublicKey))
         secureKey = get_random_bytes(16)
         encSecureKey = cipher_rsa.encrypt(secureKey)
-        key = install.getSecure().encode() + secureKey
+        if customSecure is None:
+            key = install.getSecure().encode() + secureKey
+        else:
+            key = customSecure.encode() + secureKey
         key = hashlib.sha256(key).digest()
         cipher = AES.new(key, AES.MODE_EAX)
         nonce = cipher.nonce
