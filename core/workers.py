@@ -7,6 +7,7 @@ import uuid
 import ctypes
 import traceback
 import json
+import logging
 
 import requests
 
@@ -353,12 +354,15 @@ if jimi.api.webServer:
                 for systemIndex in jimi.cluster.systemIndexes:
                     url = systemIndex["apiAddress"]
                     apiEndpoint = "worker/"
-                    response = requests.get("{0}{1}{2}".format(url,jimi.api.base,apiEndpoint),headers=headers, timeout=10)
-                    if response.status_code == 200:
-                        jsonResponse = json.loads(response.text)["results"]
-                        for jsonResult in jsonResponse: 
-                            jsonResult["system"] = "Cluster System {0}, index {1}".format(jimi.cluster.getSystemId(),systemIndex["systemIndex"])
-                        results += jsonResponse
+                    try:
+                        response = requests.get("{0}{1}{2}".format(url,jimi.api.base,apiEndpoint),headers=headers, timeout=10)
+                        if response.status_code == 200:
+                            jsonResponse = json.loads(response.text)["results"]
+                            for jsonResult in jsonResponse: 
+                                jsonResult["system"] = "Cluster System {0}, index {1}".format(jimi.cluster.getSystemId(),systemIndex["systemIndex"])
+                            results += jsonResponse
+                    except:
+                        logging.warning("Unable to access {0}{1}{2}".format(url,jimi.api.base,apiEndpoint))
                 return { "results" : results }, 200
 
         if jimi.api.webServer.name == "jimi_worker":

@@ -49,6 +49,19 @@
             <div class="col">
                 <div class="card h-100 panel">
                     <div class="card-header">
+                        <h5 class="card-title">Reload Module</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">Reload a module by name</p>
+                    </div>
+                    <div class="card-footer">
+                        <button type="button" class="btn btn-primary button" id="clearCache" onclick="ReloadModule()">Reload Module</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 panel">
+                    <div class="card-header">
                         <h5 class="card-title">Redistribute Cluster</h5>
                     </div>
                     <div class="card-body">
@@ -141,6 +154,15 @@
                     alert(JSON.stringify(result));
                 }
             });
+        }
+        function ReloadModule() {
+            var moduleName = window.prompt("Enter the module to reload.");
+            if (moduleName) {
+                $.ajax({ url: "/api/1.0/system/reload/module/"+moduleName+"/", type : "GET", contentType:"application/json", success: function ( result ) {
+                        alert(JSON.stringify(result));
+                    }
+                });
+            }
         }
         $(document).ready(function() {
             $('.lastSyncTime').each(function(i, obj) {

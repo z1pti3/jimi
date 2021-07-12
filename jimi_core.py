@@ -1,7 +1,7 @@
 import multiprocessing
 import logging
 
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.ERROR)
 
 def startWorker(systemId,systemIndex):
     def healthChecker(scheduler):

@@ -1,6 +1,8 @@
 import requests
 from pathlib import Path
 import os
+import json
+import logging
 
 import jimi
 from system import install
@@ -145,6 +147,25 @@ if jimi.api.webServer:
 				return {}, 200
 
 			@jimi.api.webServer.route(jimi.api.base+"system/reload/module/<moduleName>/", methods=["GET"])
+			@jimi.auth.adminEndpoint
+			def reloadModule(moduleName):
+				jimi.helpers.reloadModulesWithinPath(moduleName)
+				results = [{ "system" : jimi.cluster.getSystemId(), "status_code" : 200 }]
+				apiToken = jimi.auth.generateSystemSession()
+				headers = { "X-api-token" : apiToken }
+				for systemIndex in jimi.cluster.systemIndexes:
+					url = systemIndex["apiAddress"]
+					apiEndpoint = "system/reload/module/{0}/".format(moduleName)
+					try:
+						response = requests.get("{0}{1}{2}".format(url,jimi.api.base,apiEndpoint),headers=headers, timeout=10)
+						if response.status_code == 200:
+							results.append({ "system" : jimi.cluster.getSystemId(), "index" : systemIndex["systemIndex"], "status_code" : response.status_code })
+					except:
+						logging.warning("Unable to access {0}{1}{2}".format(url,jimi.api.base,apiEndpoint))
+				return { "results" : results }, 200
+
+		if jimi.api.webServer.name == "jimi_worker":
+			@jimi.api.webServer.route(jimi.api.base+"system/reload/module/<moduleName>/", methods=["GET"])
 			@jimi.auth.systemEndpoint
 			def reloadModule(moduleName):
 				jimi.helpers.reloadModulesWithinPath(moduleName)
@@ -170,3 +191,17 @@ if jimi.api.webServer:
 				apiEndpoint = "system/checksum/"
 				response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url,timeout=60)
 				return { "url" : url, "response" : response.status_code }, 200
+
+			@jimi.api.webServer.route(jimi.api.base+"system/reload/module/<moduleName>/", methods=["GET"])
+			@jimi.auth.adminEndpoint
+			def reloadModule(moduleName):
+				jimi.helpers.reloadModulesWithinPath(moduleName)
+				results = [{ "web" : jimi.cluster.getSystemId(), "status_code" : 200 }]
+				apiEndpoint = "system/reload/module/{0}/".format(moduleName)
+				servers = jimi.cluster.getAll()
+				for url in servers:
+					response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
+					if response.status_code == 200:
+						results.append({ "server" : url, "results" : json.loads(response.text) })
+				return { "results" : results }, 200
+
