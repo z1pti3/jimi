@@ -125,7 +125,7 @@ def clearCachePage():
 		if response.status_code != 200:
 			results.append({ "server" : url, "result" : False })
 		else:
-			results.append({ "server" : url, "result" : True })
+			results.append({ "server" : url, "result" : True, "results" : json.loads(response.text) })
 	return { "results" : results }, 200
 
 # Should be migrated into admin.py
