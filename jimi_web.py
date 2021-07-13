@@ -12,7 +12,7 @@ import os
 from operator import itemgetter
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.ERROR)
 
 # Setup and define API ( required before other modules )
 from core import api, settings
