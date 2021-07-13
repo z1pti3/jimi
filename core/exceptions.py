@@ -36,7 +36,7 @@ class triggerCrash(Exception):
         self.triggerName = triggerName
         self.triggerID = triggerID
         self.trace = ''.join(traceback.format_exception(etype=type(exception), value=exception, tb=exception.__traceback__))
-        jimi.logging.debug("Error: Action Crashed. actionName='{0}', actionID='{1}', trace='{2}'".format(self.actionName,self.actionID,self.trace),-1)
+        jimi.logging.debug("Error: Trigger Crashed. triggerName='{0}', triggerID='{1}', trace='{2}'".format(self.triggerName,self.triggerID,self.trace),-1)
         jimi.systemTrigger.failedTrigger(self.triggerName,self.triggerID,"triggerCrash",self.trace)
 
     def __str__(self):
