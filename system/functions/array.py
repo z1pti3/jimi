@@ -1,9 +1,19 @@
 def index(array,index):
-    return array[index]
+    try:
+        return array[index]
+    except:
+        return array
 
 def append(array,value):
-    array.append(value)
+    try:
+        array.append(value)
+    except:
+        pass
     return array
 
 def remove(array,index):
-    del array[index]
+    try:
+        del array[index]
+    except:
+        pass
+    return array
