@@ -182,7 +182,7 @@ class _clusterMember(jimi.db._document):
                         failedTriggerClass.nextCheck = time.time()
                         failedTriggerClass.update(["systemID","systemIndex","startCheck","nextCheck"])
                         jimi.audit._audit().add("cluster","restart trigger",{ "triggerID" : failedTriggerClass._id, "triggerName" : failedTriggerClass.name, "triggerAttemptCount" : failedTriggerClass.attemptCount, "triggerSystemID" : failedTriggerClass.systemID, "masterID" : self.systemID, "masterUID" : self.systemUID })
-                        #jimi.exceptions.triggerCrash(failedTriggerClass.id,failedTriggerClass.name,'Retarting failed trigger. triggerSystemID={0}, masterID={1}, attempts={2}'.format(failedTriggerClass.systemID,self.systemID,failedTriggerClass.attemptCount))
+                        jimi.exceptions.triggerCrash(failedTriggerClass._id,failedTriggerClass.name,'Retarting failed trigger. triggerSystemID={0}, masterID={1}, attempts={2}'.format(failedTriggerClass.systemID,self.systemID,failedTriggerClass.attemptCount))
                     else:
                         if jimi.logging.debugEnabled:
                             jimi.logging.debug("Unable to load trigger {0} for restarting".format(failedTrigger["_id"]),3)
