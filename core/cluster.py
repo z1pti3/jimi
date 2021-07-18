@@ -291,6 +291,9 @@ def loadClusterMember():
 def getSystemId():
     return systemSettings["systemID"]
 
+def getSystem():
+    return getClusterMemberById(systemSettings["systemID"])
+
 def getClusterMemberById(systemID):
     clusterMember = _clusterMember().getAsClass(query={ "systemID" : systemID })
     if len(clusterMember) == 1:

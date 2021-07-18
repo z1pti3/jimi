@@ -142,8 +142,8 @@ if jimi.api.webServer:
 			@jimi.api.webServer.route(jimi.api.base+"system/checksum/", methods=["GET"])
 			@jimi.auth.adminEndpoint
 			def regenerateSystemFileIntegrity():
-				jimi.cluster.cluster.clusterMember.checksum = fileIntegrityRegister()
-				jimi.cluster.cluster.clusterMember.update(["checksum"])
+				jimi.cluster.getSystem().checksum = fileIntegrityRegister()
+				jimi.cluster.getSystem().update(["checksum"])
 				return {}, 200
 
 			@jimi.api.webServer.route(jimi.api.base+"system/reload/module/<moduleName>/", methods=["GET"])
