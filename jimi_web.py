@@ -28,20 +28,7 @@ from web import ui
 from web import modelEditor, conductEditor, codify
 
 # Add plugin blueprints
-pluginPages = []
-plugins = os.listdir("plugins")
-for plugin in plugins:
-	if os.path.isfile(Path("plugins/{0}/web/{0}.py".format(plugin))):
-		mod = __import__("plugins.{0}.web.{0}".format(plugin), fromlist=["pluginPages"])
-		jimi.api.webServer.register_blueprint(mod.pluginPages,url_prefix='/plugin/{0}'.format(plugin))
-		hidden = False
-		try:
-			hidden = mod.pluginPagesHidden
-		except:
-			pass
-		if not hidden:
-			pluginPages.append(plugin)
-jimi.plugin.loadedPluginPages = pluginPages
+jimi.plugin.refreshPluginBlueprints()
 
 # Installing
 if "webui" not in jimi.db.list_collection_names():
@@ -71,9 +58,9 @@ def administrationPage():
 @jimi.api.webServer.route(jimi.api.base+"plugins/")
 def loadPluginPages():
 	userPlugins = []
-	userModels = jimi.plugin._plugin().getAsClass(sessionData=jimi.api.g.sessionData,query={ "name" : { "$in" : pluginPages } },sort=[("name", 1)])
+	userModels = jimi.plugin._plugin().getAsClass(sessionData=jimi.api.g.sessionData,query={ "name" : { "$in" : jimi.plugin.loadedPluginPages } },sort=[("name", 1)])
 	for userModel in userModels:
-		if userModel.name in pluginPages:
+		if userModel.name in jimi.plugin.loadedPluginPages:
 			userPlugins.append({ "id" : userModel._id, "name" : userModel.name})
 	return { "results"  : userPlugins }, 200
 

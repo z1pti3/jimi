@@ -236,15 +236,17 @@ if jimi.api.webServer:
                         plugin.upgradeHandler(pluginVersion)
                     elif plugin.installed:
                         jimi.logging.debug("Info: Plugin already up to date. pluginName={0}, currentVersion={1}, newVersion={2}".format(pluginName,plugin.version,pluginVersion),-1)
-                    else:
-                        installType = 0
-                        jimi.logging.debug("Info: Installing new plugin. pluginName={0}, version={1}".format(pluginName,pluginVersion),-1)
-                        plugin.installHandler()
                 else:
-                    plugin = _plugin().new(pluginName)
-                    plugin = _plugin().getAsClass(id=plugin.inserted_id)[0]
+                    classID = jimi.model._model().query(query={"className" : "_plugin" })["results"][0]["_id"]
+                    pluginClass = loadPluginClass(pluginName)
+                    newPlugin = pluginClass()
+                    newPlugin.name = pluginName
+                    newPlugin.classID = classID
+                    newPluginID = newPlugin._dbCollection.insert_one(newPlugin.parse()).inserted_id
+                    newPlugin = pluginClass().get(newPluginID)
+                    if newPlugin.installed != True:
+                        newPlugin.installHandler()
                     jimi.logging.debug("Info: Installing new plugin. pluginName={0}, version={1}".format(pluginName,pluginVersion),-1)
-                    plugin.installHandler()
 
                 # Apply system updates
                 if installType > -1:
@@ -337,6 +339,7 @@ if jimi.api.webServer:
                     os.remove(tempFilename)
                     module = "plugins.{0}".format(pluginName)
                     jimi.helpers.reloadModulesWithinPath(module)
+                    refreshPluginBlueprints()
                     return json.loads(response.text), 200
                 else:
                     return { "message" : "Failed" }, 404
@@ -436,3 +439,23 @@ def updatePluginDB():
                     loadedPlugin.installHandler()
                 elif loadedPlugin.version < pluginClass.version:
                     loadedPlugin.upgradeHandler(pluginClass.version)
+
+def refreshPluginBlueprints():
+    global loadedPluginPages
+    pluginPages = []
+    plugins = os.listdir("plugins")
+    for plugin in plugins:
+        if os.path.isfile(Path("plugins/{0}/web/{0}.py".format(plugin))):
+            if plugin not in loadedPluginPages:
+                mod = __import__("plugins.{0}.web.{0}".format(plugin), fromlist=["pluginPages"])
+                jimi.api.webServer.register_blueprint(mod.pluginPages,url_prefix='/plugin/{0}'.format(plugin))
+                hidden = False
+                try:
+                    hidden = mod.pluginPagesHidden
+                except:
+                    pass
+                if not hidden:
+                    pluginPages.append(plugin)
+            else:
+                pluginPages.append(plugin)
+    loadedPluginPages = pluginPages
