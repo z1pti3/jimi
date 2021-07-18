@@ -556,10 +556,13 @@ mongodbSettings = jimi.settings.config["mongodb"]
 authSettings = jimi.settings.config["auth"]
 
 # Try / Except - v3.0 added ssl and ssl_ca_certs but setting may not always be present
-try:
-    dbClient = pymongo.MongoClient(mongodbSettings["hosts"],username=mongodbSettings["username"],password=mongodbSettings["password"],ssl=mongodbSettings["ssl"],ssl_ca_certs=mongodbSettings["ca"])
-except:
-    dbClient = pymongo.MongoClient(mongodbSettings["hosts"],username=mongodbSettings["username"],password=mongodbSettings["password"])
+if "connectString" in mongodbSettings:
+    dbClient = pymongo.MongoClient(mongodbSettings["connectString"])
+else:
+    try:
+        dbClient = pymongo.MongoClient(mongodbSettings["hosts"],username=mongodbSettings["username"],password=mongodbSettings["password"],ssl=mongodbSettings["ssl"],ssl_ca_certs=mongodbSettings["ca"])
+    except:
+        dbClient = pymongo.MongoClient(mongodbSettings["hosts"],username=mongodbSettings["username"],password=mongodbSettings["password"])
 
 db = dbClient[mongodbSettings["db"]]
 
