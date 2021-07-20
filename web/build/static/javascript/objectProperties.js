@@ -289,7 +289,7 @@ function loadPropertiesPanel(flowID,panel,init=false) {
           			for (var i=0; i< result["formData"][objectItem]["dropdown"].length;i++){
 						$select.append($('<option>').attr({value: result["formData"][objectItem]["dropdown"][i]}).text(result["formData"][objectItem]["dropdown"][i]));
 					}
-					$select.val(result["formData"][objectItem]["current"])
+					$select.val(result["formData"][objectItem]["value"])
 					// console.log(result["formData"][objectItem]["dropdown"].length)
 					// console.log(result["formData"][objectItem]["dropdown"])
 					
