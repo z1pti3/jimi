@@ -15,12 +15,11 @@ import logging
 logging.basicConfig(level=logging.ERROR)
 
 # Setup and define API ( required before other modules )
-from core import api, settings
-apiSettings = settings.config["api"]["web"]
-
+from core import api
 api.createServer("jimi_web",template_folder=str(Path("web","build")),static_folder=str(Path("web","build","static")))
 
 import jimi
+apiSettings = jimi.config["api"]["web"]
 
 from web import ui
 

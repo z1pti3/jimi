@@ -4,6 +4,8 @@ import functools
 import copy
 from bson.objectid import ObjectId
 from threading import Lock
+from pathlib import Path
+import json
 
 import jimi
 
@@ -241,7 +243,7 @@ class _document():
         # Builds list of permitted ACL
         accessIDs = []
         adminBypass = False
-        if sessionData and authSettings["enabled"]:
+        if sessionData and jimi.settings.getSetting("auth","enabled"):
             if "admin" in sessionData:
                 if sessionData["admin"]:
                     adminBypass = True
@@ -273,7 +275,7 @@ class _document():
                     if field in doc:
                         fieldAccessPermitted = True
                         # Checking if sessionData is permitted field level access
-                        if "acl" in doc and not adminBypass and sessionData and authSettings["enabled"] and field not in ["classID","acl"]:
+                        if "acl" in doc and not adminBypass and sessionData and jimi.settings.getSetting("auth","enabled") and field not in ["classID","acl"]:
                             fieldAccessPermitted = fieldACLAccess(sessionData,doc["acl"],field)
                         # Allow field data to be returned if access is permitted
                         if fieldAccessPermitted:
@@ -285,7 +287,7 @@ class _document():
                 for field in list(doc):
                     fieldAccessPermitted = True
                     # Checking if sessionData is permitted field level access
-                    if "acl" in doc and not adminBypass and sessionData and authSettings["enabled"] and field not in ["classID","acl"]:
+                    if "acl" in doc and not adminBypass and sessionData and jimi.settings.getSetting("auth","enabled") and field not in ["classID","acl"]:
                         fieldAccessPermitted = fieldACLAccess(sessionData,doc["acl"],field)
                     # Allow field data to be returned if access is permitted
                     if fieldAccessPermitted:
@@ -313,7 +315,7 @@ class _document():
         # Builds list of permitted ACL
         accessIDs = []
         adminBypass = False
-        if sessionData and authSettings["enabled"]:
+        if sessionData and jimi.settings.getSetting("auth","enabled"):
             if "admin" in sessionData:
                 if sessionData["admin"]:
                     adminBypass = True
@@ -341,7 +343,7 @@ class _document():
         # Builds list of permitted ACL
         accessIDs = []
         adminBypass = False
-        if sessionData and authSettings["enabled"]:
+        if sessionData and jimi.settings.getSetting("auth","enabled"):
             if "admin" in sessionData:
                 if sessionData["admin"]:
                     adminBypass = True
@@ -366,7 +368,7 @@ class _document():
         # Builds list of permitted ACL
         adminBypass = False
         aggregate = []
-        if sessionData and authSettings["enabled"]:
+        if sessionData and jimi.settings.getSetting("auth","enabled"):
             if "admin" in sessionData:
                 if sessionData["admin"]:
                     adminBypass = True
@@ -397,7 +399,7 @@ class _document():
         # Builds list of permitted ACL
         adminBypass = False
         aggregate = []
-        if sessionData and authSettings["enabled"]:
+        if sessionData and jimi.settings.getSetting("auth","enabled"):
             if "admin" in sessionData:
                 if sessionData["admin"]:
                     adminBypass = True
@@ -551,9 +553,9 @@ class _bulk():
         self.bulkOperatons[collection][method].append(value)
         self.lock.release()
 
-
-mongodbSettings = jimi.settings.config["mongodb"]
-authSettings = jimi.settings.config["auth"]
+with open(str(Path("data/db.json"))) as f:
+    config = json.load(f)
+mongodbSettings = config["mongodb"]
 
 # Try / Except - v3.0 added ssl and ssl_ca_certs but setting may not always be present
 if "connectString" in mongodbSettings:
@@ -572,7 +574,7 @@ def list_collection_names():
 
 # Checks if access to a field is permitted by the object ACL
 def fieldACLAccess(sessionData,acl,field,accessType="read"):
-    if not authSettings["enabled"]:
+    if not jimi.settings.getSetting("auth","enabled"):
         return True
     accessIDs= []
     access = False
@@ -608,7 +610,7 @@ def fieldACLAccess(sessionData,acl,field,accessType="read"):
 
 # Checks if access to the object is permitted by the object ACL
 def ACLAccess(sessionData,acl,accessType="read"):
-    if not authSettings["enabled"]:
+    if not jimi.settings.getSetting("auth","enabled"):
         return [ True, [], False ]
     accessIDs = []
     access = False

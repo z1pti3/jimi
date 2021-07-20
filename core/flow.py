@@ -9,7 +9,7 @@ import jimi
 
 from system import variable, logic
 
-cpuSaver = jimi.settings.config["cpuSaver"]
+cpuSaver = jimi.config["cpuSaver"]
 
 regexFunction = re.compile("^([a-zA-Z0-9]*)\(.*\)")
 regexCommor = re.compile(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")

@@ -105,7 +105,7 @@ class _group(jimi.db._document):
 
 from system import install
 
-authSettings = jimi.settings.config["auth"]
+authSettings = jimi.config["auth"]
 
 # Loading public and private keys for session signing
 with open(str(Path(authSettings["rsa"]["cert"]))) as f:

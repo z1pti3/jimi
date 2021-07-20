@@ -233,7 +233,7 @@ class _cache:
         return result
 
 try:
-    cacheSettings = jimi.settings.config["cache"]
+    cacheSettings = jimi.config["cache"]
     globalCache = _cache(maxSize=cacheSettings["maxSize"],cacheExpiry=cacheSettings["cacheExpiry"])
     if cacheSettings["enabled"] == False:
         globalCache.get = globalCache.getDisabled

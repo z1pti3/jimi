@@ -5,7 +5,7 @@ import inspect
 
 import jimi
 
-debugSettings = jimi.settings.config["debug"]
+debugSettings = jimi.config["debug"]
 try:
     debugEnabled = debugSettings["enabled"]
 except KeyError:

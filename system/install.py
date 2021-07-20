@@ -10,7 +10,7 @@ import json
 import jimi
 
 # Current System Version
-systemVersion = 2.10
+systemVersion = 3.0
 
 # Initialize 
 dbCollectionName = "system"
@@ -28,7 +28,7 @@ class _system(jimi.db._document):
 		result = self._dbCollection.insert_one({ "name" : name })
 		return result
 
-systemSettings = jimi.settings.config["system"]
+systemSettings = jimi.config["system"]
 
 def installedVersion():
 	systemAbout = _system().query(query={ "name" : "about", "systemID" : systemSettings["systemID"] })["results"]
@@ -168,6 +168,112 @@ def systemInstall():
 		jimi.logging.debug("DB Collection clusterMembers Not Found : Creating...")
 		jimi.model.registerModel("clusterMember","_clusterMember","_document","core.cluster")
 
+	# Settings
+	jimi.model.registerModel("settings","_settings","_document","core.settings")
+	if not jimi.settings._settings().new("system",{
+        "systemID" : 0,
+        "accessAddress" : "127.0.0.1",
+        "accessPort" : 5000,
+        "secure" : False
+    }):
+		print("ERROR: Unable to build system settings ")
+		return False
+	if not jimi.settings._settings().new("debug",{
+        "level" : -1,
+        "buffer" : 1000
+    }):
+		print("ERROR: Unable to build system debug ")
+		return False
+	if not jimi.settings._settings().new("api",{
+        "core" : {
+            "bind" : "127.0.0.1",
+            "port" : 5000,
+            "base" : "api/1.0",
+            "apiKey" : None
+        },
+        "worker" : {
+            "bind" : "127.0.0.1",
+            "startPort" : 5001,
+            "base" : "api/1.0",
+            "apiKey" : None
+        },
+        "web" : {
+            "bind" : "127.0.0.1",
+            "port" : 5015,
+            "base" : "api/1.0",
+            "apiKey" : None
+        },
+        "proxy" : {
+            "http" : None,
+            "https" : None
+        }
+    }):
+		print("ERROR: Unable to build system api ")
+		return False
+	if not jimi.settings._settings().new("workers",{ 
+        "concurrent" : 15,
+        "loopT" : 0.01,
+        "loopT1" : 0.25,
+        "loopL" : 200
+    }):
+		print("ERROR: Unable to build system workers ")
+		return False
+	if not jimi.settings._settings().new("cpuSaver",{ 
+        "enabled" : True,
+        "loopT" : 0.01,
+        "loopL" : 100
+    }):
+		print("ERROR: Unable to build system cpuSaver ")
+		return False
+	if not jimi.settings._settings().new("scheduler",{
+        "loopP" : 5
+    }):
+		print("ERROR: Unable to build system scheduler ")
+		return False
+	if not jimi.settings._settings().new("cluster",{
+        "loopP" : 10,
+        "recoveryTime" : 60,
+        "deadTimer" : 30
+    }):
+		print("ERROR: Unable to build system cluster ")
+		return False
+	if not jimi.settings._settings().new("aduit",{
+        "db" : {
+            "enabled" : True
+        },
+        "file" : {
+            "enabled" : True,
+            "logdir" : "log"
+        }
+    }):
+		print("ERROR: Unable to build system aduit ")
+		return False
+	if not jimi.settings._settings().new("auth",{
+        "enabled" : True,
+        "sessionTimeout" : 1800,
+        "apiSessionTimeout" : 300,
+        "cacheSessionTimeout" : 60,
+        "singleUserSessions" : True,
+        "rsa" : {
+            "cert" : "data/sessionPub.pem",
+            "key" : "data/sessionPriv.pem"
+        },
+        "policy" : {
+            "minLength" : 12,
+            "minNumbers" : 1,
+            "minLower" : 1,
+            "minUpper" : 1,
+            "minSpecial" : 0
+        }
+    }):
+		print("ERROR: Unable to build system auth ")
+		return False
+	if not jimi.settings._settings().new("cache",{
+        "garbageCollector" : True
+    }):
+		print("ERROR: Unable to build system cache ")
+		return False
+
 	# System documents
 	jimi.model.registerModel("systemFiles","_systemFiles","_document","system.system")
 
@@ -297,59 +403,6 @@ def systemUpgrade(currentVersion):
 				pluginClass = pluginClass[0]
 				pluginClass.upgradeHandler()
 		return True
-
-	if currentVersion < 1.81:
-		jimi.model.registerModel("storage","_storage","_document","core.storage")
-
-	if currentVersion < 1.9:
-		jimi.model.registerModel("getTrigger","_getTrigger","_action","system.models.action")
-		jimi.model.registerModel("setTrigger","_setTrigger","_action","system.models.action")
-		jimi.model.registerModel("enableTrigger","_enableTrigger","_action","system.models.action")
-		jimi.model.registerModel("disableTrigger","_disableTrigger","_action","system.models.action")
-		jimi.model.registerModel("getAction","_getAction","_action","system.models.action")
-		jimi.model.registerModel("setAction","_setAction","_action","system.models.action")
-		jimi.model.registerModel("enableAction","_enableAction","_action","system.models.action")
-		jimi.model.registerModel("disableAction","_disableAction","_action","system.models.action")
-
-	if currentVersion < 2.0:
-		jimi.model.registerModel("session","_session","_document","core.auth")
-
-	if currentVersion < 2.01:
-		classID = jimi.model._model().query(query={"className" : "_plugin" })["results"][0]["_id"]
-		installedPlugins = jimi.plugin._plugin().getAsClass(query={ "installed" : True })
-		for installedPlugin in installedPlugins:
-			installedPlugin.classID = classID
-			installedPlugin.update(["classID"])
-
-	if currentVersion < 2.03:
-		# Install system manifest
-		loadSystemManifest()
-
-	if currentVersion < 2.04:
-		# Update system manifest
-		loadSystemManifest()
-		jimi.model.registerModel("subFlow","_subFlow","_action","system.models.subFlow")
-
-	if currentVersion < 2.05:
-		# Update system manifest
-		loadSystemManifest()
-
-	if currentVersion < 2.06:
-		# System - failedActions
-		triggers = jimi.trigger._trigger().getAsClass(query={"name" : "failedActions"})
-		if len(triggers) < 1:
-			from system.models import trigger as systemTrigger
-			jimi.model.registerModel("failedActions","_failedActions","_trigger","system.models.trigger")
-			if not systemTrigger._failedActions().new("failedActions"):
-				jimi.logging.debug("Unable to register failedActions",-1)
-				return False
-		temp = jimi.model._model().getAsClass(query={ "name" : "failedActions" })
-		if len(temp) == 1:
-			temp = temp[0]
-			temp.hidden = True
-			temp.update(["hidden"])
-		# Update system manifest
-		loadSystemManifest()
 	
 	if currentVersion < 2.07:
 		jimi.model.registerModel("systemFiles","_systemFiles","_document","system.system")
@@ -361,4 +414,40 @@ def systemUpgrade(currentVersion):
 		# New generate password system function
 		jimi.model.registerModel("generatePassword","_generatePassword","_action","system.models.action")
 
+	if currentVersion < 3.0:
+		jimi.model.registerModel("settings","_settings","_document","core.settings")
+		import json
+		from pathlib import Path
+		with open(str(Path("data/settings.json"))) as f:
+			config = json.load(f)
+		if not jimi.settings._settings().new("system",config["system"]):
+			print("ERROR: Unable to build system settings ")
+			return False
+		if not jimi.settings._settings().new("debug",config["debug"]):
+			print("ERROR: Unable to build system debug ")
+			return False
+		if not jimi.settings._settings().new("api",config["api"]):
+			print("ERROR: Unable to build system api ")
+			return False
+		if not jimi.settings._settings().new("workers",config["workers"]):
+			print("ERROR: Unable to build system workers ")
+			return False
+		if not jimi.settings._settings().new("cpuSaver",config["cpuSaver"]):
+			print("ERROR: Unable to build system cpuSaver ")
+			return False
+		if not jimi.settings._settings().new("scheduler",config["scheduler"]):
+			print("ERROR: Unable to build system scheduler ")
+			return False
+		if not jimi.settings._settings().new("cluster",config["cluster"]):
+			print("ERROR: Unable to build system cluster ")
+			return False
+		if not jimi.settings._settings().new("audit",config["audit"]):
+			print("ERROR: Unable to build system audit ")
+			return False
+		if not jimi.settings._settings().new("auth",config["auth"]):
+			print("ERROR: Unable to build system auth ")
+			return False
+		if not jimi.settings._settings().new("cache",{ "garbageCollector" : True }):
+			print("ERROR: Unable to build system cache ")
+			return False
 	return True
