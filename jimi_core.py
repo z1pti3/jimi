@@ -30,7 +30,7 @@ def startWorker(systemId,systemIndex):
     api.createServer("jimi_worker")
     import jimi
     jimi.function.load()
-    api.startServer(True, host=workerAPISettings["bind"], port=workerAPISettings["startPort"]+systemIndex, threads=1)
+    api.startServer(True,{'server.socket_host': workerAPISettings["bind"], 'server.socket_port': workerAPISettings["startPort"]+systemIndex, 'engine.autoreload.on': False, 'server.thread_pool' : 1})
     logging.info("Index %i booting on system %i",systemIndex,systemId)
     logging.info("Starting worker handler")
     jimi.workers.workers = jimi.workers.workerHandler()
@@ -118,7 +118,7 @@ if __name__ == "__main__":
 
     # Starting API
     logging.info("Starting API interface")
-    api.startServer(True,host=apiSettings["bind"], port=apiSettings["port"])
+    api.startServer(True,{'server.socket_host': apiSettings["bind"], 'server.socket_port': apiSettings["port"], 'engine.autoreload.on': False, 'server.thread_pool' : 1})
 
     # Starting workers for API based calls - i.e. debug and triggering flows that are run on the master node
     logging.info("Starting cluster worker handler for API based calls")

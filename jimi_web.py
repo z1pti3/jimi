@@ -434,4 +434,4 @@ def statusPageTriggerChartAPI():
 			trigger["status"] = "Failed"
 	return triggers, 200
 
-api.startServer(False,host=apiSettings["bind"], port=apiSettings["port"])
+api.startServer(False,{'server.socket_host': apiSettings["bind"], 'server.socket_port': apiSettings["port"], 'engine.autoreload.on': False, 'server.thread_pool' : 5})

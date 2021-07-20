@@ -1,4 +1,4 @@
-import waitress
+import cherrypy
 from flask import Flask, request, make_response, redirect, g, send_file
 import _thread
 
@@ -9,9 +9,11 @@ def createServer(name, **kwargs):
 	global webServer
 	webServer = Flask(name,**kwargs)
 
-def startServer(threaded,**kwargs):
+def startServer(threaded,webserverArguments):
 	global webServer
+	cherrypy.tree.graft(webServer.wsgi_app, '/')
+	cherrypy.config.update(webserverArguments)
 	if threaded:
-		_thread.start_new_thread(waitress.serve, (webServer,), kwargs)
+		_thread.start_new_thread(cherrypy.engine.start)
 	else:
-		waitress.serve(webServer,**kwargs)
+		cherrypy.engine.start()
