@@ -20,10 +20,10 @@ def startWorker(systemId,systemIndex):
                 logging.error("Workers on index %i has failed",systemIndex)
                 os._exit(10)
             time.sleep(10)
-    from core import settings, api
+    from core import api
     api.createServer("jimi_worker")
     import jimi
-    workerAPISettings = jimi.config["api"]["worker"]
+    workerAPISettings = jimi.settings.getSetting("api","worker")
     jimi.function.load()
     api.startServer(True,{'server.socket_host': workerAPISettings["bind"], 'server.socket_port': workerAPISettings["startPort"]+systemIndex, 'engine.autoreload.on': False, 'server.thread_pool' : 1})
     logging.info("Index %i booting on system %i",systemIndex,systemId)
@@ -74,16 +74,16 @@ if __name__ == "__main__":
     import os
     import jimi
 
-    apiSettings = jimi.config["api"]["core"]
-    workerAPISettings = jimi.config["api"]["worker"]
-
-    systemId = jimi.cluster.getSystemId()
-    logging.info("System starting system_id is %i",systemId)
-
     # Running installers
     logging.info("Running system startup installers")
     from system import install
     install.setup()
+
+    apiSettings = jimi.settings.getSetting("api","core")
+    workerAPISettings = jimi.settings.getSetting("api","worker")
+
+    systemId = jimi.cluster.getSystemId()
+    logging.info("System starting system_id is %i",systemId)
 
     # File system integrity
     logging.info("Checking cluster integrity")

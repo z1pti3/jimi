@@ -261,9 +261,9 @@ class _cluster:
             time.sleep(clusterSettings["loopP"])
             
 
-systemSettings = jimi.config["system"]
-clusterSettings = jimi.config["cluster"]
-apiSettings = jimi.config["api"]
+systemSettings = jimi.settings.getSetting("system",None)
+clusterSettings = jimi.settings.getSetting("cluster",None)
+apiSettings = jimi.settings.getSetting("api",None)
 
 def loadClusterMember():
     clusterMember = _clusterMember().getAsClass(query={ "systemID" : systemSettings["systemID"] })

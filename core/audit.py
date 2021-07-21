@@ -67,5 +67,5 @@ class _audit(jimi.db._document):
                 jimi.logging.debug("Writing audit item, auditID={0}, auditData='{1}'".format(str(result.inserted_id),auditData))
         return result
 
-auditSettings = jimi.config["audit"]
-systemSettings = jimi.config["system"]
+auditSettings = jimi.settings.getSetting("audit",None)
+systemSettings = jimi.settings.getSetting("system",None)

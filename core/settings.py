@@ -17,5 +17,10 @@ def getSetting(name,settingName):
 	return jimi.cache.globalCache.get("settingsCache","{0}:{1}".format(name,settingName),getSettingValue,name,settingName)
 
 def getSettingValue(uid,sessionData,name,settingName):
-	setting = _settings().query(sessionData,query={ "name" : name })["results"][0]
-	return setting["values"][settingName]
+	try:
+		setting = _settings().query(sessionData,query={ "name" : name })["results"][0]
+		if settingName:
+			return setting["values"][settingName]
+		return setting["values"]
+	except:
+		return None

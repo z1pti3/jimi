@@ -23,7 +23,7 @@ class _systemFiles(jimi.db._document):
 		self.fileHash = fileHash
 		return super(_systemFiles, self).new()
 
-systemSettings = jimi.config["system"]
+systemSettings = jimi.settings.getSetting("system",None)
 
 def fileIntegrityRegister():
 	knownFiles = _systemFiles().getAsClass(query={ "systemID" : systemSettings["systemID"] })

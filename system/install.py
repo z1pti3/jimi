@@ -6,6 +6,7 @@ import string
 from pathlib import Path
 import os
 import json
+import logging
 
 import jimi
 
@@ -68,23 +69,24 @@ def setup():
 			upgrade = True
 
 	if install:
-		jimi.logging.debug("Starting system install",-1)
+		logging.error("Starting system install")
 		if systemInstall():
 			# Set system version number if install and/or upgrade
 			systemAbout.data["version"] = systemVersion
 			systemAbout.systemID = systemSettings["systemID"]
 			systemAbout.update(["data","systemID"])
-			jimi.logging.debug("Starting system install completed",-1)
+			logging.error("Starting system install completed")
+			sys.exit(0)
 		else:
 			sys.exit("Unable to complete install")
 	elif upgrade:
-		jimi.logging.debug("Starting system upgrade",-1)
+		logging.error("Starting system upgrade")
 		systemUpgrade(systemAbout.data["version"])
 		if systemUpgrade(systemAbout.data["version"]):
 			# Set system version number if install and/or upgrade
 			systemAbout.data["version"] = systemVersion
 			systemAbout.update(["data"])
-			jimi.logging.debug("Starting system upgrade completed",-1)
+			logging.error("Starting system upgrade completed")
 		else:
 			sys.exit("Unable to complete upgrade")
 
@@ -138,9 +140,9 @@ def systemInstall():
 
 	# Installing model if that DB is not installed
 	if "model" not in jimi.db.list_collection_names():
-		jimi.logging.debug("DB Collection 'model' Not Found : Creating...")
+		logging.error("DB Collection 'model' Not Found : Creating...")
 		# Creating default model required so other models can be registered
-		jimi.logging.debug("Registering default model class...")
+		logging.error("Registering default model class...")
 		m = jimi.model._model()
 		m.name = "model"
 		m.classID = None
@@ -150,32 +152,40 @@ def systemInstall():
 		m.location = "core.model"
 		m.insert_one(m.parse())
 	if "conducts" not in jimi.db.list_collection_names():
-		jimi.logging.debug("DB Collection conducts Not Found : Creating...")
+		logging.error("DB Collection conducts Not Found : Creating...")
 		jimi.model.registerModel("conduct","_conduct","_document","core.models.conduct")
 	if "triggers" not in jimi.db.list_collection_names():
-		jimi.logging.debug("DB Collection action Not Found : Creating...")
+		logging.error("DB Collection action Not Found : Creating...")
 		jimi.model.registerModel("trigger","_trigger","_document","core.models.trigger")
 	if "actions" not in jimi.db.list_collection_names():
-		jimi.logging.debug("DB Collection action Not Found : Creating...")
+		logging.error("DB Collection action Not Found : Creating...")
 		jimi.model.registerModel("action","_action","_document","core.models.action")
 	if "webui" not in jimi.db.list_collection_names():
-		jimi.logging.debug("DB Collection webui Not Found : Creating...")
+		logging.error("DB Collection webui Not Found : Creating...")
 		jimi.model.registerModel("flowData","_flowData","_document","core.models.webui")
 	if "modelUI" not in jimi.db.list_collection_names():
-		jimi.logging.debug("DB Collection modelUI Not Found : Creating...")
+		logging.error("DB Collection modelUI Not Found : Creating...")
 		jimi.model.registerModel("modelUI","_modelUI","_document","core.models.webui")
 	if "clusterMembers" not in jimi.db.list_collection_names():
-		jimi.logging.debug("DB Collection clusterMembers Not Found : Creating...")
+		logging.error("DB Collection clusterMembers Not Found : Creating...")
 		jimi.model.registerModel("clusterMember","_clusterMember","_document","core.cluster")
 
 	# Settings
 	jimi.model.registerModel("settings","_settings","_document","core.settings")
-	if not jimi.settings._settings().new("system",{
-        "systemID" : 0,
-        "accessAddress" : "127.0.0.1",
-        "accessPort" : 5000,
-        "secure" : False
-    }):
+	config = {}
+	if os.path.exists(str(Path("data/settings.json"))):
+		with open(str(Path("data/settings.json"))) as f:
+			config = json.load(f)
+	if "system" in config:
+		result = jimi.settings._settings().new("system",config["system"])
+	else:
+		result = jimi.settings._settings().new("system",{
+			"systemID" : 0,
+			"accessAddress" : "127.0.0.1",
+			"accessPort" : 5000,
+			"secure" : False
+		})
+	if not result:
 		print("ERROR: Unable to build system settings ")
 		return False
 	if not jimi.settings._settings().new("debug",{
@@ -184,30 +194,34 @@ def systemInstall():
     }):
 		print("ERROR: Unable to build system debug ")
 		return False
-	if not jimi.settings._settings().new("api",{
-        "core" : {
-            "bind" : "127.0.0.1",
-            "port" : 5000,
-            "base" : "api/1.0",
-            "apiKey" : None
-        },
-        "worker" : {
-            "bind" : "127.0.0.1",
-            "startPort" : 5001,
-            "base" : "api/1.0",
-            "apiKey" : None
-        },
-        "web" : {
-            "bind" : "127.0.0.1",
-            "port" : 5015,
-            "base" : "api/1.0",
-            "apiKey" : None
-        },
-        "proxy" : {
-            "http" : None,
-            "https" : None
-        }
-    }):
+	if "api" in config:
+		result = jimi.settings._settings().new("api",config["api"])
+	else:
+		result = jimi.settings._settings().new("api",{
+			"core" : {
+				"bind" : "127.0.0.1",
+				"port" : 5000,
+				"base" : "api/1.0",
+				"apiKey" : None
+			},
+			"worker" : {
+				"bind" : "127.0.0.1",
+				"startPort" : 5001,
+				"base" : "api/1.0",
+				"apiKey" : None
+			},
+			"web" : {
+				"bind" : "0.0.0.0",
+				"port" : 5015,
+				"base" : "api/1.0",
+				"apiKey" : None
+			},
+			"proxy" : {
+				"http" : None,
+				"https" : None
+			}
+    	})
+	if not result:
 		print("ERROR: Unable to build system api ")
 		return False
 	if not jimi.settings._settings().new("workers",{ 
@@ -237,7 +251,7 @@ def systemInstall():
     }):
 		print("ERROR: Unable to build system cluster ")
 		return False
-	if not jimi.settings._settings().new("aduit",{
+	if not jimi.settings._settings().new("audit",{
         "db" : {
             "enabled" : True
         },
@@ -246,26 +260,30 @@ def systemInstall():
             "logdir" : "log"
         }
     }):
-		print("ERROR: Unable to build system aduit ")
+		print("ERROR: Unable to build system audit ")
 		return False
-	if not jimi.settings._settings().new("auth",{
-        "enabled" : True,
-        "sessionTimeout" : 1800,
-        "apiSessionTimeout" : 300,
-        "cacheSessionTimeout" : 60,
-        "singleUserSessions" : True,
-        "rsa" : {
-            "cert" : "data/sessionPub.pem",
-            "key" : "data/sessionPriv.pem"
-        },
-        "policy" : {
-            "minLength" : 12,
-            "minNumbers" : 1,
-            "minLower" : 1,
-            "minUpper" : 1,
-            "minSpecial" : 0
-        }
-    }):
+	if "auth" in config:
+		result = jimi.settings._settings().new("auth",config["auth"])
+	else:
+		result = jimi.settings._settings().new("auth",{
+			"enabled" : True,
+			"sessionTimeout" : 1800,
+			"apiSessionTimeout" : 300,
+			"cacheSessionTimeout" : 60,
+			"singleUserSessions" : True,
+			"rsa" : {
+				"cert" : "data/sessionPub.pem",
+				"key" : "data/sessionPriv.pem"
+			},
+			"policy" : {
+				"minLength" : 12,
+				"minNumbers" : 1,
+				"minLower" : 1,
+				"minUpper" : 1,
+				"minSpecial" : 0
+			}
+		})
+	if not result:
 		print("ERROR: Unable to build system auth ")
 		return False
 	if not jimi.settings._settings().new("cache",{
@@ -283,7 +301,7 @@ def systemInstall():
 		from system.models import trigger as systemTrigger
 		jimi.model.registerModel("failedTriggers","_failedTriggers","_trigger","system.models.trigger")
 		if not systemTrigger._failedTriggers().new("failedTriggers"):
-			jimi.logging.debug("Unable to register failedTriggers",-1)
+			logging.error("Unable to register failedTriggers")
 			return False
 	temp = jimi.model._model().getAsClass(query={ "name" : "failedTriggers" })
 	if len(temp) == 1:
@@ -297,7 +315,7 @@ def systemInstall():
 		from system.models import trigger as systemTrigger
 		jimi.model.registerModel("failedActions","_failedActions","_trigger","system.models.trigger")
 		if not systemTrigger._failedActions().new("failedActions"):
-			jimi.logging.debug("Unable to register failedActions",-1)
+			logging.error("Unable to register failedActions")
 			return False
 	temp = jimi.model._model().getAsClass(query={ "name" : "failedActions" })
 	if len(temp) == 1:
@@ -312,7 +330,7 @@ def systemInstall():
 		from system.models import action as systemAction
 		jimi.model.registerModel("resetTrigger","_resetTrigger","_action","system.models.action")
 		if not systemAction._resetTrigger().new("resetTrigger"):
-			jimi.logging.debug("Unable to register resetTrigger",-1)
+			logging.error("Unable to register resetTrigger")
 			return False
 	temp = jimi.model._model().getAsClass(query={ "name" : "resetTrigger" })
 	if len(temp) == 1:
@@ -376,7 +394,7 @@ def systemInstall():
 		rootPass = randomString(30)
 		rootUser = jimi.auth._user().new("root","root",rootPass)
 		rootUser = jimi.auth._user().getAsClass(query={ "username" : "root" })
-		jimi.logging.debug("Root user created! Password is: {}".format(rootPass),-1)
+		logging.error("Root user created! Password is: {}".format(rootPass))
 	rootUser = rootUser[0]
 
 	# Adding root to group

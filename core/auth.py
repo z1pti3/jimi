@@ -105,20 +105,20 @@ class _group(jimi.db._document):
 
 from system import install
 
-authSettings = jimi.config["auth"]
+if jimi.settings.getSetting("auth",None):
+    authSettings = jimi.settings.getSetting("auth",None)
+    # Loading public and private keys for session signing
+    with open(str(Path(authSettings["rsa"]["cert"]))) as f:
+        sessionPublicKey = f.read()
+    with open(str(Path(authSettings["rsa"]["key"]))) as f:
+        sessionPrivateKey = f.read()
 
-# Loading public and private keys for session signing
-with open(str(Path(authSettings["rsa"]["cert"]))) as f:
-  sessionPublicKey = f.read()
-with open(str(Path(authSettings["rsa"]["key"]))) as f:
-  sessionPrivateKey = f.read()
+    public_key = serialization.load_pem_public_key( sessionPublicKey.encode(), backend=default_backend() )
+    private_key = serialization.load_pem_private_key( sessionPrivateKey.encode(), password=None, backend=default_backend() )
 
-public_key = serialization.load_pem_public_key( sessionPublicKey.encode(), backend=default_backend() )
-private_key = serialization.load_pem_private_key( sessionPrivateKey.encode(), password=None, backend=default_backend() )
+    requiredhType = "j1"
 
-requiredhType = "j1"
-
-jimi.cache.globalCache.newCache("sessions",cacheExpiry=authSettings["cacheSessionTimeout"])
+    jimi.cache.globalCache.newCache("sessions",cacheExpiry=authSettings["cacheSessionTimeout"])
 
 def getSessionObject(sessionID,sessionData):
     session = _session().getAsClass(query={"sessionID" : sessionID})
