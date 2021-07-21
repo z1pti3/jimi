@@ -433,39 +433,40 @@ def systemUpgrade(currentVersion):
 		jimi.model.registerModel("generatePassword","_generatePassword","_action","system.models.action")
 
 	if currentVersion < 3.0:
-		jimi.model.registerModel("settings","_settings","_document","core.settings")
-		import json
-		from pathlib import Path
-		with open(str(Path("data/settings.json"))) as f:
-			config = json.load(f)
-		if not jimi.settings._settings().new("system",config["system"]):
-			print("ERROR: Unable to build system settings ")
-			return False
-		if not jimi.settings._settings().new("debug",config["debug"]):
-			print("ERROR: Unable to build system debug ")
-			return False
-		if not jimi.settings._settings().new("api",config["api"]):
-			print("ERROR: Unable to build system api ")
-			return False
-		if not jimi.settings._settings().new("workers",config["workers"]):
-			print("ERROR: Unable to build system workers ")
-			return False
-		if not jimi.settings._settings().new("cpuSaver",config["cpuSaver"]):
-			print("ERROR: Unable to build system cpuSaver ")
-			return False
-		if not jimi.settings._settings().new("scheduler",config["scheduler"]):
-			print("ERROR: Unable to build system scheduler ")
-			return False
-		if not jimi.settings._settings().new("cluster",config["cluster"]):
-			print("ERROR: Unable to build system cluster ")
-			return False
-		if not jimi.settings._settings().new("audit",config["audit"]):
-			print("ERROR: Unable to build system audit ")
-			return False
-		if not jimi.settings._settings().new("auth",config["auth"]):
-			print("ERROR: Unable to build system auth ")
-			return False
-		if not jimi.settings._settings().new("cache",{ "garbageCollector" : True }):
-			print("ERROR: Unable to build system cache ")
-			return False
+		if jimi.model.registerModel("settings","_settings","_document","core.settings"):
+			import json
+			from pathlib import Path
+			with open(str(Path("data/settings.json"))) as f:
+				config = json.load(f)
+			if not jimi.settings._settings().new("system",config["system"]):
+				print("ERROR: Unable to build system settings ")
+				return False
+			if not jimi.settings._settings().new("debug",config["debug"]):
+				print("ERROR: Unable to build system debug ")
+				return False
+			if not jimi.settings._settings().new("api",config["api"]):
+				print("ERROR: Unable to build system api ")
+				return False
+			if not jimi.settings._settings().new("workers",config["workers"]):
+				print("ERROR: Unable to build system workers ")
+				return False
+			if not jimi.settings._settings().new("cpuSaver",config["cpuSaver"]):
+				print("ERROR: Unable to build system cpuSaver ")
+				return False
+			if not jimi.settings._settings().new("scheduler",config["scheduler"]):
+				print("ERROR: Unable to build system scheduler ")
+				return False
+			if not jimi.settings._settings().new("cluster",config["cluster"]):
+				print("ERROR: Unable to build system cluster ")
+				return False
+			if not jimi.settings._settings().new("audit",config["audit"]):
+				print("ERROR: Unable to build system audit ")
+				return False
+			if not jimi.settings._settings().new("auth",config["auth"]):
+				print("ERROR: Unable to build system auth ")
+				return False
+			if not jimi.settings._settings().new("cache",{ "garbageCollector" : True }):
+				print("ERROR: Unable to build system cache ")
+				return False
+			sys.exit(0)
 	return True

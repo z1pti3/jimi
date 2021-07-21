@@ -24,3 +24,8 @@ def getSettingValue(uid,sessionData,name,settingName):
 		return setting["values"]
 	except:
 		return None
+
+try:
+	cpuSaver = getSetting("cpuSaver",None)
+except:
+	cpuSaver = { "enabled" : True, "loopT" : 0.01, "loopL" : 100 }
