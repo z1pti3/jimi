@@ -313,7 +313,7 @@ class workerHandler:
         workersWaiting = [x for x in self.workerList if x.running == None]
         return len(workersWaiting)
 
-workerSettings = jimi.settings.config["workers"]
+workerSettings = jimi.settings.getSetting("workers",None)
 
 multiprocessing.set_start_method("spawn",force=True)
 

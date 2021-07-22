@@ -15,13 +15,10 @@ import logging
 logging.basicConfig(level=logging.ERROR)
 
 # Setup and define API ( required before other modules )
-from core import api, settings
-apiSettings = settings.config["api"]["web"]
-
+from core import api
 api.createServer("jimi_web",template_folder=str(Path("web","build")),static_folder=str(Path("web","build","static")))
 
 import jimi
-
 from web import ui
 
 # Other pages
@@ -434,4 +431,5 @@ def statusPageTriggerChartAPI():
 			trigger["status"] = "Failed"
 	return triggers, 200
 
-api.startServer(False,{'server.socket_host': apiSettings["bind"], 'server.socket_port': apiSettings["port"], 'engine.autoreload.on': False, 'server.thread_pool' : 5})
+
+api.startServer(False,{'server.socket_host': jimi.settings.getSetting("api","web")["bind"], 'server.socket_port': jimi.settings.getSetting("api","web")["port"], 'engine.autoreload.on': False, 'server.thread_pool' : 5})

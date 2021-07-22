@@ -7,15 +7,10 @@ def startWorker(systemId,systemIndex):
     def healthChecker(scheduler):
         import os
         logging.info("Starting health checker")
-        try:
-            cacheSettings = jimi.settings.config["cache"]
-            garbageCollector = cacheSettings["garbageCollector"]
-        except:
-            garbageCollector = False
-        logging.debug("Garbage Collector %s",garbageCollector)
+        logging.debug("Garbage Collector %s",jimi.settings.getSetting("cache","garbageCollector"))
         import time
         while True:
-            if garbageCollector:
+            if jimi.settings.getSetting("cache","garbageCollector"):
                 logging.debug("Running cache garbage collector")
                 jimi.cache.globalCache.cleanCache()
             if scheduler.lastHandle < time.time() - 60:
@@ -25,21 +20,16 @@ def startWorker(systemId,systemIndex):
                 logging.error("Workers on index %i has failed",systemIndex)
                 os._exit(10)
             time.sleep(10)
-    from core import settings, api
-    workerAPISettings = settings.config["api"]["worker"]
+    from core import api
     api.createServer("jimi_worker")
     import jimi
+    workerAPISettings = jimi.settings.getSetting("api","worker")
     jimi.function.load()
     api.startServer(True,{'server.socket_host': workerAPISettings["bind"], 'server.socket_port': workerAPISettings["startPort"]+systemIndex, 'engine.autoreload.on': False, 'server.thread_pool' : 1})
     logging.info("Index %i booting on system %i",systemIndex,systemId)
     logging.info("Starting worker handler")
     jimi.workers.workers = jimi.workers.workerHandler()
-    try:
-        cacheSettings = jimi.settings.config["cache"]
-        garbageCollector = cacheSettings["garbageCollector"]
-    except:
-        garbageCollector = False
-    logging.debug("Garbage Collector %s",garbageCollector)
+    logging.debug("Garbage Collector %s",jimi.settings.getSetting("cache","garbageCollector"))
     scheduler = jimi.scheduler._scheduler(systemId,systemIndex)
     jimi.workers.workers.new("healthChecker",healthChecker,(scheduler,),True,0)
     logging.info("Starting scheduler")
@@ -59,16 +49,11 @@ if __name__ == "__main__":
     def healthChecker(cluster,systemIndexes):
         import os
         logging.info("Starting health checker")
-        try:
-            cacheSettings = jimi.settings.config["cache"]
-            garbageCollector = cacheSettings["garbageCollector"]
-        except:
-            garbageCollector = False
-        logging.debug("Garbage Collector %s",garbageCollector)
+        logging.debug("Garbage Collector %s",jimi.settings.getSetting("cache","garbageCollector"))
         import time
         import psutil
         while True:
-            if garbageCollector:
+            if jimi.settings.getSetting("cache","garbageCollector"):
                 logging.debug("Running cache garbage collector")
                 jimi.cache.globalCache.cleanCache()
             if cluster.lastHandle < time.time() - 60:
@@ -83,21 +68,22 @@ if __name__ == "__main__":
                     print("Index {0}, PID={1}, CPU={2}, MEM={3}".format(systemIndex["systemIndex"],systemIndex["pid"],p.cpu_percent(interval=1),p.memory_percent()))
             time.sleep(10)
     # Loading API - Has to be done before jimi import or the pages will not be loaded
-    from core import settings, api
-    apiSettings = settings.config["api"]["core"]
-    workerAPISettings = settings.config["api"]["worker"]
+    from core import api
     api.createServer("jimi_core")
 
     import os
     import jimi
 
-    systemId = jimi.cluster.getSystemId()
-    logging.info("System starting system_id is %i",systemId)
-
     # Running installers
     logging.info("Running system startup installers")
     from system import install
     install.setup()
+
+    apiSettings = jimi.settings.getSetting("api","core")
+    workerAPISettings = jimi.settings.getSetting("api","worker")
+
+    systemId = jimi.cluster.getSystemId()
+    logging.info("System starting system_id is %i",systemId)
 
     # File system integrity
     logging.info("Checking cluster integrity")
@@ -146,4 +132,4 @@ else:
     if multiprocessing.current_process().name != "jimi_worker":
         import jimi
         jimi.function.load()
-        jimi.settings.config["cpuSaver"]["enabled"] = False
+        jimi.settings.cpuSaver["enabled"] = False

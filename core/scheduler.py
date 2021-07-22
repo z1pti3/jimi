@@ -45,10 +45,7 @@ class _scheduler:
                         if jimi.logging.debugEnabled:
                             jimi.logging.debug("Scheduler trigger start cannot requested, as the max conncurrent workers are already active. Will try again shortly",3)
             # pause
-            time.sleep(schedulerSettings["loopP"])
-
-systemSettings = jimi.settings.config["system"]
-schedulerSettings = jimi.settings.config["scheduler"]
+            time.sleep(jimi.settings.getSetting("scheduler","loopP"))
 
 # Get next run time from schedule string
 def getSchedule(scheduleString):
