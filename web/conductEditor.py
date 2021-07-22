@@ -244,7 +244,7 @@ def conductExport(conductID):
             if obj._id not in result[flow["type"]]:
                 result[flow["type"]][obj._id] = { "className" : classObj.name }
                 blacklist = ["acl","classID","workerID","startCheck","nextCheck","lastUpdateTime","creationTime","systemID"]
-                typeList = [str,int,float,dict,list]
+                typeList = [str,int,float,dict,list,bool]
                 members = [attr for attr in dir(obj) if not callable(getattr(obj, attr)) and not "__" in attr and attr ]
                 for member in members:
                     if member not in blacklist:
