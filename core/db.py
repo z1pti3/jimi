@@ -553,9 +553,7 @@ class _bulk():
         self.bulkOperatons[collection][method].append(value)
         self.lock.release()
 
-with open(str(Path("data/db.json"))) as f:
-    config = json.load(f)
-mongodbSettings = config["mongodb"]
+mongodbSettings = jimi.config["mongodb"]
 
 # Try / Except - v3.0 added ssl and ssl_ca_certs but setting may not always be present
 if "connectString" in mongodbSettings:

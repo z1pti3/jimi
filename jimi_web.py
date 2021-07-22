@@ -432,4 +432,4 @@ def statusPageTriggerChartAPI():
 	return triggers, 200
 
 
-api.startServer(False,{'server.socket_host': jimi.settings.getSetting("api","web")["bind"], 'server.socket_port': jimi.settings.getSetting("api","web")["port"], 'engine.autoreload.on': False, 'server.thread_pool' : 5})
+api.startServer(False,{'server.socket_host': jimi.config["api"]["web"]["bind"], 'server.socket_port': jimi.config["api"]["web"]["port"], 'engine.autoreload.on': False, 'server.thread_pool' : 5})

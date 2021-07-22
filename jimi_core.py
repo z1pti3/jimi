@@ -23,7 +23,7 @@ def startWorker(systemId,systemIndex):
     from core import api
     api.createServer("jimi_worker")
     import jimi
-    workerAPISettings = jimi.settings.getSetting("api","worker")
+    workerAPISettings = jimi.config["api"]["worker"]
     jimi.function.load()
     api.startServer(True,{'server.socket_host': workerAPISettings["bind"], 'server.socket_port': workerAPISettings["startPort"]+systemIndex, 'engine.autoreload.on': False, 'server.thread_pool' : 1})
     logging.info("Index %i booting on system %i",systemIndex,systemId)
@@ -79,8 +79,8 @@ if __name__ == "__main__":
     from system import install
     install.setup()
 
-    apiSettings = jimi.settings.getSetting("api","core")
-    workerAPISettings = jimi.settings.getSetting("api","worker")
+    apiSettings = jimi.config["api"]["core"]
+    workerAPISettings = jimi.config["api"]["worker"]
 
     systemId = jimi.cluster.getSystemId()
     logging.info("System starting system_id is %i",systemId)
