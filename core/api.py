@@ -16,6 +16,6 @@ def startServer(threaded,webserverArguments):
 	cherrypy.tree.graft(webServer.wsgi_app, '/')
 	cherrypy.config.update(webserverArguments)
 	if threaded:
-		_thread.start_new_thread(cherrypy.engine.start)
+		_thread.start_new_thread(cherrypy.engine.start, ())
 	else:
 		cherrypy.engine.start()
