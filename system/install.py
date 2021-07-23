@@ -176,53 +176,11 @@ def systemInstall():
 	if os.path.exists(str(Path("data/settings.json"))):
 		with open(str(Path("data/settings.json"))) as f:
 			config = json.load(f)
-	if "system" in config:
-		result = jimi.settings._settings().new("system",config["system"])
-	else:
-		result = jimi.settings._settings().new("system",{
-			"systemID" : 0,
-			"accessAddress" : "127.0.0.1",
-			"accessPort" : 5000,
-			"secure" : False
-		})
-	if not result:
-		print("ERROR: Unable to build system settings ")
-		return False
 	if not jimi.settings._settings().new("debug",{
         "level" : -1,
         "buffer" : 1000
     }):
 		print("ERROR: Unable to build system debug ")
-		return False
-	if "api" in config:
-		result = jimi.settings._settings().new("api",config["api"])
-	else:
-		result = jimi.settings._settings().new("api",{
-			"core" : {
-				"bind" : "127.0.0.1",
-				"port" : 5000,
-				"base" : "api/1.0",
-				"apiKey" : None
-			},
-			"worker" : {
-				"bind" : "127.0.0.1",
-				"startPort" : 5001,
-				"base" : "api/1.0",
-				"apiKey" : None
-			},
-			"web" : {
-				"bind" : "0.0.0.0",
-				"port" : 5015,
-				"base" : "api/1.0",
-				"apiKey" : None
-			},
-			"proxy" : {
-				"http" : None,
-				"https" : None
-			}
-    	})
-	if not result:
-		print("ERROR: Unable to build system api ")
 		return False
 	if not jimi.settings._settings().new("workers",{ 
         "concurrent" : 15,
@@ -438,14 +396,8 @@ def systemUpgrade(currentVersion):
 			from pathlib import Path
 			with open(str(Path("data/settings.json"))) as f:
 				config = json.load(f)
-			if not jimi.settings._settings().new("system",config["system"]):
-				print("ERROR: Unable to build system settings ")
-				return False
 			if not jimi.settings._settings().new("debug",config["debug"]):
 				print("ERROR: Unable to build system debug ")
-				return False
-			if not jimi.settings._settings().new("api",config["api"]):
-				print("ERROR: Unable to build system api ")
 				return False
 			if not jimi.settings._settings().new("workers",config["workers"]):
 				print("ERROR: Unable to build system workers ")

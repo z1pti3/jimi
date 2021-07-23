@@ -68,4 +68,4 @@ class _audit(jimi.db._document):
         return result
 
 auditSettings = jimi.settings.getSetting("audit",None)
-systemSettings = jimi.settings.getSetting("system",None)
+systemSettings = jimi.config["system"]
