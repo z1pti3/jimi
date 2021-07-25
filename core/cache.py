@@ -26,6 +26,15 @@ class _cache:
             self.objects[cacheName] = { "objects" : {}, "maxSize" : maxSize, "cacheExpiry" : cacheExpiry, "userID" : userID }
             logging.debug("New cache store created, name={0}, maxSize={1}, cacheExpry={2}, userID={3}".format(cacheName,maxSize,cacheExpiry,userID))
 
+    def updateCacheSettings(self,cacheName,maxSize=None,cacheExpiry=None,sessionData=None):
+        if cacheName in self.objects:
+            if maxSize:
+                self.objects[cacheName]["maxSize"] = maxSize
+            if cacheExpiry:
+                self.objects[cacheName]["cacheExpiry"] = cacheExpiry
+        else:
+            self.newCache(cacheName,maxSize,cacheExpiry,sessionData)
+
     def clearCache(self,cacheName,sessionData=None):
         authedCacheName = self.checkSessionData(cacheName,sessionData)
         if authedCacheName == None:

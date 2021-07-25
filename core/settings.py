@@ -12,7 +12,6 @@ class _settings(jimi.db._document):
 		self.acl = { "ids":[ { "accessID":"0","delete": True,"read": True,"write": True } ] } 
 		return super(_settings, self).new()
 
-jimi.cache.globalCache.newCache("settingsCache",cacheExpiry=3600)
 def getSetting(name,settingName):
 	return jimi.cache.globalCache.get("settingsCache","{0}:{1}".format(name,settingName),getSettingValue,name,settingName)
 
