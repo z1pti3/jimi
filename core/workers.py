@@ -307,7 +307,7 @@ class workerHandler:
         return len(self.workerList)
 
     def countIncomplete(self):
-        return len([x for x in self.workerList if x.id != self.workerID and (x.running == True or x.running == None) ])
+        return self.queue() + len(self.active())
 
     def queue(self):
         workersWaiting = [x for x in self.workerList if x.running == None]
