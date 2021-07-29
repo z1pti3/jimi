@@ -206,9 +206,9 @@ def generateSharedSecret():
 
 def generateSession(dataDict):
     if dataDict["api"]:
-        dataDict["expiry"] = time.time() + authSettings["sessionTimeout"]
-    else:
         dataDict["expiry"] = time.time() + authSettings["apiSessionTimeout"]
+    else:
+        dataDict["expiry"] = time.time() + authSettings["sessionTimeout"]
     if "CSRF" not in dataDict:
         dataDict["CSRF"] = secrets.token_urlsafe(16)
     return jwt.encode(dataDict, private_key, algorithm="RS256")
