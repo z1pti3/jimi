@@ -170,7 +170,7 @@ class workerHandler:
 
             # Any room to start another worker?
             if underConcurrent < 1:
-                activeWorkerCount = len([ x for x in self.workerList if x.running == True ])
+                activeWorkerCount = self.activeCount()
                 underConcurrent = ( self.concurrent - activeWorkerCount )
             if underConcurrent > 0:
                 if len(workersStillWaiting) == 0:
