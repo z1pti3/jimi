@@ -97,6 +97,7 @@ class _group(jimi.db._document):
     enabled = bool()
     members = list()
     apiTokens = list()
+    description = str()
 
     _dbCollection = jimi.db.db["groups"]
 

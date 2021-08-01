@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block main %}
+    <script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
     <div class="container px-4 py-5 text-center" id="custom-cards">
         <div class="text-start" >
             <input type="text" class="form-control textbox w-50" id="groupSearch" onkeyup="doSearch()" placeholder="Search for groups">
@@ -68,15 +69,15 @@
                                 </div>
                         </div>
                         <div class="modal-footer justify-content-start">
-                            <button type="button" class="btn btn-primary button bi-save" onclick="createUser()"> Create</button>
+                            <button type="button" class="btn btn-primary button bi-save" onclick="createGroup()"> Create</button>
                             <button type="button" class="btn btn-primary button" data-bs-dismiss="modal">Close</button>
                         </div>
                     </form>
                 </div>
             </div>
             <script>
-                function createUser() {
-                        var body = JSON.stringify({ CSRF : CSRF, username: $("#username").val(), name: $("#name").val(), email: $("#email").val(), group: $("#group").val(), password: $("#password").val(), active: $("#active").val(), sandbox: $("#sandbox").val(), loginType: $("#loginType").val()})
+                function createGroup() {
+                        var body = JSON.stringify({ CSRF : CSRF, name: $("#name").val(), description: $("#description").val(), active: $("#active").val(), sandbox: $("#sandbox").val()})
                         $.ajax({ url: "create/", type : "PUT",  data:body, contentType:"application/json", 
                             success: function ( result ) 
                             {
