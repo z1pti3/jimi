@@ -87,24 +87,29 @@ def fn_timer(function):
     return function_timer
 
 def debugEventHandler(sessionID,conduct,trigger,flowID,events,data=None,preserveDataID=-1):
-    jimi.cache.globalCache.clearCache("ALL")
-    if data and preserveDataID > -1:
-        data["persistentData"] = flowDebugSession[sessionID].preserveData[preserveDataID][0]
-        data["eventData"] =  flowDebugSession[sessionID].preserveData[preserveDataID][1]
-    data = jimi.conduct.dataTemplate(data)
-    data["persistentData"]["system"]["trigger"] = trigger
-    data["flowData"]["trigger_id"] = trigger._id
-    data["flowData"]["trigger_name"] = trigger.name
-    for index, event in enumerate(events):
-        first = True if index == 0 else False
-        last = True if index == len(events) - 1 else False
-        eventStat = { "first" : first, "current" : index + 1, "total" : len(events), "last" : last }
+    if trigger.startCheck == 0:
+        trigger.startCheck = time.time()
+        trigger.update(["startCheck"])
+        jimi.cache.globalCache.clearCache("ALL")
+        if data and preserveDataID > -1:
+            data["persistentData"] = flowDebugSession[sessionID].preserveData[preserveDataID][0]
+            data["eventData"] =  flowDebugSession[sessionID].preserveData[preserveDataID][1]
+        data = jimi.conduct.dataTemplate(data)
+        data["persistentData"]["system"]["trigger"] = trigger
+        data["flowData"]["trigger_id"] = trigger._id
+        data["flowData"]["trigger_name"] = trigger.name
+        for index, event in enumerate(events):
+            first = True if index == 0 else False
+            last = True if index == len(events) - 1 else False
+            eventStat = { "first" : first, "current" : index + 1, "total" : len(events), "last" : last }
 
-        tempData = jimi.conduct.copyData(data)
-        tempData["flowData"]["event"] = event
-        tempData["flowData"]["eventStats"] = eventStat
+            tempData = jimi.conduct.copyData(data)
+            tempData["flowData"]["event"] = event
+            tempData["flowData"]["eventStats"] = eventStat
 
-        conduct.triggerHandler(flowID,tempData,flowIDType=True,flowDebugSession={ "sessionID" : sessionID })
+            conduct.triggerHandler(flowID,tempData,flowIDType=True,flowDebugSession={ "sessionID" : sessionID })
+        trigger.startCheck = 0
+        trigger.update(["startCheck"])
 
 
 ######### --------- API --------- #########
