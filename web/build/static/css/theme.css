@@ -312,4 +312,6 @@ div.dts div.dataTables_scrollBody {
     margin: 2px;
 }
 
-
+.dropdown-menu {
+    background-color: #111;
+}

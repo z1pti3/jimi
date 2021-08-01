@@ -1,7 +1,7 @@
 import logging
 import requests
-
 import jimi
+import bson
 
 ######### --------- API --------- #########
 if jimi.api.webServer:
@@ -38,3 +38,153 @@ if jimi.api.webServer:
             def api_clearCache():
                 jimi.cache.globalCache.clearCache("ALL")
                 return { "result" : True }, 200
+
+        if jimi.api.webServer.name == "jimi_web":
+            from flask import Flask, request, render_template
+            
+            @jimi.api.webServer.route("/admin/users/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def listUsers():
+                #Get groups to match against
+                groups = {}
+                groupsList = []
+                foundGroups = jimi.auth._group().getAsClass(sessionData=jimi.api.g.sessionData,query={ })
+                for group in foundGroups:
+                    groups[group._id] = group
+                    groupsList.append(group)
+                users = []
+                foundUsers =  jimi.auth._user().getAsClass(sessionData=jimi.api.g.sessionData,query={ })
+                for user in foundUsers:
+                    if user.primaryGroup in groups:
+                        user.primaryGroupName = groups[user.primaryGroup].name
+                    users.append(user)        
+                return render_template("users.html",users=users,groups=groupsList,CSRF=jimi.api.g.sessionData["CSRF"])
+
+            @jimi.api.webServer.route("/admin/users/edit/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def editUser():
+                #Get group data for later
+                groups = []
+                foundGroups = jimi.auth._group().getAsClass(sessionData=jimi.api.g.sessionData,query={ })
+                for group in foundGroups:
+                    groups.append(group)
+
+                #Get user details based on ID
+                foundUser = jimi.auth._user().getAsClass(sessionData=jimi.api.g.sessionData,query={"_id":bson.ObjectId(request.args.get("id"))})
+                if foundUser:
+                    foundUser = foundUser[0]
+                    #Get friendly names for groups
+                    for group in groups:
+                        if group._id == foundUser.primaryGroup:
+                            foundUser.primaryGroupName = group.name
+                    return render_template("userDetailed.html",user=foundUser,groups=groups,CSRF=jimi.api.g.sessionData["CSRF"])
+                return 404
+
+            @jimi.api.webServer.route("/admin/users/edit/", methods=["POST"])
+            @jimi.auth.adminEndpoint
+            def updateUser():
+                response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Could not update the user" },403)
+                userData = request.json
+                if userData["enabled"] == "No":
+                    userData["enabled"] = False
+                else:
+                    userData["enabled"] = True
+                #Get user details based on username
+                foundUser = jimi.auth._user().getAsClass(sessionData=jimi.api.g.sessionData,query={"username":userData["username"]})
+                if foundUser:
+                    foundUser = foundUser[0]
+                    updateList = []
+                    for item in userData:
+                        if item != "CSRF" and userData[item] != foundUser.getAttribute(item,sessionData=jimi.api.g.sessionData):
+                            foundUser.setAttribute(item,userData[item],sessionData=jimi.api.g.sessionData)
+                            updateList.append(item)
+                    if any(updateList):
+                        foundUser.update(updateList)
+                        response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User updated succesfully" },201)
+                    else:
+                        response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Nothing to update" },200)
+                return response
+
+            @jimi.api.webServer.route("/admin/users/create/", methods=["PUT"])
+            @jimi.auth.adminEndpoint
+            def createUser():
+                response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Please provide a username" },403)
+                userData = request.json
+                #Check user ID is new and valid
+                if userData["username"]:
+                    foundUser = jimi.auth._user().getAsClass(sessionData=jimi.api.g.sessionData,query={"username":userData["username"]})
+                    if foundUser:
+                        return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Username already in use" },403)
+                    #Check password provided
+                    if userData["password"]:
+                        if not jimi.auth.meetsPasswordPolicy(userData["password"]):
+                            return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Password does not meet minimum requirements" },403)
+                        #If no name provided, use the username
+                        if len(userData["name"]) == 0:
+                            userData["name"] = userData["username"] 
+                        #Create a new user
+                        if jimi.auth._user().new(userData["name"],userData["username"],userData["password"]):
+                            user = jimi.auth._user().getAsClass(sessionData=jimi.api.g.sessionData,query={"username":userData["username"]})[0]
+                            #Define the users primary group
+                            user.setAttribute("primaryGroup",userData["group"],sessionData=jimi.api.g.sessionData)
+                            #Set email if it exists
+                            if userData["email"]:
+                                user.setAttribute("email",userData["email"],sessionData=jimi.api.g.sessionData)
+                            user.update(["email","primaryGroup"])
+                            #Check for sandbox creation
+                            if userData["sandbox"] == "Yes":
+                                #Create a sandbox conduct using the user's name
+                                sandboxConduct = jimi.conduct._conduct().new(f"{userData['name']} - Sandbox")
+                            return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User created succesfully" },201)
+                    response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Please provide a password" },403)
+                return response
+
+            @jimi.api.webServer.route("/admin/users/edit/", methods=["DELETE"])
+            @jimi.auth.adminEndpoint
+            def deleteUser():
+                response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Could not delete user" },403)
+                #Get user details based on username
+                foundUser = jimi.auth._user().getAsClass(sessionData=jimi.api.g.sessionData,query={"_id":bson.ObjectId(request.args.get("id"))})
+                if foundUser:
+                    foundUser = foundUser[0]
+                    #Cannot delete the root user
+                    if foundUser.username != "root":
+                        if jimi.auth._user().api_delete(query={"_id":bson.ObjectId(request.args.get("id"))}):
+                            response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User updated succesfully" },201)
+                    else:
+                        response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Cannot delete root user" },403)
+                return response
+
+
+            @jimi.api.webServer.route("/admin/groups/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def listGroups():
+                #Get groups
+                groups = []
+                foundGroups = jimi.auth._group().getAsClass(sessionData=jimi.api.g.sessionData,query={ })
+                for group in foundGroups:
+                    group.userCount = len(group.members)
+                    groups.append(group)
+                
+                return render_template("groups.html",groups=groups,CSRF=jimi.api.g.sessionData["CSRF"])
+
+            @jimi.api.webServer.route("/admin/groups/edit/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def editGroups():
+                #Get group details based on ID
+                foundGroup = jimi.auth._group().getAsClass(sessionData=jimi.api.g.sessionData,query={"_id":bson.ObjectId(request.args.get("id"))})
+                if foundGroup:
+                    foundGroup = foundGroup[0]
+
+                    #Get ACL info about each conduct
+                    conductList = []
+                    conducts = jimi.conduct._conduct().getAsClass(sessionData=jimi.api.g.sessionData,query={})
+                    for conduct in conducts:
+                        matches = [item for item in conduct.acl["ids"] if item["accessID"] == foundGroup._id]
+                        if any(matches):
+                            conductList.append({"id":conduct._id, "name":conduct.name, "acl":matches[0], "enabled":True})
+                        else:
+                            conductList.append({"id":conduct._id, "name":conduct.name, "acl":{"accessID":foundGroup._id,"read":False,"write":False,"delete":False}, "enabled":False})
+
+                    return render_template("groupDetailed.html",group=foundGroup,conductList=conductList,CSRF=jimi.api.g.sessionData["CSRF"])
+                return 404
