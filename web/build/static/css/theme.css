@@ -21,6 +21,14 @@
     --panelComponentBorder: #2e6da4;
     --panelComponentBorder-Focus: #167bff;
 
+    /* Component */
+    --componentBorderColor: #000000;
+    --componentBorderColorSelect: #167bff;
+    --componentBackground1: #111111;
+    --componentBackground2: #1f1f1f;
+    --componentBackgroundSelect: #030303;
+
+
     /* Alerts */
     --errorBackgroundColor: #ffffff;
     --errorColor: #ec0e0e;
@@ -87,18 +95,18 @@ body {
 }
 
 .chart {
-    width: unset!important;
-    height: unset!important;
+    /* width: unset!important;
+    height: unset!important; */
 }
 
 .panelTextbox {
-    background-color: var(--panelComponentBackground);; 
+    background-color: var(--panelComponentBackground);
     color: var(--textColor);
     border: none;
 }
 
 .panelTextbox:focus {
-    background-color: var(--panelComponentBackground);; 
+    background-color: var(--panelComponentBackground);
     color: var(--textColor);
     border: none;
 }
@@ -147,11 +155,6 @@ div.dts div.dataTables_scrollBody {
 }
 
 /* visjs */
-
-.visjsnetwork {
-    height: calc(100% - 22px);
-}
-
 .vis-network:focus {
     outline: none;
 }
@@ -199,6 +202,10 @@ div.dts div.dataTables_scrollBody {
     text-decoration: none;
 }
 
+.hide {
+    display: none;
+}
+
 .unselectable {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -209,11 +216,11 @@ div.dts div.dataTables_scrollBody {
 }
 
 .textbox {
-    background-color: var(--panelComponentBackground); 
+    background-color: var(--componentBackground1); 
     color: var(--textColor);
     border-style: solid;
     border-width: 1px;
-    border-color: var(--panelComponentBorder);
+    border-color: var(--componentBorderColor);
     display:inline;
 }
 
@@ -231,19 +238,15 @@ div.dts div.dataTables_scrollBody {
 }
 
 .textbox:focus {
-    background-color: var(--panelComponentBackground-Focus); 
+    background-color: var(--componentBackgroundSelect);
     color: var(--textColor);
     border-style: solid;
     border-width: 1px;
-    border-color: var(--panelComponentBorder);
+    border-color: var(--componentBorderColorSelect);
 }
 
 .textbox:hover {
-    background-color: var(--panelComponentBackground-Focus); 
-    color: var(--textColor);
-    border-style: solid;
-    border-width: 1px;
-    border-color: var(--panelComponentBorder);
+    background-color: var(--componentBackgroundSelect);
 }
 
 .textarea {
@@ -281,14 +284,20 @@ div.dts div.dataTables_scrollBody {
 }
 
 .button {
-    background-color: var(--panelComponentBackground);
-    border-color: var(--panelComponentBorder);
+    background-color: var(--componentBackground2);
+    border-color: var(--componentBorderColor);
     color: var(--textColor);
-    display:inline
+    border-style: solid;
+    border-width: 1px;
+    display:inline;
 }
 
-.button:hover {
-    background-color: var(--panelComponentBackground-Focus);
+.button:hover, .button:focus, .button:active {
+    background-color: var(--componentBackgroundSelect);
+    border-color: var(--componentBorderColor);
+    border-style: solid;
+    border-width: 1px;
+    display:inline;
 }
 
 .small {

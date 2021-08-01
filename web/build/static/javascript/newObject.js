@@ -8,9 +8,9 @@ var newObjectHTML = `
 		<select class="inputFullWidth theme-panelSelect" id="newObjectPanel-objectType" style="width: 100%"></select>
 	</div>
 	<div class="propertiesPanel-footer theme-panelFooter">
-		<button id="save" class="btn btn-primary theme-panelButton">Create</button>
-		<button id="existing" onClick="createExistingObjectPanel()" class="btn btn-primary theme-panelButton">Existing</button>
-		<button id="close" class="btn btn-primary theme-panelButton">Close</button>
+		<button id="save" class="btn btn-primary button">Create</button>
+		<button id="existing" onClick="createExistingObjectPanel()" class="btn btn-primary button">Existing</button>
+		<button id="close" class="btn btn-primary button">Close</button>
 	</div>
 </div>
 `

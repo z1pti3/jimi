@@ -1,3 +1,3 @@
 import jimi
 
-static = jimi.settings.config["static"]
+static = jimi.settings.getSetting("static",None)

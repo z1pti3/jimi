@@ -40,8 +40,22 @@ def replace(string,match,replacement):
     except:
         return string
 
-def strip(string):
+def strip(string,stripOn=""):
     try:
+        if stripOn:
+            return string.strip(stripOn)
         return string.strip()
     except:
         return string
+    
+def startsWith(string, startswithString):
+    try:
+        return string.startswith(startswithString)
+    except:
+        return False
+    
+def endsWith(string, endswithString):
+    try:
+        return string.endswith(endswithString)
+    except:
+        return False

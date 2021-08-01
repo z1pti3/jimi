@@ -1,107 +1,92 @@
-<script src="{{ url_for('static', filename='/includes/jquery-3.6.0/js/jquery-3.6.0.min.js') }}"></script>
-<script src="{{ url_for('static', filename='includes/jquery/js/jquery.datatables.min.js') }}"></script>
+{% extends "main.html" %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/dataTables.bootstrap.css') }}">
-<script src="{{ url_for('static', filename='includes/datatables/js/dataTables.bootstrap.js') }}"></script>
-<link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/fixedHeader.dataTables.min.css') }}">
-<script src="{{ url_for('static', filename='includes/datatables/js/dataTables.fixedHeader.min.js') }}"></script>
+{% block head %}
+    {{ jimi.jquery() }}
+    {{ jimi.tables() }}
+    <script src="{{ url_for('static', filename='includes/jquery/js/jquery.datatables.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/dataTables.bootstrap.css') }}">
+    <script src="{{ url_for('static', filename='includes/datatables/js/dataTables.bootstrap.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/fixedHeader.dataTables.min.css') }}">
+    <script src="{{ url_for('static', filename='includes/datatables/js/dataTables.fixedHeader.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/helpers.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/hotkeys.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='themes/default/default.css') }}">
+{% endblock %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
-<script src="{{ url_for('static', filename='includes/visjs/js/moment.js') }}"></script>
-<script src="{{ url_for('static', filename='includes/datatables/js/datetime.moment.js') }}"></script>
-<script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
-
-<script src="{{ url_for('static', filename='javascript/helpers.js') }}"></script>
-
-
-<script src="{{ url_for('static', filename='javascript/hotkeys.js') }}"></script>
-
-<link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='themes/default/default.css') }}">
-
-<script>
-    var CSRF = "{{CSRF}}"
-  </script>
-
-<html>
-    <head>
-    <title>JIMI - cleanup Unused Objects</title>        
-    </head>
-    <body class="theme-panelContainer">
-        <b>Triggers:</b>
-        <table id="orderTableTrigger" class="table table-sm theme-table" cellspacing="0" width="100%">
-            <thead class="theme-tableHeader">
+{% block main %}
+    <b>Triggers:</b>
+    <table id="orderTableTrigger" class="table table-sm theme-table" cellspacing="0" width="100%">
+        <thead class="theme-tableHeader">
+            <tr>
+                <th class="th-sm">_id</th>
+                <th class="th-sm">name</th>
+            </tr>
+        </thead>
+        <tbody class="theme-tableBody">
+            {% for data in unusedTriggerObjects %}
                 <tr>
-                    <th class="th-sm">_id</th>
-                    <th class="th-sm">name</th>
+                    <td>{{ data['_id'] }}</td>
+                    <td>{{ data['name'] }}</td>
                 </tr>
-            </thead>
-            <tbody class="theme-tableBody">
-                {% for data in unusedTriggerObjects %}
-                    <tr>
-                        <td>{{ data['_id'] }}</td>
-                        <td>{{ data['name'] }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <br>
-        <br>
-        <b>Actions:</b>
-        <table id="orderTableAction" class="table table-sm theme-table" cellspacing="0" width="100%">
-            <thead class="theme-tableHeader">
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <br>
+    <b>Actions:</b>
+    <table id="orderTableAction" class="table table-sm theme-table" cellspacing="0" width="100%">
+        <thead class="theme-tableHeader">
+            <tr>
+                <th class="th-sm">_id</th>
+                <th class="th-sm">name</th>
+            </tr>
+        </thead>
+        <tbody class="theme-tableBody">
+            {% for data in unusedActionObjects %}
                 <tr>
-                    <th class="th-sm">_id</th>
-                    <th class="th-sm">name</th>
+                    <td>{{ data['_id'] }}</td>
+                    <td>{{ data['name'] }}</td>
                 </tr>
-            </thead>
-            <tbody class="theme-tableBody">
-                {% for data in unusedActionObjects %}
-                    <tr>
-                        <td>{{ data['_id'] }}</td>
-                        <td>{{ data['name'] }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <br>
-        <br>
-        <input class='btn btn-primary theme-panelButton' id="clearbutton" type="submit" value="Cleanup">
-    </body>
-</html>
-
-<script>
-    $(document).ready(function () {
-        $('#orderTableTrigger').DataTable({
-            "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
-            fixedHeader: {
-                header: true,
-                footer: true
-            },
-            "paging" : false,
-            "order" : [[ 0, "desc" ]],
-            "autoWidth": false,
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <br>
+    <input class='btn btn-primary theme-panelButton' id="clearbutton" type="submit" value="Cleanup">
+    <script>
+        $(document).ready(function () {
+            $('#orderTableTrigger').DataTable({
+                "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
+                fixedHeader: {
+                    header: true,
+                    footer: true
+                },
+                "paging" : false,
+                "order" : [[ 0, "desc" ]],
+                "autoWidth": false,
+            });
+            $('#orderTableAction').DataTable({
+                "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
+                fixedHeader: {
+                    header: true,
+                    footer: true
+                },
+                "paging" : false,
+                "order" : [[ 0, "desc" ]],
+                "autoWidth": false,
+            });
+            $('.dataTables_length').addClass('bs-select');
+            $('.dataTables_filter input[type="search"]').css({'width':'200px'});
+            $('.dataTables_filter input[type="search"]').addClass("theme-panelTextbox")
+            
         });
-        $('#orderTableAction').DataTable({
-            "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
-            fixedHeader: {
-                header: true,
-                footer: true
-            },
-            "paging" : false,
-            "order" : [[ 0, "desc" ]],
-            "autoWidth": false,
-        });
-        $('.dataTables_length').addClass('bs-select');
-        $('.dataTables_filter input[type="search"]').css({'width':'200px'});
-        $('.dataTables_filter input[type="search"]').addClass("theme-panelTextbox")
-        
-    });
-
-    $('#clearbutton').on('click', function(e){
-		$.ajax({url:"", type:"DELETE", data : JSON.stringify({CSRF: CSRF}), contentType:"application/json", success: function ( result ) {
-                location.reload();
-			}
-		});
-    })
-</script>
+    
+        $('#clearbutton').on('click', function(e){
+            $.ajax({url:"", type:"DELETE", data : JSON.stringify({CSRF: CSRF}), contentType:"application/json", success: function ( result ) {
+                    location.reload();
+                }
+            });
+        })
+    </script>
+{% endblock %}

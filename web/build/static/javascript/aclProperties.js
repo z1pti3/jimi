@@ -6,16 +6,16 @@ var panelACLHTML = `
 	</div>
 	<div class="propertiesPanel-body theme-panelBody">
 	object ACL:<br>
-	<textarea id="propertiesPanelACLValue" class="inputFullWidth theme-panelTextArea"></textarea>
+	<textarea id="propertiesPanelACLValue" class="form-control form-control-sm full-width textbox"></textarea>
 	<br>
 	<br>
 	Flow UI ACL:<br>
-	<textarea id="propertiesPanelUiACLValue" class="inputFullWidth theme-panelTextArea"></textarea>
+	<textarea id="propertiesPanelUiACLValue" class="form-control form-control-sm full-width textbox"></textarea>
 	</div>
 	<div class="propertiesPanel-footer theme-panelFooter">
-		<button id="save" class="btn btn-primary theme-panelButton">Save</button>
-		<button id="refresh" class="btn btn-primary theme-panelButton">Refresh</button>
-		<button id="close" class="btn btn-primary theme-panelButton">Close</button>
+		<button id="save" class="btn btn-primary button bi-save"> Save</button>
+		<button id="refresh" class="btn btn-primary button bi-recycle"> Refresh</button>
+		<button id="close" class="btn btn-primary button">Close</button>
 	</div>
 </div>
 `

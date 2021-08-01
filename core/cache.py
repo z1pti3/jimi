@@ -1,5 +1,6 @@
 import time
 import copy
+import logging
 
 import jimi
 
@@ -23,8 +24,16 @@ class _cache:
                 cacheName = "{0},-,{1}".format(userID,cacheName)
         if cacheName not in self.objects:
             self.objects[cacheName] = { "objects" : {}, "maxSize" : maxSize, "cacheExpiry" : cacheExpiry, "userID" : userID }
-            if jimi.logging.debugEnabled:
-                jimi.logging.debug("New cache store created, name={0}, maxSize={1}, cacheExpry={2}, userID={3}".format(cacheName,maxSize,cacheExpiry,userID),20)
+            logging.debug("New cache store created, name={0}, maxSize={1}, cacheExpry={2}, userID={3}".format(cacheName,maxSize,cacheExpiry,userID))
+
+    def updateCacheSettings(self,cacheName,maxSize=None,cacheExpiry=None,sessionData=None):
+        if cacheName in self.objects:
+            if maxSize:
+                self.objects[cacheName]["maxSize"] = maxSize
+            if cacheExpiry:
+                self.objects[cacheName]["cacheExpiry"] = cacheExpiry
+        else:
+            self.newCache(cacheName,maxSize,cacheExpiry,sessionData)
 
     def clearCache(self,cacheName,sessionData=None):
         authedCacheName = self.checkSessionData(cacheName,sessionData)
@@ -35,8 +44,7 @@ class _cache:
                 self.objects[cacheName]["objects"].clear()
         elif authedCacheName in self.objects:
             self.objects[authedCacheName]["objects"].clear()
-            if jimi.logging.debugEnabled:
-                jimi.logging.debug("Cache store cleared, name={0}".format(authedCacheName),20)
+            logging.debug("Cache store cleared, name={0}".format(authedCacheName))
 
     def cleanCache(self):
         now = time.time()
@@ -168,8 +176,7 @@ class _cache:
         authedCacheName = self.checkSessionData(cacheName,sessionData)
         if authedCacheName == None:
             return
-        if jimi.logging.debugEnabled:
-            jimi.logging.debug("Cache store attempting to reduce memory, name={0}, amount={1}".format(authedCacheName,amountToFree),20)
+        logging.debug("Cache store attempting to reduce memory, name={0}, amount={1}".format(authedCacheName,amountToFree))
         # No objects to clear
         if len(self.objects[authedCacheName]["objects"]) == 0:
             return False
@@ -215,8 +222,7 @@ class _cache:
             if sessionData["_id"] == self.objects[authedCacheName]["userID"]:
                 return authedCacheName
             else:
-                if jimi.logging.debugEnabled:
-                    jimi.logging.debug("ERROR - Cache store access denied due to mismatched ID, name={0}, userID={1}".format(cacheName,sessionData["_id"]),5)
+                logging.debug("ERROR - Cache store access denied due to mismatched ID, name={0}, userID={1}".format(cacheName,sessionData["_id"]))
                 return None
         else:
             return cacheName
@@ -233,7 +239,7 @@ class _cache:
         return result
 
 try:
-    cacheSettings = jimi.settings.config["cache"]
+    cacheSettings = jimi.settings.getSetting("cache",None)
     globalCache = _cache(maxSize=cacheSettings["maxSize"],cacheExpiry=cacheSettings["cacheExpiry"])
     if cacheSettings["enabled"] == False:
         globalCache.get = globalCache.getDisabled

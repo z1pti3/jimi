@@ -1,15 +1,19 @@
 from multiprocessing import Process, Queue
 import multiprocessing
+from re import L
 import threading
 import time
 import uuid
 import ctypes
-import json
 import traceback
-import copy
-import sys
+import json
+import logging
+
+import requests
 
 import jimi
+
+workers = None
 
 class _threading(threading.Thread):
     def __init__(self, *args, **keywords):
@@ -63,7 +67,7 @@ class workerHandler:
                 jimi.logging.debug("Threaded process worker started, workerID={0}".format(self.id))
 
             Q = Queue()
-            p = Process(target=multiprocessingThreadStart, args=(Q,self.call,self.args)) # Taking an entire copy of cache is not effient review bug
+            p = Process(target=multiprocessingThreadStart, args=(Q,self.call,self.args))
             try:
                 p.start()
                 try:
@@ -76,8 +80,6 @@ class workerHandler:
                     self.crash = True
                     raise
 
-                # Ensure cache is updated with any new items
-                #cache.globalCache.sync(globalCacheObjects)
             except SystemExit as e:
                 if self.raiseException:
                     self.crash = True
@@ -93,7 +95,7 @@ class workerHandler:
             finally:
                 if p.exitcode == None:
                     p.terminate()
-                #Q.close()
+                Q.close()
             
             if jimi.logging.debugEnabled:
                 jimi.logging.debug("Threaded process worker completed, workerID={0}".format(self.id))
@@ -139,10 +141,23 @@ class workerHandler:
         self.failures = False
         
         # Autostarting worker handler thread
+        if autoStart:
+            self.start()
+    
+    def start(self):
         workerThread = self._worker("workerThread",self.handler,None,True,0,False,True)
         workerThread.start()
         self.workerList.append(workerThread)
         self.workerID = workerThread.id
+
+    def stop(self):
+        self.stopped = True
+        # Waiting 1 second for handler to finish gracefully otherwise force by systemExit
+        time.sleep(1)
+        for runningJob in self.getActive():
+            self.kill(runningJob.id)
+        for job in self.getAll():
+            self.delete(job.id)
 
     def handler(self):
         tick = 0
@@ -155,7 +170,7 @@ class workerHandler:
 
             # Any room to start another worker?
             if underConcurrent < 1:
-                activeWorkerCount = len([ x for x in self.workerList if x.running == True ])
+                activeWorkerCount = self.activeCount()
                 underConcurrent = ( self.concurrent - activeWorkerCount )
             if underConcurrent > 0:
                 if len(workersStillWaiting) == 0:
@@ -180,7 +195,7 @@ class workerHandler:
 
             # Execute worker cleanup every 5ish seconds
             if (tick + 5) < now:
-                # Any workers need clearning up due to overrun or stopped?
+                # Any workers need cleaning up due to overrun or stopped?
                 cleanupWorkers = [ x for x in self.workerList if (x.running == False and x.delete) or (x.startTime > 0 and x.maxDuration > 0 and (now - x.startTime ) > x.maxDuration) ]
                 for worker in cleanupWorkers:
                     if worker.running != False:
@@ -292,72 +307,17 @@ class workerHandler:
         return len(self.workerList)
 
     def countIncomplete(self):
-        return len([x for x in self.workerList if x.id != self.workerID and (x.running == True or x.running == None) ])
+        return self.queue() + len(self.active())
 
     def queue(self):
         workersWaiting = [x for x in self.workerList if x.running == None]
         return len(workersWaiting)
 
-    def stop(self):
-        self.stopped = True
-        # Waiting 1 second for handler to finsh gracefuly otherwise force by systemExit
-        time.sleep(1)
-        for runningJob in self.getActive():
-            self.kill(runningJob.id)
-        for job in self.getAll():
-            self.delete(job.id)
-
-    # API Calls
-    def api_get(self,id=None,action=None):
-        result = { "results" : []}
-        if not id and not action:
-            workers = self.getAll()
-        elif id and not action:
-            workers = [self.get(id)]
-        elif not id and action == "active":
-            workers = self.getActive()
-
-        for worker in workers:
-            if worker:
-                result["results"].append({ "id" : worker.id, "name": worker.name, "startTime" : worker.startTime, "createdTime" : worker.createdTime })
-        
-        return result
-
-    def api_delete(self,id=None):
-        if not id:
-            workers = self.getAll()
-        else:
-            workers = [self.get(id)]
-
-        for worker in workers:
-            worker.thread.kill()
-
-        return { "result" : True }
-
-from system.models import trigger as systemTrigger
-
-workerSettings = jimi.settings.config["workers"]
+workerSettings = jimi.settings.getSetting("workers",None)
 
 multiprocessing.set_start_method("spawn",force=True)
 
-def start():
-    global workers
-    # Creating instance of workers
-    try:
-        if workers:
-            workers.kill(workers.workerID)
-            if logging.debugEnabled:
-                logging.debug("Workers start requested, Existing thread kill attempted, workerID='{0}'".format(workers.workerID),6)
-            workers = None
-    except NameError:
-        pass
-    workers = workerHandler(workerSettings["concurrent"])
-    if jimi.logging.debugEnabled:
-        jimi.logging.debug("Workers started, workerID='{0}'".format(workers.workerID),6)
-    return True
-
 def multiprocessingThreadStart(Q,threadCall,args):
-    #cache.globalCache.sync(globalCache)
     rc = 0
     error = None
     try:
@@ -371,79 +331,71 @@ def multiprocessingThreadStart(Q,threadCall,args):
 if jimi.api.webServer:
     if not jimi.api.webServer.got_first_request:
         if jimi.api.webServer.name == "jimi_core":
-            @jimi.api.webServer.route(jimi.api.base+"workers/", methods=["GET"])
+            @jimi.api.webServer.route(jimi.api.base+"worker/", methods=["GET"])
             @jimi.auth.adminEndpoint
             def getWorkers():
-                result = workers.api_get()
-                if result["results"]:
-                    return result, 200
-                else:
-                    return {}, 404
+                results = []
+                global workers
+                workersData = workers.getAll()
+                for workerData in workersData:
+                    results.append({
+                        "system" : "Cluster System {0}".format(jimi.cluster.getSystemId()),
+                        "name" : workerData.name,
+                        "call" : workerData.call.__name__,
+                        "id" : workerData.id,
+                        "createdTime" : workerData.createdTime,
+                        "startTime" : workerData.startTime,
+                        "endTime" : workerData.endTime,
+                        "duration" : workerData.duration,
+                        "running" : workerData.running
+                    })
+                apiToken = jimi.auth.generateSystemSession()
+                headers = { "X-api-token" : apiToken }
+                for systemIndex in jimi.cluster.systemIndexes:
+                    url = systemIndex["apiAddress"]
+                    apiEndpoint = "worker/"
+                    try:
+                        response = requests.get("{0}{1}{2}".format(url,jimi.api.base,apiEndpoint),headers=headers, timeout=10)
+                        if response.status_code == 200:
+                            jsonResponse = json.loads(response.text)["results"]
+                            for jsonResult in jsonResponse: 
+                                jsonResult["system"] = "Cluster System {0}, index {1}".format(jimi.cluster.getSystemId(),systemIndex["systemIndex"])
+                            results += jsonResponse
+                    except:
+                        logging.warning("Unable to access {0}{1}{2}".format(url,jimi.api.base,apiEndpoint))
+                return { "results" : results }, 200
 
-            @jimi.api.webServer.route(jimi.api.base+"workers/", methods=["DELETE"])
-            @jimi.auth.adminEndpoint
-            def deleteWorkers():
-                result = workers.api_delete()
-                if result["result"]:
-                    return result, 200
-                else:
-                    return {}, 404
+        if jimi.api.webServer.name == "jimi_worker":
+            @jimi.api.webServer.route(jimi.api.base+"worker/", methods=["GET"])
+            @jimi.auth.systemEndpoint
+            def getWorkers():
+                results = []
+                global workers
+                workersData = workers.getAll()
+                for workerData in workersData:
+                    results.append({
+                        "name" : workerData.name,
+                        "call" : workerData.call.__name__,
+                        "id" : workerData.id,
+                        "createdTime" : workerData.createdTime,
+                        "startTime" : workerData.startTime,
+                        "endTime" : workerData.endTime,
+                        "duration" : workerData.duration,
+                        "running" : workerData.running
+                    })
+                return { "results" : results }, 200
 
-            @jimi.api.webServer.route(jimi.api.base+"workers/", methods=["POST"])
-            @jimi.auth.adminEndpoint
-            def updateWorkers():
-                data = json.loads(jimi.api.request.data)
-                if data["action"] == "start":
-                    result = start()
-                    return { "result" : result }, 200
-                elif data["action"] == "settings":
-                    if "concurrent" in data:
-                        workerSettings["concurrent"] = int(data["concurrent"])
-                        workers.concurrent = workerSettings["concurrent"]
-                    if "loopT" in data:
-                        workerSettings["loopT"] = float(data["loopT"])
-                    if "loopL" in data:
-                        workerSettings["loopL"] = float(data["loopL"])
-                    return { }, 200
-                else:
-                    return { }, 404
+        if jimi.api.webServer.name == "jimi_web":
+            from flask import Flask, request, render_template
+            
+            @jimi.api.webServer.route("/taskManager/", methods=["GET"])
+            def taskManagerPage():
+                workers = []
+                apiEndpoint = "worker/"
+                servers = jimi.cluster.getAll()
+                for url in servers:
+                    response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
+                    if response.status_code == 200:
+                        workers += json.loads(response.text)["results"]
+                return render_template("taskManager.html",CSRF=jimi.api.g.sessionData["CSRF"], workers=workers)
 
-            @jimi.api.webServer.route(jimi.api.base+"workers/<workerID>/", methods=["GET"])
-            @jimi.auth.adminEndpoint
-            def getWorker(workerID):
-                if workerID == "0":
-                    result = workers.api_get(workers.workerID)
-                    result["results"][0]["lastHandle"] = workers.lastHandle
-                    result["results"][0]["workerID"] = workers.workerID
-                else:
-                    result = workers.api_get(workerID)
-
-                if result["results"]:
-                    return result, 200
-                else:
-                    return {}, 404
-
-            @jimi.api.webServer.route(jimi.api.base+"workers/<workerID>/", methods=["DELETE"])
-            @jimi.auth.adminEndpoint
-            def deleteWorker(workerID):
-                result = workers.api_delete(workerID)
-                if result["result"]:
-                    return result, 200
-                else:
-                    return {}, 404
-
-            @jimi.api.webServer.route(jimi.api.base+"workers/stats/", methods=["GET"])
-            @jimi.auth.adminEndpoint
-            def getWorkerStats():
-                result = {}
-                result["results"] = []
-                result["results"].append({ "activeCount" : workers.activeCount(), "queueLength" : workers.queue(), "workers" : workers.active() })
-                return result, 200
-
-            @jimi.api.webServer.route(jimi.api.base+"workers/settings/", methods=["GET"])
-            @jimi.auth.adminEndpoint
-            def getWorkerSettings():
-                result = {}
-                result["results"] = []
-                result["results"].append(workerSettings)
-                return result, 200

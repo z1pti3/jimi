@@ -1,3 +1,4 @@
+from math import log
 import time
 
 import jimi
@@ -56,16 +57,26 @@ class _action(jimi.db._document):
         ####################################
 
         if self.logicString:
-            logicResult = jimi.logic.ifEval(self.logicString, { "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]})
+            logicResult = jimi.logic.ifEval(self.logicString, { "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]}, debug=debug)
+            if debug:
+                evalLogic = logicResult[1]
+                explainLogic = logicResult[2]
+                logicResult = logicResult[0]
             if logicResult:
                 actionResult = self.doAction(data)
+                if debug:
+                    actionResult["logic_eval"] = evalLogic
+                    actionResult["logic_explain"] = explainLogic
                 if self.varDefinitions:
                     data["flowData"]["var"] = jimi.variable.varEval(self.varDefinitions,data["flowData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"], "action" : actionResult},0)
                     data["eventData"]["var"] = jimi.variable.varEval(self.varDefinitions,data["eventData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"], "action" : actionResult},1)
                     data["conductData"]["var"] = jimi.variable.varEval(self.varDefinitions,data["conductData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"], "action" : actionResult},2)
                     data["persistentData"]["var"] = jimi.variable.varEval(self.varDefinitions,data["persistentData"]["var"],{ "data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"], "action" : actionResult},3)
             else:
-                actionResult = { "result" : False, "rc" : -100, "msg" : "Logic returned: False", "logic_string" : self.logicString }
+                if debug:
+                    actionResult = { "result" : False, "rc" : -100, "msg" : "Logic returned: False", "logic_string" : self.logicString, "logic_eval" : evalLogic, "logic_explain" : explainLogic }
+                else:
+                    actionResult = { "result" : False, "rc" : -100, "msg" : "Logic returned: False", "logic_string" : self.logicString }
         else:
             actionResult = self.doAction(data)
             if self.varDefinitions:
@@ -111,4 +122,4 @@ class _action(jimi.db._document):
         return usedIn
 
 def getClassObject(classID,sessionData):
-    return jimi.model._model().getAsClass(sessionData,id=classID)
+    return jimi.model._model().getAsClass(id=classID)

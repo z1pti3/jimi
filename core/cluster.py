@@ -1,3 +1,5 @@
+from math import trunc
+import sys
 import uuid
 import time
 import json
@@ -6,8 +8,7 @@ from pathlib import Path
 
 import jimi
 
-# Initialize
-dbCollectionName = "clusterMembers"
+systemIndexes = []
 
 class _clusterMember(jimi.db._document):
     systemID = int()
@@ -20,7 +21,7 @@ class _clusterMember(jimi.db._document):
     lastSyncTime = int()
     checksum = str()
 
-    _dbCollection = jimi.db.db[dbCollectionName]
+    _dbCollection = jimi.db.db["clusterMembers"]
 
     def new(self,systemID):
         self.systemID = systemID
@@ -29,6 +30,7 @@ class _clusterMember(jimi.db._document):
         return super(_clusterMember, self).new()
 
     def sync(self):
+        global systemIndexes
         now = time.time()
         self.syncCount+=1
         self.lastSyncTime = int(now)
@@ -74,6 +76,49 @@ class _clusterMember(jimi.db._document):
         if ((not self.master) and (deadMaster)):
             lowestMaster[0].master = True
             lowestMaster[0].update(["master"])
+
+        # Check which system indexes are online
+        onlineIndexes = {}
+        for systemIndex in systemIndexes:
+            # Disabled index dead check
+            #if systemIndex["manager"]["lastHandle"] < ( now - clusterSettings["deadTimer"] ):
+            onlineIndexes[str(systemIndex["systemIndex"])] = 0
+        # Get and check all triggers assigned to this system
+        allocatedTriggers = jimi.trigger._trigger().getAsClass(query={ "systemID" : self.systemID, "enabled" : True })
+        # Building cluster set groups so we can ensure certain triggers are kept together
+        groups = {}
+        for allocatedTrigger in allocatedTriggers:
+            if str(allocatedTrigger.systemIndex) in onlineIndexes.keys():
+                onlineIndexes[str(allocatedTrigger.systemIndex)] += 1
+                if allocatedTrigger.clusterSet > 0:
+                    if str(allocatedTrigger.clusterSet) not in groups:
+                        groups[str(allocatedTrigger.clusterSet)] = allocatedTrigger.systemIndex
+        for allocatedTrigger in allocatedTriggers:
+            if allocatedTrigger.clusterSet > 0:
+                if str(allocatedTrigger.clusterSet) in groups:
+                    onlineIndexes[str(groups[str(allocatedTrigger.clusterSet)])] += 1
+                    allocatedTrigger.systemIndex = int(groups[str(allocatedTrigger.clusterSet)])
+                    allocatedTrigger.update(["systemIndex"])
+                else:
+                    leastAssigned = [1,65535]
+                    for systemIndex in onlineIndexes.keys():
+                        if onlineIndexes[systemIndex] < leastAssigned[1]:
+                            leastAssigned[0] = systemIndex
+                            leastAssigned[1] = onlineIndexes[str(systemIndex)]
+                    onlineIndexes[leastAssigned[0]] += 1
+                    allocatedTrigger.systemIndex = int(leastAssigned[0])
+                    allocatedTrigger.update(["systemIndex"])
+                    groups[str(allocatedTrigger.clusterSet)] = int(leastAssigned[0])
+            # Check that a trigger is assigned to a system index or if the system index is still alive
+            elif allocatedTrigger.systemIndex == 0 or str(allocatedTrigger.systemIndex) not in onlineIndexes.keys():
+                leastAssigned = [1,65535]
+                for systemIndex in onlineIndexes.keys():
+                    if onlineIndexes[systemIndex] < leastAssigned[1]:
+                        leastAssigned[0] = systemIndex
+                        leastAssigned[1] = onlineIndexes[systemIndex]
+                onlineIndexes[leastAssigned[0]] += 1
+                allocatedTrigger.systemIndex = int(leastAssigned[0])
+                allocatedTrigger.update(["systemIndex"])
 
         if self.master:
             ## Restart ##
@@ -133,9 +178,11 @@ class _clusterMember(jimi.db._document):
                             if failedTriggerClass.systemID not in active:
                                 failedTriggerClass.systemID = lowestID
                         failedTriggerClass.startCheck = 0
+                        failedTriggerClass.systemIndex = 0
                         failedTriggerClass.nextCheck = time.time()
-                        failedTriggerClass.update(["systemID","startCheck","nextCheck"])
+                        failedTriggerClass.update(["systemID","systemIndex","startCheck","nextCheck"])
                         jimi.audit._audit().add("cluster","restart trigger",{ "triggerID" : failedTriggerClass._id, "triggerName" : failedTriggerClass.name, "triggerAttemptCount" : failedTriggerClass.attemptCount, "triggerSystemID" : failedTriggerClass.systemID, "masterID" : self.systemID, "masterUID" : self.systemUID })
+                        jimi.exceptions.triggerCrash(failedTriggerClass._id,failedTriggerClass.name,'Retarting failed trigger. triggerSystemID={0}, masterID={1}, attempts={2}'.format(failedTriggerClass.systemID,self.systemID,failedTriggerClass.attemptCount))
                     else:
                         if jimi.logging.debugEnabled:
                             jimi.logging.debug("Unable to load trigger {0} for restarting".format(failedTrigger["_id"]),3)
@@ -187,7 +234,8 @@ class _clusterMember(jimi.db._document):
                                 member = groups[str(inactiveTrigger.clusterSet)]
                         inactiveTrigger.systemID = member
                         inactiveTrigger.startCheck = 0
-                        inactiveTrigger.update(["systemID","startCheck"])
+                        inactiveTrigger.systemIndex = 0
+                        inactiveTrigger.update(["systemID","startCheck","systemIndex"])
                         clusterMembersDetails[str(member)]["count"]+=1
                         if jimi.logging.debugEnabled:
                             jimi.logging.debug("Set triggerID='{0}' triggers to systemID='{1}', new trigger count='{2}'".format(inactiveTrigger._id,member,clusterMembersDetails[str(member)]["count"]),6)
@@ -200,14 +248,9 @@ class _cluster:
     lastHandle = 0
     clusterMember = None
 
-    def __init__(self):
-        self.workerID = jimi.workers.workers.new("cluster",self.handler,maxDuration=0)
-        self.startTime = int(time.time())
-
     def handler(self):
+        self.startTime = int(time.time())
         self.clusterMember = loadClusterMember()
-        self.clusterMember.checksum = jimi.system.fileIntegrityRegister()
-        self.clusterMember.update(["checksum"])
         while not self.stopped:
             jimi.audit._audit().add("cluster","poll",{ "systemID" : self.clusterMember.systemID, "master" : self.clusterMember.master, "systemUID" : self.clusterMember.systemUID })
             now = int(time.time())
@@ -218,9 +261,8 @@ class _cluster:
             time.sleep(clusterSettings["loopP"])
             
 
-systemSettings = jimi.settings.config["system"]
-clusterSettings = jimi.settings.config["cluster"]
-apiSettings = jimi.settings.config["api"]
+systemSettings = jimi.config["system"]
+clusterSettings = jimi.settings.getSetting("cluster",None)
 
 def loadClusterMember():
     clusterMember = _clusterMember().getAsClass(query={ "systemID" : systemSettings["systemID"] })
@@ -244,6 +286,12 @@ def loadClusterMember():
     clusterMember.systemUID = str(uuid.uuid4())
     clusterMember.update(["syncCount","systemUID","bindAddress","bindPort","bindSecure"])
     return clusterMember
+
+def getSystemId():
+    return systemSettings["systemID"]
+
+def getSystem():
+    return getClusterMemberById(systemSettings["systemID"])
 
 def getClusterMemberById(systemID):
     clusterMember = _clusterMember().getAsClass(query={ "systemID" : systemID })
@@ -290,52 +338,16 @@ def getAll():
         return result
     return ["http://127.0.0.1:5000"]
 
-def start():
-    global cluster
-    try:
-        if jimi.workers.workers:
-            try:
-                # Creating instance of cluster
-                if cluster:
-                    workers.workers.kill(cluster.workerID)
-                    if logging.debugEnabled:
-                        logging.debug("Cluster start requested, Existing thread kill attempted, workerID='{0}'".format(cluster.workerID),6)
-                    cluster = None
-            except NameError:
-                pass
-            cluster = _cluster()
-            if jimi.logging.debugEnabled:
-                jimi.logging.debug("Cluster started, workerID='{0}'".format(cluster.workerID),6)
-            return True
-    except AttributeError:
-        if jimi.logging.debugEnabled:
-            jimi.logging.debug("Cluster start requested, No valid worker class loaded",4)
-        return False
-
 
 ######### --------- API --------- #########
 if jimi.api.webServer:
     if not jimi.api.webServer.got_first_request:
-        if jimi.api.webServer.name == "jimi_web":
-            @jimi.api.webServer.route(jimi.api.base+"cluster/", methods=["GET"])
-            @jimi.auth.adminEndpoint
-            def getCluster():
-                results = _clusterMember().query()["results"]
-                return { "results" : results }, 200
+        if jimi.api.webServer.name == "jimi_core":
+            pass
 
+        if jimi.api.webServer.name == "jimi_web":
             @jimi.api.webServer.route(jimi.api.base+"cluster/distribute/", methods=["GET"])
             @jimi.auth.adminEndpoint
             def distributeCluster():
                 jimi.trigger._trigger().api_update(query={ "startCheck" : 0 },update={ "$set" : { "systemID" : None } })
                 return { "result" : True }, 200
-
-        if jimi.api.webServer.name == "jimi_core":
-            @jimi.api.webServer.route(jimi.api.base+"cluster/", methods=["POST"])
-            @jimi.auth.systemEndpoint
-            def updateCluster():
-                data = json.loads(jimi.api.request.data)
-                if data["action"] == "start":
-                    result = start()
-                    return { "result" : result }, 200
-                else:
-                    return { }, 404

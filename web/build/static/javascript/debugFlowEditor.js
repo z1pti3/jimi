@@ -332,11 +332,18 @@ selectedExecutedFlowPreserveDataID = -1;
 eventIndex = 0;
 debugSession = null;
 
-$.ajax({url:"/api/1.0/debug/", type:"PUT", timeout: 2000, data: JSON.stringify({ CSRF : CSRF }), contentType:"application/json", success: function ( responseData ) {
-		debugSession = responseData["sessionID"];
-		refreshDebugSession();
-	}
-});
+if (!GetURLParameter("debugID")) {
+	$.ajax({url:"/api/1.0/debug/", type:"PUT", timeout: 2000, data: JSON.stringify({ CSRF : CSRF }), contentType:"application/json", success: function ( responseData ) {
+			debugSession = responseData["sessionID"];
+			var url = location.href+"&debugID="+debugSession;
+			window.location.replace(url,"_self");
+			refreshDebugSession();
+		}
+	});
+} else {
+	debugSession = GetURLParameter("debugID");
+	refreshDebugSession();
+}
 
 function runDebuggerNew() {
 	selectedNodes = network.getSelectedNodes()

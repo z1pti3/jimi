@@ -16,6 +16,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
+from werkzeug.utils import redirect
 
 import jimi
 
@@ -109,20 +110,20 @@ class _group(jimi.db._document):
 
 from system import install
 
-authSettings = jimi.settings.config["auth"]
+if jimi.settings.getSetting("auth",None):
+    authSettings = jimi.settings.getSetting("auth",None)
+    # Loading public and private keys for session signing
+    with open(str(Path(authSettings["rsa"]["cert"]))) as f:
+        sessionPublicKey = f.read()
+    with open(str(Path(authSettings["rsa"]["key"]))) as f:
+        sessionPrivateKey = f.read()
 
-# Loading public and private keys for session signing
-with open(str(Path(authSettings["rsa"]["cert"]))) as f:
-  sessionPublicKey = f.read()
-with open(str(Path(authSettings["rsa"]["key"]))) as f:
-  sessionPrivateKey = f.read()
+    public_key = serialization.load_pem_public_key( sessionPublicKey.encode(), backend=default_backend() )
+    private_key = serialization.load_pem_private_key( sessionPrivateKey.encode(), password=None, backend=default_backend() )
 
-public_key = serialization.load_pem_public_key( sessionPublicKey.encode(), backend=default_backend() )
-private_key = serialization.load_pem_private_key( sessionPrivateKey.encode(), password=None, backend=default_backend() )
+    requiredhType = "j1"
 
-requiredhType = "j1"
-
-jimi.cache.globalCache.newCache("sessions",cacheExpiry=authSettings["cacheSessionTimeout"])
+    jimi.cache.globalCache.newCache("sessions",cacheExpiry=authSettings["cacheSessionTimeout"])
 
 def getSessionObject(sessionID,sessionData):
     session = _session().getAsClass(query={"sessionID" : sessionID})
@@ -144,12 +145,15 @@ def meetsPasswordPolicy(password):
         return False
     return True
 
-def getPasswordFromENC(enc):
+def getPasswordFromENC(enc,customSecure=None):
     if enc[:6] == "ENC j1":
         cipher_rsa = PKCS1_OAEP.new(RSA.import_key(sessionPrivateKey))
         encSecureKey = base64.b64decode(enc[7:].split(" ")[2].encode())
         secureKey = cipher_rsa.decrypt(encSecureKey)
-        key = install.getSecure().encode() + secureKey
+        if customSecure is None:
+            key = install.getSecure().encode() + secureKey
+        else:
+            key = customSecure.encode() + secureKey
         key = hashlib.sha256(key).digest()
         nonce = base64.b64decode(enc[7:].split(" ")[0].encode())
         tag = base64.b64decode(enc[7:].split(" ")[1].encode())
@@ -175,12 +179,15 @@ def getPasswordFromENC(enc):
             return None
     return None
 
-def getENCFromPassword(password):
+def getENCFromPassword(password,customSecure=None):
     if requiredhType == "j1":
         cipher_rsa = PKCS1_OAEP.new(RSA.import_key(sessionPublicKey))
         secureKey = get_random_bytes(16)
         encSecureKey = cipher_rsa.encrypt(secureKey)
-        key = install.getSecure().encode() + secureKey
+        if customSecure is None:
+            key = install.getSecure().encode() + secureKey
+        else:
+            key = customSecure.encode() + secureKey
         key = hashlib.sha256(key).digest()
         cipher = AES.new(key, AES.MODE_EAX)
         nonce = cipher.nonce
@@ -204,9 +211,9 @@ def generateSharedSecret():
 
 def generateSession(dataDict):
     if dataDict["api"]:
-        dataDict["expiry"] = time.time() + authSettings["sessionTimeout"]
-    else:
         dataDict["expiry"] = time.time() + authSettings["apiSessionTimeout"]
+    else:
+        dataDict["expiry"] = time.time() + authSettings["sessionTimeout"]
     if "CSRF" not in dataDict:
         dataDict["CSRF"] = secrets.token_urlsafe(16)
     return jwt.encode(dataDict, private_key, algorithm="RS256")
@@ -398,7 +405,7 @@ if jimi.api.webServer:
                             if "renew" in jimi.api.g:
                                 response.set_cookie("jimiAuth", value=generateSession(jimi.api.g.sessionData), max_age=600, httponly=True) # Need to add secure=True before production, httponly=False cant be used due to auth polling
             # Cache Weakness
-            if jimi.api.request.endpoint != "static": 
+            if jimi.api.request.endpoint and jimi.api.request.endpoint != "static" and "__STATIC__" not in jimi.api.request.endpoint:
                 response.headers['Cache-Control'] = 'no-cache, no-store'
                 response.headers['Pragma'] = 'no-cache'
             # Permit CORS when web and web API ( Flask ) are seperated
@@ -415,7 +422,14 @@ if jimi.api.webServer:
 
         if jimi.api.webServer.name == "jimi_web":
             from flask import Flask, request, render_template
+<<<<<<< HEAD
             from web import ui
+=======
+
+            @jimi.api.webServer.route("/myAccount/")
+            def myAccountPage():
+                return render_template("myAccount.html",CSRF=jimi.api.g.sessionData["CSRF"])
+>>>>>>> v3.0
 
             # Checks that username and password are a match
             @jimi.api.webServer.route(jimi.api.base+"auth/", methods=["POST"])
@@ -441,11 +455,14 @@ if jimi.api.webServer:
                         redirect = jimi.api.request.args.get("return")
                         if redirect:
                             if "." in redirect or ".." in redirect:
-                                redirect = "/"
+                                redirect = "/conducts/"
                             if not redirect.startswith("/"):
                                 redirect = "/" + redirect
                         else:
-                            redirect = "/"
+                            redirect = "/conducts/"
+                        # Default redirect forced update to /conducts/
+                        if redirect == "/?":
+                            redirect = "/conducts/"
                         response = jimi.api.make_response({ "CSRF" : sessionData["CSRF"], "redirect" : redirect },200)
                         response.set_cookie("jimiAuth", value=userSession, max_age=600, httponly=True, secure=True)
                         return response, 200
@@ -476,6 +493,21 @@ if jimi.api.webServer:
                 if authSettings["enabled"]:
                     result = { "CSRF" : jimi.api.g.sessionData["CSRF"] }
                 return result, 200
+
+            @jimi.api.webServer.route("/logout/", methods=["GET"])
+            def logout():
+                # Deleting active session
+                session = jimi.cache.globalCache.delete("sessions",jimi.api.g.sessionData["sessionID"])
+                if authSettings["singleUserSessions"]:
+                    _session().api_delete(query={ "user" : jimi.api.g.sessionData["user"] })
+                else:
+                    session = _session().getAsClass(query={"sessionID" : jimi.api.g.sessionData["sessionID"]})
+                    if len(session) == 1:
+                        session = session[0]
+                        session.delete()
+
+                jimi.audit._audit().add("auth","logout",{ "action" : "success", "_id" : jimi.api.g.sessionData["_id"] })
+                return jimi.api.make_response(redirect("/login/"))
 
             @jimi.api.webServer.route(jimi.api.base+"auth/logout/", methods=["GET"])
             def api_logout():
@@ -509,8 +541,7 @@ if jimi.api.webServer:
                                     return { "msg" : "New password does not meet complexity requirements" }, 400
                             else:
                                 return { "msg" : "Current password does not match" }, 400
-                        user.setAttribute("name",data["name"],sessionData=jimi.api.g.sessionData)
-                        user.update(["name","passwordHash","apiTokens"])
+                        user.update(["passwordHash","apiTokens"])
                         return {}, 200
                 else:
                     return {}, 200

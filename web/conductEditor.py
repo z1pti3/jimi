@@ -92,13 +92,13 @@ def conductFlowchartPoll(conductID):
                                     if not t.enabled:
                                         color = "gray"
 
-                                    label = "({0},{1})\n<b>{2}</b>\n{3}".format(t.systemID,t.clusterSet,t.name,modeClass.name)
+                                    label = "({0}.{1},{2})\n<b>{3}</b>\n{4}".format(t.systemID,t.systemIndex,t.clusterSet,t.name,modeClass.name)
                                     if flowchartResponseType == "create":
                                         node["label"] = label
-                                        node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
+                                        node["color"] = { "border" : "#595959", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
                                     else:
                                         if color != flowchartOperators[flowID]["node"]["color"]["background"]:
-                                            node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
+                                            node["color"] = { "border" : "#595959", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
                                         if label != flowchartOperators[flowID]["node"]["label"]:
                                             node["label"] = label
                                     foundObject = True
@@ -122,10 +122,10 @@ def conductFlowchartPoll(conductID):
                                     label = "<b>{0}</b>\n{1}".format(a.name,modeClass.name)
                                     if flowchartResponseType == "create":
                                         node["label"] = label
-                                        node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
+                                        node["color"] = { "border" : "#595959", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
                                     else:
                                         if color != flowchartOperators[flowID]["node"]["color"]["background"]:
-                                            node["color"] = { "border" : "#2e6da4", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
+                                            node["color"] = { "border" : "#595959", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
                                         if label != flowchartOperators[flowID]["node"]["label"]:
                                             node["label"] = label
                                     foundObject = True
@@ -157,14 +157,16 @@ def conductFlowchartPoll(conductID):
                     color = "green"
                     if type(nextFlow["logic"]) is bool:
                         if nextFlow["logic"] == True:
-                            color = "#3dbeff"
+                            color = "#6FA92D"
                         else:
-                            color = "#ff2c10"
+                            color = "#FF392E"
+                    elif type(nextFlow["logic"]) is int:
+                        color = "#FBB121"
                     elif type(nextFlow["logic"]) is str:
                         if nextFlow["logic"].startswith("if "):
-                            color = "purple"
+                            color = "#D04D8A"
                         elif nextFlow["logic"] == "*":
-                            color = "pink"
+                            color = "#3DBEFF"
                     linksList.append(linkName)
                     if linkName not in flowchartLinks.keys():
                         flowchartResponse["links"]["create"][linkName] = { "from" : flowID, "to" : nextFlow["flowID"], "logic" : nextFlow["logic"], "color" : color, "text" : text }
@@ -237,12 +239,12 @@ def conductExport(conductID):
                     obj = a
                     break
         if obj:
-            classObj = _class = jimi.model._model().getAsClass(jimi.api.g.sessionData,id=obj.classID)
+            classObj = _class = jimi.model._model().getAsClass(id=obj.classID)
             classObj = classObj[0]
             if obj._id not in result[flow["type"]]:
                 result[flow["type"]][obj._id] = { "className" : classObj.name }
                 blacklist = ["acl","classID","workerID","startCheck","nextCheck","lastUpdateTime","creationTime","systemID"]
-                typeList = [str,int,float,dict,list]
+                typeList = [str,int,float,dict,list,bool]
                 members = [attr for attr in dir(obj) if not callable(getattr(obj, attr)) and not "__" in attr and attr ]
                 for member in members:
                     if member not in blacklist:
@@ -401,7 +403,7 @@ def getConductFlowCodify(conductID):
                         if nextFlow["flowID"] not in backLoopDetectionList:
                             processQueue.append({ "flowID" : nextFlow["flowID"], "indentLevel": indentLevel+1, "logic" : nextFlow["logic"] })
                 if obj:
-                    classObj = _class = jimi.model._model().getAsClass(jimi.api.g.sessionData,id=obj.classID)
+                    classObj = _class = jimi.model._model().getAsClass(id=obj.classID)
                     classObj = classObj[0]
                     blacklist = ["_id","acl","classID","workerID","startCheck","nextCheck","lastUpdateTime","lastCheck","clusterSet","concurrency","creationTime","schedule","systemID"]
                     typeList = [str,int,float,dict,list,bool]

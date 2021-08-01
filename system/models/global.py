@@ -3,7 +3,6 @@ from core import helpers, db
 
 class _global(db._document):
 	name = str()
-	globalName = str()
 	globalValue = str()
 	
 	_dbCollection = db.db["global"]

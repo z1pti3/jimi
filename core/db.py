@@ -4,6 +4,8 @@ import functools
 import copy
 from bson.objectid import ObjectId
 from threading import Lock
+from pathlib import Path
+import json
 
 import jimi
 
@@ -49,6 +51,7 @@ class _document():
             result = result[0]
             self.classID = result["_id"]
             self.creationTime = int(time.time())
+            self.lastUpdateTime = int(time.time())
             if sessionData:
                 if not self.acl:
                     self.acl = { "ids" : [ { "accessID" : sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
@@ -67,6 +70,7 @@ class _document():
             result = result[0]
             self.classID = result["_id"]
             self.creationTime = int(time.time())
+            self.lastUpdateTime = int(time.time())
             bulkClass.newBulkOperaton(self._dbCollection.name,"insert",self)
             return self
         else:
@@ -110,9 +114,9 @@ class _document():
                 for field in fields:
                     if not fieldACLAccess(sessionData,self.acl,field,"write"):
                         return False
-            # Appendingh last update time to every update
+            # Appending last update time to every update
             fields.append("lastUpdateTime")
-            self.lastUpdateTime = time.time()
+            self.lastUpdateTime = int(time.time())
 
             update = { "$set" : {} }
             for field in fields:
@@ -132,9 +136,9 @@ class _document():
             for field in fields:
                 if not fieldACLAccess(sessionData,self.acl,field,"write"):
                     return False
-        # Appendingh last update time to every update
+        # Appending last update time to every update
         fields.append("lastUpdateTime")
-        self.lastUpdateTime = time.time()
+        self.lastUpdateTime = int(time.time())
 
         update = { "$set" : {} }
         for field in fields:
@@ -143,7 +147,7 @@ class _document():
                 value = jimi.helpers.unicodeEscapeDict(value)
             update["$set"][field] = value
 
-        bulkClass.newBulkOperaton(self._dbCollection.name,"update",{"_id" : self._id, "update" : update})
+        bulkClass.newBulkOperaton(self._dbCollection.name,"update",{ "query" : { "_id" : ObjectId(self._id) }, "update" : update})
 
         # Updated DB with latest values
     @mongoConnectionWrapper
@@ -239,7 +243,7 @@ class _document():
         # Builds list of permitted ACL
         accessIDs = []
         adminBypass = False
-        if sessionData and authSettings["enabled"]:
+        if sessionData and jimi.settings.getSetting("auth","enabled"):
             if "admin" in sessionData:
                 if sessionData["admin"]:
                     adminBypass = True
@@ -271,7 +275,7 @@ class _document():
                     if field in doc:
                         fieldAccessPermitted = True
                         # Checking if sessionData is permitted field level access
-                        if "acl" in doc and not adminBypass and sessionData and authSettings["enabled"] and field not in ["classID","acl"]:
+                        if "acl" in doc and not adminBypass and sessionData and jimi.settings.getSetting("auth","enabled") and field not in ["classID","acl"]:
                             fieldAccessPermitted = fieldACLAccess(sessionData,doc["acl"],field)
                         # Allow field data to be returned if access is permitted
                         if fieldAccessPermitted:
@@ -283,7 +287,7 @@ class _document():
                 for field in list(doc):
                     fieldAccessPermitted = True
                     # Checking if sessionData is permitted field level access
-                    if "acl" in doc and not adminBypass and sessionData and authSettings["enabled"] and field not in ["classID","acl"]:
+                    if "acl" in doc and not adminBypass and sessionData and jimi.settings.getSetting("auth","enabled") and field not in ["classID","acl"]:
                         fieldAccessPermitted = fieldACLAccess(sessionData,doc["acl"],field)
                     # Allow field data to be returned if access is permitted
                     if fieldAccessPermitted:
@@ -311,7 +315,7 @@ class _document():
         # Builds list of permitted ACL
         accessIDs = []
         adminBypass = False
-        if sessionData and authSettings["enabled"]:
+        if sessionData and jimi.settings.getSetting("auth","enabled"):
             if "admin" in sessionData:
                 if sessionData["admin"]:
                     adminBypass = True
@@ -339,7 +343,7 @@ class _document():
         # Builds list of permitted ACL
         accessIDs = []
         adminBypass = False
-        if sessionData and authSettings["enabled"]:
+        if sessionData and jimi.settings.getSetting("auth","enabled"):
             if "admin" in sessionData:
                 if sessionData["admin"]:
                     adminBypass = True
@@ -364,7 +368,7 @@ class _document():
         # Builds list of permitted ACL
         adminBypass = False
         aggregate = []
-        if sessionData and authSettings["enabled"]:
+        if sessionData and jimi.settings.getSetting("auth","enabled"):
             if "admin" in sessionData:
                 if sessionData["admin"]:
                     adminBypass = True
@@ -395,7 +399,7 @@ class _document():
         # Builds list of permitted ACL
         adminBypass = False
         aggregate = []
-        if sessionData and authSettings["enabled"]:
+        if sessionData and jimi.settings.getSetting("auth","enabled"):
             if "admin" in sessionData:
                 if sessionData["admin"]:
                     adminBypass = True
@@ -403,7 +407,8 @@ class _document():
                 accessIDs = sessionData["accessIDs"]
                 # Adds ACL check to provided query to ensure requester is authorised and had read acess
                 aclQuery = { "$or" : [ { "acl.ids.accessID" : { "$in" : accessIDs }, "acl.ids.read" : True }, { "acl" : { "$exists" : False } }, { "acl" : {} } ] }
-                aggregate.append({"$match" : aclQuery})
+                aggregate.insert({"$match" : aclQuery},0)
+                aggregate.insert({ "$project" : { "acl" : 1 }},0)
         aggregate += aggregateStatement
         aggregateResult = self._dbCollection.aggregate(aggregate)
         result = []
@@ -515,34 +520,29 @@ class _bulk():
 
     def bulkOperatonProcessing(self):
         self.lock.acquire()
-        cpuSaver = jimi.helpers.cpuSaver()
         for bulkOperatonCollection, bulkOperatonMethod in self.bulkOperatons.items():
             # Insert
             bulkInsert = []
             for insert in bulkOperatonMethod["insert"]:
                 bulkInsert.append(jimi.helpers.unicodeEscapeDict(insert.parse()))
-                cpuSaver.tick()
             if len(bulkInsert) > 0:
                 collection = db[bulkOperatonCollection]
                 results = collection.insert_many(bulkInsert)
                 for index,item in enumerate(results.inserted_ids):
                     bulkOperatonMethod["insert"][index]._id = str(item)
-                    cpuSaver.tick()
                 bulkOperatonMethod["insert"] = []
             # Update
             if len(bulkOperatonMethod["update"]) > 0:
                 bulkUpdate = db[bulkOperatonCollection].initialize_unordered_bulk_op()
                 for update in bulkOperatonMethod["update"]:
-                    bulkUpdate.find({ "_id" : ObjectId(update["_id"]) }).update_one(update["update"])
-                    cpuSaver.tick()
+                    bulkUpdate.find(update["query"]).update_one(update["update"])
                 bulkUpdate.execute()
-                bulkOperatonMethod["insert"] = []
+                bulkOperatonMethod["update"] = []
             # Upsert
             if len(bulkOperatonMethod["upsert"]) > 0:
                 upsertArray = []
                 for upsert in bulkOperatonMethod["upsert"]:
                     upsertArray.append(pymongo.UpdateOne(upsert[0], upsert[1], upsert=True))
-                    cpuSaver.tick()
                 bulkUpdate = db[bulkOperatonCollection].bulk_write(upsertArray)
                 bulkOperatonMethod["upsert"] = []
         self.lock.release()
@@ -554,11 +554,16 @@ class _bulk():
         self.bulkOperatons[collection][method].append(value)
         self.lock.release()
 
+mongodbSettings = jimi.config["mongodb"]
 
-mongodbSettings = jimi.settings.config["mongodb"]
-authSettings = jimi.settings.config["auth"]
-
-dbClient = pymongo.MongoClient(mongodbSettings["hosts"],username=mongodbSettings["username"],password=mongodbSettings["password"])
+# Try / Except - v3.0 added ssl and ssl_ca_certs but setting may not always be present
+if "connectString" in mongodbSettings:
+    dbClient = pymongo.MongoClient(mongodbSettings["connectString"])
+else:
+    try:
+        dbClient = pymongo.MongoClient(mongodbSettings["hosts"],username=mongodbSettings["username"],password=mongodbSettings["password"],ssl=mongodbSettings["ssl"],ssl_ca_certs=mongodbSettings["ca"])
+    except:
+        dbClient = pymongo.MongoClient(mongodbSettings["hosts"],username=mongodbSettings["username"],password=mongodbSettings["password"])
 
 db = dbClient[mongodbSettings["db"]]
 
@@ -568,7 +573,7 @@ def list_collection_names():
 
 # Checks if access to a field is permitted by the object ACL
 def fieldACLAccess(sessionData,acl,field,accessType="read"):
-    if not authSettings["enabled"]:
+    if not jimi.settings.getSetting("auth","enabled"):
         return True
     accessIDs= []
     access = False
@@ -604,7 +609,7 @@ def fieldACLAccess(sessionData,acl,field,accessType="read"):
 
 # Checks if access to the object is permitted by the object ACL
 def ACLAccess(sessionData,acl,accessType="read"):
-    if not authSettings["enabled"]:
+    if not jimi.settings.getSetting("auth","enabled"):
         return [ True, [], False ]
     accessIDs = []
     access = False

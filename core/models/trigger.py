@@ -16,13 +16,14 @@ class _trigger(jimi.db._document):
     log = bool()
     clusterSet = int()
     systemID = int()
+    systemIndex = int()
     comment = str()
     maxDuration = 60
     logicString = str()
     varDefinitions = dict()
     concurrency = 0  
     threaded = False
-    failOnActionFailure = False
+    failOnActionFailure = True
     attemptCount = int()
     autoRestartCount = 3
     scope = int()
@@ -200,7 +201,7 @@ class _trigger(jimi.db._document):
 
 
 def getClassObject(classID,sessionData):
-    return jimi.model._model().getAsClass(sessionData,id=classID)
+    return jimi.model._model().getAsClass(id=classID)
 
 def getTriggerConducts(triggerID,sessionData):
     return jimi.conduct._conduct().getAsClass(query={"flow.triggerID" : triggerID, "enabled" : True})

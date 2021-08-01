@@ -14,18 +14,30 @@ def intToStr(integer):
     return str(integer)
 
 def lower(string):
-    return string.lower()
+    try:
+        return string.lower()
+    except:
+        return string
 
 def upper(string):
-    return string.upper()
+    try:
+        return string.upper()
+    except:
+        return string
 
 def toJson(string):
-    return json.loads(string)
+    try:
+        return json.loads(string)
+    except:
+        return string
 
 def fromJson(j,indent=False):
-    if indent:
-       return "\"{0}\"".format(json.dumps(j,indent = 3))
-    return "\"{0}\"".format(json.dumps(j))
+    try:
+        if indent:
+            return "\"{0}\"".format(json.dumps(j,indent = 3))
+        return "\"{0}\"".format(json.dumps(j))
+    except:
+        return j
 
 def jsontoHtml(json_obj,wrap=False):
     if wrap:

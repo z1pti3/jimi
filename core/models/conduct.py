@@ -164,10 +164,12 @@ class _conduct(jimi.db._document):
                         class_ = currentFlow["classObject"]
                     if class_.enabled:
                         data["flowData"]["flow_id"] = currentFlow["flowID"]
+                        debug = False
                         if flowDebugSession:
+                            debug = True
                             flowDebugSession["actionID"] = jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].startAction(flowDebugSession["eventID"],data["flowData"]["flow_id"],class_.name,copyData(data,copyEventData=True,copyConductData=True,copyPersistentData=True))
                         try:
-                            data["flowData"]["action"] = class_.runHandler(data=data)
+                            data["flowData"]["action"] = class_.runHandler(data=data,debug=debug)
                         except Exception as e:
                             jimi.logging.debug("Error: Action Crashed. actionID={0}, actionName={1}, error={2}".format(class_._id,class_.name,''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__))),-1)
                             try:

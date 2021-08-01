@@ -31,6 +31,17 @@ class workerCrash(Exception):
     def __str__(self):
         return "Error: Worker killed. workerName='{0}', workerID='{1}', trace='{2}'".format(self.workerName,self.workerID,self.trace)
 
+class triggerCrash(Exception):
+    def __init__(self,triggerID,triggerName,trace):
+        self.triggerName = triggerName
+        self.triggerID = triggerID
+        jimi.logging.debug("Error: Trigger Crashed. triggerName='{0}', triggerID='{1}', trace='{2}'".format(self.triggerName,self.triggerID,trace),-1)
+        jimi.systemTrigger.failedTrigger(self.triggerName,self.triggerID,"triggerCrash",trace)
+
+    def __str__(self):
+        return "Error: Trigger Crashed. triggerName='{0}', triggerID='{1}', trace='{2}'".format(self.triggerName,self.triggerID,self.trace)
+
+
 class actionCrash(Exception):
     def __init__(self,actionID,actionName,exception):
         self.actionName = actionName

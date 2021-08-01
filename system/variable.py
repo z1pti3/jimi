@@ -11,9 +11,9 @@ def varEval(varDict,currentVarDict,dicts={},scope=0):
     try:
         functionSafeList = function.systemFunctions
         for key, value in varDict.items():
-            try:
+            if type(value) is dict:
                 doVarEval(key,value,currentVarDict,functionSafeList,dicts,scope)
-            except TypeError:
+            else:
                 for valueItem in value:
                     if doVarEval(key,valueItem,currentVarDict,functionSafeList,dicts,scope):
                         break
@@ -38,6 +38,8 @@ def doVarEval(key,value,currentVarDict,functionSafeList,dicts,scope):
                     currentVarDict[key].update(helpers.evalDict(value["value"],dicts,functionSafeList))
                 else:
                     currentVarDict[key] = helpers.evalDict(value["value"],dicts,functionSafeList)
+            elif type(value["value"]) is list:
+                currentVarDict[key] = helpers.evalList(value["value"],dicts,functionSafeList)
             else:
                 currentVarDict[key] = value["value"]
             return True

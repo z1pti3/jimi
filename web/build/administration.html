@@ -1,0 +1,185 @@
+{% extends "main.html" %}
+
+{% block head %}
+    {{ jimi.jquery() }}
+{% endblock %}
+
+{% block main %}
+    <div class="container px-4 py-5 text-center" id="custom-cards">
+        <div class="row row-cols-1 row-cols-lg-5 align-items-stretch g-2 py-4">
+            <div class="col">
+                <div class="card h-100 panel">
+                    <div class="card-header">
+                        <h5 class="card-title">Clear Cache</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">Clear class cache</p>
+                    </div>
+                    <div class="card-footer">
+                        <button type="button" class="btn btn-primary button" id="clearCache" onclick="clearCache()">Clear Cache</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 panel">
+                    <div class="card-header">
+                        <h5 class="card-title">Clear Start Checks</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">Resets all start check values to 0 forcing triggers to restart</p>
+                    </div>
+                    <div class="card-footer">
+                        <button type="button" class="btn btn-primary button" id="clearStartCheck" onclick="clearStartChecks()">Clear Start Check</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 panel">
+                    <div class="card-header">
+                        <h5 class="card-title">Clear Debug Sessions</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">Clear all running debug sessions</p>
+                    </div>
+                    <div class="card-footer">
+                        <button type="button" class="btn btn-primary button" id="clearDebugSessions" onclick="deleteDebugSessions()">Clear Debug Sessions</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 panel">
+                    <div class="card-header">
+                        <h5 class="card-title">Reload Module</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">Reload a module by name</p>
+                    </div>
+                    <div class="card-footer">
+                        <button type="button" class="btn btn-primary button" id="clearCache" onclick="ReloadModule()">Reload Module</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 panel">
+                    <div class="card-header">
+                        <h5 class="card-title">Redistribute Cluster</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">Move triggers to redistribute across the cluster</p>
+                    </div>
+                    <div class="card-footer">
+                        <button type="button" class="btn btn-primary button" id="redistributeCluster" onclick="redistributeCluster()">Redistribute Cluster</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 panel">
+                    <div class="card-header">
+                        <h5 class="card-title">Delete Unused Objects</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">Display Unused objects that can then be cleaned up from the system</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/cleanup/" type="button" class="btn btn-primary button" id="viewUnusedObjects">View Unused Objects</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <ul class="list-group list-group-flush mt-3">
+        {% for clusterMember in clusterMembers %}
+            <li class="list-group-item text-start panel">
+                <div class="d-flex " style="justify-content: space-between;">
+                    <div>
+                        <a href="#" onclick="recalculate({{ clusterMember["systemID"] }})">
+                            <i class="bi-gear" style="font-size: 1.25rem; padding-right: 15px;"></i><span class="fs-4 mb-2">{{ clusterMember["systemID"] }} - {{ clusterMember["systemUID"] }}</span>
+                        </a>
+                    </div>
+                    <div>
+                        <a href="#" class="pe-3 bi-upload" title="Update" onclick="update({{ clusterMember["systemID"] }})"> Update</a>
+                    </div>
+                </div>
+                {% if clusterMember["bindSecure"] %}
+                    <p class="mb-1 noHover">https://{{ clusterMember["bindAddress"] }}:{{ clusterMember["bindPort"] }}</p>
+                {% else %}
+                    <p class="mb-1 noHover">http://{{ clusterMember["bindAddress"] }}:{{ clusterMember["bindPort"] }}</p>
+                {% endif %}
+                <p class="mb-1 noHover">{{ clusterMember["checksum"] }}</p>
+                <small>
+                    <i class="bi-calendar" style="font-size: 1rem; padding-right: 15px;"></i><span class="lastSyncTime">{{ clusterMember["lastSyncTime"] }}</span>
+                </small>
+            </li>
+        {% endfor %}
+    </ul>
+    <script>
+        function update(systemID) {
+            var pullFromSystemID = window.prompt("Updated system "+systemID+" from which system i.e. 0?");
+            if (pullFromSystemID) {
+                $.ajax({ url: "/api/1.0/system/update/"+systemID+"/"+pullFromSystemID+"/", type : "GET", contentType:"application/json", success: function ( result ) {
+                        alert(JSON.stringify(result));
+                    }
+                });
+            }
+        }
+        function recalculate(systemID) {
+            if (window.confirm('Are you sure you want to recalculate the checksum on system '+systemID+'?')) {
+                $.ajax({ url: "/api/1.0/system/checksum/"+systemID+"/", type : "GET", contentType:"application/json", success: function ( result ) {
+                        alert(JSON.stringify(result));
+                    }
+                });
+            }
+        }
+        function clearCache() {
+            $.ajax({ url: "/api/1.0/clearCache/", type : "GET", contentType:"application/json", success: function ( result ) {
+                    alert(JSON.stringify(result));
+                }
+            });
+        }
+        function clearStartChecks() {
+            $.ajax({ url: "/api/1.0/clearStartChecks/", type : "GET", contentType:"application/json", success: function ( result ) {
+                    alert(JSON.stringify(result));
+                }
+            });
+        }
+        function deleteDebugSessions() {
+            $.ajax({ url: "/api/1.0/debug/clear/", type : "GET", contentType:"application/json", success: function ( result ) {
+                    alert(JSON.stringify(result));
+                }
+            });
+        }
+        function redistributeCluster() {
+            $.ajax({ url: "/api/1.0/cluster/distribute/", type : "GET", contentType:"application/json", success: function ( result ) {
+                    alert(JSON.stringify(result));
+                }
+            });
+        }
+        function ReloadModule() {
+            var moduleName = window.prompt("Enter the module to reload.");
+            if (moduleName) {
+                $.ajax({ url: "/api/1.0/system/reload/module/"+moduleName+"/", type : "GET", contentType:"application/json", success: function ( result ) {
+                        alert(JSON.stringify(result));
+                    }
+                });
+            }
+        }
+        $(document).ready(function() {
+            $('.lastSyncTime').each(function(i, obj) {
+                $(obj).text(localTime($(obj).text()))
+            });
+        });
+        function appendLeadingZeroes(n){
+            if(n <= 9){
+                return "0" + n;
+            }
+            return n
+        }
+        function localTime(epoch) {
+            var d = new Date(0);
+            d.setUTCSeconds(epoch);
+            var formattedDate = appendLeadingZeroes(d.getDate()) + "-" + appendLeadingZeroes(d.getMonth()+1) + "-" + appendLeadingZeroes(d.getFullYear()) + " " + appendLeadingZeroes(d.getHours()) + ":" + appendLeadingZeroes(d.getMinutes()) + ":" + appendLeadingZeroes(d.getSeconds());
+            return formattedDate;
+        }
+    </script>
+{% endblock %}

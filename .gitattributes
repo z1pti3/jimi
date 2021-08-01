@@ -1,5 +1,5 @@
 * -linguist-detectable
 *.py linguist-detectable
-/web/static/javascript/* linguist-detectable
-/web/static/css/* linguist-detectable
-/react-web/src/* linguist-detectable
+/web/build/static/javascript/* linguist-detectable
+/web/build/static/css/* linguist-detectable
+/web/build/*.html linguist-detectable

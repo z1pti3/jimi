@@ -40,7 +40,7 @@ class cpuSaver:
     loops = 0
 
     def __init__(self):
-        self.cpuSaver = jimi.settings.config["cpuSaver"]
+        self.cpuSaver = jimi.settings.cpuSaver 
 
     def tick(self,runAfter=0,sleepFor=0,ignoreEnabledState=False):
         if self.cpuSaver and ( self.cpuSaver["enabled"] or ignoreEnabledState ):
@@ -80,17 +80,18 @@ def evalString(varString,dicts={},functionSafeList=functionSafeList):
 def evalDict(varDict,dicts={},functionSafeList=functionSafeList):
     result = {}
     for key, value in varDict.items():
+        newKey = evalString(key,dicts,functionSafeList)
         if type(value) is str:
-            result[key] = evalString(varDict[key],dicts,functionSafeList)
+            result[newKey] = evalString(varDict[key],dicts,functionSafeList)
         elif type(value) is dict:
-            if key not in result:
-                result[key] = evalDict(value,dicts,functionSafeList)
+            if newKey not in result:
+                result[newKey] = evalDict(value,dicts,functionSafeList)
             else:
-                result[key].update(evalDict(value,dicts,functionSafeList))
+                result[newKey].update(evalDict(value,dicts,functionSafeList))
         elif type(value) is list:
-            result[key] = evalList(value,dicts,functionSafeList)
+            result[newKey] = evalList(value,dicts,functionSafeList)
         else:
-            result[key] = varDict[key]
+            result[newKey] = varDict[key]
     return result
 
 def evalList(varList,dicts={},functionSafeList=functionSafeList):
@@ -408,13 +409,13 @@ def reload():
         except:
             pass
 
-apiURL = "http://{0}:{1}/{2}".format(jimi.settings.config["system"]["accessAddress"],jimi.settings.config["system"]["accessPort"],jimi.settings.config["api"]["core"]["base"])
+apiURL = "http://{0}:{1}/{2}".format(jimi.config["system"]["accessAddress"],jimi.config["system"]["accessPort"],jimi.config["api"]["core"]["base"])
 def apiCall(methord,apiEndpoint,jsonData=None,token=None,overrideURL=None,timeout=2,overrideAPIBase=None):
     if overrideURL != None:
         if overrideAPIBase != None:
             url = "{0}/{1}/{2}".format(overrideURL,overrideAPIBase,apiEndpoint)
         else:
-            url = "{0}/{1}/{2}".format(overrideURL,jimi.settings.config["api"]["core"]["base"],apiEndpoint)                   
+            url = "{0}/{1}/{2}".format(overrideURL,jimi.config["api"]["core"]["base"],apiEndpoint)                   
     else:
         url = "{0}/{1}".format(apiURL,apiEndpoint)
 
@@ -424,13 +425,13 @@ def apiCall(methord,apiEndpoint,jsonData=None,token=None,overrideURL=None,timeou
     response = None
     try:
         if methord == "GET":
-            response = requests.get(url,proxies=jimi.settings.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
+            response = requests.get(url,proxies=jimi.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
         elif methord == "POST":
-            response = requests.post(url,json=jsonData,proxies=jimi.settings.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
+            response = requests.post(url,json=jsonData,proxies=jimi.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
         elif methord == "PUT":
-            response = requests.put(url,json=jsonData,proxies=jimi.settings.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
+            response = requests.put(url,json=jsonData,proxies=jimi.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
         elif methord == "DELETE":
-            response = requests.delete(url,proxies=jimi.settings.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
+            response = requests.delete(url,proxies=jimi.config["api"]["proxy"],headers=headers,allow_redirects=False,timeout=timeout)
     except Exception as e:
         pass
     return response

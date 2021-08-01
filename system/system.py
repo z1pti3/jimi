@@ -1,6 +1,8 @@
 import requests
 from pathlib import Path
 import os
+import json
+import logging
 
 import jimi
 from system import install
@@ -21,7 +23,7 @@ class _systemFiles(jimi.db._document):
 		self.fileHash = fileHash
 		return super(_systemFiles, self).new()
 
-systemSettings = jimi.settings.config["system"]
+systemSettings = jimi.config["system"]
 
 def fileIntegrityRegister():
 	knownFiles = _systemFiles().getAsClass(query={ "systemID" : systemSettings["systemID"] })
@@ -36,7 +38,7 @@ def fileIntegrityRegister():
 			jimi.logging.debug("Error: System integrity register could not find or get storage file. storageID={0}".format(storageFile._id),-1)
 
 	checksumHash = ""
-	registerRoots = ["system","core","plugins","data/storage"]
+	registerRoots = ["system","core","web","screens","tools","plugins","data/storage"]
 	for registerRoot in registerRoots:
 		for root, dirs, files in os.walk(Path(registerRoot), topdown=False):
 			for _file in files:
@@ -66,24 +68,27 @@ def getSystemFile(url,fileID,filename,fileHash):
 	if not jimi.helpers.safeFilepath(filename,filepath):
 		return False
 	headers = { "x-api-token" : jimi.auth.generateSystemSession() }
-	with requests.get("{0}{1}system/file/{2}/".format(url,jimi.api.base,fileID), headers=headers, stream=True, timeout=60) as r:
-		r.raise_for_status()
-		tempFilename = str(Path("data/temp/{0}".format(fileID)))
-		if not jimi.helpers.safeFilepath(tempFilename,"data/temp"):
-			return False
-		with open(tempFilename, 'wb') as f:
-			for chunk in r.iter_content(chunk_size=8192):
-				f.write(chunk)
-		if jimi.helpers.getFileHash(tempFilename) == fileHash:
-			if os.path.isfile(filename):
-				os.remove(filename)
-			if not os.path.isdir(filepath):
-				os.makedirs(filepath)
-			os.rename(tempFilename,filename)
-			return True
-		else:
-			jimi.logging.debug("Error: File obtained from master failed integrity checks. fileID={0}, filename={1}".format(fileID,filename),-1)
-		os.remove(tempFilename)
+	try:
+		with requests.get("{0}{1}system/file/{2}/".format(url,jimi.api.base,fileID), headers=headers, stream=True, timeout=60) as r:
+			r.raise_for_status()
+			tempFilename = str(Path("data/temp/{0}".format(fileID)))
+			if not jimi.helpers.safeFilepath(tempFilename,"data/temp"):
+				return False
+			with open(tempFilename, 'wb') as f:
+				for chunk in r.iter_content(chunk_size=8192):
+					f.write(chunk)
+			if jimi.helpers.getFileHash(tempFilename) == fileHash:
+				if os.path.isfile(filename):
+					os.remove(filename)
+				if not os.path.isdir(filepath):
+					os.makedirs(filepath)
+				os.rename(tempFilename,filename)
+				return True
+			else:
+				jimi.logging.debug("Error: File obtained from master failed integrity checks. fileID={0}, filename={1}".format(fileID,filename),-1)
+			os.remove(tempFilename)
+	except:
+		pass
 	return False
 
 def fixChecksum(pullFromSystemID):
@@ -108,9 +113,10 @@ def fixChecksum(pullFromSystemID):
 		jimi.logging.debug("Info: File does not exist on master - Deleting. filename={0}".format(str(Path(ourSystemFile))),-1)
 		if jimi.helpers.safeFilepath(ourSystemFile):
 			os.remove(ourSystemFile)
-	jimi.cluster.cluster.clusterMember.checksum = fileIntegrityRegister()
-	jimi.cluster.cluster.clusterMember.update(["checksum"])
-	return True
+
+	# Regenerate checksum now we have pulled all of the files
+	checksum = fileIntegrityRegister()
+	return checksum
 
 # API
 if jimi.api.webServer:
@@ -136,10 +142,29 @@ if jimi.api.webServer:
 			@jimi.api.webServer.route(jimi.api.base+"system/checksum/", methods=["GET"])
 			@jimi.auth.adminEndpoint
 			def regenerateSystemFileIntegrity():
-				jimi.cluster.cluster.clusterMember.checksum = fileIntegrityRegister()
-				jimi.cluster.cluster.clusterMember.update(["checksum"])
+				jimi.cluster.getSystem().checksum = fileIntegrityRegister()
+				jimi.cluster.getSystem().update(["checksum"])
 				return {}, 200
 
+			@jimi.api.webServer.route(jimi.api.base+"system/reload/module/<moduleName>/", methods=["GET"])
+			@jimi.auth.adminEndpoint
+			def reloadModule(moduleName):
+				jimi.helpers.reloadModulesWithinPath(moduleName)
+				results = [{ "system" : jimi.cluster.getSystemId(), "status_code" : 200 }]
+				apiToken = jimi.auth.generateSystemSession()
+				headers = { "X-api-token" : apiToken }
+				for systemIndex in jimi.cluster.systemIndexes:
+					url = systemIndex["apiAddress"]
+					apiEndpoint = "system/reload/module/{0}/".format(moduleName)
+					try:
+						response = requests.get("{0}{1}{2}".format(url,jimi.api.base,apiEndpoint),headers=headers, timeout=10)
+						if response.status_code == 200:
+							results.append({ "system" : jimi.cluster.getSystemId(), "index" : systemIndex["systemIndex"], "status_code" : response.status_code })
+					except:
+						logging.warning("Unable to access {0}{1}{2}".format(url,jimi.api.base,apiEndpoint))
+				return { "results" : results }, 200
+
+		if jimi.api.webServer.name == "jimi_worker":
 			@jimi.api.webServer.route(jimi.api.base+"system/reload/module/<moduleName>/", methods=["GET"])
 			@jimi.auth.systemEndpoint
 			def reloadModule(moduleName):
@@ -166,3 +191,17 @@ if jimi.api.webServer:
 				apiEndpoint = "system/checksum/"
 				response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url,timeout=60)
 				return { "url" : url, "response" : response.status_code }, 200
+
+			@jimi.api.webServer.route(jimi.api.base+"system/reload/module/<moduleName>/", methods=["GET"])
+			@jimi.auth.adminEndpoint
+			def reloadModule(moduleName):
+				jimi.helpers.reloadModulesWithinPath(moduleName)
+				results = [{ "web" : jimi.cluster.getSystemId(), "status_code" : 200 }]
+				apiEndpoint = "system/reload/module/{0}/".format(moduleName)
+				servers = jimi.cluster.getAll()
+				for url in servers:
+					response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
+					if response.status_code == 200:
+						results.append({ "server" : url, "results" : json.loads(response.text) })
+				return { "results" : results }, 200
+

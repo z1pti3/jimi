@@ -1,9 +1,7 @@
 import time
 import random
 import re
-import json
 import datetime
-import traceback
 import croniter
 
 import jimi
@@ -12,17 +10,20 @@ class _scheduler:
     stopped = False
     startTime = None
     lastHandle = None
+    workerHandler = None
+    systemId = None
+    systemIndex = None
 
-    def __init__(self):
-        self.workerID = jimi.workers.workers.new("scheduler",self.handler,maxDuration=0)
-        self.startTime = int(time.time())
+    def __init__(self,systemId,systemIndex):
+        self.systemId = systemId
+        self.systemIndex = systemIndex
 
     def handler(self):
+        self.startTime = int(time.time())
         while not self.stopped:
             now = int(time.time())
             self.lastHandle = now
-            # Adds defined delay onto nextCheck so that it can pickup ones that would otherwise wait for after the pause
-            for t in jimi.trigger._trigger().getAsClass(query={ "systemID" : systemSettings["systemID"], "$or" : [ {"nextCheck" : { "$lt" :  (now + schedulerSettings["loopP"])}}, {"$or" : [ {"nextCheck" : { "$eq" : ""}} , {"nextCheck" : {"$eq" : None }} ] } ], "enabled" : True, "startCheck" :  0, "$and":[{"schedule" : {"$ne" : None}} , {"schedule" : {"$ne" : ""}} ] }):
+            for t in jimi.trigger._trigger().getAsClass(query={ "systemID" : self.systemId, "systemIndex" : self.systemIndex, "$or" : [ {"nextCheck" : { "$lt" :  now}}, {"$or" : [ {"nextCheck" : { "$eq" : ""}} , {"nextCheck" : {"$eq" : None }} ] } ], "enabled" : True, "startCheck" :  0, "$and":[{"schedule" : {"$ne" : None}} , {"schedule" : {"$ne" : ""}} ] }):
                 if t.schedule == "*":
                     t.nextCheck == 1  
                 if t.nextCheck == 0:
@@ -44,13 +45,7 @@ class _scheduler:
                         if jimi.logging.debugEnabled:
                             jimi.logging.debug("Scheduler trigger start cannot requested, as the max conncurrent workers are already active. Will try again shortly",3)
             # pause
-            time.sleep(schedulerSettings["loopP"])
-
-
-from system.models import trigger as systemTrigger
-
-systemSettings = jimi.settings.config["system"]
-schedulerSettings = jimi.settings.config["scheduler"]
+            time.sleep(jimi.settings.getSetting("scheduler","loopP"))
 
 # Get next run time from schedule string
 def getSchedule(scheduleString):
@@ -91,48 +86,6 @@ def continuous(t):
     while t.enabled:
         t.checkHandler()
         if time.time() - startTime > 60:
-            t.refresh() 
-
-def start():
-    global scheduler
-    try:
-        if jimi.workers.workers:
-            try:
-                # Creating instance of scheduler
-                if scheduler:
-                    jimi.workers.workers.kill(scheduler.workerID)
-                    if jimi.logging.debugEnabled:
-                        jimi.logging.debug("Scheduler start requested, Existing thread kill attempted, workerID='{0}'".format(scheduler.workerID),6)
-                    scheduler = None
-            except NameError:
-                pass
-            scheduler = _scheduler()
-            if jimi.logging.debugEnabled:
-                jimi.logging.debug("Scheduler started, workerID='{0}'".format(scheduler.workerID),6)
-            return True
-    except AttributeError:
-        if jimi.logging.debugEnabled:
-            jimi.logging.debug("Scheduler start requested, No valid worker class loaded",4)
-        return False
-
-######### --------- API --------- #########
-if jimi.api.webServer:
-    if not jimi.api.webServer.got_first_request:
-        if jimi.api.webServer.name == "jimi_core":
-            @jimi.api.webServer.route(jimi.api.base+"scheduler/", methods=["GET"])
-            @jimi.auth.systemEndpoint
-            def getScheduler():
-                if scheduler:
-                    return { "result": { "stopped" : scheduler.stopped, "startTime" : scheduler.startTime, "lastHandle" : scheduler.lastHandle, "workerID" : scheduler.workerID } },200
-                else:
-                    return { } , 404
-
-            @jimi.api.webServer.route(jimi.api.base+"scheduler/", methods=["POST"])
-            @jimi.auth.systemEndpoint
-            def updateScheduler():
-                data = json.loads(jimi.api.request.data)
-                if data["action"] == "start":
-                    result = start()
-                    return { "result" : result }, 200
-                else:
-                    return { }, 404
+            t.refresh()
+            t.startCheck = time.time()
+            t.update(["startCheck"])
