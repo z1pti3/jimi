@@ -130,7 +130,9 @@ if jimi.api.webServer:
                             #Set email if it exists
                             if userData["email"]:
                                 user.setAttribute("email",userData["email"],sessionData=jimi.api.g.sessionData)
-                            user.update(["email","primaryGroup"])
+                            #Set user login type
+                            user.setAttribute("loginType",userData["loginType"],sessionData=jimi.api.g.sessionData)
+                            user.update(["email","primaryGroup","loginType"])
                             #Check for sandbox creation
                             if userData["sandbox"] == "Yes":
                                 #Create a sandbox conduct using the user's name
@@ -180,11 +182,13 @@ if jimi.api.webServer:
                     conductList = []
                     conducts = jimi.conduct._conduct().getAsClass(sessionData=jimi.api.g.sessionData,query={})
                     for conduct in conducts:
-                        matches = [item for item in conduct.acl["ids"] if item["accessID"] == foundGroup._id]
-                        if any(matches):
-                            conductList.append({"id":conduct._id, "name":conduct.name, "acl":matches[0], "enabled":True})
+                        if "ids" in conduct.acl:
+                            matches = [item for item in conduct.acl["ids"] if item["accessID"] == foundGroup._id]
+                            if any(matches):
+                                conductList.append({"id":conduct._id, "name":conduct.name, "acl":matches[0], "enabled":True})
+                            else:
+                                conductList.append({"id":conduct._id, "name":conduct.name, "acl":{"accessID":foundGroup._id,"read":False,"write":False,"delete":False}, "enabled":False})
                         else:
                             conductList.append({"id":conduct._id, "name":conduct.name, "acl":{"accessID":foundGroup._id,"read":False,"write":False,"delete":False}, "enabled":False})
-
                     return render_template("groupDetailed.html",group=foundGroup,conductList=conductList,CSRF=jimi.api.g.sessionData["CSRF"])
                 return 404

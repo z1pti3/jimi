@@ -24,7 +24,6 @@
                 <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
                   <br>
                   <form>
-
                     <div class="form-group">
                       <label for="username">Username</label>
                       <input type="text" class="form-control textbox" id="username" value="{{user["username"]}}" disabled="" aria-describedby="usernameHelp">
@@ -33,7 +32,7 @@
                     <div class="form-group">
                       <label for="name">Name</label>
                       <input type="text" class="form-control textbox" id="name" value="{{user["name"]}}" aria-describedby="nameHelp">
-                      <small id="emailHelp" class="form-text text-muted">The name of the user</small>
+                      <small id="nameHelp" class="form-text text-muted">The name of the user</small>
                     </div>
                     <div class="form-group">
                       <label for="email">Email</label>
@@ -49,6 +48,11 @@
                         {% endfor %}
                       </select>
                       <small id="groupHelp" class="form-text text-muted">The main group the user belongs to</small>
+                    </div>
+                    <div class="form-group">
+                      <label for="loginType">Login Type</label>
+                      <input type="loginType" class="form-control textbox" id="loginType" value="{{user["loginType"]}}" aria-describedby="loginTypeHelp">
+                      <small id="loginTypeHelp" class="form-text text-muted">What authentication mechnanism the user uses</small>
                     </div>
                     <div class="form-group">
                       <label class="form-check-label" for="active">Active</label>
@@ -68,6 +72,7 @@
                 </div>
                 <div class="tab-pane fade" id="groups" role="tabpanel" aria-labelledby="groups-tab">
                   <br>
+                  <i>This feature is not currently implemented!</i>
                     <div class="row align-items-start">
                       <div class="col">
                         <h2>Available Groups</h2>
@@ -94,11 +99,11 @@
     </div>
     <script>
         function editUser() {
-                var body = JSON.stringify({ CSRF : CSRF, username: $("#username").val(), name: $("#name").val(), email: $("#email").val(), primaryGroup: $("#group").val(), enabled: $("#active").val()})
+                var body = JSON.stringify({ CSRF : CSRF, username: $("#username").val(), name: $("#name").val(), email: $("#email").val(), primaryGroup: $("#group").val(), enabled: $("#active").val(), loginType: $("#loginType").val()})
                 $.ajax({ type : "POST",  data:body, contentType:"application/json", 
                     success: function ( result ) 
                     {
-                        window.location.reload();
+                        dropdownAlert($("#alertArea"),"success","User updated successfully",2500);
                     },
                     error: function ( result )
                     {
@@ -111,7 +116,7 @@
                 $.ajax({ type : "DELETE",  data:body, contentType:"application/json", 
                     success: function ( result ) 
                     {
-                        window.location.replace("/auth/users/");
+                        window.location.replace("/admin/users/");
                     },
                     error: function ( result )
                     {
