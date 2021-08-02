@@ -357,6 +357,13 @@ function runDebuggerNew() {
 	}
 }
 
+function clearDebugger() {
+	$.ajax({url:"/api/1.0/debug/clear/"+debugSession+"/", type:"GET", contentType:"application/json", success: function ( result ) {
+			clearExecutedFlows();
+		}
+	});
+}
+
 function runDebugger() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
@@ -440,7 +447,7 @@ function addExecutedFlowEventResult(uid,executionUID,executionName) {
 }
 
 function clearExecutedFlows() {
-	$(".eventList").clear();
+	$(".eventList").empty();
 	executedFlows = {}
 	eventIndex = 0
 }
@@ -450,7 +457,6 @@ function nodeSelectionChange(flowID) {
 	if (selectedExecutedFlowUID!=null) {
 		$.ajax({url:"/api/1.0/debug/"+debugSession+"/"+selectedExecutedFlowUID+"/"+flowID+"/flowID", type:"GET", timeout: 2000, contentType:"application/json", success: function ( executionData ) {
 				setSelection(executionData);
-				console.log(executionData)
 				$('#eventItem'+executionData["id"]).addClass('click');
 				network.setSelection({ "nodes" : [flowObjects[executionData["flowID"]]["nodeID"]] });
 			}

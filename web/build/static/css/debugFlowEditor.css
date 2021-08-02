@@ -126,4 +126,12 @@ hr {
 	z-index: 1;
 	right: 1px;
     bottom: 0;
+    right: 65px;
+}
+
+.clearDebugger {
+    position: absolute;
+	z-index: 1;
+	right: 1px;
+    bottom: 0;
 }
