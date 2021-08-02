@@ -256,7 +256,7 @@ def validateExternalUser(username,password,method,**kwargs):
                 sessionID = secrets.token_hex(32)
                 if _session().new(username,sessionID,kwargs["application"]).inserted_id:
                     jimi.audit._audit().add("auth","login",{ "action" : "success", "src_ip" : jimi.api.request.remote_addr, "username" : username, "sessionID" : sessionID, "api" : False, "application" : kwargs["application"] })
-                    return generateSession({kwargs["application"] : { "_id" : "0123", "user" : username, "authenticated" : True, "sessionID" : secrets.token_hex(32), "api" : False}})
+                    return generateSession({kwargs["application"] : { "_id" : kwargs["application"], "user" : username, "authenticated" : True, "sessionID" : sessionID, "api" : False}})
                 else:
                     jimi.audit._audit().add("auth","session",{ "action" : "failure", "src_ip" : jimi.api.request.remote_addr, "username" : username, "sessionID" : sessionID, "api" : False, "application" : kwargs["application"] })
 
