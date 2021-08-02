@@ -1,5 +1,8 @@
 import jimi
 
+#Will be deprecated in v4.0
+config = jimi.config
+
 class _settings(jimi.db._document):
 	name = str()
 	values = dict()

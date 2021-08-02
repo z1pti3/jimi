@@ -16,6 +16,7 @@ from Crypto.Random import get_random_bytes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 from werkzeug.utils import redirect
+from ldap3 import Server, Connection, ALL, NTLM
 
 import jimi
 
@@ -26,12 +27,14 @@ class _session(jimi.db._document):
     user = str()
     sessionID = str()
     sessionStartTime = int()
+    application = str()
 
     _dbCollection = jimi.db.db["sessions"]
 
-    def new(self,user,sessionID):
+    def new(self,user,sessionID,application):
         self.user = user
         self.sessionID = sessionID
+        self.application = application
         self.sessionStartTime = time.time()
         return super(_session, self).new()
 
@@ -205,27 +208,28 @@ def generateSharedSecret():
     return base64.b32encode(secrets.token_bytes(10)).decode("UTF-8")
 
 def generateSession(dataDict):
-    if dataDict["api"]:
-        dataDict["expiry"] = time.time() + authSettings["apiSessionTimeout"]
-    else:
-        dataDict["expiry"] = time.time() + authSettings["sessionTimeout"]
-    if "CSRF" not in dataDict:
-        dataDict["CSRF"] = secrets.token_urlsafe(16)
+    for application in dataDict:
+        if dataDict[application]["api"]:
+            dataDict["expiry"] = time.time() + authSettings["apiSessionTimeout"]
+        else:
+            dataDict[application]["expiry"] = time.time() + authSettings["sessionTimeout"]
+        if "CSRF" not in dataDict[application]:
+            dataDict[application]["CSRF"] = secrets.token_urlsafe(16)
     return jwt.encode(dataDict, private_key, algorithm="RS256")
 
 def generateSystemSession():
     data = { "expiry" : time.time() + 10, "admin" : True, "system" : True, "_id" : 0, "user" : "system", "primaryGroup" : 0, "authenticated" : True, "api" : True }
     return jwt.encode(data, private_key, algorithm="RS256")
 
-def validateSession(sessionToken):
+def validateSession(sessionToken,application,useCache=True):
     try:
-        dataDict = jwt.decode(sessionToken, public_key, algorithms=["RS256"])
+        dataDict = jwt.decode(sessionToken, public_key, algorithms=["RS256"])[application]
         if dataDict["authenticated"]:
             if dataDict["expiry"] < time.time():
                 return None
             
             # Checking for active session skipping system sessions
-            if "system" not in dataDict:
+            if "system" not in dataDict and useCache:
                 session = jimi.cache.globalCache.get("sessions",dataDict["sessionID"],getSessionObject)
                 if session.user != dataDict["user"]:
                     return None
@@ -236,6 +240,27 @@ def validateSession(sessionToken):
                 return { "sessionData" : dataDict, "sessionToken" : sessionToken }
     except:
         pass
+    return None
+
+def validateExternalUser(username,password,method,**kwargs):
+    if method == "ldap":
+        domains = jimi.settings.getSetting("ldap",None)["domains"]
+        if "domain" in kwargs:
+            domain = [x for x in domains if x["name"] == kwargs["domain"]][0]
+            server = Server(domain["ip"], use_ssl=domain["ssl"], get_info=ALL)
+            conn = Connection(server, "{}\{}".format(kwargs["domain"],username), password, authentication=NTLM)
+            if conn.bind():
+                # Generate new session
+                if authSettings["singleUserSessions"]:
+                    _session().api_delete(query={ "user" : username, "application" : kwargs["application"] })
+                sessionID = secrets.token_hex(32)
+                if _session().new(username,sessionID,kwargs["application"]).inserted_id:
+                    jimi.audit._audit().add("auth","login",{ "action" : "success", "src_ip" : jimi.api.request.remote_addr, "username" : username, "sessionID" : sessionID, "api" : False, "application" : kwargs["application"] })
+                    return generateSession({kwargs["application"] : { "_id" : kwargs["application"], "user" : username, "authenticated" : True, "sessionID" : sessionID, "api" : False}})
+                else:
+                    jimi.audit._audit().add("auth","session",{ "action" : "failure", "src_ip" : jimi.api.request.remote_addr, "username" : username, "sessionID" : sessionID, "api" : False, "application" : kwargs["application"] })
+
+    jimi.audit._audit().add("auth","login",{ "action" : "failed", "src_ip" : jimi.api.request.remote_addr, "username" : username, "method" : method })
     return None
 
 def validateUser(username,password,otp=None):
@@ -264,17 +289,18 @@ def validateUser(username,password,otp=None):
             user.update(["lastLoginAttempt","failedLoginCount"])
             # Generate new session
             if authSettings["singleUserSessions"]:
-                _session().api_delete(query={ "user" : user.username })
+                _session().api_delete(query={ "user" : user.username, "application" : "jimi" })
             sessionID = secrets.token_hex(32)
-            if _session().new(user.username,sessionID).inserted_id:
+            if _session().new(user.username,sessionID,"jimi").inserted_id:
                 jimi.audit._audit().add("auth","login",{ "action" : "success", "src_ip" : jimi.api.request.remote_addr, "username" : user.username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" :user.primaryGroup, "admin" : isAdmin(user), "sessionID" : sessionID, "api" : False })
-                return generateSession({ "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True, "sessionID" : sessionID, "api" : False })
+                return generateSession({"jimi" : { "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True, "sessionID" : sessionID, "api" : False }})
             else:
-                jimi.audit._audit().add("auth","session",{ "action" : "failure", "src_ip" : jimi.api.request.remote_addr, "username" : username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" :user.primaryGroup, "admin" : isAdmin(user), "sessionID" : sessionID, "api" : False })
+                jimi.audit._audit().add("auth","session",{ "action" : "failure", "src_ip" : jimi.api.request.remote_addr, "username" : username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" :user.primaryGroup, "admin" : isAdmin(user), "sessionID" : sessionID, "api" : False, "application" : "jimi" })
         else:
             user.failedLoginCount+=1
             user.update(["lastLoginAttempt","failedLoginCount"])
-    jimi.audit._audit().add("auth","login",{ "action" : "failed", "src_ip" : jimi.api.request.remote_addr, "username" : username })
+
+    jimi.audit._audit().add("auth","login",{ "action" : "failed", "src_ip" : jimi.api.request.remote_addr, "username" : username, "method" : "local" })
     return None
 
 # Needs to be converted into authorization roles e.g. admin
@@ -336,7 +362,7 @@ def systemEndpoint(f):
 ######### --------- API --------- #########
 if jimi.api.webServer:
     if not jimi.api.webServer.got_first_request:
-        # Ensures that all requests require basic level of authentication ( athorization handled by dectirators )
+        # Ensures that all requests require basic level of authentication ( authorisation handled by decorators )
         @jimi.api.webServer.before_request
         def api_alwaysAuthBefore():
             jimi.api.g.sessionData = {}
@@ -348,7 +374,7 @@ if jimi.api.webServer:
                 if jimi.api.request.endpoint != None and jimi.api.request.endpoint not in noAuthEndPoints and "__PUBLIC__" not in jimi.api.request.endpoint:
                     validSession = None
                     if "jimiAuth" in jimi.api.request.cookies:
-                        validSession = validateSession(jimi.api.request.cookies["jimiAuth"])
+                        validSession = validateSession(jimi.api.request.cookies["jimiAuth"],"jimi")
                         if not validSession:
                                 return jimi.api.redirect("/login?return={0}".format(urllib.parse.quote(jimi.api.request.full_path)), code=302)
                         jimi.api.g.type = "cookie"
@@ -371,7 +397,7 @@ if jimi.api.webServer:
                             except:
                                 return jimi.api.redirect("/login?return={0}".format(urllib.parse.quote(jimi.api.request.full_path)), code=302)
                     elif "x-api-token" in jimi.api.request.headers:
-                        validSession = validateSession(jimi.api.request.headers.get("x-api-token"))
+                        validSession = validateSession(jimi.api.request.headers.get("x-api-token"),"jimi")
                         if not validSession:
                             return {}, 403
                         #if validSession["sessionData"]["api"] != True:
@@ -395,10 +421,10 @@ if jimi.api.webServer:
         @jimi.api.webServer.after_request
         def api_alwaysAuthAfter(response):
             if authSettings["enabled"]:
-                    if jimi.api.g.type != "bypass":
-                        if jimi.api.g.type == "cookie":
-                            if "renew" in jimi.api.g:
-                                response.set_cookie("jimiAuth", value=generateSession(jimi.api.g.sessionData), max_age=600, httponly=True) # Need to add secure=True before production, httponly=False cant be used due to auth polling
+                if jimi.api.g.type != "bypass":
+                    if jimi.api.g.type == "cookie":
+                        if "renew" in jimi.api.g:
+                            response.set_cookie("jimiAuth", value=generateSession(jimi.api.g.sessionData), max_age=600, httponly=True) # Need to add secure=True before production, httponly=False cant be used due to auth polling
             # Cache Weakness
             if jimi.api.request.endpoint and jimi.api.request.endpoint != "static" and "__STATIC__" not in jimi.api.request.endpoint:
                 response.headers['Cache-Control'] = 'no-cache, no-store'
@@ -437,7 +463,7 @@ if jimi.api.webServer:
                     else:
                         userSession = validateUser(data["username"],data["password"],data["otp"])
                     if userSession:
-                        sessionData = validateSession(userSession)["sessionData"]
+                        sessionData = validateSession(userSession,"jimi")["sessionData"]
                         redirect = jimi.api.request.args.get("return")
                         if redirect:
                             if "." in redirect or ".." in redirect:
@@ -465,11 +491,11 @@ if jimi.api.webServer:
                         user = user[0]  
                         # Generate new session
                         sessionID = secrets.token_hex(32)
-                        if _session().new(user.username,sessionID).inserted_id:
-                            jimi.audit._audit().add("auth","login",{ "action" : "success", "src_ip" : jimi.api.request.remote_addr, "username" : user.username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "sessionID" : sessionID, "api" : True })
-                            return { "x-api-token" : generateSession({ "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True, "sessionID" : sessionID, "api" : True }).decode()}, 200
+                        if _session().new(user.username,sessionID,"jimi").inserted_id:
+                            jimi.audit._audit().add("auth","login",{ "action" : "success", "src_ip" : jimi.api.request.remote_addr, "username" : user.username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "sessionID" : sessionID, "api" : True, "application" : "jimi" })
+                            return { "x-api-token" : generateSession({"jimi": { "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True, "sessionID" : sessionID, "api" : True }}).decode()}, 200
                         else:
-                            jimi.audit._audit().add("auth","session",{ "action" : "failure", "src_ip" : jimi.api.request.remote_addr, "username" : user.username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" :user.primaryGroup, "admin" : isAdmin(user), "sessionID" : sessionID, "api" : True })
+                            jimi.audit._audit().add("auth","session",{ "action" : "failure", "src_ip" : jimi.api.request.remote_addr, "username" : user.username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" :user.primaryGroup, "admin" : isAdmin(user), "sessionID" : sessionID, "api" : True, "application" : "jimi" })
                             return {}, 403
                 return {}, 404
 
