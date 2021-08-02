@@ -323,6 +323,23 @@ def dictToJson(json):
             rebuiltJson[key] = str(type(value))
     return rebuiltJson
 
+def listToJson(listObj):
+    def rebuildList(jsonList):
+        rebuiltList = []
+        standardTypes = [str,int,bool,float,list,None]
+        for item in jsonList:
+            if type(item) is dict:
+                rebuiltList.append(dictToJson(item))
+            elif type(item) is list:
+                rebuiltList += rebuildList(item)
+            elif type(item) in standardTypes:
+                rebuiltList.append(item)
+            else:
+                rebuiltList.append(str(type(item)))
+        return rebuiltList
+    rebuiltJson = rebuildList(listObj)
+    return rebuiltJson
+
 def unicodeEscapeDict(dictVar):
     resultItem = {}
     for key, value in dictVar.items():

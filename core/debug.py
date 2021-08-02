@@ -189,8 +189,10 @@ if jimi.api.webServer:
                     result = []
                     for flowKey, flowValue  in flowDebugSession[sessionID].flowList.items():
                         event = flowValue["event"]
-                        if type(event) is dict or type(event) is list:
+                        if type(event) is dict:
                             event = jimi.helpers.dictToJson(event)
+                        elif type(event) is list:
+                            event = jimi.helpers.listToJson(event)
                         result.append({ "id" : flowKey, "event" : event, "name" : flowValue["name"], "preserveDataID" : flowValue["preserveDataID"] })
                     return {"flowList" : result }, 200
                 return {}, 404
