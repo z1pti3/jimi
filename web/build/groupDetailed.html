@@ -13,6 +13,7 @@
                 <li class="nav-item" role="presentation">
                   <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab" aria-controls="home" aria-selected="true">Details</button>
                 </li>
+                {% if group["name"] != "admin" %}
                 <li class="nav-item" role="presentation">
                   <button class="nav-link" id="conducts-tab" data-bs-toggle="tab" data-bs-target="#conducts" type="button" role="tab" aria-controls="access" aria-selected="false">Conducts</button>
                 </li>
@@ -22,6 +23,7 @@
                 <li class="nav-item" role="presentation">
                   <button class="nav-link" id="danger-zone-tab" data-bs-toggle="tab" data-bs-target="#danger-zone" type="button" role="tab" aria-controls="danger-zone" aria-selected="false">Danger Zone</button>
                 </li>
+                {% endif %}
               </ul>
               <div class="tab-content text-left" id="myTabContent">
                 <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
@@ -34,7 +36,7 @@
                     </div>
                     <div class="form-group">
                       <label for="description">Description</label>
-                      <textarea class="form-control textbox" id="description" value="" aria-describedby="descriptionHelp"></textarea>
+                      <textarea class="form-control textbox" id="description" aria-describedby="descriptionHelp">{{group["description"]}}</textarea>
                       <small id="descriptionHelp" class="form-text text-muted">A description of the group</small>
                     </div>
                     <div class="form-group">
@@ -51,7 +53,7 @@
                       <small id="activeHelp" class="form-text text-muted">Whether the group is active or not</small>
                     </div>
                   </form>
-                  <button class="btn btn-success btn-block button" type="submit">Save</a>
+                  <button type="button" class="btn btn-primary button bi-save" onclick="editGroup()"> Save</button>
 
                 </div>
                 <div class="tab-pane fade" id="conducts" role="tabpanel" aria-labelledby="access-tab">
@@ -220,7 +222,21 @@
               </div>
     </div>
     <script>
+        function editGroup() {
+          var body = JSON.stringify({ CSRF : CSRF, name: $("#name").val(), description: $("#description").val(), enabled: $("#active").val()})
+          $.ajax({ type : "PUT",  data:body, contentType:"application/json", 
+              success: function ( result ) 
+              {
+                  dropdownAlert($("#alertArea"),"success","Group updated successfully",2500);
+              },
+              error: function ( result )
+              {
+                  dropdownAlert($("#alertArea"),"error",result.responseJSON.message,2500);
+              }
+          });
+        }
           function deleteGroup() {
+            if (confirm("Are you sure you want to delete "+$("#name").val()+"?")) {
               var body = JSON.stringify({ CSRF : CSRF})
               $.ajax({ type : "DELETE",  data:body, contentType:"application/json", 
                   success: function ( result ) 
@@ -232,6 +248,7 @@
                       dropdownAlert($("#alertArea"),"error",result.responseJSON.message,2500);
                   }
               });
+            }
         }
         function allowDrop(ev) {
           ev.preventDefault();

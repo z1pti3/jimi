@@ -18,7 +18,8 @@
                         <div class="card-body">
                             <h5 class="card-title">{{ group["name"] }}</h5>
                             <hr>
-                            <i class="bi-people" style="padding-right: 5px;"></i><span class="card-text">{{ group["userCount"] }}</span>
+                            <i class="bi-people" style="font-size: 1.25rem;"></i> {{ group["userCount"] }}<br>
+                            <i>{{ group["description"] }}</i>
                         </div>
                         <div class="card-footer">
                             <a href="edit/?id={{ group["_id"] }}" class="btn btn-primary btn-block button bi-pencil"></a>
@@ -78,7 +79,7 @@
             <script>
                 function createGroup() {
                         var body = JSON.stringify({ CSRF : CSRF, name: $("#name").val(), description: $("#description").val(), active: $("#active").val(), sandbox: $("#sandbox").val()})
-                        $.ajax({ url: "create/", type : "PUT",  data:body, contentType:"application/json", 
+                        $.ajax({ url: "create/", type : "POST",  data:body, contentType:"application/json", 
                             success: function ( result ) 
                             {
                                 window.location.reload();

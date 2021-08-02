@@ -13,12 +13,14 @@
                 <li class="nav-item" role="presentation">
                   <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab" aria-controls="home" aria-selected="true">Details</button>
                 </li>
+                {% if user["username"] != "root" %}
                 <li class="nav-item" role="presentation">
                   <button class="nav-link" id="groups-tab" data-bs-toggle="tab" data-bs-target="#groups" type="button" role="tab" aria-controls="groups" aria-selected="false">Groups</button>
                 </li>
                 <li class="nav-item" role="presentation">
                   <button class="nav-link" id="danger-zone-tab" data-bs-toggle="tab" data-bs-target="#danger-zone" type="button" role="tab" aria-controls="danger-zone" aria-selected="false">Danger Zone</button>
                 </li>
+                {% endif %}
               </ul>
               <div class="tab-content text-left" id="myTabContent">
                 <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
@@ -100,7 +102,7 @@
     <script>
         function editUser() {
                 var body = JSON.stringify({ CSRF : CSRF, username: $("#username").val(), name: $("#name").val(), email: $("#email").val(), primaryGroup: $("#group").val(), enabled: $("#active").val(), loginType: $("#loginType").val()})
-                $.ajax({ type : "POST",  data:body, contentType:"application/json", 
+                $.ajax({ type : "PUT",  data:body, contentType:"application/json", 
                     success: function ( result ) 
                     {
                         dropdownAlert($("#alertArea"),"success","User updated successfully",2500);
@@ -112,17 +114,19 @@
                 });
         }
         function deleteUser() {
-                var body = JSON.stringify({ CSRF : CSRF})
-                $.ajax({ type : "DELETE",  data:body, contentType:"application/json", 
-                    success: function ( result ) 
-                    {
-                        window.location.replace("/admin/users/");
-                    },
-                    error: function ( result )
-                    {
-                        dropdownAlert($("#alertArea"),"error",result.responseJSON.message,2500);
-                    }
-                });
+          if (confirm("Are you sure you want to delete "+$("#name").val()+" ("+$("#username").val()+")?")) {
+            var body = JSON.stringify({ CSRF : CSRF})
+            $.ajax({ type : "DELETE",  data:body, contentType:"application/json", 
+                success: function ( result ) 
+                {
+                    window.location.replace("/admin/users/");
+                },
+                error: function ( result )
+                {
+                    dropdownAlert($("#alertArea"),"error",result.responseJSON.message,2500);
+                }
+            });
+          } 
         }
         function allowDrop(ev) {
           ev.preventDefault();

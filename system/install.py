@@ -338,13 +338,16 @@ def systemInstall():
 	# Generate password function	
 	jimi.model.registerModel("generatePassword","_generatePassword","_action","system.models.action")
 
-
 	# Adding default admin group
 	adminGroup = jimi.auth._group().getAsClass(query={ "name" : "admin" })
 	if len(adminGroup) == 0:
 		adminGroup = jimi.auth._group().new("admin")
 		adminGroup = jimi.auth._group().getAsClass(query={ "name" : "admin" })
 	adminGroup = adminGroup[0]
+	
+	#Set admin group description
+	adminGroup.description = "The default administration group for jimi"
+	adminGroup.update(["description"])
 
 	# Adding default root user
 	rootUser = jimi.auth._user().getAsClass(query={ "username" : "root" })

@@ -105,7 +105,7 @@
         <script>
             function createUser() {
                     var body = JSON.stringify({ CSRF : CSRF, username: $("#username").val(), name: $("#name").val(), email: $("#email").val(), group: $("#group").val(), password: $("#password").val(), active: $("#active").val(), sandbox: $("#sandbox").val(), loginType: $("#loginType").val()})
-                    $.ajax({ url: "create/", type : "PUT",  data:body, contentType:"application/json", 
+                    $.ajax({ url: "create/", type : "POST",  data:body, contentType:"application/json", 
                         success: function ( result ) 
                         {
                             window.location.reload();

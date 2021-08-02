@@ -38,7 +38,7 @@ class _session(jimi.db._document):
 
 class _user(jimi.db._document):
     name = str()
-    enabled = bool()
+    enabled = True
     username = str()
     email = str()
     roles = list()
