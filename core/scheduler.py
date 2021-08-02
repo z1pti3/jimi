@@ -3,6 +3,7 @@ import random
 import re
 import datetime
 import croniter
+import uuid
 
 import jimi
 
@@ -24,11 +25,9 @@ class _scheduler:
             now = int(time.time())
             self.lastHandle = now
             for t in jimi.trigger._trigger().getAsClass(query={ "systemID" : self.systemId, "systemIndex" : self.systemIndex, "$or" : [ {"nextCheck" : { "$lt" :  now}}, {"$or" : [ {"nextCheck" : { "$eq" : ""}} , {"nextCheck" : {"$eq" : None }} ] } ], "enabled" : True, "startCheck" :  0, "$and":[{"schedule" : {"$ne" : None}} , {"schedule" : {"$ne" : ""}} ] }):
-                if t.schedule == "*":
-                    t.nextCheck == 1  
                 if t.nextCheck == 0:
                     t.nextCheck = getSchedule(t.schedule)
-                    t.update(["nextCheck"]) 
+                    t.update(["nextCheck"])
                 else:
                     if jimi.workers.workers.activeCount() < jimi.workers.workers.concurrent:
                         t.startCheck = time.time()
@@ -36,9 +35,6 @@ class _scheduler:
                         maxDuration = 60
                         if type(t.maxDuration) is int and t.maxDuration > 0:
                             maxDuration = t.maxDuration
-                        if t.schedule == "*":
-                            t.workerID = jimi.workers.workers.new("continuousTrigger:'{0}','{1}'".format(t._id,t.name),continuous,(t,),maxDuration=0,multiprocessing=t.threaded)
-                        else:
                             t.workerID = jimi.workers.workers.new("trigger:'{0}','{1}'".format(t._id,t.name),t.checkHandler,(),maxDuration=maxDuration,multiprocessing=t.threaded)
                         t.update(["startCheck","workerID","attemptCount"])      
                     else:
@@ -80,12 +76,3 @@ def getSchedule(scheduleString):
                 return None
             return int(value.timestamp())
     return None
-
-def continuous(t):
-    startTime = time.time()
-    while t.enabled:
-        t.checkHandler()
-        if time.time() - startTime > 60:
-            t.refresh()
-            t.startCheck = time.time()
-            t.update(["startCheck"])

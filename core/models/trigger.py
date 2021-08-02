@@ -83,12 +83,12 @@ class _trigger(jimi.db._document):
         tempData = data
 
         conducts = jimi.cache.globalCache.get("conductCache",self._id,getTriggerConducts)
+        maxDuration = 60
+        if self.maxDuration > 0:
+            maxDuration = self.maxDuration
         if conducts:
             cpuSaver = jimi.helpers.cpuSaver()
             for loadedConduct in conducts:
-                maxDuration = 60
-                if self.maxDuration > 0:
-                    maxDuration = self.maxDuration
                 eventHandler = None
                 if self.concurrency > 0:
                     eventHandler = jimi.workers.workerHandler(self.concurrency)
