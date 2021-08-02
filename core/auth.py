@@ -51,7 +51,7 @@ class _user(jimi.db._document):
     primaryGroup = str()
     additionalGroups = list()
     icon = str()
-    loginType = str()
+    loginType = "local"
 
     _dbCollection = jimi.db.db["users"]
 

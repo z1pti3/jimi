@@ -190,7 +190,21 @@ if jimi.api.webServer:
                                 conductList.append({"id":conduct._id, "name":conduct.name, "acl":{"accessID":foundGroup._id,"read":False,"write":False,"delete":False}, "enabled":False})
                         else:
                             conductList.append({"id":conduct._id, "name":conduct.name, "acl":{"accessID":foundGroup._id,"read":False,"write":False,"delete":False}, "enabled":False})
-                    return render_template("groupDetailed.html",group=foundGroup,conductList=conductList,CSRF=jimi.api.g.sessionData["CSRF"])
+
+                    #Get ACL info about each model
+                    modelList = []
+                    models = jimi.model.getModelExtra("model")[0]["results"]
+                    for model in models:
+                        if "ids" in model["acl"]:
+                            matches = [item for item in model["acl"]["ids"] if item["accessID"] == foundGroup._id]
+                            if any(matches):
+                                modelList.append({"id":model["_id"], "name":model["name"], "acl":matches[0], "enabled":True})
+                            else:
+                                modelList.append({"id":model["_id"], "name":model["name"], "acl":{"accessID":foundGroup._id,"read":False,"write":False,"delete":False}, "enabled":False})
+                        else:
+                            modelList.append({"id":model["_id"], "name":model["name"], "acl":{"accessID":foundGroup._id,"read":False,"write":False,"delete":False}, "enabled":False})
+
+                    return render_template("groupDetailed.html",group=foundGroup,conductList=conductList,modelList=modelList,CSRF=jimi.api.g.sessionData["CSRF"])
                 return 404
 
             @jimi.api.webServer.route("/admin/groups/create/", methods=["PUT"])
