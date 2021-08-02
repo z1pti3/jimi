@@ -71,7 +71,7 @@ class _properties():
                         elif type(field["value"]) is dict or type(field["value"]) is list:
                             field["textbox"] = field["value"]
                         elif field["type"] == "dropdown":
-                            field["dropdown"] = field["value"]
+                            field["current"] = field["value"]
                         field["tooltip"] = field["description"]
                         formData.append(field)
                 formData.append({"type" : "break", "schemaitem" : "break", "start" : False, "label" : classObject.name})

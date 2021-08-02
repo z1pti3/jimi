@@ -407,7 +407,8 @@ class _document():
                 accessIDs = sessionData["accessIDs"]
                 # Adds ACL check to provided query to ensure requester is authorised and had read acess
                 aclQuery = { "$or" : [ { "acl.ids.accessID" : { "$in" : accessIDs }, "acl.ids.read" : True }, { "acl" : { "$exists" : False } }, { "acl" : {} } ] }
-                aggregate.append({"$match" : aclQuery})
+                aggregate.insert({"$match" : aclQuery},0)
+                aggregate.insert({ "$project" : { "acl" : 1 }},0)
         aggregate += aggregateStatement
         aggregateResult = self._dbCollection.aggregate(aggregate)
         result = []
