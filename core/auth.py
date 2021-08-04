@@ -227,9 +227,11 @@ def validateSession(sessionToken,application,useCache=True):
         if dataDict["authenticated"]:
             if dataDict["expiry"] < time.time():
                 return None
+            if dataDict["api"]:
+                return { "sessionData" : dataDict, "sessionToken" : sessionToken }
             
             # Checking for active session skipping system sessions
-            if "system" not in dataDict and useCache:
+            if useCache:
                 session = jimi.cache.globalCache.get("sessions",dataDict["sessionID"],getSessionObject)
                 if session.user != dataDict["user"]:
                     return None
@@ -424,7 +426,7 @@ if jimi.api.webServer:
                 if jimi.api.g.type != "bypass":
                     if jimi.api.g.type == "cookie":
                         if "renew" in jimi.api.g:
-                            response.set_cookie("jimiAuth", value=generateSession(jimi.api.g.sessionData), max_age=600, httponly=True) # Need to add secure=True before production, httponly=False cant be used due to auth polling
+                            response.set_cookie("jimiAuth", value=generateSession(jimi.api.g.sessionData), max_age=authSettings["sessionTimeout"], httponly=True) # Need to add secure=True before production, httponly=False cant be used due to auth polling
             # Cache Weakness
             if jimi.api.request.endpoint and jimi.api.request.endpoint != "static" and "__STATIC__" not in jimi.api.request.endpoint:
                 response.headers['Cache-Control'] = 'no-cache, no-store'
@@ -476,7 +478,7 @@ if jimi.api.webServer:
                         if redirect == "/?":
                             redirect = "/conducts/"
                         response = jimi.api.make_response({ "CSRF" : sessionData["CSRF"], "redirect" : redirect },200)
-                        response.set_cookie("jimiAuth", value=userSession, max_age=600, httponly=True, secure=True)
+                        response.set_cookie("jimiAuth", value=userSession, max_age=authSettings["sessionTimeout"], httponly=True, secure=True)
                         return response, 200
                 else:
                     return { "CSRF" : "" }, 200
