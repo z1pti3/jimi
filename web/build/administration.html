@@ -108,6 +108,9 @@
                 {% endif %}
                 <p class="mb-1 noHover">{{ clusterMember["checksum"] }}</p>
                 <small>
+                    {% if clusterMember["master"] %}
+                    <i class="bi-lightning" style="font-size: 1rem; padding-right: 5px;"></i>
+                    {% endif %}
                     <i class="bi-calendar" style="font-size: 1rem; padding-right: 15px;"></i><span class="lastSyncTime">{{ clusterMember["lastSyncTime"] }}</span>
                 </small>
             </li>
