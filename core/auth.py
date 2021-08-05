@@ -426,7 +426,7 @@ if jimi.api.webServer:
                 if jimi.api.g.type != "bypass":
                     if jimi.api.g.type == "cookie":
                         if "renew" in jimi.api.g:
-                            response.set_cookie("jimiAuth", value=generateSession(jimi.api.g.sessionData), max_age=authSettings["sessionTimeout"], httponly=True) # Need to add secure=True before production, httponly=False cant be used due to auth polling
+                            response.set_cookie("jimiAuth", value=generateSession({"jimi":jimi.api.g.sessionData}), max_age=authSettings["sessionTimeout"], httponly=True) # Need to add secure=True before production, httponly=False cant be used due to auth polling
             # Cache Weakness
             if jimi.api.request.endpoint and jimi.api.request.endpoint != "static" and "__STATIC__" not in jimi.api.request.endpoint:
                 response.headers['Cache-Control'] = 'no-cache, no-store'
