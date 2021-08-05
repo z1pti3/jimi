@@ -5,19 +5,18 @@
 {% endblock %}
 
 {% block main %}
-    <div class="container px-4 py-5 text-center" id="custom-cards">
+    <div class="container col-5 px-4 py-5 text-center" id="custom-cards">
         <div class="text-start" >
-            <input type="text" class="form-control textbox w-50" id="conductsSearch" onkeyup="doStorageSearch()" placeholder="Search for files">
+            <input type="text" class="form-control textbox w-50" id="storageSearch" onkeyup="doStorageSearch()" placeholder="Search for files">
             <a href="#" class="bi-plus-square" style="font-size: 25px; display: inline-block; vertical-align: middle;" title="Upload new file" data-bs-toggle="modal" data-bs-target="#newStorageModal"></a>
         </div>
         <ul class="list-group list-group-flush mt-3">
-        <!-- <div class="row row-cols-1 row-cols-lg-3 align-items-stretch g-2 py-4"> -->
-            {% for storageItem in storage|sort(attribute='name') %}
-                <li class="list-group-item text-start storageContainer" data-name="{{ storageItem["name"] }}" style="background-color: var(--mainBackgroundColor); border-color: var(--panelComponentBorder); color: var(--textColor);"">
+            {% for storageItem in storage|sort(attribute='fileData') %}
+                <li class="list-group-item text-start storageContainer" data-name="{{ storageItem["fileData"] }}" style="background-color: var(--mainBackgroundColor); border-color: var(--panelComponentBorder); color: var(--textColor);"">
                     <div class="d-flex" style="justify-content: space-between;">
                         <div>
                             <a href="/storage/{{ storageItem["_id"] }}/">
-                                <i class="bi-cpu" style="font-size: 1.25rem; padding-right: 15px;"></i><span class="fs-4 mb-2">{{ storageItem["name"] }}</span>
+                                <i class="bi-file-earmark" style="font-size: 1.25rem; padding-right: 15px;"></i><span class="fs-4 mb-2">{{ storageItem["fileData"] }}</span>
                             </a>
                         </div>
                         <div>
@@ -25,23 +24,20 @@
                         </div>
                     </div>
                     <p class="mb-3 noHover">{{ storageItem["comment"] }}</p>
-                    <small>
-                        <i class="bi-calendar" style="font-size: 1rem; padding-right: 15px;"></i><span class="lastUpdate">{{ storageItem["lastUpdateTime"] }}</span>
-                    </small>
                 </li>
 
                 <div class="modal fade" id="editStorageModal{{ storageItem["_id"] }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered" role="document">
                         <div class="modal-content panel">
                             <div class="modal-header">
-                                <h5 class="modal-title" id="exampleModalLongTitle">Editing {{ storageItem["name"] }}</h5>
+                                <h5 class="modal-title" id="exampleModalLongTitle">Editing {{ storageItem["fileData"] }}</h5>
                                 <button type="button" class="close button" data-bs-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
                             <div class="modal-body">
                                 <div class="form-floating">
-                                    <input type="text" class="form-control textbox" id="storageName{{ storageItem["_id"] }}" placeholder="Name" value="{{ storageItem["name"] }}">
+                                    <input type="text" class="form-control textbox" id="storageName{{ storageItem["_id"] }}" placeholder="Name" value="{{ storageItem["fileData"] }}">
                                     <label for="storageName">Name</label>
                                 </div>
                                 <br>
@@ -72,25 +68,25 @@
                     <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form name="newStorage" action="/api/1.0/storage/" method="POST">
+                <form action="/api/1.0/storage/" id="newFile" name="newFile" method="POST" enctype = "multipart/form-data">
                     <div class="modal-body">
-                        <input type="hidden" id="CSRF" value="{{ CSRF }}">
+                        <input type="hidden" name="CSRF" id="CSRF" value="{{ CSRF }}" />
                         <div class="form-floating">
-                            <input type="text" class="form-control textbox" id="storageName" placeholder="Name">
+                            <input type="text" class="form-control textbox" id="storageName" name="name" placeholder="Name" />
                             <label for="storageName">File Name</label>
                         </div>
-                        <br>
+                        </br>
                         <div class="input-group">
-                            <input type="file" class="form-control" id="storageFile">
+                            <input name="storageFile" type="file" class="form-control" id="storageFile" />
                         </div>
-                        <br>
+                        </br>
                         <div class="form-floating">
-                            <textarea type="text" class="form-control textbox" id="storageDescription" placeholder="Description" style="height: 250px;"></textarea>
+                            <textarea type="text" class="form-control textbox" id="storageDescription" name="comment" placeholder="Description" style="height: 250px;"></textarea>
                             <label for="storageDescription">Description</label>
                         </div>
                     </div>
                     <div class="modal-footer justify-content-start">
-                        <button type="submit" class="btn btn-primary button bi-save"> Upload</button>
+                        <button type="submit" class="btn btn-primary button bi-upload"> Upload</button>
                         <button type="button" class="btn btn-primary button" data-bs-dismiss="modal">Close</button>
                     </div>
                 </form>
@@ -98,7 +94,7 @@
         </div>
     </div>
     <!-- Global Scripts -->
-    <script>
+    <script>  
         function doStorageSearch() {
             var input = document.getElementById("storageSearch");
             var searchFilter = input.value.toUpperCase();
