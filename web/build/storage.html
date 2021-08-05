@@ -1,0 +1,149 @@
+{% extends "main.html" %}
+
+{% block head %}
+    {{ jimi.jquery() }}
+{% endblock %}
+
+{% block main %}
+    <div class="container px-4 py-5 text-center" id="custom-cards">
+        <div class="text-start" >
+            <input type="text" class="form-control textbox w-50" id="conductsSearch" onkeyup="doStorageSearch()" placeholder="Search for files">
+            <a href="#" class="bi-plus-square" style="font-size: 25px; display: inline-block; vertical-align: middle;" title="Upload new file" data-bs-toggle="modal" data-bs-target="#newStorageModal"></a>
+        </div>
+        <ul class="list-group list-group-flush mt-3">
+        <!-- <div class="row row-cols-1 row-cols-lg-3 align-items-stretch g-2 py-4"> -->
+            {% for storageItem in storage|sort(attribute='name') %}
+                <li class="list-group-item text-start storageContainer" data-name="{{ storageItem["name"] }}" style="background-color: var(--mainBackgroundColor); border-color: var(--panelComponentBorder); color: var(--textColor);"">
+                    <div class="d-flex" style="justify-content: space-between;">
+                        <div>
+                            <a href="/storage/{{ storageItem["_id"] }}/">
+                                <i class="bi-cpu" style="font-size: 1.25rem; padding-right: 15px;"></i><span class="fs-4 mb-2">{{ storageItem["name"] }}</span>
+                            </a>
+                        </div>
+                        <div>
+                            <a href="#" class="pe-3 bi-pencil" title="Edit" data-bs-toggle="modal" data-bs-target="#editStorageModal{{ storageItem["_id"] }}"></a>
+                        </div>
+                    </div>
+                    <p class="mb-3 noHover">{{ storageItem["comment"] }}</p>
+                    <small>
+                        <i class="bi-calendar" style="font-size: 1rem; padding-right: 15px;"></i><span class="lastUpdate">{{ storageItem["lastUpdateTime"] }}</span>
+                    </small>
+                </li>
+
+                <div class="modal fade" id="editStorageModal{{ storageItem["_id"] }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content panel">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLongTitle">Editing {{ storageItem["name"] }}</h5>
+                                <button type="button" class="close button" data-bs-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control textbox" id="storageName{{ storageItem["_id"] }}" placeholder="Name" value="{{ storageItem["name"] }}">
+                                    <label for="storageName">Name</label>
+                                </div>
+                                <br>
+                                <div class="form-floating">
+                                    <textarea type="text" class="form-control textbox" id="storageDescription{{ storageItem["_id"] }}" placeholder="Description" style="height: 250px;">{{ storageItem["comment"] }}</textarea>
+                                    <label for="storageDescription">Description</label>
+                                </div>
+                            </div>
+                            <div class="modal-footer justify-content-start">
+                                <button type="button" class="btn btn-primary button bi-save" onclick="editStorage('{{ storageItem["_id"] }}')"> Save</button>
+                                <button type="button" class="btn btn-primary button bi-trash" onclick="deleteStorage('{{ storageItem["_id"] }}')"> Delete</button>
+                                <button type="button" class="btn btn-primary button" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            {% endfor %}
+        </ul>
+    </div>
+    <!-- Popup Conduct Creator Panel -->
+    <div class="modal fade" id="newStorageModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content panel">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Upload new file</h5>
+                    <button type="button" class="close button" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form name="newStorage" action="/api/1.0/storage/" method="POST">
+                    <div class="modal-body">
+                        <input type="hidden" id="CSRF" value="{{ CSRF }}">
+                        <div class="form-floating">
+                            <input type="text" class="form-control textbox" id="storageName" placeholder="Name">
+                            <label for="storageName">File Name</label>
+                        </div>
+                        <br>
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="storageFile">
+                        </div>
+                        <br>
+                        <div class="form-floating">
+                            <textarea type="text" class="form-control textbox" id="storageDescription" placeholder="Description" style="height: 250px;"></textarea>
+                            <label for="storageDescription">Description</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer justify-content-start">
+                        <button type="submit" class="btn btn-primary button bi-save"> Upload</button>
+                        <button type="button" class="btn btn-primary button" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Global Scripts -->
+    <script>
+        function doStorageSearch() {
+            var input = document.getElementById("storageSearch");
+            var searchFilter = input.value.toUpperCase();
+            var regex = new RegExp('\\b\\w*' + searchFilter + '\\w*\\b');
+            $('.storageContainer').hide().filter(function () {
+                var nr = regex.test($(this).data('name').toUpperCase());
+                if (nr) {
+                    return true;
+                }
+                return false;
+            }).show();
+        }
+        $(document).ready(function() {
+            doConductsSearch();
+            $('.lastUpdate').each(function(i, obj) {
+                $(obj).text(localTime($(obj).text()))
+            });
+        });
+        function appendLeadingZeroes(n){
+            if(n <= 9){
+                return "0" + n;
+            }
+            return n
+        }
+        function localTime(epoch) {
+            var d = new Date(0);
+            d.setUTCSeconds(epoch);
+            var formattedDate = appendLeadingZeroes(d.getDate()) + "-" + appendLeadingZeroes(d.getMonth()+1) + "-" + appendLeadingZeroes(d.getFullYear()) + " " + appendLeadingZeroes(d.getHours()) + ":" + appendLeadingZeroes(d.getMinutes()) + ":" + appendLeadingZeroes(d.getSeconds());
+            return formattedDate;
+        }
+        function editStorage(storageID) {
+            var body = JSON.stringify({ CSRF : CSRF, name: $("#storageName"+storageID).val(), comment: $("#conductDescription"+conductId).val(), enabled: true })
+            $.ajax({ url: "/api/1.0/models/conduct/"+conductId+"/", type : "POST", data:body, contentType:"application/json", success: function ( result ) {
+                    window.location.reload();
+                }
+            });
+        }
+        function deleteStorage(storageID) {
+            if (confirm("Are you sure you want to delete this file?")) {
+                var body = JSON.stringify({ CSRF : CSRF, name: $("#storageName"+storageID).val(), comment: $("#conductDescription"+conductId).val(), enabled: true })
+                $.ajax({ url: "/api/1.0/models/conduct/"+conductId+"/", type : "DELETE", data:body, contentType:"application/json", success: function ( result ) {
+                        window.location.reload();
+                    }
+                });
+            }
+        }
+    </script>
+{% endblock %}

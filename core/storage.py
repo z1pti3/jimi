@@ -12,6 +12,7 @@ class _storage(jimi.db._document):
     fileHash = str()
     source = str()
     accessTokens = list()
+    comment = str()
 
     _dbCollection = jimi.db.db["storage"]
 
@@ -95,8 +96,16 @@ if jimi.api.webServer:
                 return { }, 404
 
         if jimi.api.webServer.name == "jimi_web":
-            @jimi.api.webServer.route(jimi.api.base+"storage/file/<filename>/", methods=["PUT"])
-            def uploadStorageFile(filename):
+            from flask import Flask, request, render_template
+
+            @jimi.api.webServer.route("/storage/", methods=["GET"])
+            def storagePage():
+                storageFiles = _storage().query(sessionData=jimi.api.g.sessionData,query={ "systemStorage" : True },fields=["_id","name","fileHash","comment"])["results"]
+                return render_template("storage.html",storage=storageFiles,CSRF=jimi.api.g.sessionData["CSRF"])
+
+            @jimi.api.webServer.route(jimi.api.base+"storage/", methods=["POST"])
+            def uploadStorageFile():
+                filename = ""
                 tempFilename = str(Path("data/temp/{0}".format(filename)))
                 if not jimi.helpers.safeFilepath(tempFilename,"data/temp"):
                     return {}, 403
