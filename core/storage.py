@@ -80,7 +80,7 @@ if jimi.api.webServer:
                     return jimi.api.send_file(idFilePath,attachment_filename=storageFile._id)
                 return {}, 404
 
-            @jimi.api.webServer.route(jimi.api.base+"storage/file/<filename>/", methods=["POST"])
+            @jimi.api.webServer.route(jimi.api.base+"storage/file/<filename>/", methods=["PUT"])
             def uploadStorageFile(filename):
                 storageFile = jimi.storage._storage()
                 formData = jimi.api.request.form.to_dict()
@@ -97,8 +97,22 @@ if jimi.api.webServer:
                     return {  }, 200
                 return { }, 404
 
+            @jimi.api.webServer.route(jimi.api.base+"storage/file/<storageID>/", methods=["POST"])
+            def updateStorageFile(storageID):
+                storageItem = jimi.storage._storage().getAsClass(sessionData=jimi.api.g.sessionData,id=storageID)[0]
+                if jimi.db.ACLAccess(jimi.api.g.sessionData,storageItem.acl,"edit"):
+                    fullFilename = str(Path("data/storage/{0}".format(storageID)))
+                    if not jimi.helpers.safeFilepath(fullFilename,"data/storage"):
+                        return {}, 403
+                    f = jimi.api.request.files['file']
+                    f.save(fullFilename)
+                    storageItem.fileHash = jimi.helpers.getFileHash(fullFilename)
+                    storageItem.update(["fileHash"])
+                    return {  }, 200
+                return { }, 404
+
         if jimi.api.webServer.name == "jimi_web":
-            from flask import Flask, request, render_template
+            from flask import Flask, request, render_template, redirect
 
             @jimi.api.webServer.route("/storage/", methods=["GET"])
             def storagePage():
@@ -121,9 +135,39 @@ if jimi.api.webServer:
                 url = jimi.cluster.getMaster()
                 apiEndpoint = "storage/file/{0}/".format(filename)
                 with open(tempFilename, 'rb') as f:
-                    response = requests.post("{0}{1}{2}".format(url,jimi.api.base,apiEndpoint), headers=headers, data={ "comment" : formData["comment"] }, files={"file" : f.read() }, timeout=60)
+                    response = requests.put("{0}{1}{2}".format(url,jimi.api.base,apiEndpoint), headers=headers, data={ "comment" : formData["comment"] }, files={"file" : f.read() }, timeout=60)
                 os.remove(tempFilename)
-                return { "status_code" : response.status_code }, 200
+                return jimi.api.make_response(redirect("/storage/"))
+
+            @jimi.api.webServer.route(jimi.api.base+"storage/file/<storageID>/", methods=["POST"])
+            def updateStorageFile(storageID):
+                storageItem = jimi.storage._storage().getAsClass(sessionData=jimi.api.g.sessionData,id=storageID)[0]
+                if jimi.db.ACLAccess(jimi.api.g.sessionData,storageItem.acl,"edit"):
+                    formData = jimi.api.request.form.to_dict()
+                    update = False
+                    if formData["name"] != storageItem.fileData:
+                        storageItem.fileData = formData["name"]
+                        update = True
+                    if formData["comment"] != storageItem.comment:
+                        storageItem.comment = formData["comment"]
+                        update = True
+                    if update:
+                        storageItem.update(["fileData","comment"])
+                    if jimi.api.request.files['storageFile']:
+                        filename = storageItem.fileData
+                        tempFilename = str(Path("data/temp/{0}".format(filename)))
+                        if not jimi.helpers.safeFilepath(tempFilename,"data/temp"):
+                            return {}, 403
+                        f = jimi.api.request.files['storageFile']
+                        f.save(tempFilename)
+                        headers = { "X-api-token" : jimi.api.g.sessionToken }
+                        url = jimi.cluster.getMaster()
+                        apiEndpoint = "storage/file/{0}/".format(storageID)
+                        with open(tempFilename, 'rb') as f:
+                            response = requests.post("{0}{1}{2}".format(url,jimi.api.base,apiEndpoint), headers=headers, files={"file" : f.read() }, timeout=60)
+                        os.remove(tempFilename)
+                    return jimi.api.make_response(redirect("/storage/"))
+                return { }, 400
 
             @jimi.api.webServer.route(jimi.api.base+"storage/file/", methods=["GET"])
             def getStorageFiles():
@@ -133,13 +177,13 @@ if jimi.api.webServer:
                     del storageFile["classID"]
                 return { "results" : storageFiles }, 200
 
-            # @jimi.api.webServer.route(jimi.api.base+"storage/file/<storageID>/", methods=["DELETE"])
-            # def deleteStorageFile(storageID):
-            #     storageFiles = jimi.storage._storage().query(sessionData=jimi.api.g.sessionData,query={"systemStorage" : True},fields=["_id","source","fileData"])["results"]
-            #     for storageFile in storageFiles:
-            #         del storageFile["acl"]
-            #         del storageFile["classID"]
-            #     return { "results" : storageFiles }, 200
+            @jimi.api.webServer.route(jimi.api.base+"storage/file/<storageID>/", methods=["DELETE"])
+            def deleteStorageFile(storageID):
+                storageItem = jimi.storage._storage().getAsClass(sessionData=jimi.api.g.sessionData,id=storageID)[0]
+                if jimi.db.ACLAccess(jimi.api.g.sessionData,storageItem.acl,"delete"):
+                    if storageItem.delete()["result"]:
+                        return { }, 200
+                return { }, 404
 
             @jimi.api.webServer.route(jimi.api.base+"storage/file/<accessToken>/", methods=["GET"])
             def __PUBLIC__getStorageFile(accessToken):
