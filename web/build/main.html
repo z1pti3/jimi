@@ -26,6 +26,7 @@
                 color: var(--textColor);
                 padding-left: 10px;
                 display: flex;
+                min-width: 1130px;
             }
 
             #topbar-right {
@@ -91,7 +92,7 @@
     </head>
     <body>
         <header class="site-header sticky-top py-1">
-            <nav class="container d-flex flex-column flex-md-row justify-content-between" id="topbar">
+            <nav class="container-fluid flex-md-row justify-content-between" id="topbar">
                 <a exact class="home" href="/">jimi</a>
                 <a exact class="link bi-columns" href="/status/">Status</a>
                 <a exact class="link bi-stack" href="/conducts/">Conducts</a>
@@ -107,7 +108,7 @@
         </header>
 
         <main>
-            <div class="position-relative overflow-hidden p-3 p-md-5 m-md-3">
+            <div class="position-relative overflow-hidden" style="top: 50px">
                 {% block main %}
                 {% endblock %}
             </div>
