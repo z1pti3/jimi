@@ -210,7 +210,7 @@ def generateSharedSecret():
 def generateSession(dataDict):
     for application in dataDict:
         if dataDict[application]["api"]:
-            dataDict["expiry"] = time.time() + authSettings["apiSessionTimeout"]
+            dataDict[application]["expiry"] = time.time() + authSettings["apiSessionTimeout"]
         else:
             dataDict[application]["expiry"] = time.time() + authSettings["sessionTimeout"]
         if "CSRF" not in dataDict[application]:
