@@ -332,19 +332,6 @@ selectedExecutedFlowPreserveDataID = -1;
 eventIndex = 0;
 debugSession = null;
 
-if (!GetURLParameter("debugID")) {
-	$.ajax({url:"/api/1.0/debug/", type:"PUT", timeout: 2000, data: JSON.stringify({ CSRF : CSRF }), contentType:"application/json", success: function ( responseData ) {
-			debugSession = responseData["sessionID"];
-			var url = location.href+"&debugID="+debugSession;
-			window.location.replace(url,"_self");
-			refreshDebugSession();
-		}
-	});
-} else {
-	debugSession = GetURLParameter("debugID");
-	refreshDebugSession();
-}
-
 function runDebuggerNew() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
@@ -475,4 +462,36 @@ function clearSelection() {
 	$("#debug_continue_button").prop('disabled', true)
 	$("#debugFlowEditor-in").val("");
 	$("#debugFlowEditor-out").val("");
+}
+
+function getDebugSessions() {
+	$.ajax({url:"/api/1.0/debug/", type:"GET", timeout: 2000, contentType:"application/json", success: function ( result ) {
+			$('#existingDebugList').empty()
+			for (debugSession in result["results"]) {
+				var item = $('<button type="button" class="list-group-item list-group-item-action" onclick="loadDebugSession(\''+result["results"][debugSession]+'\')">').text(result["results"][debugSession]);
+				$('#existingDebugList').append(item);
+			}
+		}
+	});
+}
+
+function newDebugSession() {
+	$.ajax({url:"/api/1.0/debug/", type:"PUT", timeout: 2000, data: JSON.stringify({ CSRF : CSRF }), contentType:"application/json", success: function ( responseData ) {
+			var item = $('<button type="button" class="list-group-item list-group-item-action" onclick="loadDebugSession(\''+responseData["sessionID"]+'\')">').text(responseData["sessionID"]);
+			$('#existingDebugList').append(item);
+		}
+	});
+}
+
+function loadDebugSession(debugID) {
+	debugSession = debugID;
+
+	var url = location.href.split("&")[0]+"&debugID="+debugSession;
+	window.location.replace(url,"_self");
+	refreshDebugSession();
+}
+
+function showDebugSessions() {
+	getDebugSessions();
+	$("#debugSessions").modal('show');
 }
