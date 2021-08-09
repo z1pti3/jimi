@@ -1,18 +1,20 @@
 from core import auth
 
-def encryptString(plaintext,secureString):
+import secrets
+
+def encryptString(plaintext,secureString=""):
     try:
-        if len(secureString) < 4:
-            return ""
-        return "ENC {0}".format(auth.getENCFromPassword(plaintext,secureString))
+        secureString = secureRandom(32)
+        return "ENC {0} {1}".format(auth.getENCFromPassword(plaintext,secureString),secureString)
     except:
         return ""
 
-def decryptString(encryptedString,secureString):
+def decryptString(encryptedString,secureString=""):
     try:
-        if len(secureString) < 4:
-            return ""
+        secureString = encryptedString.split(" ")[6]
         return auth.getPasswordFromENC(encryptedString,secureString)
     except:
         return ""
 
+def secureRandom(bytes=128):
+    return secrets.token_hex(bytes)
