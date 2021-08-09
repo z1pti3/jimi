@@ -88,7 +88,7 @@ def fn_timer(function):
 
 def debugEventHandler(sessionID,conduct,trigger,flowID,events,data=None,preserveDataID=-1):
     if hasattr(trigger, "startCheck"):
-        if trigger.startCheck > 0:
+        if trigger.startCheck > 0 and trigger.enabled:
             return
         else:
             trigger.startCheck = time.time()
