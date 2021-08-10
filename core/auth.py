@@ -119,9 +119,9 @@ if jimi.settings.getSetting("auth",None):
     public_key = serialization.load_pem_public_key( sessionPublicKey.encode(), backend=default_backend() )
     private_key = serialization.load_pem_private_key( sessionPrivateKey.encode(), password=None, backend=default_backend() )
 
-    requiredhType = "j1"
-
-    jimi.cache.globalCache.newCache("sessions",cacheExpiry=authSettings["cacheSessionTimeout"])
+requiredType = "j1"
+webSecure = False
+jimi.cache.globalCache.newCache("sessions",cacheExpiry=authSettings["cacheSessionTimeout"])
 
 def getSessionObject(sessionID,sessionData):
     session = _session().getAsClass(query={"sessionID" : sessionID})
@@ -178,7 +178,7 @@ def getPasswordFromENC(enc,customSecure=None):
     return None
 
 def getENCFromPassword(password,customSecure=None):
-    if requiredhType == "j1":
+    if requiredType == "j1":
         cipher_rsa = PKCS1_OAEP.new(RSA.import_key(sessionPublicKey))
         secureKey = get_random_bytes(16)
         encSecureKey = cipher_rsa.encrypt(secureKey)
@@ -282,7 +282,7 @@ def validateUser(username,password,otp=None):
             validOTP = onetimepass.valid_totp(otp, user.totpSecret)
         if passwordHash[1] == user.passwordHash and validOTP:
             # If user password hash does not meet the required standard update
-            if user.passwordHashType != requiredhType:
+            if user.passwordHashType != requiredType:
                 passwordHash = generatePasswordHash(password,username)
                 user.passwordHashType = passwordHash[0]
                 user.passwordHash = passwordHash[1]
@@ -426,14 +426,11 @@ if jimi.api.webServer:
                 if jimi.api.g.type != "bypass":
                     if jimi.api.g.type == "cookie":
                         if "renew" in jimi.api.g:
-                            response.set_cookie("jimiAuth", value=generateSession({"jimi":jimi.api.g.sessionData}), max_age=authSettings["sessionTimeout"], httponly=True) # Need to add secure=True before production, httponly=False cant be used due to auth polling
+                            response.set_cookie("jimiAuth", value=generateSession({"jimi":jimi.api.g.sessionData}), max_age=authSettings["sessionTimeout"], httponly=True, secure=webSecure)
             # Cache Weakness
             if jimi.api.request.endpoint and jimi.api.request.endpoint != "static" and "__STATIC__" not in jimi.api.request.endpoint:
                 response.headers['Cache-Control'] = 'no-cache, no-store'
                 response.headers['Pragma'] = 'no-cache'
-            # Permit CORS when web and web API ( Flask ) are seperated
-            response.headers['Access-Control-Allow-Origin'] = "http://localhost:3000"
-            response.headers['Access-Control-Allow-Methods'] = "GET, POST, PUT, DELETE"
             # ClickJacking
             response.headers['X-Frame-Options'] = 'SAMEORIGIN'
             return response
@@ -478,7 +475,7 @@ if jimi.api.webServer:
                         if redirect == "/?":
                             redirect = "/conducts/"
                         response = jimi.api.make_response({ "CSRF" : sessionData["CSRF"], "redirect" : redirect },200)
-                        response.set_cookie("jimiAuth", value=userSession, max_age=authSettings["sessionTimeout"], httponly=True, secure=True)
+                        response.set_cookie("jimiAuth", value=userSession, max_age=authSettings["sessionTimeout"], httponly=True, secure=webSecure)
                         return response, 200
                 else:
                     return { "CSRF" : "" }, 200
