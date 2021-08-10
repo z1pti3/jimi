@@ -9,7 +9,13 @@ import jimi
 
 @jimi.api.webServer.route("/conductEditor/", methods=["GET"])
 def editConduct():
-    return render_template("conductEditor.html", CSRF=jimi.api.g.sessionData["CSRF"])
+    conductID = request.args.get('conductID')
+    conductObj = jimi.conduct._conduct().query(jimi.api.g.sessionData,id=conductID)["results"]
+    if len(conductObj) == 1:
+        conductObj = conductObj[0]
+        return render_template("conductEditor.html", CSRF=jimi.api.g.sessionData["CSRF"],conductName=conductObj["name"])
+    else:
+        return { }, 404
 
 @jimi.api.webServer.route("/conductEditor/<conductID>/", methods=["POST"])
 def conductFlowchartPoll(conductID):
