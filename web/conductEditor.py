@@ -191,6 +191,24 @@ def conductFlowchartPoll(conductID):
         if flowchartLink not in linksList:
             flowchartResponse["links"]["delete"][flowchartLink] = { "linkName" : flowchartLink }
 
+    # Active user stuff (BETA)
+    editorObj = jimi.webui._editorUI().getAsClass(jimi.api.g.sessionData,query={"objectId":conductID,"objectType":"conduct"})
+    if len(editorObj) == 1:
+        editorObj = editorObj[0]
+    else:
+        jimi.webui._editorUI().new(conductID,"conduct")
+        editorObj = jimi.webui._editorUI().getAsClass(jimi.api.g.sessionData,query={"objectId":conductID,"objectType":"conduct"})[0]
+    editorObj.currentUsers[jimi.api.g.sessionData["user"]] = time.time()
+    #Remove old users
+    popList = []
+    for user in editorObj.currentUsers:
+         if editorObj.currentUsers[user] < time.time() - 5:
+             popList.append(user)
+    for user in popList:
+        editorObj.currentUsers.pop(user)
+    editorObj.update(["currentUsers"])
+    flowchartResponse["currentUsers"] = [x for x in editorObj.currentUsers]
+
     return flowchartResponse, 200
 
 @jimi.api.webServer.route("/conductEditor/<conductID>/export/", methods=["GET"])

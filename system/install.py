@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.0
+systemVersion = 3.01
 
 # Initialize 
 dbCollectionName = "system"
@@ -166,6 +166,9 @@ def systemInstall():
 	if "modelUI" not in jimi.db.list_collection_names():
 		logging.error("DB Collection modelUI Not Found : Creating...")
 		jimi.model.registerModel("modelUI","_modelUI","_document","core.models.webui")
+	if "editorUI" not in jimi.db.list_collection_names():
+		logging.error("DB Collection editorUI Not Found : Creating...")
+		jimi.model.registerModel("editorUI","_editorUI","_document","core.models.webui")
 	if "clusterMembers" not in jimi.db.list_collection_names():
 		logging.error("DB Collection clusterMembers Not Found : Creating...")
 		jimi.model.registerModel("clusterMember","_clusterMember","_document","core.cluster")
@@ -421,4 +424,7 @@ def systemUpgrade(currentVersion):
 				print("ERROR: Unable to build system cache ")
 				return False
 			sys.exit(0)
+
+	if currentVersion < 3.01:
+		jimi.model.registerModel("editorUI","_editorUI","_document","core.models.webui")
 	return True

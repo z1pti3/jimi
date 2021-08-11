@@ -275,6 +275,11 @@ function updateFlowchart() {
 		var conductID = GetURLParameter("conductID")
 		$.ajax({url:"/conductEditor/"+conductID+"/", type:"POST", timeout: 2000, data: JSON.stringify({ lastPollTime : lastUpdatePollTime, operators: flowObjects, links: flowLinks, CSRF: CSRF }), contentType:"application/json", success: function ( responseData ) {
 				processlist = responseData
+				var activeUsers = processlist["currentUsers"].join(", ");
+				if (activeUsers != document.getElementById("activeUsers").innerHTML)
+				{
+					document.getElementById("activeUsers").innerHTML=activeUsers;
+				}
 				setTimeout(updateFlowchart, 2500);
 				if (init == false) {
 					if (nodes.length > 0) {
