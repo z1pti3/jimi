@@ -159,7 +159,7 @@ if jimi.api.webServer:
             def getModelSchema(modelName):
                 class_ = loadModel(modelName)
                 if class_:
-                    access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,class_.acl,"read")
+                    access = jimi.db.ACLAccess(jimi.api.g.sessionData,class_.acl,"read")
                     if access:
                         return class_.classObject()().api_getSchema(), 200
                     else:
@@ -188,7 +188,7 @@ if jimi.api.webServer:
                     _class = class_.classObject()().getAsClass(jimi.api.g.sessionData,id=objectID)
                     if len(_class) == 1:
                         _class = _class[0]
-                        access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,_class.acl,"delete")
+                        access = jimi.db.ACLAccess(jimi.api.g.sessionData,_class.acl,"delete")
                         if access:
                             if "_id" in jimi.api.g.sessionData:
                                 jimi.audit._audit().add("model","delete",{ "_id" : jimi.api.g.sessionData["_id"], "user" : jimi.api.g.sessionData["user"], "modelName" : modelName, "objectID" : objectID })
@@ -205,7 +205,7 @@ if jimi.api.webServer:
             def newModelObject(modelName):
                 class_ = loadModel(modelName)
                 if class_:
-                    access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,class_.acl,"read")
+                    access = jimi.db.ACLAccess(jimi.api.g.sessionData,class_.acl,"read")
                     if access:
                         class_ = class_.classObject()()
                         if jimi.api.g.sessionData:
@@ -229,11 +229,16 @@ if jimi.api.webServer:
                     if len(_class) == 1:
                         _class = _class[0]
                         # Builds list of permitted ACL
-                        access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,_class.acl,"write")
+                        access = jimi.db.ACLAccess(jimi.api.g.sessionData,_class.acl,"write")
+                        adminBypass = False
+                        if "admin" in jimi.api.g.sessionData:
+                            if jimi.api.g.sessionData["admin"]:
+                                adminBypass = True
                         if access:
                             for dataKey, dataValue in data.items():
                                 fieldAccessPermitted = True
                                 # Checking if sessionData is permitted field level access
+                                
                                 if _class.acl != {} and not adminBypass:
                                     fieldAccessPermitted = jimi.db.fieldACLAccess(jimi.api.g.sessionData,_class.acl,dataKey,"write")
 

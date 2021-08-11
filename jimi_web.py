@@ -277,7 +277,7 @@ def setConductFlowLogic(conductID,flowID,nextflowID):
 		conductObj = conductObj[0]
 	else:
 		return {},404
-	access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+	access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
 	if access:
 		flow = [ x for x in conductObj.flow if x["flowID"] ==  flowID]
 		data = json.loads(jimi.api.request.data)

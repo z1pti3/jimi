@@ -178,7 +178,7 @@ if jimi.api.webServer:
                 results = []
                 try:
                     for key, session in flowDebugSession.items():
-                        if jimi.db.ACLAccess(jimi.api.g.sessionData, session.acl):
+                        if jimi.db.ACLAccess(jimi.api.g.sessionData, session.acl)[0]:
                             results.append(key)
                 except:
                     pass
@@ -238,7 +238,7 @@ if jimi.api.webServer:
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/", methods=["DELETE"])
             def removeFlowDebugSession(sessionID):
-                if jimi.db.ACLAccess(jimi.api.g.sessionData, flowDebugSession[sessionID].acl, "delete"):
+                if jimi.db.ACLAccess(jimi.api.g.sessionData, flowDebugSession[sessionID].acl, "delete")[0]:
                     try:
                         del flowDebugSession[sessionID]
                         return {}, 200
@@ -257,7 +257,7 @@ if jimi.api.webServer:
             @jimi.auth.adminEndpoint
             def clearFlowDebugSession(sessionID):
                 global flowDebugSession
-                if jimi.db.ACLAccess(jimi.api.g.sessionData, flowDebugSession[sessionID].acl, "read"):
+                if jimi.db.ACLAccess(jimi.api.g.sessionData, flowDebugSession[sessionID].acl, "read")[0]:
                     flowDebugSession[sessionID].flowList = {}
                     flowDebugSession[sessionID].preserveData = []
                     return {}, 200

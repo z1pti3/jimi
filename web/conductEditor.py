@@ -296,7 +296,7 @@ def conductImportData(conductID):
         conductObj = conductObj[0]
     else:
         return { }, 404
-    access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+    access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
     if access:
         data = json.loads(jimi.api.request.data)
         importData = json.loads(data["importData"])
@@ -506,7 +506,7 @@ def deleteFlow(conductID,flowID):
         conductObj = conductObj[0]
     else:
         return { }, 404
-    access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+    access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
     if access:
         if jimi.db.fieldACLAccess(jimi.api.g.sessionData,conductObj.acl,"flow","delete"):
             flow = [ x for x in conductObj.flow if x["flowID"] ==  flowID]
@@ -536,7 +536,7 @@ def newFlow(conductID):
     else:
         return { }, 404
 
-    access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+    access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
     if access:
         data = json.loads(jimi.api.request.data)
         # Get new UUID store within current conduct flow and return UUID
@@ -587,7 +587,7 @@ def dropExistingObject(conductID):
         conductObj = conductObj[0]
     else:
         return { }, 404
-    access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+    access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
     if access:
         data = json.loads(jimi.api.request.data)
         if data["action"] == "drop":
@@ -631,7 +631,7 @@ def updateFlow(conductID,flowID):
         flow = flow[0]
         data = json.loads(jimi.api.request.data)
         if data["action"] == "update":
-            access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+            access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
             if access:
                 if "x" in data and "y" in data:
                     try:
@@ -662,7 +662,7 @@ def updateFlow(conductID,flowID):
                     jimi.webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],x,y)
                     return { }, 201
         elif data["action"] == "copy":
-            access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+            access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
             if access:
                 flow = [ x for x in conductObj.flow if x["flowID"] ==  data["operatorId"]]
                 if len(flow) == 1:
@@ -684,7 +684,7 @@ def updateFlow(conductID,flowID):
                     conductObj.update(["flow"],sessionData=jimi.api.g.sessionData)
                     return { }, 201
         elif data["action"] == "clone":
-            access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+            access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
             if access:
                 flow = [ x for x in conductObj.flow if x["flowID"] ==  data["operatorId"]]
                 if len(flow) == 1:
@@ -762,7 +762,7 @@ def newFlowLink(conductID,fromFlowID,toFlowID):
         conductObj = conductObj[0]
     else:
         return { }, 404
-    access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+    access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
     if access:
         fromFlow = [ x for x in conductObj.flow if x["flowID"] ==  fromFlowID][0]
         toFlow = [ x for x in conductObj.flow if x["flowID"] ==  toFlowID][0]
@@ -797,7 +797,7 @@ def deleteFlowLink(conductID,fromFlowID,toFlowID):
         conductObj = conductObj[0]
     else:
         return { }, 404
-    access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+    access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
     if access:
         fromFlow = [ x for x in conductObj.flow if x["flowID"] ==  fromFlowID]
         if len(fromFlow) > 0:

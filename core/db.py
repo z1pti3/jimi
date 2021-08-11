@@ -610,7 +610,7 @@ def fieldACLAccess(sessionData,acl,field,accessType="read"):
 # Checks if access to the object is permitted by the object ACL
 def ACLAccess(sessionData,acl,accessType="read"):
     if not jimi.settings.getSetting("auth","enabled"):
-        return [ True, [], False ]
+        return True
     accessIDs = []
     access = False
     adminBypass = False
@@ -628,7 +628,7 @@ def ACLAccess(sessionData,acl,accessType="read"):
                         for accessID in accessIDs:
                             if aclItem["accessID"] == accessID:
                                 access = aclItem[accessType]
-    return [ access, accessIDs, adminBypass ]
+    return access
 
 
 # Update DB item within giben collection by ID
