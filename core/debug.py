@@ -259,7 +259,7 @@ if jimi.api.webServer:
             @jimi.auth.adminEndpoint
             def clearFlowDebugSession(sessionID):
                 global flowDebugSession
-                if jimi.db.ACLAccess(jimi.api.g.sessionData, flowDebugSession[sessionID].acl, "read")[0]:
+                if jimi.db.ACLAccess(jimi.api.g.sessionData, flowDebugSession[sessionID].acl, "read"):
                     flowDebugSession[sessionID].flowList = {}
                     flowDebugSession[sessionID].preserveData = []
                     return {}, 200
