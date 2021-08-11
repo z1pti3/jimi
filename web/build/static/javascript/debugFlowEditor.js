@@ -468,7 +468,10 @@ function getDebugSessions() {
 	$.ajax({url:"/api/1.0/debug/", type:"GET", timeout: 2000, contentType:"application/json", success: function ( result ) {
 			$('#existingDebugList').empty()
 			for (debugSession in result["results"]) {
-				var item = $('<button type="button" class="list-group-item list-group-item-action" onclick="loadDebugSession(\''+result["results"][debugSession]+'\')">').text(result["results"][debugSession]);
+				var item = $('<div style="width:100%; height:45px">')
+				item.append($('<span style="vertical-align: sub">').text(result["results"][debugSession]["id"] + " - " + result["results"][debugSession]["createdBy"]))
+				item.append($('<button type="button" class="btn btn-primary button bi-play" style="display:inline; right:90px; position:absolute" onclick="loadDebugSession(\''+result["results"][debugSession]["id"]+'\')">').text(" Launch"));
+				item.append($('<button class="btn btn-primary button bi-trash" style="display:inline; right:0; position:absolute" onclick="deleteDebugSession(\''+result["results"][debugSession]["id"]+'\')">').text(" Delete"))
 				$('#existingDebugList').append(item);
 			}
 		}
@@ -477,8 +480,14 @@ function getDebugSessions() {
 
 function newDebugSession() {
 	$.ajax({url:"/api/1.0/debug/", type:"PUT", timeout: 2000, data: JSON.stringify({ CSRF : CSRF }), contentType:"application/json", success: function ( responseData ) {
-			var item = $('<button type="button" class="list-group-item list-group-item-action" onclick="loadDebugSession(\''+responseData["sessionID"]+'\')">').text(responseData["sessionID"]);
-			$('#existingDebugList').append(item);
+			getDebugSessions();
+		}
+	});
+}
+
+function deleteDebugSession(debugID) {
+	$.ajax({url:"/api/1.0/debug/"+debugID+"/", type:"DELETE", timeout: 2000, data: JSON.stringify({ CSRF : CSRF }), contentType:"application/json", success: function ( responseData ) {
+			getDebugSessions();
 		}
 	});
 }

@@ -7,9 +7,11 @@ import jimi
 
 class _flowDebug():
 
-    def __init__(self,acl):
+    def __init__(self,acl,createdBy):
         self.flowList = {}
         self.acl = acl
+        self.createdBy = createdBy
+        self.createdDate = time.time()
         self.preserveData = []
         self.id = str(uuid.uuid4())
 
@@ -59,14 +61,14 @@ class _flowDebug():
         self.flowList[eventID]["execution"][uid] = { "id" : uid, "type" : "var", "actionID" : actionID, "varName" : varName, "varValue" : varValue, "startTime" : time.time(), "endTime" : time.time() }
         return uid
 
-def newFlowDebugSession(acl={ "ids":[ { "accessID":"0","delete": True,"read": True,"write": True } ] }):
+def newFlowDebugSession(acl={ "ids":[ { "accessID":"0","delete": True,"read": True,"write": True } ] },createdBy=None):
     global flowDebugSession
     try:
         if not flowDebugSession:
             flowDebugSession = {}
     except NameError:
         flowDebugSession = {}
-    newSession = _flowDebug(acl)
+    newSession = _flowDebug(acl,createdBy)
     flowDebugSession[newSession.id] = newSession
     return newSession.id
 
@@ -122,7 +124,7 @@ if jimi.api.webServer:
         if jimi.api.webServer.name == "jimi_core":
             @jimi.api.webServer.route(jimi.api.base+"debug/", methods=["PUT"])
             def startFlowDebugSession():
-                sessionID = newFlowDebugSession( { "ids" : [ { "accessID" : jimi.api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] })
+                sessionID = newFlowDebugSession( { "ids" : [ { "accessID" : jimi.api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] },jimi.api.g.sessionData["user"])
                 return { "sessionID" : sessionID }, 200
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/<conductID>/<flowID>/", methods=["POST"])
@@ -179,7 +181,7 @@ if jimi.api.webServer:
                 try:
                     for key, session in flowDebugSession.items():
                         if jimi.db.ACLAccess(jimi.api.g.sessionData, session.acl):
-                            results.append(key)
+                            results.append({ "id" : key, "createdBy" : session.createdBy, "createdDate" : session.createdDate })
                 except:
                     pass
                 return { "results" : results }, 200
@@ -238,7 +240,7 @@ if jimi.api.webServer:
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/", methods=["DELETE"])
             def removeFlowDebugSession(sessionID):
-                if jimi.db.ACLAccess(jimi.api.g.sessionData, flowDebugSession[sessionID].acl, "delete")[0]:
+                if jimi.db.ACLAccess(jimi.api.g.sessionData, flowDebugSession[sessionID].acl, "delete"):
                     try:
                         del flowDebugSession[sessionID]
                         return {}, 200
@@ -334,4 +336,12 @@ if jimi.api.webServer:
                 apiEndpoint = "debug/clear/{0}/".format(sessionID)
                 url = jimi.cluster.getMaster()
                 response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
+                return json.loads(response.text), 200
+
+            @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/", methods=["DELETE"])
+            @jimi.auth.adminEndpoint
+            def deleteFlowDebugSession(sessionID):
+                apiEndpoint = "debug/{0}/".format(sessionID)
+                url = jimi.cluster.getMaster()
+                response = jimi.helpers.apiCall("DELETE",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
                 return json.loads(response.text), 200
