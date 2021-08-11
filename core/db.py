@@ -603,7 +603,7 @@ def fieldACLAccess(sessionData,acl,field,accessType="read"):
         else:
             if not acl and not adminBypass:
                 return False
-            access, accessIDs, adminBypass = ACLAccess(sessionData,acl,accessType)
+            access = ACLAccess(sessionData,acl,accessType)
             return access
     return False
 

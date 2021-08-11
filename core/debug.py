@@ -178,7 +178,7 @@ if jimi.api.webServer:
                 results = []
                 try:
                     for key, session in flowDebugSession.items():
-                        if jimi.db.ACLAccess(jimi.api.g.sessionData, session.acl)[0]:
+                        if jimi.db.ACLAccess(jimi.api.g.sessionData, session.acl):
                             results.append(key)
                 except:
                     pass
