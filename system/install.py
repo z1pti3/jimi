@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.01
+systemVersion = 3.02
 
 # Initialize 
 dbCollectionName = "system"
@@ -367,6 +367,11 @@ def systemInstall():
 	rootUser.primaryGroup = adminGroup._id
 	rootUser.update(["primaryGroup"])
 
+	# Adding default everyone group
+	everyoneGroup = jimi.auth._group().getAsClass(query={ "name" : "everyone" })
+	if len(everyoneGroup) == 0:
+		everyoneGroup = jimi.auth._group().new("everyone")
+
 	# Install system manifest
 	loadSystemManifest()
 
@@ -427,4 +432,16 @@ def systemUpgrade(currentVersion):
 
 	if currentVersion < 3.01:
 		jimi.model.registerModel("editorUI","_editorUI","_document","core.models.webui")
+
+	if currentVersion < 3.02:
+		# Adding default everyone group
+		everyoneGroup = jimi.auth._group().getAsClass(query={ "name" : "everyone" })
+		if len(everyoneGroup) == 0:
+			everyoneGroup = jimi.auth._group().new("everyone")
+		# Update ACLs of editorUI model for each object to fix bug
+		existingObjects = jimi.webui._editorUI().getAsClass()
+		for existingObject in existingObjects:
+			existingObject.acl = {"ids":[{"accessID":0,"delete":True,"read":True,"write":True}]}
+			existingObject.update(["acl"])
+
 	return True
