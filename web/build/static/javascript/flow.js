@@ -48,7 +48,7 @@ function autoupdate() {
 function deleteSelected() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
-		node = nodeObjects[selectedNodes[0]]["flowID"]
+		node = nodes.get(selectedNodes[0])["id"]
 		if (confirm("Are you sure you want to remove object '"+ node +"' from this conduct?")) {
 			var conductID = GetURLParameter("conductID");
 			$.ajax({url:"/conductEditor/"+conductID+"/flow/"+node+"/", data: JSON.stringify({ CSRF: CSRF }), type:"DELETE", contentType:"application/json", success: function ( responseData ) {
@@ -60,7 +60,7 @@ function deleteSelected() {
 
 	links = network.getSelectedEdges()
 	if (links.length == 1) {
-		link = flowLinks[links[0]]
+		link = links.get(links[0])
 		var conductID = GetURLParameter("conductID");
 		var to = link["to"]
 		var from = link["from"]
@@ -71,51 +71,48 @@ function deleteSelected() {
 	}
 }
 
-function updateNode(flow) {
-	if (flow["flowID"] in flowObjects == false) {
-		flowObjects[flow["flowID"]] = { "flowID": flow["flowID"], "flowType": flow["flowType"], "nodeID": nextId, "_id": flow["_id"], "name" : flow["name"], "node" : flow["node"] }
-		nodeObjects[nextId] = { "flowID": flow["flowID"], "nodeID": nextId }
-		flowObjects[flow["flowID"]]["node"]["id"] = nextId
-		nodes.add(flowObjects[flow["flowID"]]["node"])
-		nextId++;
-	} else {
-		flow["node"]["id"] = flowObjects[flow["flowID"]]["nodeID"]
-		if ( "name" in flow ) {
-			flowObjects[flow["flowID"]]["name"] = flow["name"]
-		}
-		if (("x" in flow["node"] || "y" in flow["node"]) && ("color" in flow["node"] == false) && ("label" in flow["node"] == false)) {
-			flowObjects[flow["flowID"]]["node"]["x"] = flow["node"]["x"]
-			flowObjects[flow["flowID"]]["node"]["y"] = flow["node"]["y"]
-			network.moveNode(flowObjects[flow["flowID"]]["nodeID"],flow["node"]["x"],flow["node"]["y"])
-		} else {
-			if ("x" in flow["node"] || "y" in flow["node"]) {
-				flowObjects[flow["flowID"]]["node"]["x"] = flow["node"]["x"]
-				flowObjects[flow["flowID"]]["node"]["y"] = flow["node"]["y"]
-			}
-			if ("color" in flow["node"]) {
-				flowObjects[flow["flowID"]]["node"]["color"] = flow["node"]["color"]
-			}
-			if ("label" in flow["node"]) {
-				flowObjects[flow["flowID"]]["node"]["label"] = flow["node"]["label"]
-			}
-			nodes.update(flow["node"])
-		}
-	}
-}
+// function updateNode(flow) {
+// 	if (flow["flowID"] in flowObjects == false) {
+// 		flowObjects[flow["flowID"]] = { "flowID": flow["flowID"], "flowType": flow["flowType"], "nodeID": nextId, "_id": flow["_id"], "name" : flow["name"], "node" : flow["node"] }
+// 		nodeObjects[nextId] = { "flowID": flow["flowID"], "nodeID": nextId }
+// 		flowObjects[flow["flowID"]]["node"]["id"] = nextId
+// 		nodes.add(flowObjects[flow["flowID"]]["node"])
+// 		nextId++;
+// 	} else {
+// 		flow["node"]["id"] = flowObjects[flow["flowID"]]["nodeID"]
+// 		if ( "name" in flow ) {
+// 			flowObjects[flow["flowID"]]["name"] = flow["name"]
+// 		}
+// 		if (("x" in flow["node"] || "y" in flow["node"]) && ("color" in flow["node"] == false) && ("label" in flow["node"] == false)) {
+// 			flowObjects[flow["flowID"]]["node"]["x"] = flow["node"]["x"]
+// 			flowObjects[flow["flowID"]]["node"]["y"] = flow["node"]["y"]
+// 			network.moveNode(flowObjects[flow["flowID"]]["nodeID"],flow["node"]["x"],flow["node"]["y"])
+// 		} else {
+// 			if ("x" in flow["node"] || "y" in flow["node"]) {
+// 				flowObjects[flow["flowID"]]["node"]["x"] = flow["node"]["x"]
+// 				flowObjects[flow["flowID"]]["node"]["y"] = flow["node"]["y"]
+// 			}
+// 			if ("color" in flow["node"]) {
+// 				flowObjects[flow["flowID"]]["node"]["color"] = flow["node"]["color"]
+// 			}
+// 			if ("label" in flow["node"]) {
+// 				flowObjects[flow["flowID"]]["node"]["label"] = flow["node"]["label"]
+// 			}
+// 			nodes.update(flow["node"])
+// 		}
+// 	}
+// }
 
 function deleteNode(flowID) {
 	nodes.remove({ id: flowObjects[flowID]["nodeID"] })
-	delete nodeObjects[flowObjects[flowID]["nodeID"]]
-	delete flowObjects[flowID]
 }
 
 function createLinkRAW(from,to,color,text) {
 	var linkName = from + "->" + to;
-	flowLinks[linkName] = { "from": from, "to": to, "color": color, "text" : text }
 	edges.add({ 
 		id: linkName,
-		from: flowObjects[from]["nodeID"], 
-		to: flowObjects[to]["nodeID"],
+		from: from, 
+		to: to,
 		label: text,
 		color: {
 			color: color
@@ -134,22 +131,6 @@ function createLinkRAW(from,to,color,text) {
 		width: 1.5
 	 });
 	nextId++;
-}
-
-function updateLink(from,to,color,text) {
-	var linkName = from + "->" + to;
-	flowLinks[linkName]["from"] = from
-	flowLinks[linkName]["to"] = to
-	flowLinks[linkName]["color"] = color
-	flowLinks[linkName]["text"] = text
-	edges.update({ 
-		id: linkName,
-		from: flowObjects[from]["nodeID"], 
-		to: flowObjects[to]["nodeID"],
-		color: color,
-		label: text
-	});
-	return true;
 }
 
 function deleteLink(from,to) {
@@ -223,8 +204,7 @@ function updateFlowchartNonBlocking(blocking) {
 	// Operator Deletions
 	for (operator in processlist["operators"]["delete"]) {
 		obj = processlist["operators"]["delete"][operator]
-		node.delete()
-		deleteNode(obj["flowID"]);
+		edges.delete({ id: obj["flowID"] })
 		delete processlist["operators"]["delete"][operator]
 		nonlock++
 		if ((!blocking) && (nonlock > 0)) {
@@ -303,7 +283,7 @@ function updateFlowchart() {
 function triggerFlowObject() {
 	node = network.getSelectedNodes()
 	if (node.length == 1) {
-		node = nodeObjects[node[0]]["flowID"]
+		node = nodes.get(selectedNodes[0])["id"]
 		createTriggerObjectPanel(node);
 	}
 }
@@ -311,7 +291,7 @@ function triggerFlowObject() {
 function debugFlowObject() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
-		node = nodeObjects[selectedNodes[0]]["flowID"]
+		node = nodes.get(selectedNodes[0])["id"]
 		var conductID = GetURLParameter("conductID")
 		$.ajax({url: "/conduct/"+conductID+"/debug/"+node+"/", type:"GET", contentType:"application/json", success: function ( result ) {
 				$.ajax({url: "/api/1.0/debug/", type:"POST", data:JSON.stringify({ "filter" : result["_id"], "level" : 100, CSRF: CSRF}), contentType:"application/json", success: function ( result ) {
@@ -331,7 +311,7 @@ function debugFlowObject() {
 function editFlowObject() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
-		node = nodeObjects[selectedNodes[0]]["flowID"]
+		node = nodes.get(selectedNodes[0])["id"]
 		createPropertiesPanel(node);
 	}
 }
@@ -339,7 +319,7 @@ function editFlowObject() {
 function editACL() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
-		node = nodeObjects[selectedNodes[0]]["flowID"]
+		node = nodes.get(selectedNodes[0])["id"]
 		createACLValuesPanel(node);
 	}
 }
@@ -356,7 +336,7 @@ function exportConduct() {
 function exportFlowObject() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
-		node = nodeObjects[selectedNodes[0]]["flowID"]
+		node = nodes.get(selectedNodes[0])["id"]
 		var conductID = GetURLParameter("conductID")
 		window.open("/conductEditor/"+conductID+"/export/?flowID="+node, "_blank");
 	}
@@ -365,7 +345,7 @@ function exportFlowObject() {
 function CodifyFlowObject() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
-		node = nodeObjects[selectedNodes[0]]["flowID"]
+		node = nodes.get(selectedNodes[0])["id"]
 		var conductID = GetURLParameter("conductID")
 		window.open("/conductEditor/"+conductID+"/codify/?flowID="+node, "_blank");
 	}
@@ -389,12 +369,12 @@ function debugConduct() {
 function copyFlowObject() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
-		node = nodeObjects[selectedNodes[0]]["flowID"]
+		node = nodes.get(selectedNodes[0])["id"]
 		var conductID = GetURLParameter("conductID")
-		var x = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["node"]["x"]
-		var y = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["node"]["y"]-25
+		var x = nodes.get(selectedNodes[0])["x"]
+		var y = nodes.get(selectedNodes[0])["y"]-25
 		$.ajax({url:"/conductEditor/"+conductID+"/flow/"+node+"/", type:"POST", data:JSON.stringify({action: "copy", operatorId: node, x: x, y: y, CSRF: CSRF}), contentType:"application/json", success: function ( result ) {
-				// Coned sucessfull
+				// Coned successful
 			}
 		});
 	}
@@ -403,12 +383,12 @@ function copyFlowObject() {
 function duplicateFlowObject() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
-		node = nodeObjects[selectedNodes[0]]["flowID"]
+		node = nodes.get(selectedNodes[0])["id"]
 		var conductID = GetURLParameter("conductID")
-		var x = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["node"]["x"]
-		var y = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["node"]["y"]-25
+		var x = nodes.get(selectedNodes[0])["x"]
+		var y = nodes.get(selectedNodes[0])["y"]-25
 		$.ajax({url:"/conductEditor/"+conductID+"/flow/"+node+"/", type:"POST", data:JSON.stringify({action: "clone", operatorId: node, x: x, y: y, CSRF: CSRF}), contentType:"application/json", success: function ( result ) {
-				// Coned sucessfull
+				// Coned successful
 			}
 		});
 	}
@@ -529,9 +509,8 @@ function setupFlowchart() {
 			createPropertiesPanel(nodeObjects[params["nodes"][0]]["flowID"]);
 		}
 		if ((params["nodes"].length == 0) && (params["edges"].length == 1)) {
-			link = flowLinks[params["edges"][0]]
-			to = link["to"]
-			from = link["from"]
+			to = edges.get(params["edges"][0])["to"]
+			from = edges.get(params["edges"][0])["from"]
 			createLinkPropertiesPanel(from,to);
 		}
 		return true;
