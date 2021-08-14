@@ -120,7 +120,7 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 	var conductID = GetURLParameter("conductID")
 	panel.find(".propertiesPanel-body").empty();
 	panel.find(".propertiesPanel-help").empty();
-	panel.find("#title").text(flowObjects[flowID]["name"]);
+	panel.find("#title").text(nodes.get(flowID)["name"]);
 	$.ajax({ url: "/conduct/"+conductID+"/flowProperties/"+flowID+"/", type:"GET", success: function ( result ) {
 			// help
 			if (Object.keys(result["manifest"]).length > 0)

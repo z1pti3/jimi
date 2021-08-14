@@ -123,7 +123,9 @@ def conductFlowchartPoll(conductID):
                     node["y"] = flowUI.y
                     node["shape"] = "box"
                     if flow["type"] == "trigger":
+                        node["flowType"] = "trigger"
                         obj = triggersByID[flow["triggerID"]]
+                        node["name"] = obj.name
                         modeClass = jimi.cache.globalCache.get("modelCache",obj.classID,jimi.model.getClassObject,sessionData=jimi.api.g.sessionData)[0]
                         label = "({0}.{1},{2})\n<b>{3}</b>\n{4}".format(obj.systemID,obj.systemIndex,obj.clusterSet,obj.name,modeClass.name)
                         color = None
@@ -140,7 +142,9 @@ def conductFlowchartPoll(conductID):
                             color = "gray"
                         node["color"] = { "border" : "#595959", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
                     elif flow["type"] == "action":
+                        node["flowType"] = "action"
                         obj = actionsByID[flow["actionID"]]
+                        node["name"] = obj.name
                         modeClass = jimi.cache.globalCache.get("modelCache",obj.classID,jimi.model.getClassObject,sessionData=jimi.api.g.sessionData)[0]
                         label = "<b>{0}</b>\n{1}".format(obj.name,modeClass.name)
                         color = None
@@ -185,7 +189,6 @@ def conductFlowchartPoll(conductID):
     if len(flowchartOperators) == 0 and len(flowchartLinks) == 0:
         flowchartResponse["operators"]["nodes"] = [ x for x in nodesList.values() ]
         flowchartResponse["links"]["links"] = [ x for x in linksList.values() ]
-        print(flowchartResponse)
     else:
         # Comparing displayed nodes to generated nodes
         for node in flowchartOperators:
@@ -195,18 +198,18 @@ def conductFlowchartPoll(conductID):
                 del nodesList[node["id"]]
             except KeyError:
                 flowchartResponse["operators"]["delete"][node["id"]] = node
-            for node in nodesList.values():
-                flowchartResponse["operators"]["create"][node["id"]] = node
+        for node in nodesList.values():
+            flowchartResponse["operators"]["create"][node["id"]] = node
         # Comparing displayed links to generated links
         for link in flowchartLinks:
             try:
                 if link != linksList[link["id"]]:
                     flowchartResponse["links"]["update"][link["id"]] = linksList[link["id"]]
-                del linksList[node["id"]]
+                del linksList[link["id"]]
             except KeyError:
                 flowchartResponse["links"]["delete"][link["id"]] = link
-            for link in linksList.values():
-                flowchartResponse["links"]["create"][link["id"]] = link
+        for link in linksList.values():
+            flowchartResponse["links"]["create"][link["id"]] = link
 
     # Active user stuff (BETA)
     editorObj = jimi.webui._editorUI().getAsClass(query={"objectId":conductID,"objectType":"conduct"})
