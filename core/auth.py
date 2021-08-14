@@ -122,6 +122,10 @@ if jimi.settings.getSetting("auth",None):
 requiredType = "j1"
 webSecure = False
 jimi.cache.globalCache.newCache("sessions",cacheExpiry=authSettings["cacheSessionTimeout"])
+try:
+    everyone = _group().getAsClass(query={ "name" : "everyone" })[0]._id
+except:
+    everyone = "-1"
 
 def getSessionObject(sessionID,sessionData):
     session = _session().getAsClass(query={"sessionID" : sessionID})
@@ -325,6 +329,7 @@ def enumerateGroups(user):
     for groupItem in _group().getAsClass(query={ "members" : { "$in" : [ user._id ] } }):
         if groupItem._id not in accessIDs:
             accessIDs.append(groupItem._id)
+    accessIDs.append(everyone)
     return accessIDs
 
 def isAdmin(user):

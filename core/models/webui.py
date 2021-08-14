@@ -22,9 +22,10 @@ class _editorUI(jimi.db._document):
     _dbCollection = jimi.db.db["editorUI"]
 
     def new(self,objectId,objectType):
-        if len(_editorUI().query(query={"objectId" : objectId, "objectType" : objectType})["results"]) < 1:
+        if len(_editorUI().query(query={"objectId" : objectId, "objectType" : objectType})["results"]) == 0:
             self.objectId = objectId
             self.objectType = objectType
+            self.acl = {"ids":[{"accessID":0,"delete":True,"read":True,"write":True}]}
             # Run parent class function ( alterative to end decorator for the new function within a class )
             return super(_editorUI, self).new()
         return False

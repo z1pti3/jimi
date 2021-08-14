@@ -209,22 +209,23 @@ def conductFlowchartPoll(conductID):
                 flowchartResponse["links"]["create"][link["id"]] = link
 
     # Active user stuff (BETA)
-    editorObj = jimi.webui._editorUI().getAsClass(jimi.api.g.sessionData,query={"objectId":conductID,"objectType":"conduct"})
+    editorObj = jimi.webui._editorUI().getAsClass(query={"objectId":conductID,"objectType":"conduct"})
     if len(editorObj) == 1:
         editorObj = editorObj[0]
     else:
         jimi.webui._editorUI().new(conductID,"conduct")
-        editorObj = jimi.webui._editorUI().getAsClass(jimi.api.g.sessionData,query={"objectId":conductID,"objectType":"conduct"})[0]
+        editorObj = jimi.webui._editorUI().getAsClass(query={"objectId":conductID,"objectType":"conduct"})[0]
     editorObj.currentUsers[jimi.api.g.sessionData["user"]] = time.time()
     #Remove old users
-    popList = []
-    for user in editorObj.currentUsers:
-         if editorObj.currentUsers[user] < time.time() - 5:
-             popList.append(user)
-    for user in popList:
-        editorObj.currentUsers.pop(user)
-    editorObj.update(["currentUsers"])
-    flowchartResponse["currentUsers"] = [x for x in editorObj.currentUsers]
+    if jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj["acl"],"write"):
+        popList = []
+        for user in editorObj.currentUsers:
+            if editorObj.currentUsers[user] < time.time() - 5:
+                popList.append(user)
+        for user in popList:
+            editorObj.currentUsers.pop(user)
+        editorObj.update(["currentUsers"])
+    flowchartResponse["currentUsers"] = [user for user in editorObj.currentUsers if editorObj.currentUsers[user] > time.time() - 5]
 
     return flowchartResponse, 200
 
