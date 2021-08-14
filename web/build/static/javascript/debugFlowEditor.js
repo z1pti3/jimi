@@ -204,11 +204,6 @@ function updateFlowchart() {
 					return;
 				}
 				processlist = responseData
-				var activeUsers = processlist["currentUsers"].join(", ");
-				if (activeUsers != document.getElementById("activeUsers").innerHTML)
-				{
-					document.getElementById("activeUsers").innerHTML=activeUsers;
-				}
 				setTimeout(updateFlowchart, 2500);
 				setTimeout(function() { updateFlowchartNonBlocking(true) }, 10);
 			},
@@ -306,26 +301,12 @@ function setupFlowchart() {
 				selectedObject[1]["deselect"]()
 			}
 		}
-
-		previousSelectedObject = selectedObject
 		if (params["nodes"].length == 1) {
-			if (cKeyState) {
-				if (selectedObject[0] == "flowObject")
-				{
-					createLink(selectedObject[1],nodes.get(params["nodes"][0])["id"],"#3dbeff","",true);
-				}
-			}
 			selectedObject = ["flowObject",nodes.get(params["nodes"][0])["id"]]
+			nodeSelectionChange(nodes.get(params["nodes"][0])["id"]);
 		} else {
-			selectedObject = null;
+			clearSelection();
 		}
-
-		if (previousSelectedObject != null) {
-			$("#connectFlowObject").show();
-		} else {
-			$("#connectFlowObject").hide();
-		}
-
 		return true;
 	});
 
@@ -480,7 +461,7 @@ function addExecutedFlowEventResult(uid,executionUID,executionName) {
 		network.setSelection({ "nodes" : [] });
 		$.ajax({url:"/api/1.0/debug/"+debugSession+"/"+selectedExecutedFlowUID+"/"+executionUID+"/", type:"GET", timeout: 2000, contentType:"application/json", success: function ( executionData ) {
 				setSelection(executionData);
-				network.setSelection({ "nodes" : [flowObjects[executionData["flowID"]]["nodeID"]] });
+				network.setSelection({ "nodes" : [executionData["flowID"]] });
 			}
 		});
 	});
@@ -499,7 +480,7 @@ function nodeSelectionChange(flowID) {
 		$.ajax({url:"/api/1.0/debug/"+debugSession+"/"+selectedExecutedFlowUID+"/"+flowID+"/flowID", type:"GET", timeout: 2000, contentType:"application/json", success: function ( executionData ) {
 				setSelection(executionData);
 				$('#eventItem'+executionData["id"]).addClass('click');
-				network.setSelection({ "nodes" : [flowObjects[executionData["flowID"]]["nodeID"]] });
+				network.setSelection({ "nodes" : [executionData["flowID"]] });
 			}
 		});
 	}
