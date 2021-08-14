@@ -125,6 +125,7 @@ def conductFlowchartPoll(conductID):
                     if flow["type"] == "trigger":
                         node["flowType"] = "trigger"
                         obj = triggersByID[flow["triggerID"]]
+                        node["objID"] = obj._id
                         node["name"] = obj.name
                         modeClass = jimi.cache.globalCache.get("modelCache",obj.classID,jimi.model.getClassObject,sessionData=jimi.api.g.sessionData)[0]
                         label = "({0}.{1},{2})\n<b>{3}</b>\n{4}".format(obj.systemID,obj.systemIndex,obj.clusterSet,obj.name,modeClass.name)
@@ -144,6 +145,7 @@ def conductFlowchartPoll(conductID):
                     elif flow["type"] == "action":
                         node["flowType"] = "action"
                         obj = actionsByID[flow["actionID"]]
+                        node["objID"] = obj._id
                         node["name"] = obj.name
                         modeClass = jimi.cache.globalCache.get("modelCache",obj.classID,jimi.model.getClassObject,sessionData=jimi.api.g.sessionData)[0]
                         label = "<b>{0}</b>\n{1}".format(obj.name,modeClass.name)
@@ -152,6 +154,7 @@ def conductFlowchartPoll(conductID):
                             color = "#0a0a0a"
                         if not obj.enabled:
                             color = "gray"
+                        node["color"] = { "border" : "#595959", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
                     node["label"] = label
                 except IndexError:
                     node["label"] = "Unknown Object"
