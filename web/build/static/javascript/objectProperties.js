@@ -19,7 +19,6 @@ var panelPropertiesHTML = `
 </div>
 `
 
-
 var openPanels = {}
 
 $(document).ready(function () {
@@ -81,6 +80,10 @@ function savePropertiesPanel(flowID,panel) {
 		if (formItem.attr("type") == "dropdown")
 		{
 			jsonData[resultItem] = formItem.val();
+		}
+		if (formItem.attr("type") == "script")
+		{
+			jsonData[resultItem] = formItem.data("editor").getValue();
 		}
 	})
 	if (!requiredMet) {
@@ -339,25 +342,24 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", title : tooltip, class: "theme-panelBreak"}).text(label+":"));
 					$row.append($cell);
 					var $cell = $('<td>');
-					var $scriptTextArea = $('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: result["formData"][objectItem]["textbox"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"});
-					$scriptTextArea.keydown(function(e) {
-						if(e.keyCode === 9) { // tab was pressed
-							// get caret position/selection
-							var start = this.selectionStart;
-								end = this.selectionEnd;
-							var $this = $(this);
-							// set textarea value to: text before caret + tab + text after caret
-							$this.val($this.val().substring(0, start)
-										+ "\t"
-										+ $this.val().substring(end));
-							// put caret at right position again
-							this.selectionStart = this.selectionEnd = start + 1;
-							// prevent the focus lose
-							return false;
-						}
-					});
+					var $scriptTextArea = $('<div style="min-height: 500px;">').attr({ type: "script", id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: result["formData"][objectItem]["textbox"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem" })
+					require(['vs/editor/editor.main'], function() {
+						var editor = monaco.editor.create($scriptTextArea.get(0), {
+							theme: 'vs-dark',
+							wordWrap: 'on',
+							automaticLayout: true,
+							minimap: {
+								enabled: true
+							},
+							scrollbar: {
+								vertical: 'auto'
+							},
+							readOnly: false,
+							model: monaco.editor.createModel(result["formData"][objectItem]["textbox"],"python")
+						});
+						$scriptTextArea.data({editor : editor })
+					})
 					$cell.append($scriptTextArea);
-					$cell.find('#properties_items'+result["formData"][objectItem]["schemaitem"]).val(result["formData"][objectItem]["textbox"]);
 					$row.append($cell);
 				}
 				if (group > 0 && result["formData"][objectItem]["type"] != "group-checkbox") {
@@ -395,6 +397,7 @@ function createPropertiesPanel(flowID) {
 		openPanels[flowID] = flowID;
 		var panel = $(panelPropertiesHTML);
 		panel.draggable({
+			handle: ".propertiesPanel-header",
 			start: function(e, ui) {
 				if (selectedObject != null)
 				{

@@ -17,6 +17,13 @@
     <script src="{{ url_for('static', filename='includes/chartjs-3.0.2/js/chartjs.js') }}"></script>
 {%- endmacro -%}
 
+{% macro monaco() -%}
+    <script>
+        var require = { paths: { 'vs': "{{ url_for('static', filename='includes/monaco-0.26.1/vs') }}" } };
+    </script>
+    <script src="{{ url_for('static', filename='includes/monaco-0.26.1/vs/loader.js') }}"></script>
+{% endmacro -%}
+
 {% macro chartPolling(id,pollAPI,autoPoll) -%}
     <script>
         window.addEventListener("load", function(){
