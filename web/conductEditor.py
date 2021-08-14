@@ -168,7 +168,8 @@ def conductFlowchartPoll(conductID):
                     link["to"] = nextFlow["flowID"]
                     link["from"] = flowID
                     try:
-                        link["label"] = str(nextFlow["order"])
+                        if nextFlow["order"] > 0:
+                            link["label"] = str(nextFlow["order"])
                     except KeyError:
                         pass
                     color = "green"
