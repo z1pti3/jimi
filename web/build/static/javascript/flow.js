@@ -13,9 +13,6 @@ var network = null;
 var nextId = 0;
 
 // jimi
-var flowObjects = {};
-var nodeObjects = {};
-var flowLinks = {};
 var previousSelectedObject = null;
 var selectedObject = null;
 var processlist = {};
@@ -70,38 +67,6 @@ function deleteSelected() {
 		});
 	}
 }
-
-// function updateNode(flow) {
-// 	if (flow["flowID"] in flowObjects == false) {
-// 		flowObjects[flow["flowID"]] = { "flowID": flow["flowID"], "flowType": flow["flowType"], "nodeID": nextId, "_id": flow["_id"], "name" : flow["name"], "node" : flow["node"] }
-// 		nodeObjects[nextId] = { "flowID": flow["flowID"], "nodeID": nextId }
-// 		flowObjects[flow["flowID"]]["node"]["id"] = nextId
-// 		nodes.add(flowObjects[flow["flowID"]]["node"])
-// 		nextId++;
-// 	} else {
-// 		flow["node"]["id"] = flowObjects[flow["flowID"]]["nodeID"]
-// 		if ( "name" in flow ) {
-// 			flowObjects[flow["flowID"]]["name"] = flow["name"]
-// 		}
-// 		if (("x" in flow["node"] || "y" in flow["node"]) && ("color" in flow["node"] == false) && ("label" in flow["node"] == false)) {
-// 			flowObjects[flow["flowID"]]["node"]["x"] = flow["node"]["x"]
-// 			flowObjects[flow["flowID"]]["node"]["y"] = flow["node"]["y"]
-// 			network.moveNode(flowObjects[flow["flowID"]]["nodeID"],flow["node"]["x"],flow["node"]["y"])
-// 		} else {
-// 			if ("x" in flow["node"] || "y" in flow["node"]) {
-// 				flowObjects[flow["flowID"]]["node"]["x"] = flow["node"]["x"]
-// 				flowObjects[flow["flowID"]]["node"]["y"] = flow["node"]["y"]
-// 			}
-// 			if ("color" in flow["node"]) {
-// 				flowObjects[flow["flowID"]]["node"]["color"] = flow["node"]["color"]
-// 			}
-// 			if ("label" in flow["node"]) {
-// 				flowObjects[flow["flowID"]]["node"]["label"] = flow["node"]["label"]
-// 			}
-// 			nodes.update(flow["node"])
-// 		}
-// 	}
-// }
 
 function deleteNode(flowID) {
 	nodes.remove({ id: flowID })
@@ -270,14 +235,6 @@ function updateFlowchart() {
 		});
 	} else {
 		setTimeout(updateFlowchart, 2500);
-	}
-}
-
-function triggerFlowObject() {
-	node = network.getSelectedNodes()
-	if (node.length == 1) {
-		node = nodes.get(selectedNodes[0])["id"]
-		createTriggerObjectPanel(node);
 	}
 }
 
