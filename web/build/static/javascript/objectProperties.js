@@ -254,16 +254,15 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 					$row.append($cell);
 				}
 				if (result["formData"][objectItem]["type"] == "checkbox") {
-					var $cell = $('<td width="100px">');
-					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", title : tooltip, class: "theme-panelLabel"}).text(label+":"));
+					var $cell = $('<td>');
 					$row.append($cell);
 					var $cell = $('<td>');
-					if (result["formData"][objectItem]["checked"] == true) {
-						$cell.append($('<input class="theme-panelCheckbox">').attr({type: 'checkbox', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: true, checked: true, key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
-					}
-					else {
-						$cell.append($('<input class="theme-panelCheckbox">').attr({type: 'checkbox', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: false, key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
-					}
+					var $div = $('<div class="form-check form-switch">')
+					var $checkbox = $('<input class="form-check-input" type="checkbox">').attr({required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: result["formData"][objectItem]["checked"], checked: result["formData"][objectItem]["checked"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"})
+					var $label = $('<label class="form-check-label theme-panelLabel" for="flexSwitchCheckDefault">').attr({ for : "properties_items"+result["formData"][objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", "title" : tooltip }).text(label)
+					$div.append($checkbox)
+					$div.append($label)
+					$cell.append($div)
 					$row.append($cell);
 				}
 				if (result["formData"][objectItem]["type"] == "json-input") {
