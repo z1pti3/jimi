@@ -48,7 +48,10 @@
 
 		<link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
 
-
+		<script>
+			var require = { paths: { 'vs': "{{ url_for('static', filename='includes/monaco-0.26.1/vs') }}" } };
+		</script>
+		<script src="{{ url_for('static', filename='includes/monaco-0.26.1/vs/loader.js') }}"></script>
 	</head>
 	<body>
 		<div class="debugFlowEditor-container">
