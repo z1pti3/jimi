@@ -339,10 +339,11 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 				}
 				if (result["formData"][objectItem]["type"] == "script") {
 					var $cell = $('<td width="100px">');
+					$table.addClass("objectPropertiesTableGrow")
 					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", title : tooltip, class: "theme-panelBreak"}).text(label+":"));
 					$row.append($cell);
-					var $cell = $('<td>');
-					var $scriptTextArea = $('<div style="min-height: 500px;">').attr({ type: "script", id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: result["formData"][objectItem]["textbox"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem" })
+					var $cell = $('<td height="100%">');
+					var $scriptTextArea = $('<div style="min-height: 250px; height: 100%">').attr({ type: "script", id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: result["formData"][objectItem]["textbox"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem" })
 					require(['vs/editor/editor.main'], function() {
 						var editor = monaco.editor.create($scriptTextArea.get(0), {
 							theme: 'vs-dark',
@@ -359,6 +360,7 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 						});
 						$scriptTextArea.data({editor : editor })
 					})
+					$scriptTextArea.resizable();
 					$cell.append($scriptTextArea);
 					$row.append($cell);
 				}
