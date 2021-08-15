@@ -436,6 +436,28 @@ function createPropertiesPanel(flowID) {
 			selectedObject = ["objectProperties",{"panel" : panel, "flowID" : flowID, "deselect" : function(){ panel.find(".propertiesPanel-header").removeClass("theme-panelHeader-Active"); }}]
 		})
 
+		panel.find(".propertiesPanel-header").dblclick(function() {
+			if (panel.data("fullscreen")) {
+				panel.css("top",panel.data("fullscreen")["top"])
+				panel.css("left",panel.data("fullscreen")["left"])
+				panel.css("height",panel.data("fullscreen")["height"])
+				panel.css("width",panel.data("fullscreen")["width"])
+				panel.data("fullscreen",null)
+			} else {
+				fullscreenData = { "top" : panel.css("top"), "left" : panel.css("left"), "height" : panel.css("height"), "width" : panel.css("width") }
+				panel.data("fullscreen",fullscreenData)
+				panel.css("top",0)
+				panel.css("left",0)
+				panel.css("height","100%")
+				panel.css("width","100%")
+				height = $("#flowchart").height();
+				width = $("#flowchart").width();
+				var posX = (width/2) - (panel.width()/2);
+				var posY = (height/2) - (panel.height()/2) + 20;
+				panel.css({top : posY, left : posX});
+			}
+		})
+
 		panel.find("#close").click(function () { 
 			delete openPanels[flowID];
 			panel.remove();
