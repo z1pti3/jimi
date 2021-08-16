@@ -3,6 +3,7 @@
 {% block head %}
     {{ jimi.jquery() }}
     {{ jimi.charts() }}
+    {{ jimi.tables() }}
 {% endblock %}
 
 {% block main %}
@@ -39,8 +40,12 @@
             <div class="col col-lg m-1 h-100 panel">
                 <label class="unselectable panelHeader">Trigger Details</label>
                 <div class="row g-0 justify-content-md-center" id="triggerChart">
-
                 </div>
+            </div>
+        </div>
+        <div class="row g-0 m-1 justify-content-md-center" style="height: 500px">
+            <div class="col col-lg m-1 h-100 panel">
+                {{ jimi.table("3","Latest Failures","triggerFailures/",2500) }}
             </div>
         </div>
     </div>

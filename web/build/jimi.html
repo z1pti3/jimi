@@ -224,7 +224,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables-scroller-2.0.3/css/scroller.dataTables.min.css') }}">
 {%- endmacro -%}
 
-{% macro table(id,title,pollAPI) -%}
+{% macro table(id,title,pollAPI,autoPoll=0) -%}
     <label class="unselectable panelHeader">{{ title }}</label>
     <table id="table_{{ id }}" class="display theme-table" style="width:100%;"></table>
     <script>
@@ -236,7 +236,7 @@
             fetch('{{ pollAPI }}build/',requestOptions,2000).then(result => {
                 return result.json()
             }).then(resultJson => {
-                $('#table_{{ id }}').DataTable( { 
+                var table = $('#table_{{ id }}').DataTable( { 
                     ajax: '{{ pollAPI }}poll/',
                     processing: true,
                     serverSide: true,
@@ -252,6 +252,9 @@
                     dom: '<"pull-left"f><"pull-right"l>tip'
                 });
                 $('#table_{{ id }}_filter input').hide();
+                {% if autoPoll > 0 %}
+                    setInterval( function () { table.ajax.reload(null, false); }, {{ autoPoll }} );
+                {% endif %}
             });
         });
     </script>

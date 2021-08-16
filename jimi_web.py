@@ -431,6 +431,26 @@ def statusPageTriggerChartAPI():
 			trigger["status"] = "Failed"
 	return triggers, 200
 
+
+@jimi.api.webServer.route("/status/triggerFailures/<action>/", methods=["GET"])
+def statusPageTriggerFailuresTableAPI(action):
+	triggers = jimi.trigger._trigger().query(sessionData=api.g.sessionData,query={},fields=["_id","name"])["results"]
+	workerNames = [ "trigger:'{0}','{1}'".format(jimi.db.ObjectId(x["_id"]),x["name"]) for x in triggers ]
+	workerIds = [ x["_id"] for x in triggers ]
+	failureEvents = jimi.audit._audit().query(query={ "time" : { "$gt" : time.time()-86400 }, "source" : "trigger", "type" : "trigger_failure", "$or" : [ { "data.workerName" : { "$in" : workerNames } }, { "data.workerID" : { "$in" : workerIds } } ] },sort=[("time",-1)])["results"]
+	total = len(failureEvents)
+	columns = ["id","time","system","name","msg"]
+	table = ui.table(columns,total,total)
+	if action == "build":
+		return table.getColumns() ,200
+	elif action == "poll":
+		# Custom table data so it can be vertical
+		data = []
+		for failureEvent in failureEvents:
+			data.append([ui.safe(failureEvent["_id"]),ui.safe(failureEvent["systemID"]),ui.safe(failureEvent["time"]),ui.safe(failureEvent["data"]["workerName"]),ui.dictTable(failureEvent["data"]["msg"])])
+		table.data = data
+		return { "draw" : int(jimi.api.request.args.get('draw')), "recordsTable" : 0, "recordsFiltered" : 0, "recordsTotal" : 0, "data" : data } ,200
+
 try:
 	api.startServer(False,{'server.socket_host': jimi.config["api"]["web"]["bind"], 'server.socket_port': jimi.config["api"]["web"]["port"], 'engine.autoreload.on': False, 'server.thread_pool' : 5, 'server.ssl_certificate' : jimi.config["api"]["web"]["secure"]["cert"],'server.ssl_private_key' : jimi.config["api"]["web"]["secure"]["key"]})
 	jimi.auth.webSecure = True

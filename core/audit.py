@@ -35,16 +35,19 @@ class _audit(jimi.db._document):
         result = None
         auditData = { "time" : time.time(), "systemID" : systemSettings["systemID"], "source" : eventSource, "type" : eventType, "data" : eventData }
         try:
-            if auditSettings["db"]["enabled"]:
-                writeLog = True
-                if "eventSources" in auditSettings["db"]:
-                    if eventSource not in auditSettings["db"]["eventSources"]:
-                        writeLog = False
-                # Override for testTrigger
-                if "000000000001010000000000" in eventData["conductID"]:
+            if eventSource == "trigger" and eventType == "trigger_failure":
+                result = self._dbCollection.insert_one(jimi.helpers.unicodeEscapeDict(auditData))
+            else:
+                if auditSettings["db"]["enabled"]:
                     writeLog = True
-                if writeLog:
-                    result = self._dbCollection.insert_one(jimi.helpers.unicodeEscapeDict(auditData))
+                    if "eventSources" in auditSettings["db"]:
+                        if eventSource not in auditSettings["db"]["eventSources"]:
+                            writeLog = False
+                    # Override for testTrigger
+                    if "000000000001010000000000" in eventData["conductID"]:
+                        writeLog = True
+                    if writeLog:
+                        result = self._dbCollection.insert_one(jimi.helpers.unicodeEscapeDict(auditData))
         except KeyError:
             pass
         try:
