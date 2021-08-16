@@ -156,7 +156,7 @@ def conductFlowchartPoll(conductID):
                             color = "gray"
                         node["color"] = { "border" : "#595959", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
                     node["label"] = label
-                except IndexError:
+                except (IndexError, KeyError) as e:
                     node["label"] = "Unknown Object"
                     node["color"] = { "background" : "black" }
                 nodesList[flowID] = node
