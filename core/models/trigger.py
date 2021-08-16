@@ -109,9 +109,8 @@ class _trigger(jimi.db._document):
                         while eventHandler.countIncomplete() >= self.concurrency:
                             cpuSaver.tick(ignoreEnabledState=True)
                         if eventHandler.failures:
-                            jimi.audit._audit().add("trigger","conccurent_crash",{ "trigger_id" : self._id, "trigger_name" : self.name })
                             eventHandler.stop()
-                            raise jimi.exceptions.concurrentCrash(eventHandler.failures)
+                            raise jimi.exceptions.concurrentCrash(self._id,self.name,eventHandler.failures)
                         
                         durationRemaining = ( self.startTime + maxDuration ) - time.time()
                         eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerHandler,(self._id,data,False,False),maxDuration=durationRemaining)
@@ -125,7 +124,6 @@ class _trigger(jimi.db._document):
                 if eventHandler:
                     eventHandler.waitAll()
                     if eventHandler.failures > 0:
-                        jimi.audit._audit().add("trigger","conccurent_crash",{ "trigger_id" : self._id, "trigger_name" : self.name })
                         raise jimi.exceptions.triggerConcurrentCrash(self._id,self.name,eventHandler.failures)
                     eventHandler.stop()
         else:
