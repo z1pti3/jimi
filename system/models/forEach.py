@@ -78,7 +78,7 @@ class _forEach(jimi.action._action):
 							jimi.logging.debug("forEachTrigger concurrent crash: forEachID={0}".format(self._id),5)
 						jimi.audit._audit().add("forEachTrigger","conccurent crash",{ "forEachID" : self._id, "name" : self.name })
 						eventHandler.stop()
-						raise jimi.exceptions.concurrentCrash
+						raise jimi.exceptions.concurrentCrash(eventHandler.failures)
 						
 					durationRemaining = ( data["persistentData"]["system"]["trigger"].startTime + data["persistentData"]["system"]["trigger"].maxDuration ) - time.time()
 					eventHandler.new("forEachTrigger:{0}".format(data["flowData"]["flow_id"]),data["persistentData"]["system"]["conduct"].triggerHandler,(data["flowData"]["flow_id"],tempDataCopy,False,True,flowDebugSession),maxDuration=durationRemaining)
@@ -94,7 +94,7 @@ class _forEach(jimi.action._action):
 						jimi.logging.debug("forEachTrigger concurrent crash: forEachID={0}".format(self._id),5)
 					jimi.audit._audit().add("forEachTrigger","conccurent crash",{ "forEachID" : self._id, "name" : self.name })
 					eventHandler.stop()
-					raise jimi.exceptions.concurrentCrash
+					raise jimi.exceptions.concurrentCrash(eventHandler.failures)
 				eventHandler.stop()
 		# Returning false to stop flow continue
 		return { "result" : False, "rc" : 200 }

@@ -3,12 +3,20 @@ import traceback
 import jimi
 
 class concurrentCrash(Exception):
-    """Concurrent crash"""
-    pass
+    def __init__(self,exceptions):
+        self.exceptions = exceptions
+        
+    def __str__(self):
+        return "Error: Concurrent crash. exceptions='{2}'".format(self.exceptions)
 
 class triggerConcurrentCrash(Exception):
-    """Trigger concurrent crash"""
-    pass
+    def __init__(self,triggerID,triggerName,exceptions):
+        self.triggerID = triggerID
+        self.triggerName = triggerName
+        self.exceptions = exceptions
+        
+    def __str__(self):
+        return "Error: Trigger concurrent crash. triggerName='{0}', triggerID='{1}', exceptions='{2}'".format(self.triggerName,self.triggerID,self.exceptions)
 
 class workerKilled(Exception):
     def __init__(self,workerID,workerName):
