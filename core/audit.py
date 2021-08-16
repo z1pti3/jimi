@@ -13,29 +13,12 @@ dbCollectionName = "audit"
 class _audit(jimi.db._document):
     _dbCollection = jimi.db.db[dbCollectionName]
 
-    def new():
-        pass
-
-    def get():
-        pass
-
-    def update():
-        pass
-
-    def load():
-        pass
-
-    def delete():
-        pass
-
-    def parse():
-        pass
-
     def add(self,eventSource, eventType, eventData):
         result = None
         auditData = { "time" : time.time(), "systemID" : systemSettings["systemID"], "source" : eventSource, "type" : eventType, "data" : eventData }
         try:
-            if eventSource == "trigger" and eventType == "trigger_failure":
+            # Always audit failures
+            if (eventSource == "trigger" and eventType == "trigger_failure") or (eventSource == "action" and eventType == "action_failure"):
                 result = self._dbCollection.insert_one(jimi.helpers.unicodeEscapeDict(auditData))
             else:
                 if auditSettings["db"]["enabled"]:
