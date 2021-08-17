@@ -336,6 +336,32 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 						$row.append($cell);
 					}
 				}
+				if (result["formData"][objectItem]["type"] == "multiline") {
+					var $cell = $('<td width="100px">');
+					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", title : tooltip, class: "theme-panelBreak"}).text(label+":"));
+					$row.append($cell);
+					var $cell = $('<td>');
+					var $multilineTextArea = $('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: result["formData"][objectItem]["textbox"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"});
+					$multilineTextArea.keydown(function(e) {
+						if(e.keyCode === 9) { // tab was pressed
+							// get caret position/selection
+							var start = this.selectionStart;
+								end = this.selectionEnd;
+							var $this = $(this);
+							// set textarea value to: text before caret + tab + text after caret
+							$this.val($this.val().substring(0, start)
+										+ "\t"
+										+ $this.val().substring(end));
+							// put caret at right position again
+							this.selectionStart = this.selectionEnd = start + 1;
+							// prevent the focus lose
+							return false;
+						}
+					});
+					$cell.append($multilineTextArea);
+					$cell.find('#properties_items'+result["formData"][objectItem]["schemaitem"]).val(result["formData"][objectItem]["textbox"]);
+					$row.append($cell);
+				}
 				if (result["formData"][objectItem]["type"] == "script") {
 					var $cell = $('<td width="100px">');
 					$table.addClass("objectPropertiesTableGrow")
