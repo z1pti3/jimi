@@ -11,6 +11,7 @@ import subprocess
 import os
 from operator import itemgetter
 import logging
+import datetime
 
 logging.basicConfig(level=logging.ERROR)
 
@@ -437,7 +438,8 @@ def statusPageTriggerFailuresTableAPI(action):
 	triggers = jimi.trigger._trigger().query(sessionData=api.g.sessionData,query={},fields=["_id","name"])["results"]
 	workerNames = [ "trigger:'{0}','{1}'".format(jimi.db.ObjectId(x["_id"]),x["name"]) for x in triggers ]
 	workerIds = [ x["_id"] for x in triggers ]
-	failureEvents = jimi.audit._audit().query(query={ "time" : { "$gt" : time.time()-86400 }, "source" : "trigger", "type" : "trigger_failure", "$or" : [ { "data.workerName" : { "$in" : workerNames } }, { "data.workerID" : { "$in" : workerIds } } ] },sort=[("time",-1)])["results"]
+	dt = datetime.datetime.now() - datetime.timedelta(days=1)
+	failureEvents = jimi.audit._audit().query(query={ "_id" : { "$gt" : jimi.db.ObjectId.from_datetime(generation_time=dt) }, "source" : "trigger", "type" : "trigger_failure", "$or" : [ { "data.workerName" : { "$in" : workerNames } }, { "data.workerID" : { "$in" : workerIds } } ] },sort=[("time",-1)])["results"]
 	total = len(failureEvents)
 	columns = ["id","time","system","name","msg"]
 	table = ui.table(columns,total,total)
