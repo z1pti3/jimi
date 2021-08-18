@@ -105,12 +105,6 @@ class _trigger(jimi.db._document):
                     data["flowData"]["eventStats"] = eventStats
 
                     if eventHandler:
-                        while eventHandler.countIncomplete() >= self.concurrency:
-                            cpuSaver.tick(ignoreEnabledState=True)
-                        if eventHandler.failures:
-                            eventHandler.stop()
-                            raise jimi.exceptions.concurrentCrash(self._id,self.name,eventHandler.failures)
-                        
                         durationRemaining = ( self.startTime + maxDuration ) - time.time()
                         eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerHandler,(self._id,data,False,False),maxDuration=durationRemaining)
                     else:

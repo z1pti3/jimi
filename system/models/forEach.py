@@ -70,15 +70,7 @@ class _forEach(jimi.action._action):
 				tempDataCopy["flowData"]["skip"] = skip
 				tempDataCopy["flowData"]["callingTriggerID"] = data["flowData"]["trigger_id"]
 
-				if eventHandler:
-					while eventHandler.countIncomplete() >= self.concurrency:
-						cpuSaver.tick()
-					if eventHandler.failures:
-						if jimi.logging.debugEnabled:
-							jimi.logging.debug("forEachTrigger concurrent crash: forEachID={0}".format(self._id),5)
-						eventHandler.stop()
-						raise jimi.exceptions.concurrentCrash(self._id,self.name,eventHandler.failures)
-						
+				if eventHandler:		
 					durationRemaining = ( data["persistentData"]["system"]["trigger"].startTime + data["persistentData"]["system"]["trigger"].maxDuration ) - time.time()
 					eventHandler.new("forEachTrigger:{0}".format(data["flowData"]["flow_id"]),data["persistentData"]["system"]["conduct"].triggerHandler,(data["flowData"]["flow_id"],tempDataCopy,False,True,flowDebugSession),maxDuration=durationRemaining)
 				else:
