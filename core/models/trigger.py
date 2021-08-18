@@ -13,7 +13,6 @@ class _trigger(jimi.db._document):
     startTime = float() # Hidden runtime value that represents the actural startTime of notify 
     workerID = str()
     enabled = bool()
-    log = True
     clusterSet = int()
     systemID = int()
     systemIndex = int()
@@ -144,9 +143,8 @@ class _trigger(jimi.db._document):
         ####################################
         #              Header              #
         ####################################
-        if self.log:
-            startTime = time.time()
-            jimi.audit._audit().add("trigger","check_start",{ "trigger_id" : self._id, "trigger_name" : self.name })
+        startTime = time.time()
+        jimi.audit._audit().add("trigger","start",{ "trigger_id" : self._id, "trigger_name" : self.name })
         ####################################
 
         self.data = { "flowData" : { "var" : {}, "plugin" : {} } }
@@ -155,13 +153,12 @@ class _trigger(jimi.db._document):
         if self.data["flowData"]["var"] or self.data["flowData"]["plugin"]:
             data = self.data
 
+        self.notify(events=self.result["events"],data=data)
         ####################################
         #              Footer              #
         ####################################
-        if self.log:
-            jimi.audit._audit().add("trigger","check_end",{ "trigger_id" : self._id, "trigger_name" : self.name, "duration" : ( time.time() - startTime ) })
+        jimi.audit._audit().add("trigger","end",{ "trigger_id" : self._id, "trigger_name" : self.name, "duration" : ( time.time() - startTime ) })
         ####################################
-        self.notify(events=self.result["events"],data=data)
 
     def doCheck(self):
         self.result = { "events" : [], "var" : {}, "plugin" : {} }

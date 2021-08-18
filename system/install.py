@@ -217,7 +217,7 @@ def systemInstall():
             "enabled" : True
         },
         "file" : {
-            "enabled" : True,
+            "enabled" : False,
             "logdir" : "log"
         }
     }):
