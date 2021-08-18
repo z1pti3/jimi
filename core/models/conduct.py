@@ -172,6 +172,8 @@ class _conduct(jimi.db._document):
                             data["flowData"]["action"] = class_.runHandler(data=data,debug=debug)
                         except Exception as e:
                             jimi.logging.debug("Error: Action Crashed. actionID={0}, actionName={1}, error={2}".format(class_._id,class_.name,''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__))),-1)
+                            if flowDebugSession:
+                                raise
                             try:
                                 if data["persistentData"]["system"]["trigger"].failOnActionFailure:
                                     raise jimi.exceptions.actionCrash(class_._id,class_.name,e)

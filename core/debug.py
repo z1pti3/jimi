@@ -112,7 +112,10 @@ def debugEventHandler(sessionID,conduct,trigger,flowID,events,data=None,preserve
         tempData["flowData"]["event"] = event
         tempData["flowData"]["eventStats"] = eventStat
 
-        conduct.triggerHandler(flowID,tempData,flowIDType=True,flowDebugSession={ "sessionID" : sessionID })
+        try:
+            conduct.triggerHandler(flowID,tempData,flowIDType=True,flowDebugSession={ "sessionID" : sessionID })
+        except Exception as e:
+            flowDebugSession[sessionID].startEvent("Exception Raised",str(e),tempData)
     if hasattr(trigger, "startCheck"):
         trigger.startCheck = 0
         trigger.update(["startCheck"])
@@ -171,7 +174,7 @@ if jimi.api.webServer:
                                 data = dataIn
                         else:
                             events = [1]
-                    jimi.workers.workers.new("debug{0}".format(sessionID),debugEventHandler,(sessionID,c,t,flowID,events,data,preserveData),maxDuration=maxDuration)
+                    jimi.workers.workers.new("debug{0}".format(sessionID),debugEventHandler,(sessionID,c,t,flowID,events,data,preserveData),maxDuration=maxDuration,raiseException=False,debugSession=sessionID)
                     return {}, 200
                 return (), 404
                 

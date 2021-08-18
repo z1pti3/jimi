@@ -63,7 +63,7 @@ class actionCrash(Exception):
         jimi.systemTrigger.failedAction(self.actionName,self.actionID,"actionCrashed",self.trace)
 
     def __str__(self):
-        return "Error: Worker Crashed. worker_name='{0}', worker_id='{1}', trace='{2}'".format(self.workerName,self.workerID,self.trace)
+        return "Error: Worker Crashed. worker_name='{0}', worker_id='{1}', trace='{2}'".format(self.actionName,self.actionID,self.trace)
 
 class linkCrash(Exception):
     def __init__(self,flowID,exception):
