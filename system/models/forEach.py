@@ -45,6 +45,7 @@ class _forEach(jimi.action._action):
 			eventHandler = None
 			if self.concurrency > 0:
 				eventHandler = jimi.workers.workerHandler(self.concurrency)
+				concurrentEvents = []
 			for index, event in enumerate(events):
 				if self.limit > 0:
 					if self.limit < index:
@@ -70,15 +71,19 @@ class _forEach(jimi.action._action):
 				tempDataCopy["flowData"]["skip"] = skip
 				tempDataCopy["flowData"]["callingTriggerID"] = data["flowData"]["trigger_id"]
 
-				if eventHandler:		
-					durationRemaining = ( data["persistentData"]["system"]["trigger"].startTime + data["persistentData"]["system"]["trigger"].maxDuration ) - time.time()
-					eventHandler.new("forEachTrigger:{0}".format(data["flowData"]["flow_id"]),data["persistentData"]["system"]["conduct"].triggerHandler,(data["flowData"]["flow_id"],tempDataCopy,False,True,flowDebugSession),maxDuration=durationRemaining)
+				if eventHandler:	
+					concurrentEvents.append(tempDataCopy)	
 				else:
 					data["persistentData"]["system"]["conduct"].triggerHandler(data["flowData"]["flow_id"],tempDataCopy,flowIDType=True,flowDebugSession=flowDebugSession)
 
 				cpuSaver.tick()
 			# Waiting for all jobs to complete
 			if eventHandler:
+				eventBatches = jimi.helpers.splitList(concurrentEvents,self.concurrency)
+				for events in eventBatches:
+					durationRemaining = ( data["persistentData"]["system"]["trigger"].startTime + data["persistentData"]["system"]["trigger"].maxDuration ) - time.time()
+					eventHandler.new("forEachTrigger:{0}".format(data["flowData"]["flow_id"]),data["persistentData"]["system"]["conduct"].triggerBatchHandler,(data["flowData"]["flow_id"],events,False,True,flowDebugSession),maxDuration=durationRemaining)
+
 				eventHandler.waitAll()
 				if eventHandler.failures:
 					if jimi.logging.debugEnabled:

@@ -47,6 +47,10 @@ class _conduct(jimi.db._document):
         setattr(self,attr,value)
         return True
 
+    def triggerBatchHandler(self,triggerID,dataBatch,actionIDType=False,flowIDType=False,flowDebugSession=None):
+        for data in dataBatch:
+            self.triggerHandler(triggerID,data,actionIDType,flowIDType,flowDebugSession)
+
     # actionIDType=True uses actionID instead of triggerID
     def triggerHandler(self,triggerID,data,actionIDType=False,flowIDType=False,flowDebugSession=None):
         ####################################
@@ -56,8 +60,9 @@ class _conduct(jimi.db._document):
             startTime = 0
             startTime = time.time()
             jimi.audit._audit().add("conduct","trigger_start",{ "conduct_id" : self._id, "conduct_name" : self.name, "trigger_id" : triggerID })
-        data["persistentData"]["system"]["conduct"] = self
         ####################################
+
+        data["persistentData"]["system"]["conduct"] = self
 
         flowDict = jimi.cache.globalCache.get("flowDict",self._id,getFlowDict,self.flow)
         

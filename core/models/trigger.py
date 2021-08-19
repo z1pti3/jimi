@@ -89,6 +89,7 @@ class _trigger(jimi.db._document):
                 eventHandler = None
                 if self.concurrency > 0:
                     eventHandler = jimi.workers.workerHandler(self.concurrency)
+                    concurrentEvents = []
 
                 dataCopy = jimi.conduct.copyData(tempData,copyConductData=True)
                 dataCopy["flowData"]["conduct_id"] = loadedConduct._id
@@ -105,8 +106,7 @@ class _trigger(jimi.db._document):
                     data["flowData"]["eventStats"] = eventStats
 
                     if eventHandler:
-                        durationRemaining = ( self.startTime + maxDuration ) - time.time()
-                        eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerHandler,(self._id,data,False,False),maxDuration=durationRemaining)
+                        concurrentEvents.append(data)
                     else:
                         loadedConduct.triggerHandler(self._id,data,False,False)
 
@@ -115,6 +115,10 @@ class _trigger(jimi.db._document):
 
                 # Waiting for all jobs to complete
                 if eventHandler:
+                    eventBatches = jimi.helpers.splitList(concurrentEvents,self.concurrency)
+                    for events in eventBatches:
+                        durationRemaining = ( self.startTime + maxDuration ) - time.time()
+                        eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerBatchHandler,(self._id,events,False,False),maxDuration=durationRemaining)
                     eventHandler.waitAll()
                     if eventHandler.failures > 0:
                         raise jimi.exceptions.triggerConcurrentCrash(self._id,self.name,eventHandler.failures)

@@ -517,3 +517,6 @@ def reloadModulesWithinPath(moduleName):
             modules.append(module)
     for module in modules:
         importlib.reload(module)
+
+def splitList(list,amount=1):
+    return [list[i * amount:(i + 1) * amount] for i in range((len(list) + amount - 1) // amount )]
