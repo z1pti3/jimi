@@ -477,7 +477,7 @@ function clearExecutedFlows() {
 function nodeSelectionChange(flowID) {
 	clearSelection();
 	if (selectedExecutedFlowUID!=null) {
-		$.ajax({url:"/api/1.0/debug/"+debugSession+"/"+selectedExecutedFlowUID+"/"+flowID+"/flowID", type:"GET", timeout: 2000, contentType:"application/json", success: function ( executionData ) {
+		$.ajax({url:"/api/1.0/debug/"+debugSession+"/"+selectedExecutedFlowUID+"/"+flowID+"/flowID/", type:"GET", timeout: 2000, contentType:"application/json", success: function ( executionData ) {
 				setSelection(executionData);
 				$('#eventItem'+executionData["id"]).addClass('click');
 				network.setSelection({ "nodes" : [executionData["flowID"]] });

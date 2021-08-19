@@ -275,14 +275,14 @@ if jimi.api.webServer:
                 # NOTE - sessions can only persist on the same server so if the master changes debug will stop
                 url = jimi.cluster.getMaster()
                 response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
-                return json.loads(response.text), 200
+                return json.loads(response.text), response.status_code
 
             @jimi.api.webServer.route(jimi.api.base+"debug/", methods=["PUT"])
             def startFlowDebugSession():                
                 apiEndpoint = "debug/"
                 url = jimi.cluster.getMaster()                
                 response = jimi.helpers.apiCall("PUT",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
-                return json.loads(response.text), 200
+                return json.loads(response.text), response.status_code
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/<conductID>/<flowID>/", methods=["POST"])
             def startDebuggerTrigger(sessionID,conductID,flowID):
@@ -293,35 +293,35 @@ if jimi.api.webServer:
                     data = {}
                 url = jimi.cluster.getMaster()
                 response = jimi.helpers.apiCall("POST",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url,jsonData=data)
-                return json.loads(response.text), 200
+                return json.loads(response.text), response.status_code
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/list/", methods=["GET"])
             def getFlowDebugSessionList(sessionID):
                 apiEndpoint = "debug/{0}/list/".format(sessionID)
                 url = jimi.cluster.getMaster()
                 response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
-                return json.loads(response.text), 200
+                return json.loads(response.text), response.status_code
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/<eventID>/executionList/", methods=["GET"])
             def getFlowDebugSessionFlowExecutionList(sessionID,eventID):
                 apiEndpoint = "debug/{0}/{1}/executionList/".format(sessionID,eventID)
                 url = jimi.cluster.getMaster()
                 response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
-                return json.loads(response.text), 200
+                return json.loads(response.text), response.status_code
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/<eventID>/<executionID>/", methods=["GET"])
             def getFlowDebugSessionFlowExecution(sessionID,eventID,executionID):
                 apiEndpoint = "debug/{0}/{1}/{2}/".format(sessionID,eventID,executionID)
                 url = jimi.cluster.getMaster()
                 response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
-                return json.loads(response.text), 200
+                return json.loads(response.text), response.status_code
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/<eventID>/<flowID>/flowID/", methods=["GET"])
             def getFlowDebugSessionFlowExecutionByFlowID(sessionID,eventID,flowID):
                 apiEndpoint = "debug/{0}/{1}/{2}/flowID/".format(sessionID,eventID,flowID)
                 url = jimi.cluster.getMaster()
                 response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
-                return json.loads(response.text), 200
+                return json.loads(response.text), response.status_code
 
             @jimi.api.webServer.route(jimi.api.base+"debug/clear/", methods=["GET"])
             @jimi.auth.adminEndpoint
@@ -339,7 +339,7 @@ if jimi.api.webServer:
                 apiEndpoint = "debug/clear/{0}/".format(sessionID)
                 url = jimi.cluster.getMaster()
                 response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
-                return json.loads(response.text), 200
+                return json.loads(response.text), response.status_code
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/", methods=["DELETE"])
             @jimi.auth.adminEndpoint
@@ -347,4 +347,4 @@ if jimi.api.webServer:
                 apiEndpoint = "debug/{0}/".format(sessionID)
                 url = jimi.cluster.getMaster()
                 response = jimi.helpers.apiCall("DELETE",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
-                return json.loads(response.text), 200
+                return json.loads(response.text), response.status_code
