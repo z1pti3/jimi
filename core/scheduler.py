@@ -35,7 +35,7 @@ class _scheduler:
                         maxDuration = 60
                         if type(t.maxDuration) is int and t.maxDuration > 0:
                             maxDuration = t.maxDuration
-                            t.workerID = jimi.workers.workers.new("trigger:'{0}','{1}'".format(t._id,t.name),t.checkHandler,(),maxDuration=maxDuration,multiprocessing=t.threaded)
+                        t.workerID = jimi.workers.workers.new("trigger:'{0}','{1}'".format(t._id,t.name),t.checkHandler,(),maxDuration=maxDuration,multiprocessing=t.threaded)
                         t.update(["startCheck","workerID","attemptCount"])      
                     else:
                         if jimi.logging.debugEnabled:
