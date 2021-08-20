@@ -79,7 +79,7 @@ class _forEach(jimi.action._action):
 				cpuSaver.tick()
 			# Waiting for all jobs to complete
 			if eventHandler:
-				eventBatches = jimi.helpers.splitList(concurrentEvents,self.concurrency)
+				eventBatches = jimi.helpers.splitList(concurrentEvents,int(len(concurrentEvents)/self.concurrency))
 				for events in eventBatches:
 					durationRemaining = ( data["persistentData"]["system"]["trigger"].startTime + data["persistentData"]["system"]["trigger"].maxDuration ) - time.time()
 					eventHandler.new("forEachTrigger:{0}".format(data["flowData"]["flow_id"]),data["persistentData"]["system"]["conduct"].triggerBatchHandler,(data["flowData"]["flow_id"],events,False,True,flowDebugSession),maxDuration=durationRemaining)
