@@ -1,9 +1,11 @@
 def contains(string,contents):
     return contents in string
 
-def split(string,spliton,position):
+def split(string,spliton,position=None):
     try:
-        return string.split(spliton)[position]
+        if position:
+            return string.split(spliton)[position]
+        return string.split(spliton)
     except:
         return ""
 
