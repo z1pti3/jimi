@@ -115,7 +115,7 @@ class _trigger(jimi.db._document):
 
                 # Waiting for all jobs to complete
                 if eventHandler:
-                    eventBatches = jimi.helpers.splitList(concurrentEvents,self.concurrency)
+                    eventBatches = jimi.helpers.splitList(concurrentEvents,int(len(concurrentEvents)/self.concurrency))
                     for events in eventBatches:
                         durationRemaining = ( self.startTime + maxDuration ) - time.time()
                         eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerBatchHandler,(self._id,events,False,False),maxDuration=durationRemaining)
