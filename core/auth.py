@@ -110,6 +110,7 @@ from system import install
 
 if jimi.settings.getSetting("auth",None):
     authSettings = jimi.settings.getSetting("auth",None)
+    jimi.cache.globalCache.newCache("sessions",cacheExpiry=authSettings["cacheSessionTimeout"])
     # Loading public and private keys for session signing
     with open(str(Path(authSettings["rsa"]["cert"]))) as f:
         sessionPublicKey = f.read()
@@ -121,7 +122,6 @@ if jimi.settings.getSetting("auth",None):
 
 requiredType = "j1"
 webSecure = False
-jimi.cache.globalCache.newCache("sessions",cacheExpiry=authSettings["cacheSessionTimeout"])
 try:
     everyone = _group().getAsClass(query={ "name" : "everyone" })[0]._id
 except:
