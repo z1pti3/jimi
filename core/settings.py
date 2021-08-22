@@ -20,7 +20,7 @@ def getSetting(name,settingName):
 
 def getSettingValue(uid,sessionData,name,settingName):
 	try:
-		setting = _settings().query(sessionData,query={ "name" : name })["results"][0]
+		setting = _settings(False).query(sessionData,query={ "name" : name })["results"][0]
 		if settingName:
 			return setting["values"][settingName]
 		return setting["values"]

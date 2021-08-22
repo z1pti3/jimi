@@ -28,8 +28,13 @@ class _document():
     creationTime = int()
     createdBy = str()
 
-    def __init__(self):
+    def __init__(self,restrictClass=True):
         jimi.cache.globalCache.newCache("dbModelCache")
+        if restrictClass:
+            try:
+                self.classID = jimi.cache.globalCache.get("dbModelCache",self.__class__.__name__,getClassByName,extendCacheTime=True)[0]["_id"]
+            except TypeError:
+                self.classID = None
 
     # Wrapped mongo call that catches and retrys on error
     def mongoConnectionWrapper(func):
@@ -238,8 +243,10 @@ class _document():
                 if jimi.logging.debugEnabled:
                     jimi.logging.debug("Error {0}".format(e))
                 return result
-        if not query:
+        elif not query:
             query = {}
+        if self.classID:
+            query["classID"] = self.classID
         # Builds list of permitted ACL
         accessIDs = []
         adminBypass = False
@@ -648,4 +655,4 @@ def delete():
     dbClient.drop_database(mongodbSettings["db"]) 
 
 def getClassByName(match,sessionData):
-    return jimi.model._model().query(query={"className" : match})["results"]
+    return jimi.model._model(False).query(query={"className" : match})["results"]

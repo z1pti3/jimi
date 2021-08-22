@@ -169,7 +169,7 @@ def getConductFlowProperties(conductID,flowID):
 		whereUsed = None
 		if "type" in flow:
 			if flow["type"] == "trigger":
-				triggerObj = jimi.trigger._trigger().query(jimi.api.g.sessionData,id=flow["triggerID"])["results"]
+				triggerObj = jimi.trigger._trigger(False).query(jimi.api.g.sessionData,id=flow["triggerID"])["results"]
 				if len(triggerObj) == 1:
 					triggerObj = triggerObj[0]
 				else:
@@ -191,7 +191,7 @@ def getConductFlowProperties(conductID,flowID):
 				manifest = triggerObj.manifest__
 				whereUsed = triggerObj.whereUsed()
 			elif flow["type"] == "action":
-				actionObj = jimi.action._action().query(jimi.api.g.sessionData,id=flow["actionID"])["results"]
+				actionObj = jimi.action._action(False).query(jimi.api.g.sessionData,id=flow["actionID"])["results"]
 				if len(actionObj) == 1:
 					actionObj = actionObj[0]
 				else:

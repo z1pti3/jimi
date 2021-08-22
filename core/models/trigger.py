@@ -29,8 +29,9 @@ class _trigger(jimi.db._document):
 
     _dbCollection = jimi.db.db["triggers"]
 
-    def __init__(self):
+    def __init__(self,restrictClass=True):
         jimi.cache.globalCache.newCache("conductCache")
+        return super(_trigger, self).__init__(restrictClass)
 
     # Override parent new to include name var, parent class new run after class var update
     def new(self,name="",acl=None):

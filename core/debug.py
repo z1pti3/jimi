@@ -149,7 +149,7 @@ if jimi.api.webServer:
                     flow = [ x for x in c.flow if x["flowID"] == flowID ][0]
                     maxDuration = 60
                     if "triggerID" in flow:
-                        t = jimi.trigger._trigger().getAsClass(sessionData=jimi.api.g.sessionData,id=flow["triggerID"])[0]
+                        t = jimi.trigger._trigger(False).getAsClass(sessionData=jimi.api.g.sessionData,id=flow["triggerID"])[0]
                         if dataIn:
                             if type(dataIn) is list:
                                 events = dataIn
@@ -166,7 +166,7 @@ if jimi.api.webServer:
                             events = t.doCheck()
                         maxDuration = t.maxDuration
                     else:
-                        t = jimi.action._action().getAsClass(sessionData=jimi.api.g.sessionData,id=flow["actionID"])[0]
+                        t = jimi.action._action(False).getAsClass(sessionData=jimi.api.g.sessionData,id=flow["actionID"])[0]
                         if dataIn:
                             if type(dataIn) is list:
                                 events = dataIn

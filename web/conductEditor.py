@@ -45,11 +45,11 @@ def conductFlowchartPoll(conductID):
     flowsUIByID = {}
     for obj in flowsUI:
         flowsUIByID[obj.flowID] = obj
-    actions = jimi.action._action().getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
+    actions = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
     actionsByID = {}
     for obj in actions:
         actionsByID[obj._id] = obj
-    triggers = jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowTriggers } })
+    triggers = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowTriggers } })
     triggersByID = {}
     for obj in triggers:
         triggersByID[obj._id] = obj
@@ -271,8 +271,8 @@ def conductExport(conductID):
 
     flowTriggers = [ jimi.db.ObjectId(x["triggerID"]) for x in flows if x["type"] == "trigger" ]
     flowActions = [ jimi.db.ObjectId(x["actionID"]) for x in flows if x["type"] == "action" ]
-    actions = jimi.action._action().getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
-    triggers = jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowTriggers } })
+    actions = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
+    triggers = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowTriggers } })
     result = { "flow" : flows, "action" : {}, "trigger" : {}, "ui" : {} }
 
     for flow in flows:
@@ -370,7 +370,7 @@ def conductImportData(conductID):
                     classObj = classObj[0]
                     existingTrigger = []
                     if data["duplicateObjects"] == False:
-                        existingTrigger = jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,query={ "name" : importData["trigger"][flow["triggerID"]]["name"], "classID" : classObj._id })
+                        existingTrigger = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,query={ "name" : importData["trigger"][flow["triggerID"]]["name"], "classID" : classObj._id })
                     if len(existingTrigger) > 0:
                         existingTrigger = existingTrigger[0]
                     else:
@@ -397,7 +397,7 @@ def conductImportData(conductID):
                     classObj = classObj[0]
                     existingAction = []
                     if data["duplicateObjects"] == False:
-                        existingAction = jimi.action._action().getAsClass(jimi.api.g.sessionData,query={ "name" : importData["action"][flow["actionID"]]["name"], "classID" : classObj._id })
+                        existingAction = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,query={ "name" : importData["action"][flow["actionID"]]["name"], "classID" : classObj._id })
                     if len(existingAction) > 0:
                         existingAction = existingAction[0]
                     else:
@@ -500,8 +500,8 @@ def getConductFlowCodify(conductID):
     flowTriggers = [ jimi.db.ObjectId(x["triggerID"]) for x in flows if x["type"] == "trigger" ]
     flowActions = [ jimi.db.ObjectId(x["actionID"]) for x in flows if x["type"] == "action" ]
 
-    actions = jimi.action._action().getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
-    triggers = jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowTriggers } })
+    actions = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
+    triggers = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowTriggers } })
 
     flowID = None
     if data:
@@ -579,7 +579,7 @@ def newFlow(conductID):
             newFlowObjectID = _class().new(flow["flowID"],acl=acl).inserted_id
             # Working out by bruteforce which type this is ( try and load it by parent class and check for error) - get on trigger if it does not exist will return None
             modelFlowObjectType = "action"
-            if len(jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,id=newFlowObjectID)) > 0:
+            if len(jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,id=newFlowObjectID)) > 0:
                 modelFlowObjectType = "trigger"
             modelFlowObject = _class().getAsClass(jimi.api.g.sessionData,id=newFlowObjectID)
             if len(modelFlowObject) == 1:
@@ -625,9 +625,9 @@ def dropExistingObject(conductID):
             }
             modelFlowObject = None
             if data["flowType"] == "trigger":
-                modelFlowObject = jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,id=data["_id"])[0]
+                modelFlowObject = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,id=data["_id"])[0]
             elif data["flowType"] == "action":
-                modelFlowObject = jimi.action._action().getAsClass(jimi.api.g.sessionData,id=data["_id"])[0]
+                modelFlowObject = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,id=data["_id"])[0]
             if modelFlowObject:
                 name = modelFlowObject.name
             else:
@@ -719,12 +719,12 @@ def updateFlow(conductID,flowID):
                     # Check if the modelType and object are unchanged
                     if "type" in flow:
                         if flow["type"] == "trigger":
-                            modelFlowObject = jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                            modelFlowObject = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
                             if len(modelFlowObject) == 1:
                                 modelFlowObject = modelFlowObject[0]
                             modelFlowObjectType = "trigger"
                         if flow["type"] == "action":
-                            modelFlowObject = jimi.action._action().getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                            modelFlowObject = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
                             if len(modelFlowObject) == 1:
                                 modelFlowObject = modelFlowObject[0]
                             modelFlowObjectType = "action"
@@ -856,11 +856,11 @@ def getACL(conductID,flowID):
         flow = flow[0]
         if "type" in flow:
             if flow["type"] == "trigger":
-                modelFlowObject = jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                modelFlowObject = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
                 if len(modelFlowObject) == 1:
                     modelFlowObject = modelFlowObject[0]
             if flow["type"] == "action":
-                modelFlowObject = jimi.action._action().getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                modelFlowObject = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
                 if len(modelFlowObject) == 1:
                     modelFlowObject = modelFlowObject[0]
     acl = None
@@ -890,11 +890,11 @@ def editACL(conductID,flowID):
         flow = flow[0]
         if "type" in flow:
             if flow["type"] == "trigger":
-                modelFlowObject = jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                modelFlowObject = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
                 if len(modelFlowObject) == 1:
                     modelFlowObject = modelFlowObject[0]
             if flow["type"] == "action":
-                modelFlowObject = jimi.action._action().getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                modelFlowObject = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
                 if len(modelFlowObject) == 1:
                     modelFlowObject = modelFlowObject[0]
 
@@ -935,10 +935,10 @@ def editACL(conductID,flowID):
 
 @jimi.api.webServer.route("/conductEditor/existingObjects/triggers/", methods=["GET"])
 def getExistingObjectsTriggers():
-    triggers = jimi.trigger._trigger().query(sessionData=jimi.api.g.sessionData,query={ "scope" : { "$gt" : 0 } })["results"]
+    triggers = jimi.trigger._trigger(False).query(sessionData=jimi.api.g.sessionData,query={ "scope" : { "$gt" : 0 } })["results"]
     return { "results" : triggers}, 200
 
 @jimi.api.webServer.route("/conductEditor/existingObjects/actions/", methods=["GET"])
 def getExistingObjectsActions():
-    actions = jimi.action._action().query(sessionData=jimi.api.g.sessionData,query={ "scope" : { "$gt" : 0 } })["results"]
+    actions = jimi.action._action(False).query(sessionData=jimi.api.g.sessionData,query={ "scope" : { "$gt" : 0 } })["results"]
     return { "results" : actions}, 200

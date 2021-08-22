@@ -14,7 +14,7 @@ class _conduct(jimi.db._document):
 
     _dbCollection = jimi.db.db["conducts"]
 
-    def __init__(self):
+    def __init__(self,restrictClass=True):
         # Cached lookups to limit reloading the same actions
         jimi.cache.globalCache.newCache("actionCache")
         jimi.cache.globalCache.newCache("triggerCache")
@@ -22,6 +22,7 @@ class _conduct(jimi.db._document):
         jimi.cache.globalCache.newCache("triggeredFlowActions")
         jimi.cache.globalCache.newCache("triggeredFlowFlows")
         jimi.cache.globalCache.newCache("flowDict")
+        return super(_conduct, self).__init__(restrictClass)
 
     # Override parent new to include name var, parent class new run after class var update
     def new(self,name=""):
@@ -294,10 +295,10 @@ def copyData(data,copyEventData=False,copyConductData=False,copyPersistentData=F
     return copyOfData
 
 def getAction(match,sessionData,currentflow):
-    return jimi.action._action().getAsClass(id=currentflow["actionID"])
+    return jimi.action._action(False).getAsClass(id=currentflow["actionID"])
 
 def getTrigger(match,sessionData,currentflow):
-    return jimi.trigger._trigger().getAsClass(id=currentflow["triggerID"])
+    return jimi.trigger._trigger(False).getAsClass(id=currentflow["triggerID"])
 
 def getTriggeredFlowTriggers(uid,sessionData,flowData,triggerID):
     return [ x for x in flowData if "triggerID" in x and x["triggerID"] == triggerID and x["type"] == "trigger" ]
