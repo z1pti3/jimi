@@ -3,7 +3,7 @@ def contains(string,contents):
 
 def split(string,spliton,position=None):
     try:
-        if position:
+        if position != None:
             return string.split(spliton)[position]
         return string.split(spliton)
     except:
