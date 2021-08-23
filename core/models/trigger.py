@@ -25,6 +25,7 @@ class _trigger(jimi.db._document):
     failOnActionFailure = True
     attemptCount = int()
     autoRestartCount = 3
+    executionCount = int()
     scope = int()
 
     _dbCollection = jimi.db.db["triggers"]

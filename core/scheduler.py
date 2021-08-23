@@ -32,11 +32,12 @@ class _scheduler:
                     if jimi.workers.workers.activeCount() < jimi.workers.workers.concurrent:
                         t.startCheck = time.time()
                         t.attemptCount += 1
+                        t.executionCount += 1
                         maxDuration = 60
                         if type(t.maxDuration) is int and t.maxDuration > 0:
                             maxDuration = t.maxDuration
                         t.workerID = jimi.workers.workers.new("trigger:'{0}','{1}'".format(t._id,t.name),t.checkHandler,(),maxDuration=maxDuration,multiprocessing=t.threaded)
-                        t.update(["startCheck","workerID","attemptCount"])      
+                        t.update(["startCheck","workerID","attemptCount","executionCount"])      
                     else:
                         if jimi.logging.debugEnabled:
                             jimi.logging.debug("Scheduler trigger start cannot requested, as the max conncurrent workers are already active. Will try again shortly",3)
