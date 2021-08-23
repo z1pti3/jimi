@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.02
+systemVersion = 3.034
 
 # Initialize 
 dbCollectionName = "system"
@@ -327,6 +327,9 @@ def systemInstall():
 	# Collect
 	jimi.model.registerModel("collect","_collect","_action","system.models.collect")
 
+	# Extract
+	jimi.model.registerModel("extract","_extract","_action","system.models.extract")
+
 	# Adding model for plugins
 	jimi.model.registerModel("plugins","_plugin","_document","core.plugin")
 
@@ -443,5 +446,11 @@ def systemUpgrade(currentVersion):
 		for existingObject in existingObjects:
 			existingObject.acl = {"ids":[{"accessID":0,"delete":True,"read":True,"write":True}]}
 			existingObject.update(["acl"])
+
+	if currentVersion < 3.03:
+		jimi.model.registerModel("extract","_extract","_action","system.models.extract")
+
+	if currentVersion < 3.034:
+		loadSystemManifest()
 
 	return True

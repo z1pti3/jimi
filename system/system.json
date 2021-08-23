@@ -674,6 +674,41 @@
                     }
                 }
             }
+        },
+        "extract" : {
+            "display_name" : "extract",
+            "className" : "_extract",
+            "class_location" : "models.extract",
+            "description" : "Extract using regex data from within a defined string.",
+            "fields" : [
+                { "schema_item" : "regex_pattern", "schema_value" : "regex_pattern", "type" : "input", "label" : "regex_pattern", "description" : "Regex with 'named' groups to extract from the defined string. (?P<GROUP_NAME>)", "required" : true, "jimi_syntax" : true },
+                { "schema_item" : "string", "schema_value" : "string", "type" : "input", "label" : "string", "description" : "String value that is evaluated by the regex statement.", "required" : true, "jimi_syntax" : true }
+            ],
+            "data_out" : {
+                "result" : { 
+                    "description" : "Returns True.",
+                    "type" : "boolean",
+                    "always_present" : true,
+                    "values" : {
+                        "True" : { "description" : "Completed" }
+                    }
+                },
+                "rc" : {
+                    "description" : "Returns an exit code based on the outcome of the action.",
+                    "type" : "number",
+                    "always_present" : true,
+                    "values" : {
+                        "0" : { "description" : "Completed" }
+                    }
+                },
+                "extracts" : {
+                    "description" : "List of extracts",
+                    "type" : "list",
+                    "always_present" : true,
+                    "values" : {
+                    }
+                }
+            }
         }
     },
     "settings" : {
