@@ -382,7 +382,7 @@ def statusPage():
 @jimi.api.webServer.route("/status/triggerStatus/", methods=["POST"])
 def statusPageTriggerStatusAPI():
 	doughnut = ui.doughnut()
-	triggers = jimi.trigger._trigger().getAsClass(sessionData=api.g.sessionData,query={})
+	triggers = jimi.trigger._trigger(False).getAsClass(sessionData=api.g.sessionData,query={})
 	doughnut.addLabel("Running")
 	doughnut.addLabel("Pending")
 	doughnut.addLabel("Failed")
@@ -419,7 +419,7 @@ def statusPageConductStatusAPI():
 
 @jimi.api.webServer.route("/status/triggerChart/", methods=["GET"])
 def statusPageTriggerChartAPI():
-	triggers = jimi.trigger._trigger().query(sessionData=api.g.sessionData,query={},fields=["_id","name","enabled","startCheck","maxDuration","lastCheck"])
+	triggers = jimi.trigger._trigger(False).query(sessionData=api.g.sessionData,query={},fields=["_id","name","enabled","startCheck","maxDuration","lastCheck"])
 	for trigger in triggers["results"]:
 		# Apply fix for default 60 seconds if not defined ( new installs not affected as DB defines this now )
 		if trigger["maxDuration"] == 0:
@@ -435,7 +435,7 @@ def statusPageTriggerChartAPI():
 
 @jimi.api.webServer.route("/status/triggerFailures/<action>/", methods=["GET"])
 def statusPageTriggerFailuresTableAPI(action):
-	triggers = jimi.trigger._trigger().query(sessionData=api.g.sessionData,query={},fields=["_id","name"])["results"]
+	triggers = jimi.trigger._trigger(False).query(sessionData=api.g.sessionData,query={},fields=["_id","name"])["results"]
 	workerNames = [ "trigger:'{0}','{1}'".format(jimi.db.ObjectId(x["_id"]),x["name"]) for x in triggers ]
 	workerIds = [ x["_id"] for x in triggers ]
 	dt = datetime.datetime.now() - datetime.timedelta(days=1)
