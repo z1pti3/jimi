@@ -372,8 +372,24 @@ def conductImportData(conductID):
                     if data["duplicateObjects"] == False:
                         existingTrigger = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,query={ "name" : importData["trigger"][flow["triggerID"]]["name"], "classID" : classObj._id })
                     if len(existingTrigger) > 0:
-                        existingTrigger = existingTrigger[0]
+                        existingTriggers = existingTrigger
+                        existingTrigger = None
+                        # Checking that the found object is the same as the imported object
+                        for existingTriggerItem in existingTriggers:
+                            members = [attr for attr in dir(existingTriggerItem) if not callable(getattr(existingTriggerItem, attr)) and not "__" in attr and attr ]
+                            blacklist = ["_id","classID","className","acl","lastCheck"]
+                            same = True
+                            for member in members:
+                                if member in importData["trigger"][flow["triggerID"]] and member not in blacklist:
+                                    if getattr(existingTriggerItem,member) != importData["trigger"][flow["triggerID"]][member]:
+                                        same = False
+                                        break 
+                            if same:
+                                existingTrigger = existingTriggerItem
+                                break
                     else:
+                        existingTrigger = None
+                    if existingTrigger == None:
                         _class = classObj.classObject()
                         acl = { "ids" : [ { "accessID" : jimi.api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
                         newObjectID = _class().new(importData["trigger"][flow["triggerID"]]["name"],acl=acl).inserted_id
@@ -399,8 +415,24 @@ def conductImportData(conductID):
                     if data["duplicateObjects"] == False:
                         existingAction = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,query={ "name" : importData["action"][flow["actionID"]]["name"], "classID" : classObj._id })
                     if len(existingAction) > 0:
-                        existingAction = existingAction[0]
+                        existingActions = existingAction
+                        existingAction = None
+                        # Checking that the found object is the same as the imported object
+                        for existingActionItem in existingActions:
+                            members = [attr for attr in dir(existingActionItem) if not callable(getattr(existingActionItem, attr)) and not "__" in attr and attr ]
+                            blacklist = ["_id","classID","className","acl","lastCheck"]
+                            same = True
+                            for member in members:
+                                if member in importData["action"][flow["actionID"]] and member not in blacklist:
+                                    if getattr(existingActionItem,member) != importData["action"][flow["actionID"]][member]:
+                                        same = False
+                                        break 
+                            if same:
+                                existingAction = existingActionItem
+                                break
                     else:
+                        existingAction = None
+                    if existingAction == None:
                         _class = classObj.classObject()
                         acl = { "ids" : [ { "accessID" : jimi.api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
                         newObjectID = _class().new(importData["action"][flow["actionID"]]["name"],acl=acl).inserted_id
