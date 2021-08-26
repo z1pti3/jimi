@@ -519,4 +519,6 @@ def reloadModulesWithinPath(moduleName):
         importlib.reload(module)
 
 def splitList(list,amount=1):
+    if amount < 1:
+        amount = 1
     return [list[i * amount:(i + 1) * amount] for i in range((len(list) + amount - 1) // amount )]
