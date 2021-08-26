@@ -419,8 +419,10 @@ def statusPageConductStatusAPI():
 
 @jimi.api.webServer.route("/status/triggerChart/", methods=["GET"])
 def statusPageTriggerChartAPI():
-	triggers = jimi.trigger._trigger(False).query(sessionData=api.g.sessionData,query={},fields=["_id","name","enabled","startCheck","maxDuration","lastCheck"])
+	triggers = jimi.trigger._trigger(False).query(sessionData=api.g.sessionData,query={},fields=["_id","name","enabled","startCheck","maxDuration","lastCheck","executionCount"])
 	for trigger in triggers["results"]:
+		if "executionCount" not in trigger:
+			trigger["executionCount"] = 0
 		# Apply fix for default 60 seconds if not defined ( new installs not affected as DB defines this now )
 		if trigger["maxDuration"] == 0:
 			trigger["maxDuration"] = 60
