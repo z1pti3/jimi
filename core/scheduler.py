@@ -24,7 +24,7 @@ class _scheduler:
         while not self.stopped:
             now = int(time.time())
             self.lastHandle = now
-            for t in jimi.trigger._trigger().getAsClass(query={ "systemID" : self.systemId, "systemIndex" : self.systemIndex, "$or" : [ {"nextCheck" : { "$lt" :  now}}, {"$or" : [ {"nextCheck" : { "$eq" : ""}} , {"nextCheck" : {"$eq" : None }} ] } ], "enabled" : True, "startCheck" :  0, "$and":[{"schedule" : {"$ne" : None}} , {"schedule" : {"$ne" : ""}} ] }):
+            for t in jimi.trigger._trigger(False).getAsClass(query={ "systemID" : self.systemId, "systemIndex" : self.systemIndex, "$or" : [ {"nextCheck" : { "$lt" :  now}}, {"$or" : [ {"nextCheck" : { "$eq" : ""}} , {"nextCheck" : {"$eq" : None }} ] } ], "enabled" : True, "startCheck" :  0, "$and":[{"schedule" : {"$ne" : None}} , {"schedule" : {"$ne" : ""}} ] }):
                 if t.nextCheck == 0:
                     t.nextCheck = getSchedule(t.schedule)
                     t.update(["nextCheck"])

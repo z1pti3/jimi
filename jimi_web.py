@@ -330,8 +330,8 @@ def setConductFlowLogic(conductID,flowID,nextflowID):
 @jimi.api.webServer.route("/cleanup/", methods=["GET","DELETE"])
 @jimi.auth.adminEndpoint
 def cleanupPage():
-	actions = jimi.action._action().query(jimi.api.g.sessionData,query={ "name" : { "$nin" : ["resetTrigger","failedTriggers","failedActions"] } },fields=["_id","name","lastUpdateTime"])["results"]
-	triggers = jimi.trigger._trigger().query(jimi.api.g.sessionData,query={ "name" : { "$nin" : ["resetTrigger","failedTriggers","failedActions"] } },fields=["_id","name","lastUpdateTime"])["results"]
+	actions = jimi.action._action(False).query(jimi.api.g.sessionData,query={ "name" : { "$nin" : ["resetTrigger","failedTriggers","failedActions"] } },fields=["_id","name","lastUpdateTime"])["results"]
+	triggers = jimi.trigger._trigger(False).query(jimi.api.g.sessionData,query={ "name" : { "$nin" : ["resetTrigger","failedTriggers","failedActions"] } },fields=["_id","name","lastUpdateTime"])["results"]
 	actionids = [ x["_id"] for x in actions ]
 	triggerids = [ x["_id"] for x in triggers ]
 	conducts = jimi.conduct._conduct().query(jimi.api.g.sessionData,query={ "$or" : [ { "flow.triggerID" : { "$in" : triggerids } }, { "flow.actionID" : { "$in" : actionids } } ] },fields=["_id","name","flow"])["results"]
@@ -365,7 +365,7 @@ def cleanupPage():
 
 @jimi.api.webServer.route("/status/")
 def statusPage():
-	triggers = jimi.trigger._trigger().query(sessionData=api.g.sessionData,query={})["results"]
+	triggers = jimi.trigger._trigger(False).query(sessionData=api.g.sessionData,query={})["results"]
 	data = { "running" : [], "pending" : [], "failed" : [] }
 	for trigger in triggers:
 		# Apply fix for default 60 seconds if not defined ( new installs not affected as DB defines this now )

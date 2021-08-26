@@ -98,7 +98,7 @@ def setup():
 
 # Set startCheck to 0 so that all triggers start
 def resetTriggers():
-	triggers = jimi.trigger._trigger().query(query={"startCheck" : { "$gt" : 0}})["results"]
+	triggers = jimi.trigger._trigger(False).query(query={"startCheck" : { "$gt" : 0}})["results"]
 	for triggerJson in triggers:
 		triggerClass = jimi.trigger._trigger().get(triggerJson["_id"])
 		triggerClass.startCheck = 0
@@ -257,7 +257,7 @@ def systemInstall():
 	jimi.model.registerModel("systemFiles","_systemFiles","_document","system.system")
 
 	# System - failedTriggers
-	triggers = jimi.trigger._trigger().getAsClass(query={"name" : "failedTriggers"})
+	triggers = jimi.trigger._trigger(False).getAsClass(query={"name" : "failedTriggers"})
 	if len(triggers) < 1:
 		from system.models import trigger as systemTrigger
 		jimi.model.registerModel("failedTriggers","_failedTriggers","_trigger","system.models.trigger")
@@ -271,7 +271,7 @@ def systemInstall():
 		temp.update(["hidden"])
 
 	# System - failedActions
-	triggers = jimi.trigger._trigger().getAsClass(query={"name" : "failedActions"})
+	triggers = jimi.trigger._trigger(False).getAsClass(query={"name" : "failedActions"})
 	if len(triggers) < 1:
 		from system.models import trigger as systemTrigger
 		jimi.model.registerModel("failedActions","_failedActions","_trigger","system.models.trigger")
