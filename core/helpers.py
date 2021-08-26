@@ -525,3 +525,8 @@ def splitList(list,amount=1):
         return [list[i * amount:(i + 1) * amount] for i in range((len(list) + amount - 1) // amount )]
     except:
         return list
+
+def replaceBackspaces(string):
+    while "\b" in string:
+        string = "{}{}".format(string[:string.index("\b")-1],string[string.index("\b")+2:])
+    return string
