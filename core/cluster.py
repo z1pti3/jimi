@@ -197,18 +197,18 @@ class _clusterMember(jimi.db._document):
                 if jimi.logging.debugEnabled:
                     jimi.logging.debug("Unable to reset triggers from inactive cluster members - active='{0}'".format(active),2)
             if len(active) > 0:
-                inactiveTriggers = jimi.trigger._trigger().getAsClass(query={ "systemID" : { "$nin" : active }, "enabled" : True })
+                inactiveTriggers = jimi.trigger._trigger(False).getAsClass(query={ "systemID" : { "$nin" : active }, "enabled" : True })
                 if len(inactiveTriggers) > 0:
                     if jimi.logging.debugEnabled:
                         jimi.logging.debug("Moving triggers from inactive cluster member to active members",2)
                     clusterMembersDetails = {}
                     for activeMember in active:
-                        count = jimi.trigger._trigger().getAsClass(query={ "systemID" : activeMember, "enabled" : True })
+                        count = jimi.trigger._trigger(False).getAsClass(query={ "systemID" : activeMember, "enabled" : True })
                         clusterMembersDetails[str(activeMember)] = { "count" : len(count) }
                     # Building cluster sets
                     groups = {}
                     groupIndex = 0
-                    triggerGroups = jimi.trigger._trigger().getAsClass(query={ "systemID" : { "$nin" : active }, "clusterSet" : { "$gt" : 0 }, "enabled" : True })
+                    triggerGroups = jimi.trigger._trigger(False).getAsClass(query={ "systemID" : { "$nin" : active }, "clusterSet" : { "$gt" : 0 }, "enabled" : True })
                     for triggerGroup in triggerGroups:
                         if str(triggerGroup.clusterSet) not in groups:
                             if triggerGroup.systemID in active:

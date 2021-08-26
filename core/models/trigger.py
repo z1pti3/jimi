@@ -172,7 +172,7 @@ class _trigger(jimi.db._document):
         self.result["events"].append({ "tick" : True })
 
     def whereUsed(self):
-        conductsWhereUsed = jimi.conduct._conduct().query(query={ "flow.triggerID" : self._id },fields=["_id","name","flow"])["results"]
+        conductsWhereUsed = jimi.conduct._conduct(False).query(query={ "flow.triggerID" : self._id },fields=["_id","name","flow"])["results"]
         usedIn = []
         for conductWhereUsed in conductsWhereUsed:
             for flow in conductWhereUsed["flow"]:
