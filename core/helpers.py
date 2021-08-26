@@ -528,5 +528,5 @@ def splitList(list,amount=1):
 
 def replaceBackspaces(string):
     while "\b" in string:
-        string = "{}{}".format(string[:string.index("\b")-1],string[string.index("\b")+2:])
+        string = "{}{}".format(string[:string.index("\b")-1],string[string.index("\b")+1:])
     return string
