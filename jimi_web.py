@@ -132,7 +132,7 @@ def clearStartChecksPage():
 @jimi.api.webServer.route("/conduct/PropertyTypes/", methods=["GET"])
 def getConductPropertyTypes():
 	result = []
-	models = jimi.model._model().query(jimi.api.g.sessionData,query={ 
+	models = jimi.model._model(False).query(jimi.api.g.sessionData,query={ 
 		"$and" : [ 
 			{ 
 				"$or" : [ 

@@ -245,7 +245,7 @@ class _document():
                 return result
         elif not query:
             query = {}
-        if self.classID:
+        if self.classID and not id:
             query["classID"] = self.classID
         # Builds list of permitted ACL
         accessIDs = []

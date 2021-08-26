@@ -12,7 +12,7 @@ class _failedActions(trigger._trigger):
 from core import model, audit, workers
 
 def failedTrigger(workerName,workerID,failureType,msg=""):
-    triggers = trigger._trigger().query(query={"name" : "failedTriggers"})["results"]
+    triggers = trigger._trigger(False).query(query={"name" : "failedTriggers"})["results"]
     if len(triggers) > 0:
         trigger_ = triggers[0]
         _class = model._model().getAsClass(id=trigger_["classID"])
@@ -28,7 +28,7 @@ def failedTrigger(workerName,workerID,failureType,msg=""):
                 workers.workers.new("trigger:{0}".format(trigger_["_id"]),triggerClass.notify,(events,))
 
 def failedAction(actionID,actionName,failureType,msg=""):
-    failedActionClass = trigger._trigger().query(query={"name" : "failedActions"})["results"]
+    failedActionClass = trigger._trigger(False).query(query={"name" : "failedActions"})["results"]
     if len(failedActionClass) > 0:
         failedActionClass = failedActionClass[0]
         _class = model._model().getAsClass(id=failedActionClass["classID"])

@@ -41,7 +41,7 @@ class _modelUI(jimi.db._document):
     _dbCollection = jimi.db.db["modelUI"]
 
     def new(self,conductID,acl,flowID,x,y,title=""):
-        if len(_modelUI().query(query={"conductID" : conductID, "flowID" : flowID})["results"]) < 1:
+        if len(_modelUI(False).query(query={"conductID" : conductID, "flowID" : flowID})["results"]) < 1:
             self.conductID = conductID
             self.acl = acl
             self.flowID = flowID

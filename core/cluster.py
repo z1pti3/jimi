@@ -84,7 +84,7 @@ class _clusterMember(jimi.db._document):
             #if systemIndex["manager"]["lastHandle"] < ( now - clusterSettings["deadTimer"] ):
             onlineIndexes[str(systemIndex["systemIndex"])] = 0
         # Get and check all triggers assigned to this system
-        allocatedTriggers = jimi.trigger._trigger().getAsClass(query={ "systemID" : self.systemID, "enabled" : True })
+        allocatedTriggers = jimi.trigger._trigger(False).getAsClass(query={ "systemID" : self.systemID, "enabled" : True })
         # Building cluster set groups so we can ensure certain triggers are kept together
         groups = {}
         for allocatedTrigger in allocatedTriggers:

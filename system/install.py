@@ -309,7 +309,7 @@ def systemInstall():
 	jimi.model.registerModel("disableAction","_disableAction","_action","system.models.action")
 
 	# forEach
-	actions = jimi.action._action().query(query={"name" : "forEach"})["results"]
+	actions = jimi.action._action(False).query(query={"name" : "forEach"})["results"]
 	if len(actions) < 1:
 		jimi.model.registerModel("forEach","_forEach","_action","system.models.forEach")
 

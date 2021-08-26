@@ -46,7 +46,7 @@ class _model(jimi.db._document):
 
 def registerModel(name,className,classType,location,hidden=False):
     # Checking that a model with the same name does not already exist ( this is due to identification within GUI, future changes could be made to allow this?? )
-    results = _model().query(query={ "name" : name })["results"]
+    results = _model(False).query(query={ "name" : name })["results"]
     if len(results) == 0:
         return _model().new(name,className,classType,location,hidden)
     else:
@@ -54,7 +54,7 @@ def registerModel(name,className,classType,location,hidden=False):
             jimi.logging.debug("Register model failed as it already exists modelName='{0}', className='{1}', classType='{2}', location='{3}'".format(name,className,classType,location),4)
 
 def deregisterModel(name,className,classType,location):
-    loadModels = _model().query(query={ "name" : name})["results"]
+    loadModels = _model(False).query(query={ "name" : name})["results"]
     if loadModels:
         loadModels = loadModels[0]
         # This really does need to clean up the models objects that are left
@@ -68,14 +68,14 @@ def deregisterModel(name,className,classType,location):
         jimi.logging.debug("deregister model failed modelName='{0}', className='{1}', classType='{2}', location='{3}'".format(name,className,classType,location),4)
 
 def getClassID(name):
-    loadModels = _model().query(query={ "name" : name})["results"]
+    loadModels = _model(False).query(query={ "name" : name})["results"]
     if loadModels:
         loadModels = loadModels[0]
         return loadModels["_id"]
     return None
 
 def loadModel(modelName):
-    results = _model().query(query={ "name" : modelName })["results"]
+    results = _model(False).query(query={ "name" : modelName })["results"]
     if len(results) == 1:
         results = results[0]
         _class = _model().get(results["_id"])
@@ -93,7 +93,7 @@ if jimi.api.webServer:
             def getModels():
                 result = []
                 jimi.api.g.sessionData
-                models = _model().query(jimi.api.g.sessionData,query={ "_id" : { "$exists": True } })["results"]
+                models = _model(False).query(jimi.api.g.sessionData,query={ "_id" : { "$exists": True } })["results"]
                 for model in models:
                     result.append(model["name"])
                 return { "models" : result }, 200
@@ -102,7 +102,7 @@ if jimi.api.webServer:
             def getModel(modelName):
                 class_ = loadModel(modelName).classObject()
                 if class_:
-                    results = _model().query(jimi.api.g.sessionData,query={ "className" : class_.__name__ })["results"]
+                    results = _model(False).query(jimi.api.g.sessionData,query={ "className" : class_.__name__ })["results"]
                     if len(results) == 1:
                         results = results[0]
                         return class_().query(jimi.api.g.sessionData,query={ "classID" : results["_id"] },fields=["_id","name","classType"]), 200
@@ -112,7 +112,7 @@ if jimi.api.webServer:
             def getModelExtra(modelName):
                 class_ = loadModel(modelName).classObject()
                 if class_:
-                    results = _model().query(jimi.api.g.sessionData,query={ "className" : class_.__name__ })["results"]
+                    results = _model(False).query(jimi.api.g.sessionData,query={ "className" : class_.__name__ })["results"]
                     if len(results) == 1:
                         results = results[0]
                         results = class_(False).query(jimi.api.g.sessionData,query={ "classID" : results["_id"] },fields=["_id","name","classType","lastUpdateTime"])["results"]
@@ -138,11 +138,11 @@ if jimi.api.webServer:
                 class_ = loadModel(modelName).classObject()
                 classIDs = []
                 if class_:
-                    results = _model().query(jimi.api.g.sessionData,query={ "className" : class_.__name__ })["results"]
+                    results = _model(False).query(jimi.api.g.sessionData,query={ "className" : class_.__name__ })["results"]
                     if len(results) == 1:
                         results = results[0]
                         classIDs.append(results["_id"])
-                        results = _model().query(jimi.api.g.sessionData,query={ "classType" : results["className"] })["results"]
+                        results = _model(False).query(jimi.api.g.sessionData,query={ "classType" : results["className"] })["results"]
                         for result in results:
                             classIDs.append(result["_id"])
 

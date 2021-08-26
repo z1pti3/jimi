@@ -237,7 +237,7 @@ if jimi.api.webServer:
                     elif plugin.installed:
                         jimi.logging.debug("Info: Plugin already up to date. pluginName={0}, currentVersion={1}, newVersion={2}".format(pluginName,plugin.version,pluginVersion),-1)
                 else:
-                    classID = jimi.model._model().query(query={"className" : "_plugin" })["results"][0]["_id"]
+                    classID = jimi.model._model(False).query(query={"className" : "_plugin" })["results"][0]["_id"]
                     pluginClass = loadPluginClass(pluginName)
                     newPlugin = pluginClass()
                     newPlugin.name = pluginName
@@ -413,7 +413,7 @@ def loadPluginFunctionExtensions():
                             jimi.function.systemFunctions[func] = getattr(mod, func) 
 
 def updatePluginDB():
-    classID = jimi.model._model().query(query={"className" : "_plugin" })["results"][0]["_id"]
+    classID = jimi.model._model(False).query(query={"className" : "_plugin" })["results"][0]["_id"]
     listedPlugins = _plugin().query()["results"]
     plugins = os.listdir("plugins")
     for plugin in plugins:
