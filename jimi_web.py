@@ -451,7 +451,7 @@ def statusPageTriggerFailuresTableAPI(action):
 		# Custom table data so it can be vertical
 		data = []
 		for failureEvent in failureEvents:
-			data.append([ui.safe(failureEvent["_id"]),ui.safe(failureEvent["systemID"]),ui.safe(failureEvent["time"]),ui.safe(failureEvent["data"]["workerName"]),ui.dictTable(failureEvent["data"]["msg"])])
+			data.append([ui.safe(failureEvent["_id"]),ui.safe(failureEvent["time"]),ui.safe(failureEvent["systemID"]),ui.safe(failureEvent["data"]["workerName"]),ui.dictTable(failureEvent["data"]["msg"])])
 		table.data = data
 		return { "draw" : int(jimi.api.request.args.get('draw')), "recordsTable" : 0, "recordsFiltered" : 0, "recordsTotal" : 0, "data" : data } ,200
 
