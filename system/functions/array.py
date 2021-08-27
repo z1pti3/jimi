@@ -17,3 +17,9 @@ def remove(array,index):
     except:
         pass
     return array
+
+def dedupe(array):
+    try:
+        return list(dict.fromkeys(array))
+    except:
+        return array
