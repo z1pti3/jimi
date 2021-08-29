@@ -69,11 +69,9 @@
                     var now = new Date().getTime()/1000;
                     for (result in results["results"]) {
                         triggers += 1;
-                        if (!results["results"][result]["enabled"]) {
-                            color = "var(--panelComponentBorder)";
-                        }
+                        color = "var(--panelBackgroundColor)";
                         if (results["results"][result]["status"] == "Enabled") {
-                            color = "var(--panelBackgroundColor)";
+                            color = "var(--panelComponentBorder)";
                         }
                         if (results["results"][result]["status"] == "Running") {
                             color = "var(--alertColor)";
