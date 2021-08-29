@@ -474,10 +474,33 @@ def performancePagePerformanceLineChart():
 			indexKey = "{0}/{1}".format(data["systemID"],index["systemIndex"])
 			if indexKey not in dataSet:
 				dataSet[indexKey] = []
-			t = jimi.helpers.roundTime(datetime.datetime.fromtimestamp(data["time"]),10)
+			t = jimi.helpers.roundTime(datetime.datetime.fromtimestamp(data["time"]),1)
 			if t not in labels:
 				labels.append(t)
 			dataSet[indexKey].append([t,index["cpu"]])
+	line.addLabels(labels)
+	for key,value in dataSet.items():
+		line.addDataset(key,value)
+	data = json.loads(jimi.api.request.data)
+	return line.generate(data), 200
+
+@jimi.api.webServer.route("/performanceDev/performance/memory/", methods=["POST"])
+@jimi.auth.adminEndpoint
+def performancePagePerformanceMemoryLineChart():
+	line = ui.line()
+	dt = datetime.datetime.now() - datetime.timedelta(hours=1)
+	performanceData = jimi.audit._audit().query(query={ "_id" : { "$gt" : jimi.db.ObjectId.from_datetime(generation_time=dt) }, "source" : "system", "type" : "performance" })["results"]
+	dataSet = {}
+	labels = []
+	for data in performanceData:
+		for index in data["data"]:
+			indexKey = "{0}/{1}".format(data["systemID"],index["systemIndex"])
+			if indexKey not in dataSet:
+				dataSet[indexKey] = []
+			t = jimi.helpers.roundTime(datetime.datetime.fromtimestamp(data["time"]),1)
+			if t not in labels:
+				labels.append(t)
+			dataSet[indexKey].append([t,index["memory"]])
 	line.addLabels(labels)
 	for key,value in dataSet.items():
 		line.addDataset(key,value)
