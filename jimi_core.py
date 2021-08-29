@@ -94,10 +94,7 @@ if __name__ == "__main__":
     masterMember = jimi.cluster.getClusterMemberById(jimi.cluster.getMasterId())
     logging.info("Current jimi master is on %i",masterId)
     if masterMember and masterId != systemId and checksum != masterMember.checksum:
-        logging.debug("Fixing file integrity mismatch using master")
-        checksum = jimi.system.fixChecksum(masterId)
-        if checksum != masterMember.checksum:
-            logging.error("Checksum mismatch between system %i and master %i",systemId,masterId)
+        logging.error("Checksum mismatch between system %i and master %i",systemId,masterId)
     if clusterMember:
         clusterMember.checksum = checksum
         clusterMember.update(["checksum"])
