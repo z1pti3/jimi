@@ -79,7 +79,7 @@ class workerHandler:
 
                 if rc != 0:
                     self.crash = True
-                    raise
+                    raise e
 
             except SystemExit as e:
                 if self.debugSession:

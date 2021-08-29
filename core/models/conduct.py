@@ -180,11 +180,11 @@ class _conduct(jimi.db._document):
                             jimi.logging.debug("Error: Action Crashed. actionID={0}, actionName={1}, error={2}".format(class_._id,class_.name,''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__))),-1)
                             if flowDebugSession:
                                 raise
-                            try:
-                                if data["persistentData"]["system"]["trigger"].failOnActionFailure:
-                                    raise jimi.exceptions.actionCrash(class_._id,class_.name,e)
-                            except AttributeError:
-                                pass
+                            if data["persistentData"]["system"]["trigger"].failOnActionFailure:
+                                # Force the trigger to be detected as failed due to startCheck + maxDuration time being less than now. jimi uses startCheck + maxDuration to understand the current status of a job.
+                                data["persistentData"]["system"]["trigger"].startCheck = 255
+                                data["persistentData"]["system"]["trigger"].update(["startCheck"])
+                                raise jimi.exceptions.actionCrash(class_._id,class_.name,e)
                             if class_.systemCrashHandler:
                                 jimi.exceptions.actionCrash(class_._id,class_.name,e)
                             data["flowData"]["action"] = { "result" : False, "rc" : -255, "error" : traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__) }

@@ -27,6 +27,7 @@ class workerKilled(Exception):
         self.workerName = workerName
         self.workerID = workerID
         jimi.logging.debug("Error: Worker killed. workerName='{0}', workerID='{1}'".format(self.workerName,self.workerID),-1)
+        jimi.audit._audit().add("trigger","trigger_failure",{"type" : "systemEvent", "eventType" : "WorkerKilled", "workerName" : workerName, "workerID" : workerID, "msg" : "" })
         jimi.systemTrigger.failedTrigger(self.workerName,self.workerID,"WorkerKilled","")
         
     def __str__(self):
@@ -38,6 +39,7 @@ class workerCrash(Exception):
         self.workerID = workerID
         self.trace = trace
         jimi.logging.debug("Error: Worker crash. workerName='{0}', workerID='{1}', trace='{2}'".format(self.workerName,self.workerID,self.trace),-1)
+        jimi.audit._audit().add("trigger","trigger_failure",{"type" : "systemEvent", "eventType" : "WorkerCrash", "workerName" : workerName, "workerID" : workerID, "msg" : self.trace })
         jimi.systemTrigger.failedTrigger(self.workerName,self.workerID,"WorkerCrash",self.trace)
 
     def __str__(self):
@@ -48,6 +50,7 @@ class triggerCrash(Exception):
         self.triggerName = triggerName
         self.triggerID = triggerID
         jimi.logging.debug("Error: Trigger Crashed. triggerName='{0}', triggerID='{1}', trace='{2}'".format(self.triggerName,self.triggerID,trace),-1)
+        jimi.audit._audit().add("trigger","trigger_failure",{"type" : "systemEvent", "eventType" : "triggerCrash", "triggerName" : self.triggerName, "triggerID" : self.triggerID, "msg" : trace })
         jimi.systemTrigger.failedTrigger(self.triggerName,self.triggerID,"triggerCrash",trace)
 
     def __str__(self):
@@ -60,6 +63,7 @@ class actionCrash(Exception):
         self.actionID = actionID
         self.trace = ''.join(traceback.format_exception(etype=type(exception), value=exception, tb=exception.__traceback__))
         jimi.logging.debug("Error: Action Crashed. actionName='{0}', actionID='{1}', trace='{2}'".format(self.actionName,self.actionID,self.trace),-1)
+        jimi.audit._audit().add("action","action_failure",{"type" : "systemEvent", "eventType" : "actionCrashed", "actionID" : actionID, "actionName" : actionName, "msg" : self.trace })
         jimi.systemTrigger.failedAction(self.actionName,self.actionID,"actionCrashed",self.trace)
 
     def __str__(self):
