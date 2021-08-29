@@ -1,0 +1,10 @@
+{% extends "main.html" %}
+
+{% block head %}
+    {{ jimi.jquery() }}
+    {{ jimi.charts() }}
+{% endblock %}
+
+{% block main %}
+    {{ jimi.line("0","Performance Data","performance/",2500) }}
+{% endblock %}
