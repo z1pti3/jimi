@@ -192,6 +192,29 @@ if jimi.api.webServer:
 				response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url,timeout=60)
 				return { "url" : url, "response" : response.status_code }, 200
 
+			@jimi.api.webServer.route(jimi.api.base+"system/checksum/<sourceSystemID>/<targetSystemID>/", methods=["GET"])
+			@jimi.auth.adminEndpoint
+			def compareSystemFileIntegrity(sourceSystemID,targetSystemID):
+				sourceSystemID = int(sourceSystemID)
+				targetSystemID = int(targetSystemID)
+				sourceFiles = _systemFiles().getAsClass(query={ "systemID" : { "$in" : [sourceSystemID,targetSystemID] } })
+				sourceFilesHash = {}
+				for sourceFile in sourceFiles:
+					if sourceFile not in sourceFilesHash:
+						sourceFilesHash[sourceFile.filename] = {}
+					sourceFilesHash[sourceFile.filename][sourceFile.systemID] = sourceFile.fileHash
+				differences = { "remove" : [], "new" : [], "mismatch" : [] }
+				for key, value in sourceFilesHash.items():
+					try:
+						if value[sourceSystemID] != value[targetSystemID]:
+							differences["mismatch"].append(key)
+					except KeyError:
+						if sourceSystemID in value:
+							differences["new"].append(key)
+						else:
+							differences["remove"].append(key)
+				return { "results" : sourceFilesHash, "differences" : differences }, 200
+
 			@jimi.api.webServer.route(jimi.api.base+"system/reload/module/<moduleName>/", methods=["GET"])
 			@jimi.auth.adminEndpoint
 			def reloadModule(moduleName):
@@ -204,4 +227,5 @@ if jimi.api.webServer:
 					if response.status_code == 200:
 						results.append({ "server" : url, "results" : json.loads(response.text) })
 				return { "results" : results }, 200
+
 

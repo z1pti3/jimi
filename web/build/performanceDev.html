@@ -1,0 +1,21 @@
+{% extends "main.html" %}
+
+{% block head %}
+    {{ jimi.jquery() }}
+    {{ jimi.charts() }}
+{% endblock %}
+
+{% block main %}
+    <div class="container-fluid">
+        <div class="row g-0 m-1 justify-content-md-center h-50">
+            <div class="col col-lg m-1 h-100 panel">
+                {{ jimi.line("0","Performance Data (CPU)","performance/",2500) }}
+            </div>
+        </div>
+        <div class="row g-0 m-2 justify-content-md-center h-50">
+            <div class="col col-lg-12 m-1 h-100 panel">
+                {{ jimi.line("1","Performance Data (Memory)","performance/memory/",2500) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

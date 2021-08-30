@@ -323,6 +323,23 @@ def dictToJson(json):
             rebuiltJson[key] = str(type(value))
     return rebuiltJson
 
+def listToJson(listObj):
+    def rebuildList(jsonList):
+        rebuiltList = []
+        standardTypes = [str,int,bool,float,list,None]
+        for item in jsonList:
+            if type(item) is dict:
+                rebuiltList.append(dictToJson(item))
+            elif type(item) is list:
+                rebuiltList += rebuildList(item)
+            elif type(item) in standardTypes:
+                rebuiltList.append(item)
+            else:
+                rebuiltList.append(str(type(item)))
+        return rebuiltList
+    rebuiltJson = rebuildList(listObj)
+    return rebuiltJson
+
 def unicodeEscapeDict(dictVar):
     resultItem = {}
     for key, value in dictVar.items():
@@ -500,3 +517,16 @@ def reloadModulesWithinPath(moduleName):
             modules.append(module)
     for module in modules:
         importlib.reload(module)
+
+def splitList(list,amount=1):
+    if amount < 1:
+        amount = 1
+    try:
+        return [list[i * amount:(i + 1) * amount] for i in range((len(list) + amount - 1) // amount )]
+    except:
+        return list
+
+def replaceBackspaces(string):
+    while "\b" in string:
+        string = "{}{}".format(string[:string.index("\b")-1],string[string.index("\b")+1:])
+    return string

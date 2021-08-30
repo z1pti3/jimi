@@ -66,7 +66,7 @@ function createLinkPropertiesPanel(from,to) {
 	if (!openLinkPanels.hasOwnProperty(panelID)) {
 		openLinkPanels[panelID] = panelID;
 		var panel = $(panelLinkHTML);
-		panel.draggable();
+		panel.draggable({handle: ".propertiesPanel-header",});
 		panel.resizable({
 			grid: 20
 		});

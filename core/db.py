@@ -28,8 +28,13 @@ class _document():
     creationTime = int()
     createdBy = str()
 
-    def __init__(self):
+    def __init__(self,restrictClass=True):
         jimi.cache.globalCache.newCache("dbModelCache")
+        if restrictClass:
+            try:
+                self.classID = jimi.cache.globalCache.get("dbModelCache",self.__class__.__name__,getClassByName,extendCacheTime=True)[0]["_id"]
+            except TypeError:
+                self.classID = None
 
     # Wrapped mongo call that catches and retrys on error
     def mongoConnectionWrapper(func):
@@ -238,8 +243,10 @@ class _document():
                 if jimi.logging.debugEnabled:
                     jimi.logging.debug("Error {0}".format(e))
                 return result
-        if not query:
+        elif not query:
             query = {}
+        if self.classID and not id:
+            query["classID"] = self.classID
         # Builds list of permitted ACL
         accessIDs = []
         adminBypass = False
@@ -603,14 +610,14 @@ def fieldACLAccess(sessionData,acl,field,accessType="read"):
         else:
             if not acl and not adminBypass:
                 return False
-            access, accessIDs, adminBypass = ACLAccess(sessionData,acl,accessType)
+            access = ACLAccess(sessionData,acl,accessType)
             return access
     return False
 
 # Checks if access to the object is permitted by the object ACL
 def ACLAccess(sessionData,acl,accessType="read"):
     if not jimi.settings.getSetting("auth","enabled"):
-        return [ True, [], False ]
+        return True
     accessIDs = []
     access = False
     adminBypass = False
@@ -628,7 +635,7 @@ def ACLAccess(sessionData,acl,accessType="read"):
                         for accessID in accessIDs:
                             if aclItem["accessID"] == accessID:
                                 access = aclItem[accessType]
-    return [ access, accessIDs, adminBypass ]
+    return access
 
 
 # Update DB item within giben collection by ID
@@ -648,4 +655,4 @@ def delete():
     dbClient.drop_database(mongodbSettings["db"]) 
 
 def getClassByName(match,sessionData):
-    return jimi.model._model().query(query={"className" : match})["results"]
+    return jimi.model._model(False).query(query={"className" : match})["results"]

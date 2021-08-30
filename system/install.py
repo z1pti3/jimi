@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.0
+systemVersion = 3.034
 
 # Initialize 
 dbCollectionName = "system"
@@ -98,7 +98,7 @@ def setup():
 
 # Set startCheck to 0 so that all triggers start
 def resetTriggers():
-	triggers = jimi.trigger._trigger().query(query={"startCheck" : { "$gt" : 0}})["results"]
+	triggers = jimi.trigger._trigger(False).query(query={"startCheck" : { "$gt" : 0}})["results"]
 	for triggerJson in triggers:
 		triggerClass = jimi.trigger._trigger().get(triggerJson["_id"])
 		triggerClass.startCheck = 0
@@ -166,6 +166,9 @@ def systemInstall():
 	if "modelUI" not in jimi.db.list_collection_names():
 		logging.error("DB Collection modelUI Not Found : Creating...")
 		jimi.model.registerModel("modelUI","_modelUI","_document","core.models.webui")
+	if "editorUI" not in jimi.db.list_collection_names():
+		logging.error("DB Collection editorUI Not Found : Creating...")
+		jimi.model.registerModel("editorUI","_editorUI","_document","core.models.webui")
 	if "clusterMembers" not in jimi.db.list_collection_names():
 		logging.error("DB Collection clusterMembers Not Found : Creating...")
 		jimi.model.registerModel("clusterMember","_clusterMember","_document","core.cluster")
@@ -214,7 +217,7 @@ def systemInstall():
             "enabled" : True
         },
         "file" : {
-            "enabled" : True,
+            "enabled" : False,
             "logdir" : "log"
         }
     }):
@@ -254,7 +257,7 @@ def systemInstall():
 	jimi.model.registerModel("systemFiles","_systemFiles","_document","system.system")
 
 	# System - failedTriggers
-	triggers = jimi.trigger._trigger().getAsClass(query={"name" : "failedTriggers"})
+	triggers = jimi.trigger._trigger(False).getAsClass(query={"name" : "failedTriggers"})
 	if len(triggers) < 1:
 		from system.models import trigger as systemTrigger
 		jimi.model.registerModel("failedTriggers","_failedTriggers","_trigger","system.models.trigger")
@@ -268,7 +271,7 @@ def systemInstall():
 		temp.update(["hidden"])
 
 	# System - failedActions
-	triggers = jimi.trigger._trigger().getAsClass(query={"name" : "failedActions"})
+	triggers = jimi.trigger._trigger(False).getAsClass(query={"name" : "failedActions"})
 	if len(triggers) < 1:
 		from system.models import trigger as systemTrigger
 		jimi.model.registerModel("failedActions","_failedActions","_trigger","system.models.trigger")
@@ -306,7 +309,7 @@ def systemInstall():
 	jimi.model.registerModel("disableAction","_disableAction","_action","system.models.action")
 
 	# forEach
-	actions = jimi.action._action().query(query={"name" : "forEach"})["results"]
+	actions = jimi.action._action(False).query(query={"name" : "forEach"})["results"]
 	if len(actions) < 1:
 		jimi.model.registerModel("forEach","_forEach","_action","system.models.forEach")
 
@@ -323,6 +326,9 @@ def systemInstall():
 
 	# Collect
 	jimi.model.registerModel("collect","_collect","_action","system.models.collect")
+
+	# Extract
+	jimi.model.registerModel("extract","_extract","_action","system.models.extract")
 
 	# Adding model for plugins
 	jimi.model.registerModel("plugins","_plugin","_document","core.plugin")
@@ -366,6 +372,11 @@ def systemInstall():
 	# Adding primary group for root user
 	rootUser.primaryGroup = adminGroup._id
 	rootUser.update(["primaryGroup"])
+
+	# Adding default everyone group
+	everyoneGroup = jimi.auth._group().getAsClass(query={ "name" : "everyone" })
+	if len(everyoneGroup) == 0:
+		everyoneGroup = jimi.auth._group().new("everyone")
 
 	# Install system manifest
 	loadSystemManifest()
@@ -424,4 +435,25 @@ def systemUpgrade(currentVersion):
 				print("ERROR: Unable to build system cache ")
 				return False
 			sys.exit(0)
+
+	if currentVersion < 3.01:
+		jimi.model.registerModel("editorUI","_editorUI","_document","core.models.webui")
+
+	if currentVersion < 3.02:
+		# Adding default everyone group
+		everyoneGroup = jimi.auth._group().getAsClass(query={ "name" : "everyone" })
+		if len(everyoneGroup) == 0:
+			everyoneGroup = jimi.auth._group().new("everyone")
+		# Update ACLs of editorUI model for each object to fix bug
+		existingObjects = jimi.webui._editorUI().getAsClass()
+		for existingObject in existingObjects:
+			existingObject.acl = {"ids":[{"accessID":0,"delete":True,"read":True,"write":True}]}
+			existingObject.update(["acl"])
+
+	if currentVersion < 3.03:
+		jimi.model.registerModel("extract","_extract","_action","system.models.extract")
+
+	if currentVersion < 3.034:
+		loadSystemManifest()
+
 	return True

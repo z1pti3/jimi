@@ -13,6 +13,9 @@ class chartjs():
     def addLabel(self,name):
         self.labels.append(name)
 
+    def addLabels(self,names):
+        self.labels.extend(names)
+
     def removeLabel(self,name):
         self.labels.remove(name)
 

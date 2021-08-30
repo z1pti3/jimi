@@ -13,9 +13,6 @@ var network = null;
 var nextId = 0;
 
 // jimi
-var flowObjects = {};
-var nodeObjects = {};
-var flowLinks = {};
 var previousSelectedObject = null;
 var selectedObject = null;
 var processlist = {};
@@ -48,7 +45,7 @@ function autoupdate() {
 function deleteSelected() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
-		node = nodeObjects[selectedNodes[0]]["flowID"]
+		node = nodes.get(selectedNodes[0])["id"]
 		if (confirm("Are you sure you want to remove object '"+ node +"' from this conduct?")) {
 			var conductID = GetURLParameter("conductID");
 			$.ajax({url:"/conductEditor/"+conductID+"/flow/"+node+"/", data: JSON.stringify({ CSRF: CSRF }), type:"DELETE", contentType:"application/json", success: function ( responseData ) {
@@ -60,7 +57,7 @@ function deleteSelected() {
 
 	links = network.getSelectedEdges()
 	if (links.length == 1) {
-		link = flowLinks[links[0]]
+		link = edges.get(links[0])
 		var conductID = GetURLParameter("conductID");
 		var to = link["to"]
 		var from = link["from"]
@@ -71,51 +68,16 @@ function deleteSelected() {
 	}
 }
 
-function updateNode(flow) {
-	if (flow["flowID"] in flowObjects == false) {
-		flowObjects[flow["flowID"]] = { "flowID": flow["flowID"], "flowType": flow["flowType"], "nodeID": nextId, "_id": flow["_id"], "name" : flow["name"], "node" : flow["node"] }
-		nodeObjects[nextId] = { "flowID": flow["flowID"], "nodeID": nextId }
-		flowObjects[flow["flowID"]]["node"]["id"] = nextId
-		nodes.add(flowObjects[flow["flowID"]]["node"])
-		nextId++;
-	} else {
-		flow["node"]["id"] = flowObjects[flow["flowID"]]["nodeID"]
-		if ( "name" in flow ) {
-			flowObjects[flow["flowID"]]["name"] = flow["name"]
-		}
-		if (("x" in flow["node"] || "y" in flow["node"]) && ("color" in flow["node"] == false) && ("label" in flow["node"] == false)) {
-			flowObjects[flow["flowID"]]["node"]["x"] = flow["node"]["x"]
-			flowObjects[flow["flowID"]]["node"]["y"] = flow["node"]["y"]
-			network.moveNode(flowObjects[flow["flowID"]]["nodeID"],flow["node"]["x"],flow["node"]["y"])
-		} else {
-			if ("x" in flow["node"] || "y" in flow["node"]) {
-				flowObjects[flow["flowID"]]["node"]["x"] = flow["node"]["x"]
-				flowObjects[flow["flowID"]]["node"]["y"] = flow["node"]["y"]
-			}
-			if ("color" in flow["node"]) {
-				flowObjects[flow["flowID"]]["node"]["color"] = flow["node"]["color"]
-			}
-			if ("label" in flow["node"]) {
-				flowObjects[flow["flowID"]]["node"]["label"] = flow["node"]["label"]
-			}
-			nodes.update(flow["node"])
-		}
-	}
-}
-
 function deleteNode(flowID) {
-	nodes.remove({ id: flowObjects[flowID]["nodeID"] })
-	delete nodeObjects[flowObjects[flowID]["nodeID"]]
-	delete flowObjects[flowID]
+	nodes.remove({ id: flowID })
 }
 
 function createLinkRAW(from,to,color,text) {
 	var linkName = from + "->" + to;
-	flowLinks[linkName] = { "from": from, "to": to, "color": color, "text" : text }
 	edges.add({ 
 		id: linkName,
-		from: flowObjects[from]["nodeID"], 
-		to: flowObjects[to]["nodeID"],
+		from: from, 
+		to: to,
 		label: text,
 		color: {
 			color: color
@@ -136,27 +98,9 @@ function createLinkRAW(from,to,color,text) {
 	nextId++;
 }
 
-function updateLink(from,to,color,text) {
-	var linkName = from + "->" + to;
-	flowLinks[linkName]["from"] = from
-	flowLinks[linkName]["to"] = to
-	flowLinks[linkName]["color"] = color
-	flowLinks[linkName]["text"] = text
-	edges.update({ 
-		id: linkName,
-		from: flowObjects[from]["nodeID"], 
-		to: flowObjects[to]["nodeID"],
-		color: color,
-		label: text
-	});
-	return true;
-}
-
 function deleteLink(from,to) {
 	var linkName = from + "->" + to;
-	edges.remove({ 
-		id: linkName
-	});
+	edges.remove({ id: linkName });
 	delete flowLinks[linkName]
 }
 
@@ -202,7 +146,7 @@ function updateFlowchartNonBlocking(blocking) {
 	nonlock = 0
 	// Operator Updates
 	for (operator in processlist["operators"]["update"]) {
-		updateNode(processlist["operators"]["update"][operator]);
+		nodes.update(processlist["operators"]["update"][operator])
 		delete processlist["operators"]["update"][operator]
 		nonlock++
 		if ((!blocking) && (nonlock > 0)) {
@@ -212,7 +156,7 @@ function updateFlowchartNonBlocking(blocking) {
 	}
 	// Operator Creates
 	for (operator in processlist["operators"]["create"]) {
-		updateNode(processlist["operators"]["create"][operator]);
+		nodes.add(processlist["operators"]["create"][operator])
 		delete processlist["operators"]["create"][operator]
 		nonlock++
 		if ((!blocking) && (nonlock > 0)) {
@@ -222,8 +166,7 @@ function updateFlowchartNonBlocking(blocking) {
 	}
 	// Operator Deletions
 	for (operator in processlist["operators"]["delete"]) {
-		obj = processlist["operators"]["delete"][operator]
-		deleteNode(obj["flowID"]);
+		nodes.remove({ id: processlist["operators"]["delete"][operator]["flowID"] })
 		delete processlist["operators"]["delete"][operator]
 		nonlock++
 		if ((!blocking) && (nonlock > 0)) {
@@ -233,8 +176,7 @@ function updateFlowchartNonBlocking(blocking) {
 	}
 	// Link Creates
 	for (link in processlist["links"]["create"]) {
-		obj = processlist["links"]["create"][link]
-		createLinkRAW(obj["from"],obj["to"],obj["color"],obj["text"])
+		edges.add(processlist["links"]["create"][link])
 		delete processlist["links"]["create"][link]
 		nonlock++
 		if ((!blocking) && (nonlock > 0)) {
@@ -244,8 +186,7 @@ function updateFlowchartNonBlocking(blocking) {
 	}
 	// Link Updates
 	for (link in processlist["links"]["update"]) {
-		obj = processlist["links"]["update"][link]
-		updateLink(obj["from"],obj["to"],obj["color"],obj["text"])
+		edges.update(processlist["links"]["update"][link])
 		delete processlist["links"]["update"][link]
 		nonlock++
 		if ((!blocking) && (nonlock > 0)) {
@@ -256,11 +197,7 @@ function updateFlowchartNonBlocking(blocking) {
 	// Link Deletions
 	for (link in processlist["links"]["delete"]) {
 		obj = processlist["links"]["delete"][link]
-		linkName = obj["linkName"]
-		edges.remove({ 
-			id: linkName
-		});
-		delete flowLinks[linkName]
+		edges.remove({ id: obj["id"] });
 		delete processlist["links"]["delete"][link]
 		nonlock++
 		if ((!blocking) && (nonlock > 0)) {
@@ -273,25 +210,23 @@ function updateFlowchartNonBlocking(blocking) {
 function updateFlowchart() {
 	if ((processlist) || (processlist.length == 0)) {
 		var conductID = GetURLParameter("conductID")
-		$.ajax({url:"/conductEditor/"+conductID+"/", type:"POST", timeout: 2000, data: JSON.stringify({ lastPollTime : lastUpdatePollTime, operators: flowObjects, links: flowLinks, CSRF: CSRF }), contentType:"application/json", success: function ( responseData ) {
+		$.ajax({url:"/conductEditor/"+conductID+"/", type:"POST", timeout: 2000, data: JSON.stringify({ lastPollTime : lastUpdatePollTime, operators: nodes.get(), links: edges.get(), CSRF: CSRF }), contentType:"application/json", success: function ( responseData ) {
+				if ((responseData["operators"]["nodes"].length > 0) || (responseData["links"]["links"].length > 0)) {
+					nodes = new vis.DataSet(responseData["operators"]["nodes"]);
+					edges = new vis.DataSet(responseData["links"]["links"]);
+					network.setData({"nodes" : nodes, "edges" : edges});
+					network.fit()
+					setTimeout(updateFlowchart, 2500);
+					return;
+				}
 				processlist = responseData
+				var activeUsers = processlist["currentUsers"].join(", ");
+				if (activeUsers != document.getElementById("activeUsers").innerHTML)
+				{
+					document.getElementById("activeUsers").innerHTML=activeUsers;
+				}
 				setTimeout(updateFlowchart, 2500);
-				if (init == false) {
-					if (nodes.length > 0) {
-						init = true;
-						network.fit()
-					}
-					updateFlowchartNonBlocking(true);
-					setTimeout(function() { updateFlowchartNonBlocking(true) }, 10);
-				} else {
-					setTimeout(function() { updateFlowchartNonBlocking(false) }, 10);
-				}
-				if (nodes.length > 0) {
-					if (init == false) {
-						init = true;
-						network.fit()
-					}
-				}
+				setTimeout(function() { updateFlowchartNonBlocking(true) }, 10);
 			},
 			error: function ( error ) {
 				console.log("Unable to update flowChart");
@@ -303,18 +238,10 @@ function updateFlowchart() {
 	}
 }
 
-function triggerFlowObject() {
-	node = network.getSelectedNodes()
-	if (node.length == 1) {
-		node = nodeObjects[node[0]]["flowID"]
-		createTriggerObjectPanel(node);
-	}
-}
-
 function debugFlowObject() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
-		node = nodeObjects[selectedNodes[0]]["flowID"]
+		node = nodes.get(selectedNodes[0])["id"]
 		var conductID = GetURLParameter("conductID")
 		$.ajax({url: "/conduct/"+conductID+"/debug/"+node+"/", type:"GET", contentType:"application/json", success: function ( result ) {
 				$.ajax({url: "/api/1.0/debug/", type:"POST", data:JSON.stringify({ "filter" : result["_id"], "level" : 100, CSRF: CSRF}), contentType:"application/json", success: function ( result ) {
@@ -334,7 +261,7 @@ function debugFlowObject() {
 function editFlowObject() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
-		node = nodeObjects[selectedNodes[0]]["flowID"]
+		node = nodes.get(selectedNodes[0])["id"]
 		createPropertiesPanel(node);
 	}
 }
@@ -342,7 +269,7 @@ function editFlowObject() {
 function editACL() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
-		node = nodeObjects[selectedNodes[0]]["flowID"]
+		node = nodes.get(selectedNodes[0])["id"]
 		createACLValuesPanel(node);
 	}
 }
@@ -359,7 +286,7 @@ function exportConduct() {
 function exportFlowObject() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
-		node = nodeObjects[selectedNodes[0]]["flowID"]
+		node = nodes.get(selectedNodes[0])["id"]
 		var conductID = GetURLParameter("conductID")
 		window.open("/conductEditor/"+conductID+"/export/?flowID="+node, "_blank");
 	}
@@ -368,7 +295,7 @@ function exportFlowObject() {
 function CodifyFlowObject() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
-		node = nodeObjects[selectedNodes[0]]["flowID"]
+		node = nodes.get(selectedNodes[0])["id"]
 		var conductID = GetURLParameter("conductID")
 		window.open("/conductEditor/"+conductID+"/codify/?flowID="+node, "_blank");
 	}
@@ -392,12 +319,12 @@ function debugConduct() {
 function copyFlowObject() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
-		node = nodeObjects[selectedNodes[0]]["flowID"]
+		node = nodes.get(selectedNodes[0])["id"]
 		var conductID = GetURLParameter("conductID")
-		var x = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["node"]["x"]
-		var y = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["node"]["y"]-25
+		var x = nodes.get(selectedNodes[0])["x"]
+		var y = nodes.get(selectedNodes[0])["y"]-25
 		$.ajax({url:"/conductEditor/"+conductID+"/flow/"+node+"/", type:"POST", data:JSON.stringify({action: "copy", operatorId: node, x: x, y: y, CSRF: CSRF}), contentType:"application/json", success: function ( result ) {
-				// Coned sucessfull
+				// Coned successful
 			}
 		});
 	}
@@ -406,12 +333,12 @@ function copyFlowObject() {
 function duplicateFlowObject() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
-		node = nodeObjects[selectedNodes[0]]["flowID"]
+		node = nodes.get(selectedNodes[0])["id"]
 		var conductID = GetURLParameter("conductID")
-		var x = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["node"]["x"]
-		var y = flowObjects[nodeObjects[selectedNodes[0]]["flowID"]]["node"]["y"]-25
+		var x = nodes.get(selectedNodes[0])["x"]
+		var y = nodes.get(selectedNodes[0])["y"]-25
 		$.ajax({url:"/conductEditor/"+conductID+"/flow/"+node+"/", type:"POST", data:JSON.stringify({action: "clone", operatorId: node, x: x, y: y, CSRF: CSRF}), contentType:"application/json", success: function ( result ) {
-				// Coned sucessfull
+				// Coned successful
 			}
 		});
 	}
@@ -454,7 +381,7 @@ function setupFlowchart() {
 			var conductID = GetURLParameter("conductID")
 			for (node in params["nodes"]) {
 				// Slow need to allow batch updates in future in the backend
-				$.ajax({url:"/conductEditor/"+conductID+"/flow/"+nodeObjects[params["nodes"][node]]["flowID"]+"/", type:"POST", data: JSON.stringify({action: "update", x : pos[params["nodes"][node]]["x"], y : pos[params["nodes"][node]]["y"], CSRF: CSRF }), contentType:"application/json", success: function( responseData ) {
+				$.ajax({url:"/conductEditor/"+conductID+"/flow/"+nodes.get(params["nodes"][node])["id"]+"/", type:"POST", data: JSON.stringify({action: "update", x : pos[params["nodes"][node]]["x"], y : pos[params["nodes"][node]]["y"], CSRF: CSRF }), contentType:"application/json", success: function( responseData ) {
 					}
 				});
 			}
@@ -475,10 +402,10 @@ function setupFlowchart() {
 			if (cKeyState) {
 				if (selectedObject[0] == "flowObject")
 				{
-					createLink(selectedObject[1],nodeObjects[params["nodes"][0]]["flowID"],"#3dbeff","",true);
+					createLink(selectedObject[1],nodes.get(params["nodes"][0])["id"],"#3dbeff","",true);
 				}
 			}
-			selectedObject = ["flowObject",nodeObjects[params["nodes"][0]]["flowID"]]
+			selectedObject = ["flowObject",nodes.get(params["nodes"][0])["id"]]
 		} else {
 			selectedObject = null;
 		}
@@ -497,18 +424,18 @@ function setupFlowchart() {
 		if ((nodeID) || (nodeID == 0)) {
 			network.setSelection({ "nodes" : [nodeID] });
 			previousSelectedObject = selectedObject
-			selectedObject = ["flowObject",nodeObjects[nodeID]["flowID"]]
+			selectedObject = ["flowObject",nodes.get(nodeID)["id"]]
 			if (previousSelectedObject != null) {
 				$("#connectFlowObject").show();
 			} else {
 				$("#connectFlowObject").hide();
 			}
-			if (flowObjects[nodeObjects[nodeID]["flowID"]]["flowType"] == "trigger") {
+			if (nodes.get(nodeID)["flowType"] == "trigger") {
 				var menuHTML = ".contextMenuTrigger";
 			} else {
 				$(".contextMenuTrigger").hide();
 			}
-			if (flowObjects[nodeObjects[nodeID]["flowID"]]["flowType"] == "action") {
+			if (nodes.get(nodeID)["flowType"] == "action") {
 				var menuHTML = ".contextMenuAction";
 			} else {
 				$(".contextMenuAction").hide();
@@ -529,12 +456,11 @@ function setupFlowchart() {
 
 	network.on("doubleClick", function(params) {
 		if (params["nodes"].length == 1) {
-			createPropertiesPanel(nodeObjects[params["nodes"][0]]["flowID"]);
+			createPropertiesPanel(nodes.get(params["nodes"][0])["id"]);
 		}
 		if ((params["nodes"].length == 0) && (params["edges"].length == 1)) {
-			link = flowLinks[params["edges"][0]]
-			to = link["to"]
-			from = link["from"]
+			to = edges.get(params["edges"][0])["to"]
+			from = edges.get(params["edges"][0])["from"]
 			createLinkPropertiesPanel(from,to);
 		}
 		return true;

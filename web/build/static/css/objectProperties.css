@@ -63,6 +63,7 @@
 .propertiesPanel-main {
 	overflow-y: hidden;
 	overflow-x: hidden;
+	height: 100%;
 }
 
 .propertiesPanel-help {
@@ -146,3 +147,6 @@
 	float: right;
 }
 
+.objectPropertiesTableGrow {
+	height: calc(100% - 30px);
+}

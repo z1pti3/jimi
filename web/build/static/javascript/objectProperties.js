@@ -19,7 +19,6 @@ var panelPropertiesHTML = `
 </div>
 `
 
-
 var openPanels = {}
 
 $(document).ready(function () {
@@ -50,8 +49,8 @@ $(document).ready(function () {
 
 function savePropertiesPanel(flowID,panel) {
 	var conductID = GetURLParameter("conductID")
-	var modelType = flowObjects[flowID]["flowType"]
-	var modelID = flowObjects[flowID]["_id"]
+	var modelType = nodes.get(flowID)["flowType"]
+	var modelID = nodes.get(flowID)["objID"]
 
 	var jsonData = {};
 	var newName = null;
@@ -81,6 +80,10 @@ function savePropertiesPanel(flowID,panel) {
 		if (formItem.attr("type") == "dropdown")
 		{
 			jsonData[resultItem] = formItem.val();
+		}
+		if (formItem.attr("type") == "script")
+		{
+			jsonData[resultItem] = formItem.data("editor").getValue();
 		}
 	})
 	if (!requiredMet) {
@@ -120,7 +123,7 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 	var conductID = GetURLParameter("conductID")
 	panel.find(".propertiesPanel-body").empty();
 	panel.find(".propertiesPanel-help").empty();
-	panel.find("#title").text(flowObjects[flowID]["name"]);
+	panel.find("#title").text(nodes.get(flowID)["name"]);
 	$.ajax({ url: "/conduct/"+conductID+"/flowProperties/"+flowID+"/", type:"GET", success: function ( result ) {
 			// help
 			if (Object.keys(result["manifest"]).length > 0)
@@ -251,16 +254,15 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 					$row.append($cell);
 				}
 				if (result["formData"][objectItem]["type"] == "checkbox") {
-					var $cell = $('<td width="100px">');
-					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", title : tooltip, class: "theme-panelLabel"}).text(label+":"));
+					var $cell = $('<td>');
 					$row.append($cell);
 					var $cell = $('<td>');
-					if (result["formData"][objectItem]["checked"] == true) {
-						$cell.append($('<input class="theme-panelCheckbox">').attr({type: 'checkbox', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: true, checked: true, key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
-					}
-					else {
-						$cell.append($('<input class="theme-panelCheckbox">').attr({type: 'checkbox', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: false, key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
-					}
+					var $div = $('<div class="form-check form-switch">')
+					var $checkbox = $('<input class="form-check-input" type="checkbox">').attr({required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: result["formData"][objectItem]["checked"], checked: result["formData"][objectItem]["checked"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"})
+					var $label = $('<label class="form-check-label theme-panelLabel" for="flexSwitchCheckDefault">').attr({ for : "properties_items"+result["formData"][objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", "title" : tooltip }).text(label)
+					$div.append($checkbox)
+					$div.append($label)
+					$cell.append($div)
 					$row.append($cell);
 				}
 				if (result["formData"][objectItem]["type"] == "json-input") {
@@ -289,10 +291,16 @@ function loadPropertiesPanel(flowID,panel,init=false) {
           			for (var i=0; i< result["formData"][objectItem]["dropdown"].length;i++){
 						$select.append($('<option>').attr({value: result["formData"][objectItem]["dropdown"][i]}).text(result["formData"][objectItem]["dropdown"][i]));
 					}
-					$select.val(result["formData"][objectItem]["value"])
-					// console.log(result["formData"][objectItem]["dropdown"].length)
-					// console.log(result["formData"][objectItem]["dropdown"])
-					
+					console.log(result["formData"][objectItem]["dropdown"]);
+					// Fixes legacy issues for dropdowns
+					if (result["formData"][objectItem]["value"] == null)
+					{
+						$select.val(result["formData"][objectItem]["current"])
+					}
+					else 
+					{
+						$select.val(result["formData"][objectItem]["value"])
+					}
 					$cell.append($select);
 					$row.append($cell);
 					
@@ -328,13 +336,13 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 						$row.append($cell);
 					}
 				}
-				if (result["formData"][objectItem]["type"] == "script") {
+				if (result["formData"][objectItem]["type"] == "multiline") {
 					var $cell = $('<td width="100px">');
 					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", title : tooltip, class: "theme-panelBreak"}).text(label+":"));
 					$row.append($cell);
 					var $cell = $('<td>');
-					var $scriptTextArea = $('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: result["formData"][objectItem]["textbox"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"});
-					$scriptTextArea.keydown(function(e) {
+					var $multilineTextArea = $('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: result["formData"][objectItem]["textbox"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"});
+					$multilineTextArea.keydown(function(e) {
 						if(e.keyCode === 9) { // tab was pressed
 							// get caret position/selection
 							var start = this.selectionStart;
@@ -350,8 +358,35 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 							return false;
 						}
 					});
-					$cell.append($scriptTextArea);
+					$cell.append($multilineTextArea);
 					$cell.find('#properties_items'+result["formData"][objectItem]["schemaitem"]).val(result["formData"][objectItem]["textbox"]);
+					$row.append($cell);
+				}
+				if (result["formData"][objectItem]["type"] == "script") {
+					var $cell = $('<td width="100px">');
+					$table.addClass("objectPropertiesTableGrow")
+					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", title : tooltip, class: "theme-panelBreak"}).text(label+":"));
+					$row.append($cell);
+					var $cell = $('<td height="100%">');
+					var $scriptTextArea = $('<div style="min-height: 250px; height: 100%">').attr({ type: "script", id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: result["formData"][objectItem]["textbox"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem" })
+					require(['vs/editor/editor.main'], function() {
+						var editor = monaco.editor.create($scriptTextArea.get(0), {
+							theme: 'vs-dark',
+							wordWrap: 'on',
+							automaticLayout: true,
+							minimap: {
+								enabled: true
+							},
+							scrollbar: {
+								vertical: 'auto'
+							},
+							readOnly: false,
+							model: monaco.editor.createModel(result["formData"][objectItem]["textbox"],"python")
+						});
+						$scriptTextArea.data({editor : editor })
+					})
+					$scriptTextArea.resizable();
+					$cell.append($scriptTextArea);
 					$row.append($cell);
 				}
 				if (group > 0 && result["formData"][objectItem]["type"] != "group-checkbox") {
@@ -364,7 +399,7 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 			}
 			panel.find(".propertiesPanel-body").append($table);
 
-			if (result["whereUsed"].length > 1 && panel.find("#save").html() === "Save") {
+			if (result["whereUsed"].length > 1 && panel.find("#save").html() === " Save") {
 				panel.find("#save").html(panel.find("#save").html() + " ("+result["whereUsed"].length+")");
 			}
 
@@ -389,6 +424,7 @@ function createPropertiesPanel(flowID) {
 		openPanels[flowID] = flowID;
 		var panel = $(panelPropertiesHTML);
 		panel.draggable({
+			handle: ".propertiesPanel-header",
 			start: function(e, ui) {
 				if (selectedObject != null)
 				{
@@ -423,6 +459,33 @@ function createPropertiesPanel(flowID) {
 			panel.find(".propertiesPanel-header").addClass("theme-panelHeader-Active");
 			panel.css("z-index", 2);
 			selectedObject = ["objectProperties",{"panel" : panel, "flowID" : flowID, "deselect" : function(){ panel.find(".propertiesPanel-header").removeClass("theme-panelHeader-Active"); }}]
+		})
+
+		// Toggle fullscreen when double click on title bar
+		panel.find(".propertiesPanel-header").dblclick(function() {
+			if (panel.data("fullscreen")) {
+				// Restore position
+				panel.css("top",panel.data("fullscreen")["top"])
+				panel.css("left",panel.data("fullscreen")["left"])
+				panel.css("height",panel.data("fullscreen")["height"])
+				panel.css("width",panel.data("fullscreen")["width"])
+				panel.data("fullscreen",null)
+			} else {
+				// Save current position and size
+				fullscreenData = { "top" : panel.css("top"), "left" : panel.css("left"), "height" : panel.css("height"), "width" : panel.css("width") }
+				panel.data("fullscreen",fullscreenData)
+				// Set fullscreen
+				panel.css("top",0)
+				panel.css("left",0)
+				panel.css("height","100%")
+				panel.css("width","100%")
+				// Center panel based on max 80% size
+				height = $("#flowchart").height();
+				width = $("#flowchart").width();
+				var posX = (width/2) - (panel.width()/2);
+				var posY = (height/2) - (panel.height()/2) + 20;
+				panel.css({top : posY, left : posX});
+			}
 		})
 
 		panel.find("#close").click(function () { 

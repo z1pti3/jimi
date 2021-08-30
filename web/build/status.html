@@ -3,6 +3,7 @@
 {% block head %}
     {{ jimi.jquery() }}
     {{ jimi.charts() }}
+    {{ jimi.tables() }}
 {% endblock %}
 
 {% block main %}
@@ -26,6 +27,12 @@
                     <label class="fs-1 unselectable" id="failedTriggers"></label>
                 </div>
             </div>
+            <div class="col col-lg m-1 h-100 panel">
+                <label class="unselectable panelHeader">Total Executions</label>
+                <div class="text-center">
+                    <label class="fs-1 unselectable" id="totalExecutions"></label>
+                </div>
+            </div>
         </div>
         <div class="row g-0 m-1 justify-content-md-center">
             <div class="col col-lg m-1 h-100 panel">
@@ -39,8 +46,12 @@
             <div class="col col-lg m-1 h-100 panel">
                 <label class="unselectable panelHeader">Trigger Details</label>
                 <div class="row g-0 justify-content-md-center" id="triggerChart">
-
                 </div>
+            </div>
+        </div>
+        <div class="row g-0 m-1 justify-content-md-center" style="height: 500px">
+            <div class="col col-lg m-1 h-100 panel">
+                {{ jimi.table("3","Latest Failures","triggerFailures/",2500) }}
             </div>
         </div>
     </div>
@@ -54,14 +65,13 @@
                     var triggers = 0;
                     var runningTriggers = 0;
                     var failedTriggers = 0;
+                    var totalExecutions = 0;
                     var now = new Date().getTime()/1000;
                     for (result in results["results"]) {
                         triggers += 1;
-                        if (!results["results"][result]["enabled"]) {
-                            color = "var(--panelComponentBorder)";
-                        }
+                        color = "var(--panelBackgroundColor)";
                         if (results["results"][result]["status"] == "Enabled") {
-                            color = "var(--panelBackgroundColor)";
+                            color = "var(--panelComponentBorder)";
                         }
                         if (results["results"][result]["status"] == "Running") {
                             color = "var(--alertColor)";
@@ -71,6 +81,7 @@
                             color = "var(--errorColor)";
                             failedTriggers += 1;
                         }
+                        totalExecutions = totalExecutions += results["results"][result]["executionCount"]
                         var div = $("<div class='col m-1 panel' style='height:50px; max-width:50px; background-color: "+color+"'>");
                         div.attr("data-bs-toggle","tooltip")
                         div.attr("data-id",results["results"][result]["_id"])
@@ -88,6 +99,7 @@
                     $("#enabledTriggers").text(triggers);
                     $("#runningTriggers").text(runningTriggers);
                     $("#failedTriggers").text(failedTriggers);
+                    $("#totalExecutions").text(totalExecutions);
                 }
             });
             setTimeout(triggerChartPoll, 2500);

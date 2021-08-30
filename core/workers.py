@@ -35,7 +35,7 @@ class _threading(threading.Thread):
 
 class workerHandler:
     class _worker:
-        def __init__(self, name, call, args, delete, maxDuration, multiprocessing, raiseException):
+        def __init__(self, name, call, args, delete, maxDuration, multiprocessing, raiseException, debugSession):
             self.name = name
             self.call = call
             self.id = str(uuid.uuid4())
@@ -46,6 +46,7 @@ class workerHandler:
             self.result = None
             self.resultException = None
             self.raiseException = raiseException
+            self.debugSession = debugSession
             self.running = None
             self.crash = False
             self.args = args
@@ -78,16 +79,22 @@ class workerHandler:
 
                 if rc != 0:
                     self.crash = True
-                    raise
+                    raise e
 
             except SystemExit as e:
-                if self.raiseException:
+                if self.debugSession:
+                    self.crash = True
+                    jimi.debug.flowDebugSession[self.debugSession].startEvent("Worker Killed",str(e),jimi.conduct.dataTemplate())
+                elif self.raiseException:
                     self.crash = True
                     jimi.exceptions.workerKilled(self.id,self.name)
                 else:
                     self.resultException = e
             except Exception as e:
-                if self.raiseException:
+                if self.debugSession:
+                    self.crash = True
+                    jimi.debug.flowDebugSession[self.debugSession].startEvent("Worker Crash",str(e),jimi.conduct.dataTemplate())
+                elif self.raiseException:
                     self.crash = True
                     jimi.exceptions.workerCrash(self.id,self.name,''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
                 else:
@@ -115,13 +122,19 @@ class workerHandler:
                 else:
                     self.result = self.call()
             except SystemExit as e:
-                if self.raiseException:
+                if self.debugSession:
+                    self.crash = True
+                    jimi.debug.flowDebugSession[self.debugSession].startEvent("Worker Killed",str(e),jimi.conduct.dataTemplate())
+                elif self.raiseException:
                     self.crash = True
                     jimi.exceptions.workerKilled(self.id,self.name)
                 else:
                     self.resultException = e
             except Exception as e:
-                if self.raiseException:
+                if self.debugSession:
+                    self.crash = True
+                    jimi.debug.flowDebugSession[self.debugSession].startEvent("Worker Crash",str(e),jimi.conduct.dataTemplate())
+                elif self.raiseException:
                     self.crash = True
                     jimi.exceptions.workerCrash(self.id,self.name,''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
                 else:
@@ -145,7 +158,7 @@ class workerHandler:
             self.start()
     
     def start(self):
-        workerThread = self._worker("workerThread",self.handler,None,True,0,False,True)
+        workerThread = self._worker("workerThread",self.handler,None,True,0,False,True,None)
         workerThread.start()
         self.workerList.append(workerThread)
         self.workerID = workerThread.id
@@ -217,8 +230,8 @@ class workerHandler:
                 loops = 0
                 time.sleep(workerSettings["loopT"])
             
-    def new(self, name, call, args=None, delete=True, maxDuration=60, multiprocessing=False, raiseException=True):
-        workerThread = self._worker(name, call, args, delete, maxDuration, multiprocessing, raiseException)
+    def new(self, name, call, args=None, delete=True, maxDuration=60, multiprocessing=False, raiseException=True, debugSession=None):
+        workerThread = self._worker(name, call, args, delete, maxDuration, multiprocessing, raiseException, debugSession)
         self.workerList.append(workerThread)
         if jimi.logging.debugEnabled:
             jimi.logging.debug("Created new worker, workerID={0}".format(workerThread.id))

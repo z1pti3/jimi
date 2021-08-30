@@ -6,17 +6,6 @@ from core import helpers, logging, cache, settings
 class _collect(action._action):
 	limit = int()
 
-	# class _properties(webui._properties):
-	# 	def generate(self,classObject):
-	# 		formData = []
-	# 		formData.append({"type" : "input", "schemaitem" : "_id", "textbox" : classObject._id})
-	# 		formData.append({"type" : "input", "schemaitem" : "name", "textbox" : classObject.name})
-	# 		formData.append({"type" : "input", "schemaitem" : "limit", "textbox" : classObject.limit, "tooltip" : "Defines the number of events to collect before resuming"})
-	# 		formData.append({"type" : "checkbox", "schemaitem" : "enabled", "checked" : classObject.enabled})
-	# 		formData.append({"type" : "checkbox", "schemaitem" : "log", "checked" : classObject.log})
-	# 		formData.append({"type" : "input", "schemaitem" : "comment", "textbox" : classObject.comment})
-	# 		return formData
-
 	def __init__(self):
 		self.events = []
 

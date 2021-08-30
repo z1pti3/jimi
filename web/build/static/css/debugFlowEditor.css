@@ -125,5 +125,20 @@ hr {
     position: absolute;
 	z-index: 1;
 	right: 1px;
+    right: 153px;
+    bottom: 0;
+}
+
+.clearDebugger {
+    position: absolute;
+	z-index: 1;
+	right: 1px;
+    bottom: 0;
+}
+
+.sessionsDebugger {
+    position: absolute;
+	z-index: 1;
+	right: 65px;
     bottom: 0;
 }
