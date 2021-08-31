@@ -1,7 +1,6 @@
 import logging
 import requests
 import jimi
-import bson
 
 ######### --------- API --------- #########
 if jimi.api.webServer:
@@ -71,7 +70,7 @@ if jimi.api.webServer:
                     groups.append(group)
 
                 #Get user details based on ID
-                foundUser = jimi.auth._user().getAsClass(sessionData=jimi.api.g.sessionData,query={"_id":bson.ObjectId(request.args.get("id"))})
+                foundUser = jimi.auth._user().getAsClass(sessionData=jimi.api.g.sessionData,query={"_id":jimi.db.ObjectId(request.args.get("id"))})
                 if foundUser:
                     foundUser = foundUser[0]
                     #Get friendly names for groups
@@ -150,12 +149,12 @@ if jimi.api.webServer:
             def deleteUser():
                 response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Could not delete user" },403)
                 #Get user details based on username
-                foundUser = jimi.auth._user().getAsClass(sessionData=jimi.api.g.sessionData,query={"_id":bson.ObjectId(request.args.get("id"))})
+                foundUser = jimi.auth._user().getAsClass(sessionData=jimi.api.g.sessionData,query={"_id":jimi.db.ObjectId(request.args.get("id"))})
                 if foundUser:
                     foundUser = foundUser[0]
                     #Cannot delete the root user
                     if foundUser.username != "root":
-                        if jimi.auth._user().api_delete(query={"_id":bson.ObjectId(request.args.get("id"))}):
+                        if jimi.auth._user().api_delete(query={"_id":jimi.db.ObjectId(request.args.get("id"))}):
                             response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User deleted successfully" },201)
                     else:
                         response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Cannot delete root user" },403)
@@ -178,7 +177,7 @@ if jimi.api.webServer:
             @jimi.auth.adminEndpoint
             def editGroups():
                 #Get group details based on ID
-                foundGroup = jimi.auth._group().getAsClass(sessionData=jimi.api.g.sessionData,query={"_id":bson.ObjectId(request.args.get("id"))})
+                foundGroup = jimi.auth._group().getAsClass(sessionData=jimi.api.g.sessionData,query={"_id":jimi.db.ObjectId(request.args.get("id"))})
                 if foundGroup:
                     foundGroup = foundGroup[0]
 
@@ -268,12 +267,12 @@ if jimi.api.webServer:
             def deleteGroup():
                 response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Could not delete group" },403)
                 #Get user details based on username
-                foundGroup = jimi.auth._group().getAsClass(sessionData=jimi.api.g.sessionData,query={"_id":bson.ObjectId(request.args.get("id"))})
+                foundGroup = jimi.auth._group().getAsClass(sessionData=jimi.api.g.sessionData,query={"_id":jimi.db.ObjectId(request.args.get("id"))})
                 if foundGroup:
                     foundGroup = foundGroup[0]
                     #Cannot delete the root user
                     if foundGroup.name != "admin":
-                        if jimi.auth._group().api_delete(query={"_id":bson.ObjectId(request.args.get("id"))}):
+                        if jimi.auth._group().api_delete(query={"_id":jimi.db.ObjectId(request.args.get("id"))}):
                             response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Group deleted successfully" },201)
                     else:
                         response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Cannot delete admin group" },403)
