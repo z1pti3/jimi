@@ -126,7 +126,7 @@ if jimi.api.webServer:
                         if jimi.auth._user().new(userData["name"],userData["username"],userData["password"]):
                             user = jimi.auth._user().getAsClass(sessionData=jimi.api.g.sessionData,query={"username":userData["username"]})[0]
                             #Enable the user?
-                            if userData["enabled"] == "No":
+                            if userData["active"] == "No":
                                 user.setAttribute("enabled",False,sessionData=jimi.api.g.sessionData)
                             #Define the users primary group
                             user.setAttribute("primaryGroup",userData["group"],sessionData=jimi.api.g.sessionData)
@@ -224,7 +224,7 @@ if jimi.api.webServer:
                     if jimi.auth._group().new(groupData["name"]):
                         group = jimi.auth._group().getAsClass(sessionData=jimi.api.g.sessionData,query={"name":groupData["name"]})[0]
                         #Enable the group?
-                        if groupData["enabled"] == "No":
+                        if groupData["active"] == "No":
                             group.setAttribute("enabled",False,sessionData=jimi.api.g.sessionData)
                         #Set description
                         group.setAttribute("description",groupData["description"],sessionData=jimi.api.g.sessionData)
