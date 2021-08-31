@@ -100,7 +100,7 @@ if jimi.api.webServer:
                             foundUser.setAttribute(item,userData[item],sessionData=jimi.api.g.sessionData)
                             updateList.append(item)
                     if any(updateList):
-                        foundUser.update(updateList)
+                        foundUser.update(updateList,sessionData=jimi.api.g.sessionData)
                         response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User updated succesfully" },201)
                     else:
                         response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Nothing to update" },200)
@@ -136,7 +136,7 @@ if jimi.api.webServer:
                                 user.setAttribute("email",userData["email"],sessionData=jimi.api.g.sessionData)
                             #Set user login type
                             user.setAttribute("loginType",userData["loginType"],sessionData=jimi.api.g.sessionData)
-                            user.update(["email","primaryGroup","loginType"])
+                            user.update(["email","primaryGroup","loginType"],sessionData=jimi.api.g.sessionData)
                             #Check for sandbox creation
                             if userData["sandbox"] == "Yes":
                                 #Create a sandbox conduct using the user's name
@@ -229,7 +229,7 @@ if jimi.api.webServer:
                             group.setAttribute("enabled",False,sessionData=jimi.api.g.sessionData)
                         #Set description
                         group.setAttribute("description",groupData["description"],sessionData=jimi.api.g.sessionData)
-                        group.update(["description"])
+                        group.update(["description"],sessionData=jimi.api.g.sessionData)
                         #Check for sandbox creation
                         if groupData["sandbox"] == "Yes":
                             #Create a sandbox conduct using the group's name
@@ -257,7 +257,7 @@ if jimi.api.webServer:
                             foundGroup.setAttribute(item,groupData[item],sessionData=jimi.api.g.sessionData)
                             updateList.append(item)
                     if any(updateList):
-                        foundGroup.update(updateList)
+                        foundGroup.update(updateList,sessionData=jimi.api.g.sessionData)
                         response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Group updated succesfully" },201)
                     else:
                         response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Nothing to update" },200)
