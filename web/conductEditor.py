@@ -54,6 +54,12 @@ def conductFlowchartPoll(conductID):
     for obj in triggers:
         triggersByID[obj._id] = obj
 
+    if not jimi.revision._revision().gotRecent(conductObj["_id"],jimi.conduct._conduct()._dbCollection.name):
+        # Get data without sessionData so that it is complete
+        revisionData = { "conduct" : jimi.conduct._conduct().query(id=conductID)["results"], "modelUI" : jimi.webui._modelUI().query(query={ "flowID" : { "$in" :flowsList }, "conductID" : conductID }) }
+        if not jimi.revision._revision().newCustomData(conductObj["_id"],jimi.conduct._conduct()._dbCollection.name,revisionData):
+            return { "msg" : "Unable to create conduct revision" }, 403
+
     nodeTemplate = {
         "id" : "",
         "x" : 0,

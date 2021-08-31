@@ -30,7 +30,7 @@ class _editorUI(jimi.db._document):
             return super(_editorUI, self).new()
         return False
 
-# Model UI Class
+# Model UI Class - Could be converted into a single DB item per conduct and use mongoDB to handle document updates?
 class _modelUI(jimi.db._document):
     conductID = str()
     flowID = str()
