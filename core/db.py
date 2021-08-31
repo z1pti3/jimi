@@ -113,12 +113,17 @@ class _document():
 
     # Updated DB with latest values
     @mongoConnectionWrapper
-    def update(self,fields,sessionData=None):
+    def update(self,fields,sessionData=None,revisioning=False):
         if self._id != "" and "000000000001010000000000" not in str(self._id):
             if sessionData:
                 for field in fields:
                     if not fieldACLAccess(sessionData,self.acl,field,"write"):
                         return False
+            # Creating revision
+            if revisioning:
+                if not jimi.revision._revision().new(self,sessionData=sessionData,fields=fields):
+                    return False
+
             # Appending last update time to every update
             fields.append("lastUpdateTime")
             self.lastUpdateTime = int(time.time())
@@ -230,6 +235,7 @@ class _document():
             fields = []
         # Ensure we pull required fields
         if len(fields) > 0:
+            fields = copy.deepcopy(fields)
             if "_id" not in fields:
                 fields.append("_id")
             if "classID" not in fields:

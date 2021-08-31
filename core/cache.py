@@ -133,7 +133,7 @@ class _cache:
                             objectCache["cacheFor"] = ( now + customCacheTime )
                     return objectCache["objectValue"]
             except KeyError:
-                self.newCache(authedCacheName)
+                self.newCache(cacheName,sessionData=sessionData)
         if not dontCheck:
             cache, objectValue = self.getObjectValue(cacheName,uid,setFunction,*args,sessionData=sessionData)
             if cache and ( objectValue or nullUpdate ):
@@ -219,11 +219,14 @@ class _cache:
     def checkSessionData(self,cacheName,sessionData):
         if sessionData:
             authedCacheName = "{0},-,{1}".format(sessionData["_id"],cacheName)
-            if sessionData["_id"] == self.objects[authedCacheName]["userID"]:
+            try:
+                if sessionData["_id"] == self.objects[authedCacheName]["userID"]:
+                    return authedCacheName
+                else:
+                    logging.debug("ERROR - Cache store access denied due to mismatched ID, name={0}, userID={1}".format(cacheName,sessionData["_id"]))
+                    return None
+            except KeyError:
                 return authedCacheName
-            else:
-                logging.debug("ERROR - Cache store access denied due to mismatched ID, name={0}, userID={1}".format(cacheName,sessionData["_id"]))
-                return None
         else:
             return cacheName
         return None

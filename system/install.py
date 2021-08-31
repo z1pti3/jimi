@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.034
+systemVersion = 3.035
 
 # Initialize 
 dbCollectionName = "system"
@@ -378,6 +378,9 @@ def systemInstall():
 	if len(everyoneGroup) == 0:
 		everyoneGroup = jimi.auth._group().new("everyone")
 
+	# Adding model for revisions
+	jimi.model.registerModel("revision","_revision","_document","core.revision")
+
 	# Install system manifest
 	loadSystemManifest()
 
@@ -455,5 +458,8 @@ def systemUpgrade(currentVersion):
 
 	if currentVersion < 3.034:
 		loadSystemManifest()
+
+	if currentVersion < 3.035:
+		jimi.model.registerModel("revision","_revision","_document","core.revision")
 
 	return True

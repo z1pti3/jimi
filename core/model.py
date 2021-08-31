@@ -292,7 +292,7 @@ if jimi.api.webServer:
                                     jimi.audit._audit().add("model","update",{ "_id" : jimi.api.g.sessionData["_id"], "user" : jimi.api.g.sessionData["user"], "objects" : changeLog, "modelName" : modelName, "objectID" : objectID })
                                 else:
                                     jimi.audit._audit().add("model","update",{ "user" : "system", "objects" : changeLog, "modelName" : modelName, "objectID" : objectID })
-                                _class.update(updateItemsList)
+                                _class.update(updateItemsList,sessionData=jimi.api.g.sessionData,revisioning=True)
                             return {}, 200
                         else:
                             return {}, 403
