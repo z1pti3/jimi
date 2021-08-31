@@ -1,0 +1,42 @@
+{% extends "main.html" %}
+
+{% block head %}
+    {{ jimi.jquery() }}
+{% endblock %}
+
+{% block main %}
+    <script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
+    <div class="container px-4 py-5">
+        <div id="alertArea"></div>
+        <h2>General Details</h2>
+        <br>
+        <form>
+            <div class="form-group">
+                <label for="name">Organisation Name</label>
+                <input type="text" class="form-control textbox" id="name" value="" aria-describedby="nameHelp">
+                <small id="nameHelp" class="form-text text-muted">The name of the organsation using JIMI</small>
+            </div>
+        </form>
+        <button type="button" class="btn btn-primary button bi-save" onclick="editOrganisation()"> Save</button>
+        <hr>
+        <h2>Users and Groups</h2>
+        <br>
+        <a type="button" class="btn btn-primary button bi-person" href="/admin/users"> Edit Users</a>
+        <a type="button" class="btn btn-primary button bi-people" href="/admin/groups"> Edit Groups</a>
+    </div>
+    <script>
+        function editOrganisation() {
+                var body = JSON.stringify({ CSRF : CSRF, name: $("#name").val()})
+                $.ajax({ type : "POST",  data:body, contentType:"application/json", 
+                    success: function ( result ) 
+                    {
+                        window.location.reload();
+                    },
+                    error: function ( result )
+                    {
+                        dropdownAlert($("#alertArea"),"error",result.responseJSON.message,2500);
+                    }
+                });
+        }
+    </script>
+{% endblock %}

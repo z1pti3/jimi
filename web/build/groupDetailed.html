@@ -1,0 +1,283 @@
+{% extends "main.html" %}
+
+{% block head %}
+    {{ jimi.jquery() }}
+{% endblock %}
+#
+{% block main %}
+    <script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
+    <div class="container px-4 py-5">
+            <div id="alertArea"></div>
+            <h2>{{ group["name"] }}</h2>
+            <ul class="nav nav-tabs bg-dark" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab" aria-controls="home" aria-selected="true">Details</button>
+                </li>
+                {% if group["name"] != "admin" %}
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="conducts-tab" data-bs-toggle="tab" data-bs-target="#conducts" type="button" role="tab" aria-controls="access" aria-selected="false">Conducts</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="models-tab" data-bs-toggle="tab" data-bs-target="#models" type="button" role="tab" aria-controls="access" aria-selected="false">Models</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="danger-zone-tab" data-bs-toggle="tab" data-bs-target="#danger-zone" type="button" role="tab" aria-controls="danger-zone" aria-selected="false">Danger Zone</button>
+                </li>
+                {% endif %}
+              </ul>
+              <div class="tab-content text-left" id="myTabContent">
+                <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
+                  <br>
+                  <form>
+                    <div class="form-group">
+                      <label for="name">Name</label>
+                      <input type="text" class="form-control textbox" id="name" value="{{group["name"]}}" disabled="" aria-describedby="nameHelp">
+                      <small id="emailHelp" class="form-text text-muted">The name of the group</small>
+                    </div>
+                    <div class="form-group">
+                      <label for="description">Description</label>
+                      <textarea class="form-control textbox" id="description" aria-describedby="descriptionHelp">{{group["description"]}}</textarea>
+                      <small id="descriptionHelp" class="form-text text-muted">A description of the group</small>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-check-label" for="active">Active</label>
+                      <select class="form-control textbox" id="active" aria-describedby="activeHelp">
+                        {% if group["enabled"] %}
+                        <option selected="selected">Yes</option>
+                        <option>No</option>
+                        {% else %}
+                        <option >Yes</option>
+                        <option selected="selected">No</option>
+                        {% endif %}
+                      </select>
+                      <small id="activeHelp" class="form-text text-muted">Whether the group is active or not</small>
+                    </div>
+                  </form>
+                  <button type="button" class="btn btn-primary button bi-save" onclick="editGroup()"> Save</button>
+
+                </div>
+                <div class="tab-pane fade" id="conducts" role="tabpanel" aria-labelledby="access-tab">
+                  <br>
+                  <i>This feature is not currently implemented!</i>
+                  <div class="row align-items-start">
+                    <div class="col">
+                      <h2>Available Conducts</h2>
+                      <div id="availableConducts" ondrop="drop(event)" ondragover="allowDrop(event)" style="height: 500px; background-color:rgb(39, 39, 39);overflow:scroll;overflow-x:hidden;overflow-y:scroll;">
+                          {% for conduct in conductList if conduct.enabled == false %}
+                            <div class="container" id="{{ conduct["id"] }}" draggable="true" ondragstart="drag(event)" width="150px" style="border: 1px solid #2e6da4; text-align: center; background-color: #111;">
+                              <div class="row">
+                                <div class="col">{{ conduct["name"] }}</div>
+                              </div>
+                                <div class="row">
+                                  <div class="btn-group-toggle" data-toggle="buttons">
+                                    <label class="btn btn-secondary active bi-book">
+                                      {% if conduct["acl"]["read"] %}
+                                        <input type="checkbox" autocomplete="off" checked>
+                                      {% else %}
+                                        <input type="checkbox" autocomplete="off">
+                                      {% endif %}
+                                    </label>
+                                  <label class="btn btn-secondary active bi-pencil">
+                                    {% if conduct["acl"]["write"] %}
+                                      <input type="checkbox" autocomplete="off" checked>
+                                    {% else %}
+                                      <input type="checkbox" autocomplete="off">
+                                    {% endif %}
+                                  </label>
+                                  <label class="btn btn-secondary active bi-trash">
+                                    {% if conduct["acl"]["delete"] %}
+                                      <input type="checkbox" id="{{ conduct["name"] }}" autocomplete="off" checked>
+                                    {% else %}
+                                      <input type="checkbox" autocomplete="off">
+                                    {% endif %}
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+                          {% endfor %}
+                      </div>
+                      <button type="button" class="btn btn-primary button bi-save" onclick="editConducts()"> Save</button>
+                    </div>
+                    <div class="col">
+                      <h2>Current Conducts</h2>
+                      <div id="currentConducts" ondrop="drop(event)" ondragover="allowDrop(event)" style="height: 500px; background-color: rgb(39, 39, 39);overflow:scroll;overflow-x:hidden;overflow-y:scroll;">
+                        {% for conduct in conductList if conduct.enabled %}
+                        <div class="container" id="{{ conduct["id"] }}" draggable="true" ondragstart="drag(event)" width="150px" style="border: 1px solid #2e6da4; text-align: center; background-color: #111;">
+                          <div class="row">
+                            <div class="col">{{ conduct["name"] }}</div>
+                          </div>
+                          <div class="row">
+                            <div class="btn-group-toggle" data-toggle="buttons">
+                              <label class="btn btn-secondary active bi-book">
+                                {% if conduct["acl"]["read"] %}
+                                  <input type="checkbox" autocomplete="off" checked>
+                                {% else %}
+                                  <input type="checkbox" autocomplete="off">
+                                {% endif %}
+                              </label>
+                            <label class="btn btn-secondary active bi-pencil">
+                              {% if conduct["acl"]["write"] %}
+                                <input type="checkbox" autocomplete="off" checked>
+                              {% else %}
+                                <input type="checkbox" autocomplete="off">
+                              {% endif %}
+                            </label>
+                            <label class="btn btn-secondary active bi-trash">
+                              {% if conduct["acl"]["delete"] %}
+                                <input type="checkbox" autocomplete="off" checked>
+                              {% else %}
+                                <input type="checkbox" autocomplete="off">
+                              {% endif %}
+                            </label>
+                          </div>
+                        </div>
+                        </div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="tab-pane fade" id="models" role="tabpanel" aria-labelledby="access-tab">
+                  <br>
+                  <i>This feature is not currently implemented!</i>
+                  <div class="row align-items-start">
+                    <div class="col">
+                      <h2>Available Models</h2>
+                      <div id="availableModels" ondrop="drop(event)" ondragover="allowDrop(event)" style="height: 500px; background-color:rgb(39, 39, 39);overflow:scroll;overflow-x:hidden;overflow-y:scroll;">
+                          {% for model in modelList if model.enabled == false %}
+                            <div class="container" id="{{ model["id"] }}" draggable="true" ondragstart="drag(event)" width="150px" style="border: 1px solid #2e6da4; text-align: center; background-color: #111;">
+                              <div class="row">
+                                <div class="col">{{ model["name"] }}</div>
+                              </div>
+                                <div class="row">
+                                  <div class="btn-group-toggle" data-toggle="buttons">
+                                    <label class="btn btn-secondary active bi-book">
+                                      {% if model["acl"]["read"] %}
+                                        <input type="checkbox" autocomplete="off" checked>
+                                      {% else %}
+                                        <input type="checkbox" autocomplete="off">
+                                      {% endif %}
+                                    </label>
+                                  <label class="btn btn-secondary active bi-pencil">
+                                    {% if model["acl"]["write"] %}
+                                      <input type="checkbox" autocomplete="off" checked>
+                                    {% else %}
+                                      <input type="checkbox" autocomplete="off">
+                                    {% endif %}
+                                  </label>
+                                  <label class="btn btn-secondary active bi-trash">
+                                    {% if model["acl"]["delete"] %}
+                                      <input type="checkbox" autocomplete="off" checked>
+                                    {% else %}
+                                      <input type="checkbox" autocomplete="off">
+                                    {% endif %}
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+                          {% endfor %}
+                      </div>
+                    </div>
+                    <div class="col">
+                      <h2>Current Models</h2>
+                      <div id="currentModels" ondrop="drop(event)" ondragover="allowDrop(event)" style="height: 500px; background-color: rgb(39, 39, 39);overflow:scroll;overflow-x:hidden;overflow-y:scroll;">
+                        {% for model in modelList if model.enabled %}
+                        <div class="container" id="{{ model["id"] }}" draggable="true" ondragstart="drag(event)" width="150px" style="border: 1px solid #2e6da4; text-align: center; background-color: #111;">
+                          <div class="row">
+                            <div class="col">{{ model["name"] }}</div>
+                          </div>
+                          <div class="row">
+                            <div class="btn-group-toggle" data-toggle="buttons">
+                              <label class="btn btn-secondary active bi-book">
+                                {% if model["acl"]["read"] %}
+                                  <input type="checkbox" autocomplete="off" checked>
+                                {% else %}
+                                  <input type="checkbox" autocomplete="off">
+                                {% endif %}
+                              </label>
+                            <label class="btn btn-secondary active bi-pencil">
+                              {% if model["acl"]["write"] %}
+                                <input type="checkbox" autocomplete="off" checked>
+                              {% else %}
+                                <input type="checkbox" autocomplete="off">
+                              {% endif %}
+                            </label>
+                            <label class="btn btn-secondary active bi-trash">
+                              {% if model["acl"]["delete"] %}
+                                <input type="checkbox" autocomplete="off" checked>
+                              {% else %}
+                                <input type="checkbox" autocomplete="off">
+                              {% endif %}
+                            </label>
+                          </div>
+                        </div>
+                        </div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="tab-pane fade" id="danger-zone" role="tabpanel" aria-labelledby="danger-zone-tab">
+                  <br>
+                  <button type="button" class="btn btn-primary button bi-trash" onclick="deleteGroup()"> Delete Group</button>
+                </div>
+
+              </div>
+    </div>
+    <script>
+        function editGroup() {
+          var body = JSON.stringify({ CSRF : CSRF, name: $("#name").val(), description: $("#description").val(), enabled: $("#active").val()})
+          $.ajax({ type : "PUT",  data:body, contentType:"application/json", 
+              success: function ( result ) 
+              {
+                  dropdownAlert($("#alertArea"),"success","Group updated successfully",2500);
+              },
+              error: function ( result )
+              {
+                  dropdownAlert($("#alertArea"),"error",result.responseJSON.message,2500);
+              }
+          });
+        }
+        function editGroup() {
+          var body = JSON.stringify({ CSRF : CSRF, name: $("#name").val(), description: $("#description").val(), enabled: $("#active").val()})
+          $.ajax({ type : "PUT",  data:body, contentType:"application/json", 
+              success: function ( result ) 
+              {
+                  dropdownAlert($("#alertArea"),"success","Group updated successfully",2500);
+              },
+              error: function ( result )
+              {
+                  dropdownAlert($("#alertArea"),"error",result.responseJSON.message,2500);
+              }
+          });
+        }
+          function deleteGroup() {
+            if (confirm("Are you sure you want to delete "+$("#name").val()+"?")) {
+              var body = JSON.stringify({ CSRF : CSRF})
+              $.ajax({ type : "DELETE",  data:body, contentType:"application/json", 
+                  success: function ( result ) 
+                  {
+                      window.location.replace("/admin/groups/");
+                  },
+                  error: function ( result )
+                  {
+                      dropdownAlert($("#alertArea"),"error",result.responseJSON.message,2500);
+                  }
+              });
+            }
+        }
+        function allowDrop(ev) {
+          ev.preventDefault();
+        }
+        
+        function drag(ev) {
+          ev.dataTransfer.setData("text", ev.target.id);
+        }
+        
+        function drop(ev) {
+          ev.preventDefault();
+          var data = ev.dataTransfer.getData("text");
+          ev.target.appendChild(document.getElementById(data));
+        }
+        </script>
+{% endblock %}

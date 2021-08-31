@@ -46,11 +46,16 @@ def loginPage():
 def debugFlowPage():
 	return render_template("debugFlowEditor.html",CSRF=jimi.api.g.sessionData["CSRF"])
 
-@jimi.api.webServer.route("/administration/", methods=["GET"])
+@jimi.api.webServer.route("/admin/cluster/", methods=["GET"])
 @jimi.auth.adminEndpoint
-def administrationPage():
+def clusterAdminPage():
 	clusterMembers = jimi.cluster._clusterMember().query()["results"]
-	return render_template("administration.html",CSRF=jimi.api.g.sessionData["CSRF"],clusterMembers=clusterMembers)
+	return render_template("cluster.html",CSRF=jimi.api.g.sessionData["CSRF"],clusterMembers=clusterMembers)
+
+@jimi.api.webServer.route("/admin/organisation/", methods=["GET"])
+@jimi.auth.adminEndpoint
+def organisationAdminPage():
+	return render_template("organisation.html",CSRF=jimi.api.g.sessionData["CSRF"])
 
 # Should be migrated into plugins.py
 @jimi.api.webServer.route(jimi.api.base+"plugins/")

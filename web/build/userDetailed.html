@@ -1,0 +1,145 @@
+{% extends "main.html" %}
+
+{% block head %}
+    {{ jimi.jquery() }}
+{% endblock %}
+
+{% block main %}
+    <script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
+    <div class="container px-4 py-5">
+        <div id="alertArea"></div>
+            <h2>{{ user["name"] }}</h2>
+            <ul class="nav nav-tabs bg-dark" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab" aria-controls="home" aria-selected="true">Details</button>
+                </li>
+                {% if user["username"] != "root" %}
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="groups-tab" data-bs-toggle="tab" data-bs-target="#groups" type="button" role="tab" aria-controls="groups" aria-selected="false">Groups</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="danger-zone-tab" data-bs-toggle="tab" data-bs-target="#danger-zone" type="button" role="tab" aria-controls="danger-zone" aria-selected="false">Danger Zone</button>
+                </li>
+                {% endif %}
+              </ul>
+              <div class="tab-content text-left" id="myTabContent">
+                <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
+                  <br>
+                  <form>
+                    <div class="form-group">
+                      <label for="username">Username</label>
+                      <input type="text" class="form-control textbox" id="username" value="{{user["username"]}}" disabled="" aria-describedby="usernameHelp">
+                      <small id="emailHelp" class="form-text text-muted">The username for the user (cannot be changed)</small>
+                    </div>
+                    <div class="form-group">
+                      <label for="name">Name</label>
+                      <input type="text" class="form-control textbox" id="name" value="{{user["name"]}}" aria-describedby="nameHelp">
+                      <small id="nameHelp" class="form-text text-muted">The name of the user</small>
+                    </div>
+                    <div class="form-group">
+                      <label for="email">Email</label>
+                      <input type="email" class="form-control textbox" id="email" value="{{user["email"]}}" aria-describedby="emailHelp">
+                      <small id="emailHelp" class="form-text text-muted">The user's email</small>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-check-label" for="group">Primary Group</label>
+                      <select class="form-control textbox" id="group" aria-describedby="groupHelp">
+                        <option selected="selected" value={{ user["primaryGroup"] }}>{{ user["primaryGroupName"] }}</option>
+                        {% for group in groups if group.name != user["primaryGroupName"] %}
+                        <option value={{ group["_id"] }}>{{ group["name"] }}</option>
+                        {% endfor %}
+                      </select>
+                      <small id="groupHelp" class="form-text text-muted">The main group the user belongs to</small>
+                    </div>
+                    <div class="form-group">
+                      <label for="loginType">Login Type</label>
+                      <input type="loginType" class="form-control textbox" id="loginType" value="{{user["loginType"]}}" aria-describedby="loginTypeHelp">
+                      <small id="loginTypeHelp" class="form-text text-muted">What authentication mechnanism the user uses</small>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-check-label" for="active">Active</label>
+                      <select class="form-control textbox" id="active" aria-describedby="activeHelp">
+                        {% if user["enabled"] %}
+                        <option selected="selected">Yes</option>
+                        <option>No</option>
+                        {% else %}
+                        <option >Yes</option>
+                        <option selected="selected">No</option>
+                        {% endif %}
+                      </select>
+                      <small id="activeHelp" class="form-text text-muted">Whether the user is active or not</small>
+                    </div>
+                  </form>
+                  <button type="button" class="btn btn-primary button bi-save" onclick="editUser()"> Save</button>
+                </div>
+                <div class="tab-pane fade" id="groups" role="tabpanel" aria-labelledby="groups-tab">
+                  <br>
+                  <i>This feature is not currently implemented!</i>
+                    <div class="row align-items-start">
+                      <div class="col">
+                        <h2>Available Groups</h2>
+                        <div id="availableGroups" ondrop="drop(event)" ondragover="allowDrop(event)" style="height: 150px; background-color:rgb(39, 39, 39);">
+                            {% for group in groups if group.name != user["primaryGroupName"] %}
+                                <div id="{{ group["_id"] }}" draggable="true" ondragstart="drag(event)" width="150px" style="border: 1px solid #2e6da4; text-align: center; background-color: #111;">{{ group["name"] }}</div>
+                            {% endfor %}
+                        </div>
+                      </div>
+                      <div class="col">
+                        <h2>Current Groups</h2>
+                        <div id="currentGroups" ondrop="drop(event)" ondragover="allowDrop(event)" style="height: 150px; background-color: rgb(39, 39, 39);">
+                            <div id="{{ user["primaryGroupName"] }}" draggable="true" ondragstart="drag(event)" width="150px" style="border: 1px solid #2e6da4; text-align: center; background-color: #111;">{{ user["primaryGroupName"] }}</div>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="danger-zone" role="tabpanel" aria-labelledby="danger-zone-tab">
+                  <br>
+                  <button type="button" class="btn btn-primary button bi-trash" onclick="deleteUser()"> Delete User</button>
+                </div>
+
+              </div>
+    </div>
+    <script>
+        function editUser() {
+                var body = JSON.stringify({ CSRF : CSRF, username: $("#username").val(), name: $("#name").val(), email: $("#email").val(), primaryGroup: $("#group").val(), enabled: $("#active").val(), loginType: $("#loginType").val()})
+                $.ajax({ type : "PUT",  data:body, contentType:"application/json", 
+                    success: function ( result ) 
+                    {
+                        dropdownAlert($("#alertArea"),"success","User updated successfully",2500);
+                    },
+                    error: function ( result )
+                    {
+                        dropdownAlert($("#alertArea"),"error",result.responseJSON.message,2500);
+                    }
+                });
+        }
+        function deleteUser() {
+          if (confirm("Are you sure you want to delete "+$("#name").val()+" ("+$("#username").val()+")?")) {
+            var body = JSON.stringify({ CSRF : CSRF})
+            $.ajax({ type : "DELETE",  data:body, contentType:"application/json", 
+                success: function ( result ) 
+                {
+                    window.location.replace("/admin/users/");
+                },
+                error: function ( result )
+                {
+                    dropdownAlert($("#alertArea"),"error",result.responseJSON.message,2500);
+                }
+            });
+          } 
+        }
+        function allowDrop(ev) {
+          ev.preventDefault();
+        }
+        
+        function drag(ev) {
+          ev.dataTransfer.setData("text", ev.target.id);
+        }
+        
+        function drop(ev) {
+          ev.preventDefault();
+          var data = ev.dataTransfer.getData("text");
+          ev.target.appendChild(document.getElementById(data));
+        }
+        </script>
+{% endblock %}

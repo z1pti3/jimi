@@ -9,6 +9,7 @@ import hmac
 import math
 import functools
 import onetimepass
+import bson
 from pathlib import Path
 from Crypto.Cipher import AES, PKCS1_OAEP # pycryptodome
 from Crypto.PublicKey import RSA
@@ -40,8 +41,10 @@ class _session(jimi.db._document):
 
 class _user(jimi.db._document):
     name = str()
-    enabled = bool()
+    enabled = True
     username = str()
+    email = str()
+    roles = list()
     passwordHash = str()
     passwordHashType = str()
     failedLoginCount = int()
@@ -49,6 +52,9 @@ class _user(jimi.db._document):
     totpSecret = str()
     apiTokens = list()
     primaryGroup = str()
+    additionalGroups = list()
+    icon = str()
+    loginType = "local"
 
     _dbCollection = jimi.db.db["users"]
 
@@ -94,6 +100,7 @@ class _group(jimi.db._document):
     enabled = bool()
     members = list()
     apiTokens = list()
+    description = str()
 
     _dbCollection = jimi.db.db["groups"]
 
