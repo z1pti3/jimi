@@ -124,35 +124,47 @@ body {
 
 /* dataTable */
 div.dts {
-    height: calc(100% - 86px);
+    height: calc(100% - 100px);
 }
 
 div.dts div.dataTables_scrollBody {
     background: unset;
-    background-color: var(--panelComponentBackground);
+    background-color: var(--panelBackgroundColor);
 }
 
 .dataTables_scrollHead div table {
-    border-bottom-color: var(--panelComponentBorder);
+    border-color: var(--panelBorderColor);
+    border-bottom-style: solid;
     border-bottom-width: 1px;
-    border-bottom-style: solid;  
+    border-top-style: solid;
+    border-top-width: 1px;
+}
+
+.theme-table .sorting {
+    padding-top: 13px;
+    font-size: 18px;
 }
 
 .theme-table {
-    background-color: var(--panelComponentBackground);
+    background-color: var(--panelBackgroundColor);
     color: var(--textColor);
-    border-color: var(--panelBorderColor);
-    border-width: 1px;
-    border-style: solid;
 }
 
 .theme-tableRowOdd {
-    background-color: var(--panelComponentBackground);
+    background-color: var(--componentBackground2);
 }
 
+/* .theme-tableRowOdd:hover {
+    background-color: var(--panelComponentBackground);
+} */
+
 .theme-tableRowEven {
-    background-color: var(--panelComponentBackground-Focus);
+    background-color: var(--panelBackgroundColor);
 }
+
+/* .theme-tableRowEven:hover {
+    background-color: var(--panelComponentBackground);
+} */
 
 /* visjs */
 .vis-network:focus {

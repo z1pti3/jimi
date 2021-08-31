@@ -4,7 +4,7 @@
     {{ jimi.jquery() }}
     <script src="{{ url_for('static', filename='includes/jquery/js/jquery.datatables.min.js') }}"></script>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/dataTables.bootstrap.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables-1.10.24/css/dataTables.bootstrap5.min.css') }}">
     <script src="{{ url_for('static', filename='includes/datatables/js/dataTables.bootstrap.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/fixedHeader.dataTables.min.css') }}">
     <script src="{{ url_for('static', filename='includes/datatables/js/dataTables.fixedHeader.min.js') }}"></script>
@@ -25,7 +25,7 @@
         <div id="createObjectContainer" class="hide">
             <button class="btn btn-primary createObject button" onclick="createObject()">Create Object</button>
         </div>
-        <table id="table" class="table table-sm theme-table" cellspacing="0" width="100%">
+        <table id="table" class="display theme-table" cellspacing="0" width="100%">
             <thead class="theme-tableHeader">
             </thead>
             <tbody class="theme-tableBody">
@@ -45,10 +45,6 @@
         function buildTable_ListModels() {
             $('#table').DataTable({
                 "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
-                fixedHeader: {
-                    header: true,
-                    footer: true
-                },
                 "paging" : false,
                 "order" : [[ 0, "asc" ]],
                 columns : [
