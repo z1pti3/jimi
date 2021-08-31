@@ -145,6 +145,10 @@ div.dts div.dataTables_scrollBody {
     font-size: 18px;
 }
 
+.theme-table td {
+    padding-right: 12px;
+}
+
 .theme-table {
     background-color: var(--panelBackgroundColor);
     color: var(--textColor);
