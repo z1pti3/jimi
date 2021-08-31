@@ -101,7 +101,7 @@ if jimi.api.webServer:
                             updateList.append(item)
                     if any(updateList):
                         foundUser.update(updateList,sessionData=jimi.api.g.sessionData)
-                        response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User updated succesfully" },201)
+                        response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User updated successfully" },201)
                     else:
                         response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Nothing to update" },200)
                 return response
@@ -141,7 +141,7 @@ if jimi.api.webServer:
                             if userData["sandbox"] == "Yes":
                                 #Create a sandbox conduct using the user's name
                                 sandboxConduct = jimi.conduct._conduct().new(f"{userData['name']} - Sandbox")
-                            return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User created succesfully" },201)
+                            return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User created successfully" },201)
                     response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Please provide a password" },403)
                 return response
 
@@ -156,7 +156,7 @@ if jimi.api.webServer:
                     #Cannot delete the root user
                     if foundUser.username != "root":
                         if jimi.auth._user().api_delete(query={"_id":bson.ObjectId(request.args.get("id"))}):
-                            response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User deleted succesfully" },201)
+                            response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User deleted successfully" },201)
                     else:
                         response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Cannot delete root user" },403)
                 return response
@@ -235,7 +235,7 @@ if jimi.api.webServer:
                             #Create a sandbox conduct using the group's name
                             sandboxConduct = jimi.conduct._conduct().new(f"{groupData['name']} - Sandbox")
                             #TODO: Set group as owner of sandbox
-                        return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Group created succesfully" },201)
+                        return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Group created successfully" },201)
                 return response
 
             @jimi.api.webServer.route("/admin/groups/edit/", methods=["PUT"])
@@ -258,7 +258,7 @@ if jimi.api.webServer:
                             updateList.append(item)
                     if any(updateList):
                         foundGroup.update(updateList,sessionData=jimi.api.g.sessionData)
-                        response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Group updated succesfully" },201)
+                        response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Group updated successfully" },201)
                     else:
                         response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Nothing to update" },200)
                 return response
@@ -274,7 +274,7 @@ if jimi.api.webServer:
                     #Cannot delete the root user
                     if foundGroup.name != "admin":
                         if jimi.auth._group().api_delete(query={"_id":bson.ObjectId(request.args.get("id"))}):
-                            response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Group deleted succesfully" },201)
+                            response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Group deleted successfully" },201)
                     else:
                         response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Cannot delete admin group" },403)
                 return response
