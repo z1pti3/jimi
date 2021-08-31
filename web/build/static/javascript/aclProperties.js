@@ -62,7 +62,7 @@ function createACLValuesPanel(node) {
 	if (!openACLPanels.hasOwnProperty(panelID)) {
 		openACLPanels[panelID] = panelID;
 		var panel = $(panelACLHTML);
-		panel.draggable();
+		panel.draggable({handle: ".propertiesPanel-header"});
 		panel.resizable({
 			grid: 20
 		});

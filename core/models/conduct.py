@@ -14,7 +14,7 @@ class _conduct(jimi.db._document):
 
     _dbCollection = jimi.db.db["conducts"]
 
-    def __init__(self):
+    def __init__(self,restrictClass=True):
         # Cached lookups to limit reloading the same actions
         jimi.cache.globalCache.newCache("actionCache")
         jimi.cache.globalCache.newCache("triggerCache")
@@ -22,6 +22,7 @@ class _conduct(jimi.db._document):
         jimi.cache.globalCache.newCache("triggeredFlowActions")
         jimi.cache.globalCache.newCache("triggeredFlowFlows")
         jimi.cache.globalCache.newCache("flowDict")
+        return super(_conduct, self).__init__(restrictClass)
 
     # Override parent new to include name var, parent class new run after class var update
     def new(self,name=""):
@@ -47,6 +48,10 @@ class _conduct(jimi.db._document):
         setattr(self,attr,value)
         return True
 
+    def triggerBatchHandler(self,triggerID,dataBatch,actionIDType=False,flowIDType=False,flowDebugSession=None):
+        for data in dataBatch:
+            self.triggerHandler(triggerID,data,actionIDType,flowIDType,flowDebugSession)
+
     # actionIDType=True uses actionID instead of triggerID
     def triggerHandler(self,triggerID,data,actionIDType=False,flowIDType=False,flowDebugSession=None):
         ####################################
@@ -56,8 +61,9 @@ class _conduct(jimi.db._document):
             startTime = 0
             startTime = time.time()
             jimi.audit._audit().add("conduct","trigger_start",{ "conduct_id" : self._id, "conduct_name" : self.name, "trigger_id" : triggerID })
-        data["persistentData"]["system"]["conduct"] = self
         ####################################
+
+        data["persistentData"]["system"]["conduct"] = self
 
         flowDict = jimi.cache.globalCache.get("flowDict",self._id,getFlowDict,self.flow)
         
@@ -172,11 +178,13 @@ class _conduct(jimi.db._document):
                             data["flowData"]["action"] = class_.runHandler(data=data,debug=debug)
                         except Exception as e:
                             jimi.logging.debug("Error: Action Crashed. actionID={0}, actionName={1}, error={2}".format(class_._id,class_.name,''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__))),-1)
-                            try:
-                                if data["persistentData"]["system"]["trigger"].failOnActionFailure:
-                                    raise jimi.exceptions.actionCrash(class_._id,class_.name,e)
-                            except AttributeError:
-                                pass
+                            if flowDebugSession:
+                                raise
+                            if data["persistentData"]["system"]["trigger"].failOnActionFailure:
+                                # Force the trigger to be detected as failed due to startCheck + maxDuration time being less than now. jimi uses startCheck + maxDuration to understand the current status of a job.
+                                data["persistentData"]["system"]["trigger"].startCheck = 255
+                                data["persistentData"]["system"]["trigger"].update(["startCheck"])
+                                raise jimi.exceptions.actionCrash(class_._id,class_.name,e)
                             if class_.systemCrashHandler:
                                 jimi.exceptions.actionCrash(class_._id,class_.name,e)
                             data["flowData"]["action"] = { "result" : False, "rc" : -255, "error" : traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__) }
@@ -287,10 +295,10 @@ def copyData(data,copyEventData=False,copyConductData=False,copyPersistentData=F
     return copyOfData
 
 def getAction(match,sessionData,currentflow):
-    return jimi.action._action().getAsClass(id=currentflow["actionID"])
+    return jimi.action._action(False).getAsClass(id=currentflow["actionID"])
 
 def getTrigger(match,sessionData,currentflow):
-    return jimi.trigger._trigger().getAsClass(id=currentflow["triggerID"])
+    return jimi.trigger._trigger(False).getAsClass(id=currentflow["triggerID"])
 
 def getTriggeredFlowTriggers(uid,sessionData,flowData,triggerID):
     return [ x for x in flowData if "triggerID" in x and x["triggerID"] == triggerID and x["type"] == "trigger" ]

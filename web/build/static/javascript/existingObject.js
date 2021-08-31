@@ -106,7 +106,7 @@ function createExistingObjectPanel() {
 		var posY = e.clientY;
 		var panel = $(existingObjectHTML);
 		panel.css({top : posY, left : posX - 250});
-		panel.draggable();
+		panel.draggable({handle: ".propertiesPanel-header",});
 		panel.resizable({
 			grid: 20
 		});

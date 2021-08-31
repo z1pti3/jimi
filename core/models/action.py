@@ -53,7 +53,7 @@ class _action(jimi.db._document):
         if self.log:
             startTime = 0
             startTime = time.time()
-            jimi.audit._audit().add("action","action_start",{ "action_id" : self._id, "action_name" : self.name })
+            jimi.audit._audit().add("action","start",{ "action_id" : self._id, "action_name" : self.name })
         ####################################
 
         if self.logicString:
@@ -89,7 +89,7 @@ class _action(jimi.db._document):
         #              Footer              #
         ####################################
         if self.log:
-            jimi.audit._audit().add("action","action_end",{ "action_id" : self._id, "action_name" : self.name, "action_result" : actionResult, "duration" : (time.time() - startTime) })
+            jimi.audit._audit().add("action","end",{ "action_id" : self._id, "action_name" : self.name, "action_result" : actionResult, "duration" : (time.time() - startTime) })
         ####################################
         
         return actionResult

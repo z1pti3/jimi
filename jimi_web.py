@@ -11,6 +11,7 @@ import subprocess
 import os
 from operator import itemgetter
 import logging
+import datetime
 
 logging.basicConfig(level=logging.ERROR)
 
@@ -136,7 +137,7 @@ def clearStartChecksPage():
 @jimi.api.webServer.route("/conduct/PropertyTypes/", methods=["GET"])
 def getConductPropertyTypes():
 	result = []
-	models = jimi.model._model().query(jimi.api.g.sessionData,query={ 
+	models = jimi.model._model(False).query(jimi.api.g.sessionData,query={ 
 		"$and" : [ 
 			{ 
 				"$or" : [ 
@@ -173,7 +174,7 @@ def getConductFlowProperties(conductID,flowID):
 		whereUsed = None
 		if "type" in flow:
 			if flow["type"] == "trigger":
-				triggerObj = jimi.trigger._trigger().query(jimi.api.g.sessionData,id=flow["triggerID"])["results"]
+				triggerObj = jimi.trigger._trigger(False).query(jimi.api.g.sessionData,id=flow["triggerID"])["results"]
 				if len(triggerObj) == 1:
 					triggerObj = triggerObj[0]
 				else:
@@ -195,7 +196,7 @@ def getConductFlowProperties(conductID,flowID):
 				manifest = triggerObj.manifest__
 				whereUsed = triggerObj.whereUsed()
 			elif flow["type"] == "action":
-				actionObj = jimi.action._action().query(jimi.api.g.sessionData,id=flow["actionID"])["results"]
+				actionObj = jimi.action._action(False).query(jimi.api.g.sessionData,id=flow["actionID"])["results"]
 				if len(actionObj) == 1:
 					actionObj = actionObj[0]
 				else:
@@ -282,7 +283,7 @@ def setConductFlowLogic(conductID,flowID,nextflowID):
 		conductObj = conductObj[0]
 	else:
 		return {},404
-	access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+	access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
 	if access:
 		flow = [ x for x in conductObj.flow if x["flowID"] ==  flowID]
 		data = json.loads(jimi.api.request.data)
@@ -334,8 +335,8 @@ def setConductFlowLogic(conductID,flowID,nextflowID):
 @jimi.api.webServer.route("/cleanup/", methods=["GET","DELETE"])
 @jimi.auth.adminEndpoint
 def cleanupPage():
-	actions = jimi.action._action().query(jimi.api.g.sessionData,query={ "name" : { "$nin" : ["resetTrigger","failedTriggers"] } },fields=["_id","name","lastUpdateTime"])["results"]
-	triggers = jimi.trigger._trigger().query(jimi.api.g.sessionData,query={ "name" : { "$nin" : ["resetTrigger","failedTriggers"] } },fields=["_id","name","lastUpdateTime"])["results"]
+	actions = jimi.action._action(False).query(jimi.api.g.sessionData,query={ "name" : { "$nin" : ["resetTrigger","failedTriggers","failedActions"] } },fields=["_id","name","lastUpdateTime"])["results"]
+	triggers = jimi.trigger._trigger(False).query(jimi.api.g.sessionData,query={ "name" : { "$nin" : ["resetTrigger","failedTriggers","failedActions"] } },fields=["_id","name","lastUpdateTime"])["results"]
 	actionids = [ x["_id"] for x in actions ]
 	triggerids = [ x["_id"] for x in triggers ]
 	conducts = jimi.conduct._conduct().query(jimi.api.g.sessionData,query={ "$or" : [ { "flow.triggerID" : { "$in" : triggerids } }, { "flow.actionID" : { "$in" : actionids } } ] },fields=["_id","name","flow"])["results"]
@@ -369,7 +370,7 @@ def cleanupPage():
 
 @jimi.api.webServer.route("/status/")
 def statusPage():
-	triggers = jimi.trigger._trigger().query(sessionData=api.g.sessionData,query={})["results"]
+	triggers = jimi.trigger._trigger(False).query(sessionData=api.g.sessionData,query={ })["results"]
 	data = { "running" : [], "pending" : [], "failed" : [] }
 	for trigger in triggers:
 		# Apply fix for default 60 seconds if not defined ( new installs not affected as DB defines this now )
@@ -386,7 +387,7 @@ def statusPage():
 @jimi.api.webServer.route("/status/triggerStatus/", methods=["POST"])
 def statusPageTriggerStatusAPI():
 	doughnut = ui.doughnut()
-	triggers = jimi.trigger._trigger().getAsClass(sessionData=api.g.sessionData,query={})
+	triggers = jimi.trigger._trigger(False).getAsClass(sessionData=api.g.sessionData,query={ })
 	doughnut.addLabel("Running")
 	doughnut.addLabel("Pending")
 	doughnut.addLabel("Failed")
@@ -423,12 +424,16 @@ def statusPageConductStatusAPI():
 
 @jimi.api.webServer.route("/status/triggerChart/", methods=["GET"])
 def statusPageTriggerChartAPI():
-	triggers = jimi.trigger._trigger().query(sessionData=api.g.sessionData,query={},fields=["_id","name","enabled","startCheck","maxDuration","lastCheck"])
+	triggers = jimi.trigger._trigger(False).query(sessionData=api.g.sessionData,query={},fields=["_id","name","enabled","startCheck","maxDuration","lastCheck","executionCount"])
 	for trigger in triggers["results"]:
+		if "executionCount" not in trigger:
+			trigger["executionCount"] = 0
 		# Apply fix for default 60 seconds if not defined ( new installs not affected as DB defines this now )
 		if trigger["maxDuration"] == 0:
 			trigger["maxDuration"] = 60
-		if ((trigger["startCheck"] > 0 and trigger["startCheck"] + trigger["maxDuration"] > time.time()) or (trigger["lastCheck"] + 2.5 > (time.time()))):
+		if trigger["enabled"] == False:
+			trigger["status"] = "Disabled"
+		elif ((trigger["startCheck"] > 0 and trigger["startCheck"] + trigger["maxDuration"] > time.time()) or (trigger["lastCheck"] + 2.5 > (time.time()))):
 			trigger["status"] = "Running"
 		elif trigger["startCheck"] == 0:
 			trigger["status"] = "Enabled"
@@ -436,5 +441,79 @@ def statusPageTriggerChartAPI():
 			trigger["status"] = "Failed"
 	return triggers, 200
 
+@jimi.api.webServer.route("/status/triggerFailures/<action>/", methods=["GET"])
+def statusPageTriggerFailuresTableAPI(action):
+	triggers = jimi.trigger._trigger(False).query(sessionData=api.g.sessionData,query={},fields=["_id","name"])["results"]
+	workerNames = [ "trigger:'{0}','{1}'".format(jimi.db.ObjectId(x["_id"]),x["name"]) for x in triggers ]
+	workerIds = [ x["_id"] for x in triggers ]
+	dt = datetime.datetime.now() - datetime.timedelta(days=1)
+	failureEvents = jimi.audit._audit().query(query={ "_id" : { "$gt" : jimi.db.ObjectId.from_datetime(generation_time=dt) }, "source" : "trigger", "type" : "trigger_failure", "$or" : [ { "data.workerName" : { "$in" : workerNames } }, { "data.workerID" : { "$in" : workerIds } } ] },sort=[("time",-1)])["results"]
+	total = len(failureEvents)
+	columns = ["id","time","system","name","msg"]
+	table = ui.table(columns,total,total)
+	if action == "build":
+		return table.getColumns() ,200
+	elif action == "poll":
+		# Custom table data so it can be vertical
+		data = []
+		for failureEvent in failureEvents:
+			data.append([ui.safe(failureEvent["_id"]),ui.safe(failureEvent["time"]),ui.safe(failureEvent["systemID"]),ui.safe(failureEvent["data"]["workerName"]),ui.dictTable(failureEvent["data"]["msg"])])
+		table.data = data
+		return { "draw" : int(jimi.api.request.args.get('draw')), "recordsTable" : 0, "recordsFiltered" : 0, "recordsTotal" : 0, "data" : data } ,200
 
-api.startServer(False,{'server.socket_host': jimi.config["api"]["web"]["bind"], 'server.socket_port': jimi.config["api"]["web"]["port"], 'engine.autoreload.on': False, 'server.thread_pool' : 5})
+@jimi.api.webServer.route("/performanceDev/")
+@jimi.auth.adminEndpoint
+def performancePage():
+	return render_template("performanceDev.html",CSRF=jimi.api.g.sessionData["CSRF"])
+
+@jimi.api.webServer.route("/performanceDev/performance/", methods=["POST"])
+@jimi.auth.adminEndpoint
+def performancePagePerformanceLineChart():
+	line = ui.line()
+	dt = datetime.datetime.now() - datetime.timedelta(hours=1)
+	performanceData = jimi.audit._audit().query(query={ "_id" : { "$gt" : jimi.db.ObjectId.from_datetime(generation_time=dt) }, "source" : "system", "type" : "performance" })["results"]
+	dataSet = {}
+	labels = []
+	for data in performanceData:
+		for index in data["data"]:
+			indexKey = "{0}/{1}".format(data["systemID"],index["systemIndex"])
+			if indexKey not in dataSet:
+				dataSet[indexKey] = []
+			t = jimi.helpers.roundTime(datetime.datetime.fromtimestamp(data["time"]),1)
+			if t not in labels:
+				labels.append(t)
+			dataSet[indexKey].append([t,index["cpu"]])
+	line.addLabels(labels)
+	for key,value in dataSet.items():
+		line.addDataset(key,value)
+	data = json.loads(jimi.api.request.data)
+	return line.generate(data), 200
+
+@jimi.api.webServer.route("/performanceDev/performance/memory/", methods=["POST"])
+@jimi.auth.adminEndpoint
+def performancePagePerformanceMemoryLineChart():
+	line = ui.line()
+	dt = datetime.datetime.now() - datetime.timedelta(hours=1)
+	performanceData = jimi.audit._audit().query(query={ "_id" : { "$gt" : jimi.db.ObjectId.from_datetime(generation_time=dt) }, "source" : "system", "type" : "performance" })["results"]
+	dataSet = {}
+	labels = []
+	for data in performanceData:
+		for index in data["data"]:
+			indexKey = "{0}/{1}".format(data["systemID"],index["systemIndex"])
+			if indexKey not in dataSet:
+				dataSet[indexKey] = []
+			t = jimi.helpers.roundTime(datetime.datetime.fromtimestamp(data["time"]),1)
+			if t not in labels:
+				labels.append(t)
+			dataSet[indexKey].append([t,index["memory"]])
+	line.addLabels(labels)
+	for key,value in dataSet.items():
+		line.addDataset(key,value)
+	data = json.loads(jimi.api.request.data)
+	return line.generate(data), 200
+
+try:
+	api.startServer(False,{'server.socket_host': jimi.config["api"]["web"]["bind"], 'server.socket_port': jimi.config["api"]["web"]["port"], 'engine.autoreload.on': False, 'server.thread_pool' : 5, 'server.ssl_certificate' : jimi.config["api"]["web"]["secure"]["cert"],'server.ssl_private_key' : jimi.config["api"]["web"]["secure"]["key"]})
+	jimi.auth.webSecure = True
+except KeyError:
+	api.startServer(False,{'server.socket_host': jimi.config["api"]["web"]["bind"], 'server.socket_port': jimi.config["api"]["web"]["port"], 'engine.autoreload.on': False, 'server.thread_pool' : 5})

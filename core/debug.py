@@ -1,15 +1,18 @@
 import time
 import uuid
 import json
+import traceback
 from functools import wraps
 
 import jimi
 
 class _flowDebug():
 
-    def __init__(self,acl):
+    def __init__(self,acl,createdBy):
         self.flowList = {}
         self.acl = acl
+        self.createdBy = createdBy
+        self.createdDate = time.time()
         self.preserveData = []
         self.id = str(uuid.uuid4())
 
@@ -59,14 +62,14 @@ class _flowDebug():
         self.flowList[eventID]["execution"][uid] = { "id" : uid, "type" : "var", "actionID" : actionID, "varName" : varName, "varValue" : varValue, "startTime" : time.time(), "endTime" : time.time() }
         return uid
 
-def newFlowDebugSession(acl={ "ids":[ { "accessID":"0","delete": True,"read": True,"write": True } ] }):
+def newFlowDebugSession(acl={ "ids":[ { "accessID":"0","delete": True,"read": True,"write": True } ] },createdBy=None):
     global flowDebugSession
     try:
         if not flowDebugSession:
             flowDebugSession = {}
     except NameError:
         flowDebugSession = {}
-    newSession = _flowDebug(acl)
+    newSession = _flowDebug(acl,createdBy)
     flowDebugSession[newSession.id] = newSession
     return newSession.id
 
@@ -87,6 +90,12 @@ def fn_timer(function):
     return function_timer
 
 def debugEventHandler(sessionID,conduct,trigger,flowID,events,data=None,preserveDataID=-1):
+    if hasattr(trigger, "startCheck"):
+        if trigger.startCheck > 0 and trigger.enabled:
+            return
+        else:
+            trigger.startCheck = time.time()
+            trigger.update(["startCheck"])
     jimi.cache.globalCache.clearCache("ALL")
     if data and preserveDataID > -1:
         data["persistentData"] = flowDebugSession[sessionID].preserveData[preserveDataID][0]
@@ -104,7 +113,13 @@ def debugEventHandler(sessionID,conduct,trigger,flowID,events,data=None,preserve
         tempData["flowData"]["event"] = event
         tempData["flowData"]["eventStats"] = eventStat
 
-        conduct.triggerHandler(flowID,tempData,flowIDType=True,flowDebugSession={ "sessionID" : sessionID })
+        try:
+            conduct.triggerHandler(flowID,tempData,flowIDType=True,flowDebugSession={ "sessionID" : sessionID })
+        except Exception as e:
+            flowDebugSession[sessionID].startEvent("Exception Raised",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)),tempData)
+    if hasattr(trigger, "startCheck"):
+        trigger.startCheck = 0
+        trigger.update(["startCheck"])
 
 
 ######### --------- API --------- #########
@@ -113,7 +128,7 @@ if jimi.api.webServer:
         if jimi.api.webServer.name == "jimi_core":
             @jimi.api.webServer.route(jimi.api.base+"debug/", methods=["PUT"])
             def startFlowDebugSession():
-                sessionID = newFlowDebugSession( { "ids" : [ { "accessID" : jimi.api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] })
+                sessionID = newFlowDebugSession( { "ids" : [ { "accessID" : jimi.api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] },jimi.api.g.sessionData["user"])
                 return { "sessionID" : sessionID }, 200
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/<conductID>/<flowID>/", methods=["POST"])
@@ -134,7 +149,7 @@ if jimi.api.webServer:
                     flow = [ x for x in c.flow if x["flowID"] == flowID ][0]
                     maxDuration = 60
                     if "triggerID" in flow:
-                        t = jimi.trigger._trigger().getAsClass(sessionData=jimi.api.g.sessionData,id=flow["triggerID"])[0]
+                        t = jimi.trigger._trigger(False).getAsClass(sessionData=jimi.api.g.sessionData,id=flow["triggerID"])[0]
                         if dataIn:
                             if type(dataIn) is list:
                                 events = dataIn
@@ -151,7 +166,7 @@ if jimi.api.webServer:
                             events = t.doCheck()
                         maxDuration = t.maxDuration
                     else:
-                        t = jimi.action._action().getAsClass(sessionData=jimi.api.g.sessionData,id=flow["actionID"])[0]
+                        t = jimi.action._action(False).getAsClass(sessionData=jimi.api.g.sessionData,id=flow["actionID"])[0]
                         if dataIn:
                             if type(dataIn) is list:
                                 events = dataIn
@@ -160,16 +175,19 @@ if jimi.api.webServer:
                                 data = dataIn
                         else:
                             events = [1]
-                    jimi.workers.workers.new("debug{0}".format(sessionID),debugEventHandler,(sessionID,c,t,flowID,events,data,preserveData),maxDuration=maxDuration)
+                    jimi.workers.workers.new("debug{0}".format(sessionID),debugEventHandler,(sessionID,c,t,flowID,events,data,preserveData),maxDuration=maxDuration,raiseException=False,debugSession=sessionID)
                     return {}, 200
                 return (), 404
                 
             @jimi.api.webServer.route(jimi.api.base+"debug/", methods=["GET"])
             def getFlowDebugSessions():
                 results = []
-                for key, session in flowDebugSession.items():
-                    if jimi.db.ACLAccess(jimi.api.g.sessionData, session.acl):
-                        results.append(key)
+                try:
+                    for key, session in flowDebugSession.items():
+                        if jimi.db.ACLAccess(jimi.api.g.sessionData, session.acl):
+                            results.append({ "id" : key, "createdBy" : session.createdBy, "createdDate" : session.createdDate })
+                except:
+                    pass
                 return { "results" : results }, 200
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/", methods=["GET"])
@@ -184,8 +202,10 @@ if jimi.api.webServer:
                     result = []
                     for flowKey, flowValue  in flowDebugSession[sessionID].flowList.items():
                         event = flowValue["event"]
-                        if type(event) is dict or type(event) is list:
+                        if type(event) is dict:
                             event = jimi.helpers.dictToJson(event)
+                        elif type(event) is list:
+                            event = jimi.helpers.listToJson(event)
                         result.append({ "id" : flowKey, "event" : event, "name" : flowValue["name"], "preserveDataID" : flowValue["preserveDataID"] })
                     return {"flowList" : result }, 200
                 return {}, 404
@@ -239,6 +259,16 @@ if jimi.api.webServer:
                 flowDebugSession = {}
                 return {}, 200
 
+            @jimi.api.webServer.route(jimi.api.base+"debug/clear/<sessionID>/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def clearFlowDebugSession(sessionID):
+                global flowDebugSession
+                if jimi.db.ACLAccess(jimi.api.g.sessionData, flowDebugSession[sessionID].acl, "read"):
+                    flowDebugSession[sessionID].flowList = {}
+                    flowDebugSession[sessionID].preserveData = []
+                    return {}, 200
+                return {}, 403
+
         if jimi.api.webServer.name == "jimi_web":
             @jimi.api.webServer.route(jimi.api.base+"debug/", methods=["GET"])
             def getFlowDebugSessions():
@@ -246,15 +276,14 @@ if jimi.api.webServer:
                 # NOTE - sessions can only persist on the same server so if the master changes debug will stop
                 url = jimi.cluster.getMaster()
                 response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
-                return json.loads(response.text), 200
+                return json.loads(response.text), response.status_code
 
             @jimi.api.webServer.route(jimi.api.base+"debug/", methods=["PUT"])
-            def startFlowDebugSession():
+            def startFlowDebugSession():                
                 apiEndpoint = "debug/"
-                # NOTE - sessions can only persist on the same server so if the master changes debug will stop
-                url = jimi.cluster.getMaster()
+                url = jimi.cluster.getMaster()                
                 response = jimi.helpers.apiCall("PUT",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
-                return json.loads(response.text), 200
+                return json.loads(response.text), response.status_code
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/<conductID>/<flowID>/", methods=["POST"])
             def startDebuggerTrigger(sessionID,conductID,flowID):
@@ -265,35 +294,35 @@ if jimi.api.webServer:
                     data = {}
                 url = jimi.cluster.getMaster()
                 response = jimi.helpers.apiCall("POST",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url,jsonData=data)
-                return json.loads(response.text), 200
+                return json.loads(response.text), response.status_code
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/list/", methods=["GET"])
             def getFlowDebugSessionList(sessionID):
                 apiEndpoint = "debug/{0}/list/".format(sessionID)
                 url = jimi.cluster.getMaster()
                 response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
-                return json.loads(response.text), 200
+                return json.loads(response.text), response.status_code
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/<eventID>/executionList/", methods=["GET"])
             def getFlowDebugSessionFlowExecutionList(sessionID,eventID):
                 apiEndpoint = "debug/{0}/{1}/executionList/".format(sessionID,eventID)
                 url = jimi.cluster.getMaster()
                 response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
-                return json.loads(response.text), 200
+                return json.loads(response.text), response.status_code
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/<eventID>/<executionID>/", methods=["GET"])
             def getFlowDebugSessionFlowExecution(sessionID,eventID,executionID):
                 apiEndpoint = "debug/{0}/{1}/{2}/".format(sessionID,eventID,executionID)
                 url = jimi.cluster.getMaster()
                 response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
-                return json.loads(response.text), 200
+                return json.loads(response.text), response.status_code
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/<eventID>/<flowID>/flowID/", methods=["GET"])
             def getFlowDebugSessionFlowExecutionByFlowID(sessionID,eventID,flowID):
                 apiEndpoint = "debug/{0}/{1}/{2}/flowID/".format(sessionID,eventID,flowID)
                 url = jimi.cluster.getMaster()
                 response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
-                return json.loads(response.text), 200
+                return json.loads(response.text), response.status_code
 
             @jimi.api.webServer.route(jimi.api.base+"debug/clear/", methods=["GET"])
             @jimi.auth.adminEndpoint
@@ -304,3 +333,19 @@ if jimi.api.webServer:
                     response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
                     responses.append({ "url" : url, "response" : response.status_code })
                 return { "result" : responses }, 200
+
+            @jimi.api.webServer.route(jimi.api.base+"debug/clear/<sessionID>/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def clearFlowDebugSession(sessionID):
+                apiEndpoint = "debug/clear/{0}/".format(sessionID)
+                url = jimi.cluster.getMaster()
+                response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
+                return json.loads(response.text), response.status_code
+
+            @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/", methods=["DELETE"])
+            @jimi.auth.adminEndpoint
+            def deleteFlowDebugSession(sessionID):
+                apiEndpoint = "debug/{0}/".format(sessionID)
+                url = jimi.cluster.getMaster()
+                response = jimi.helpers.apiCall("DELETE",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
+                return json.loads(response.text), response.status_code

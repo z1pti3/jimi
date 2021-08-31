@@ -15,9 +15,11 @@ def startWorker(systemId,systemIndex):
                 jimi.cache.globalCache.cleanCache()
             if scheduler.lastHandle < time.time() - 60:
                 logging.error("Scheduler on index %i has failed",systemIndex)
+                jimi.audit._audit().add("system","health_checker",{ "systemID" : systemId, "systemIndex" : systemIndex, "msg" : "Scheduler service has failed." })
                 os._exit(5)
             if jimi.workers.workers.lastHandle < time.time() - 60:
                 logging.error("Workers on index %i has failed",systemIndex)
+                jimi.audit._audit().add("system","health_checker",{ "systemID" : systemId, "systemIndex" : systemIndex, "msg" : "Worker service has failed." })
                 os._exit(10)
             time.sleep(10)
     from core import api
@@ -58,14 +60,20 @@ if __name__ == "__main__":
                 jimi.cache.globalCache.cleanCache()
             if cluster.lastHandle < time.time() - 60:
                 logging.error("Cluster service has failed")
+                jimi.audit._audit().add("system","health_checker",{ "systemID" : systemId, "systemIndex" : systemIndex["systemIndex"], "msg" : "Cluster service has failed." })
                 os._exit(25)
+            auditData = []
             for systemIndex in systemIndexes:
                 if not systemIndex["process"].is_alive(): 
                     logging.error("Index %i process has exitied, PID=%i",systemIndex["systemIndex"],systemIndex["pid"])
+                    jimi.audit._audit().add("system","health_checker",{ "systemID" : systemId, "systemIndex" : systemIndex["systemIndex"], "pid" :systemIndex["pid"], "msg" : "Process has exitied and is being restarted." })
                     startProcess(systemIndex)
                 else:
                     p = psutil.Process(pid=systemIndex["pid"])
-                    print("Index {0}, PID={1}, CPU={2}, MEM={3}".format(systemIndex["systemIndex"],systemIndex["pid"],p.cpu_percent(interval=1),p.memory_percent()))
+                    cpu = p.cpu_percent(interval=1)
+                    memory = p.memory_percent()
+                    auditData.append({ "systemID" : systemId, "systemIndex" : systemIndex["systemIndex"], "pid" : systemIndex["pid"], "cpu" : cpu, "memory" : memory })
+            jimi.audit._audit().add("system","performance",auditData)
             time.sleep(10)
     # Loading API - Has to be done before jimi import or the pages will not be loaded
     from core import api
@@ -94,10 +102,7 @@ if __name__ == "__main__":
     masterMember = jimi.cluster.getClusterMemberById(jimi.cluster.getMasterId())
     logging.info("Current jimi master is on %i",masterId)
     if masterMember and masterId != systemId and checksum != masterMember.checksum:
-        logging.debug("Fixing file integrity mismatch using master")
-        checksum = jimi.system.fixChecksum(masterId)
-        if checksum != masterMember.checksum:
-            logging.error("Checksum mismatch between system %i and master %i",systemId,masterId)
+        logging.error("Checksum mismatch between system %i and master %i",systemId,masterId)
     if clusterMember:
         clusterMember.checksum = checksum
         clusterMember.update(["checksum"])

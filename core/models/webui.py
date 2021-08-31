@@ -13,7 +13,24 @@ class _flowData(jimi.db._document):
         # Run parent class function ( alterative to end decorator for the new function within a class )
         return super(_flowData, self).new()
 
-# Model UI class
+# Editor UI Class
+class _editorUI(jimi.db._document):
+    currentUsers = dict()
+    objectType = str()
+    objectId = str()
+
+    _dbCollection = jimi.db.db["editorUI"]
+
+    def new(self,objectId,objectType):
+        if len(_editorUI().query(query={"objectId" : objectId, "objectType" : objectType})["results"]) == 0:
+            self.objectId = objectId
+            self.objectType = objectType
+            self.acl = {"ids":[{"accessID":0,"delete":True,"read":True,"write":True}]}
+            # Run parent class function ( alterative to end decorator for the new function within a class )
+            return super(_editorUI, self).new()
+        return False
+
+# Model UI Class
 class _modelUI(jimi.db._document):
     conductID = str()
     flowID = str()
@@ -24,7 +41,7 @@ class _modelUI(jimi.db._document):
     _dbCollection = jimi.db.db["modelUI"]
 
     def new(self,conductID,acl,flowID,x,y,title=""):
-        if len(_modelUI().query(query={"conductID" : conductID, "flowID" : flowID})["results"]) < 1:
+        if len(_modelUI(False).query(query={"conductID" : conductID, "flowID" : flowID})["results"]) < 1:
             self.conductID = conductID
             self.acl = acl
             self.flowID = flowID

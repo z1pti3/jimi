@@ -17,6 +17,7 @@
 
 		<link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
 		<script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
+		<link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-icons-1.5.0/bootstrap-icons.css') }}">
 
 		<link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
 
@@ -47,7 +48,10 @@
 
 		<link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
 
-
+		<script>
+			var require = { paths: { 'vs': "{{ url_for('static', filename='includes/monaco-0.26.1/vs') }}" } };
+		</script>
+		<script src="{{ url_for('static', filename='includes/monaco-0.26.1/vs/loader.js') }}"></script>
 	</head>
 	<body>
 		<div class="debugFlowEditor-container">
@@ -70,6 +74,8 @@
 			</div>
 			<div class="debugFlowEditor-right">
 				<div class="ui-main debugFlowchart">
+					<button onclick="clearDebugger()" id="debug_clear_button" class="btn btn-primary clearDebugger theme-panelButton">Clear</button>
+					<button onclick="showDebugSessions()" id="debug_sessions_button" class="btn btn-primary sessionsDebugger theme-panelButton">Sessions</button>
 					<button onclick="runDebugger()" id="debug_continue_button" disabled class="btn btn-primary runDebugger theme-panelButton">Continue</button>
 					<div class="debugFlowchart theme-content" id="flowchart"></div>
 				</div>
@@ -87,6 +93,34 @@
 				</div>
 			</div>
 		</div>
+		<div class="modal fade" id="debugSessions" tabindex="-1" role="dialog">
+			<div class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content panel">
+					<div class="modal-header">
+						<h5 class="modal-title" id="exampleModalLongTitle">Debug Sessions</h5>
+					</div>
+					<div class="modal-body">
+						<div class="list-group" id="existingDebugList">
+							
+						</div>
+					</div>
+					<div class="modal-footer justify-content-start">
+						<button type="button" class="btn btn-primary button" onclick="newDebugSession()"> New</button>
+						<button type="button" class="btn btn-primary button" onclick="getDebugSessions()">Refresh</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- Startup -->
+		<script>
+			if (!GetURLParameter("debugID")) {
+				getDebugSessions();
+				$("#debugSessions").modal('toggle');
+			} else {
+				debugSession = GetURLParameter("debugID");
+				refreshDebugSession();
+			}
+		</script>
 	</body>
 </html>
 

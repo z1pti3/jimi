@@ -46,7 +46,7 @@ class _model(jimi.db._document):
 
 def registerModel(name,className,classType,location,hidden=False):
     # Checking that a model with the same name does not already exist ( this is due to identification within GUI, future changes could be made to allow this?? )
-    results = _model().query(query={ "name" : name })["results"]
+    results = _model(False).query(query={ "name" : name })["results"]
     if len(results) == 0:
         return _model().new(name,className,classType,location,hidden)
     else:
@@ -54,7 +54,7 @@ def registerModel(name,className,classType,location,hidden=False):
             jimi.logging.debug("Register model failed as it already exists modelName='{0}', className='{1}', classType='{2}', location='{3}'".format(name,className,classType,location),4)
 
 def deregisterModel(name,className,classType,location):
-    loadModels = _model().query(query={ "name" : name})["results"]
+    loadModels = _model(False).query(query={ "name" : name})["results"]
     if loadModels:
         loadModels = loadModels[0]
         # This really does need to clean up the models objects that are left
@@ -68,14 +68,14 @@ def deregisterModel(name,className,classType,location):
         jimi.logging.debug("deregister model failed modelName='{0}', className='{1}', classType='{2}', location='{3}'".format(name,className,classType,location),4)
 
 def getClassID(name):
-    loadModels = _model().query(query={ "name" : name})["results"]
+    loadModels = _model(False).query(query={ "name" : name})["results"]
     if loadModels:
         loadModels = loadModels[0]
         return loadModels["_id"]
     return None
 
 def loadModel(modelName):
-    results = _model().query(query={ "name" : modelName })["results"]
+    results = _model(False).query(query={ "name" : modelName })["results"]
     if len(results) == 1:
         results = results[0]
         _class = _model().get(results["_id"])
@@ -93,7 +93,7 @@ if jimi.api.webServer:
             def getModels():
                 result = []
                 jimi.api.g.sessionData
-                models = _model().query(jimi.api.g.sessionData,query={ "_id" : { "$exists": True } })["results"]
+                models = _model(False).query(jimi.api.g.sessionData,query={ "_id" : { "$exists": True } })["results"]
                 for model in models:
                     result.append(model["name"])
                 return { "models" : result }, 200
@@ -102,7 +102,7 @@ if jimi.api.webServer:
             def getModel(modelName):
                 class_ = loadModel(modelName).classObject()
                 if class_:
-                    results = _model().query(jimi.api.g.sessionData,query={ "className" : class_.__name__ })["results"]
+                    results = _model(False).query(jimi.api.g.sessionData,query={ "className" : class_.__name__ })["results"]
                     if len(results) == 1:
                         results = results[0]
                         return class_().query(jimi.api.g.sessionData,query={ "classID" : results["_id"] },fields=["_id","name","classType"]), 200
@@ -112,10 +112,10 @@ if jimi.api.webServer:
             def getModelExtra(modelName):
                 class_ = loadModel(modelName).classObject()
                 if class_:
-                    results = _model().query(jimi.api.g.sessionData,query={ "className" : class_.__name__ })["results"]
+                    results = _model(False).query(jimi.api.g.sessionData,query={ "className" : class_.__name__ })["results"]
                     if len(results) == 1:
                         results = results[0]
-                        results = class_().query(jimi.api.g.sessionData,query={ "classID" : results["_id"] },fields=["_id","name","classType","lastUpdateTime"])["results"]
+                        results = class_(False).query(jimi.api.g.sessionData,query={ "classID" : results["_id"] },fields=["_id","name","classType","lastUpdateTime"])["results"]
                         ids = [ x["_id"] for x in results ]
                         # Possible for ID trigger and action to be the same ( although unlikey but keep in mind this could be an issue in future )
                         ConductsCache = jimi.conduct._conduct().query(query={ "$or" : [ { "flow.triggerID" : { "$in" : ids } }, { "flow.actionID" : { "$in" : ids } } ] },fields=["_id","name","flow"])["results"]
@@ -138,17 +138,17 @@ if jimi.api.webServer:
                 class_ = loadModel(modelName).classObject()
                 classIDs = []
                 if class_:
-                    results = _model().query(jimi.api.g.sessionData,query={ "className" : class_.__name__ })["results"]
+                    results = _model(False).query(jimi.api.g.sessionData,query={ "className" : class_.__name__ })["results"]
                     if len(results) == 1:
                         results = results[0]
                         classIDs.append(results["_id"])
-                        results = _model().query(jimi.api.g.sessionData,query={ "classType" : results["className"] })["results"]
+                        results = _model(False).query(jimi.api.g.sessionData,query={ "classType" : results["className"] })["results"]
                         for result in results:
                             classIDs.append(result["_id"])
 
                         result = []
                         for classID in classIDs:
-                            for foundObject in class_().query(jimi.api.g.sessionData,query={ "classID" : classID })["results"]:
+                            for foundObject in class_(False).query(jimi.api.g.sessionData,query={ "classID" : classID })["results"]:
                                 result.append(foundObject)
 
                         return { "results" : result}, 200
@@ -159,9 +159,9 @@ if jimi.api.webServer:
             def getModelSchema(modelName):
                 class_ = loadModel(modelName)
                 if class_:
-                    access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,class_.acl,"read")
+                    access = jimi.db.ACLAccess(jimi.api.g.sessionData,class_.acl,"read")
                     if access:
-                        return class_.classObject()().api_getSchema(), 200
+                        return class_.classObject()(False).api_getSchema(), 200
                     else:
                         return {}, 403
                 else:
@@ -171,7 +171,7 @@ if jimi.api.webServer:
             def getModelObject(modelName,objectID):
                 class_ = loadModel(modelName).classObject()
                 if class_:
-                    classObject = class_().getAsClass(jimi.api.g.sessionData,id=objectID)
+                    classObject = class_(False).getAsClass(jimi.api.g.sessionData,id=objectID)
                     if classObject:
                         classObject = classObject[0]
                         members = jimi.helpers.classToJson(classObject)
@@ -185,16 +185,16 @@ if jimi.api.webServer:
             def deleteModelObject(modelName,objectID):
                 class_ = loadModel(modelName)
                 if class_:
-                    _class = class_.classObject()().getAsClass(jimi.api.g.sessionData,id=objectID)
+                    _class = class_.classObject()(False).getAsClass(jimi.api.g.sessionData,id=objectID)
                     if len(_class) == 1:
                         _class = _class[0]
-                        access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,_class.acl,"delete")
+                        access = jimi.db.ACLAccess(jimi.api.g.sessionData,_class.acl,"delete")
                         if access:
                             if "_id" in jimi.api.g.sessionData:
                                 jimi.audit._audit().add("model","delete",{ "_id" : jimi.api.g.sessionData["_id"], "user" : jimi.api.g.sessionData["user"], "modelName" : modelName, "objectID" : objectID })
                             else:
                                 jimi.audit._audit().add("model","delete",{ "user" : "system", "objectID" : objectID })
-                            result = class_.classObject()().api_delete(id=objectID)
+                            result = class_.classObject()(False).api_delete(id=objectID)
                             if result["result"]:
                                 return result, 200
                         else:
@@ -205,9 +205,9 @@ if jimi.api.webServer:
             def newModelObject(modelName):
                 class_ = loadModel(modelName)
                 if class_:
-                    access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,class_.acl,"read")
+                    access = jimi.db.ACLAccess(jimi.api.g.sessionData,class_.acl,"read")
                     if access:
-                        class_ = class_.classObject()()
+                        class_ = class_.classObject()(False)
                         if jimi.api.g.sessionData:
                             class_.acl = { "ids" : [ { "accessID" : jimi.api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
                         newObjectID = super(type(class_), class_).new().inserted_id
@@ -225,15 +225,20 @@ if jimi.api.webServer:
                     data = json.loads(jimi.api.request.data)
                     updateItemsList = []
                     changeLog = {}
-                    _class = class_.classObject()().getAsClass(jimi.api.g.sessionData,id=objectID)
+                    _class = class_.classObject()(False).getAsClass(jimi.api.g.sessionData,id=objectID)
                     if len(_class) == 1:
                         _class = _class[0]
                         # Builds list of permitted ACL
-                        access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,_class.acl,"write")
+                        access = jimi.db.ACLAccess(jimi.api.g.sessionData,_class.acl,"write")
+                        adminBypass = False
+                        if "admin" in jimi.api.g.sessionData:
+                            if jimi.api.g.sessionData["admin"]:
+                                adminBypass = True
                         if access:
                             for dataKey, dataValue in data.items():
                                 fieldAccessPermitted = True
                                 # Checking if sessionData is permitted field level access
+                                
                                 if _class.acl != {} and not adminBypass:
                                     fieldAccessPermitted = jimi.db.fieldACLAccess(jimi.api.g.sessionData,_class.acl,dataKey,"write")
 

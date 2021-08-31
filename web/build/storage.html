@@ -1,0 +1,132 @@
+{% extends "main.html" %}
+
+{% block head %}
+    {{ jimi.jquery() }}
+{% endblock %}
+
+{% block main %}
+    <div class="container col-5 px-4 py-5 text-center" id="custom-cards">
+        <div class="text-start" >
+            <input type="text" class="form-control textbox w-50" id="storageSearch" onkeyup="doStorageSearch()" placeholder="Search for files">
+            <a href="#" class="bi-plus-square" style="font-size: 25px; display: inline-block; vertical-align: middle;" title="Upload new file" data-bs-toggle="modal" data-bs-target="#newStorageModal"></a>
+        </div>
+        <ul class="list-group list-group-flush mt-3">
+            {% for storageItem in storage|sort(attribute='fileData') %}
+                <li class="list-group-item text-start storageContainer" data-name="{{ storageItem["fileData"] }}" style="background-color: var(--mainBackgroundColor); border-color: var(--panelComponentBorder); color: var(--textColor);"">
+                    <div class="d-flex" style="justify-content: space-between;">
+                        <div>
+                            <a href="/storage/{{ storageItem["_id"] }}/">
+                                <i class="bi-file-earmark" style="font-size: 1.25rem; padding-right: 15px;"></i><span class="fs-4 mb-2">{{ storageItem["fileData"] }}</span>
+                            </a>
+                        </div>
+                        <div>
+                            <a href="#" class="pe-3 bi-pencil" title="Edit" data-bs-toggle="modal" data-bs-target="#editStorageModal{{ storageItem["_id"] }}"></a>
+                        </div>
+                    </div>
+                    <p class="mb-3 noHover">{{ storageItem["comment"] }}</p>
+                </li>
+
+                <div class="modal fade" id="editStorageModal{{ storageItem["_id"] }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content panel">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLongTitle">Editing {{ storageItem["fileData"] }}</h5>
+                                <button type="button" class="close button" data-bs-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <form action="/api/1.0/storage/file/{{ storageItem["_id"] }}/" id="newFile{{ storageItem["_id"] }}" name="newFile" method="POST" enctype = "multipart/form-data">
+                                <div class="modal-body">
+                                    <input type="hidden" name="CSRF" id="CSRF" value="{{ CSRF }}" />
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control textbox" id="storageName{{ storageItem["_id"] }}" name="name" placeholder="Name" value="{{ storageItem["fileData"] }}" />
+                                        <label for="storageName">File Name</label>
+                                    </div>
+                                    </br>
+                                    <div class="input-group">
+                                        <input name="storageFile" type="file" class="form-control" id="storageFile{{ storageItem["_id"] }}" />
+                                    </div>
+                                    </br>
+                                    <div class="form-floating">
+                                        <textarea type="text" class="form-control textbox" id="storageDescription{{ storageItem["_id"] }}" name="comment" placeholder="Description" style="height: 250px;">{{ storageItem["comment"] }}</textarea>
+                                        <label for="storageDescription">Description</label>
+                                    </div>
+                                </div>
+                                <div class="modal-footer justify-content-start">
+                                    <button type="submit" class="btn btn-primary button bi-save"> Save</button>
+                                    <button type="button" class="btn btn-primary button bi-trash" onclick="deleteStorage('{{ storageItem["_id"] }}')"> Delete</button>
+                                    <button type="button" class="btn btn-primary button" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            {% endfor %}
+        </ul>
+    </div>
+    <!-- Popup Conduct Creator Panel -->
+    <div class="modal fade" id="newStorageModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content panel">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Upload new file</h5>
+                    <button type="button" class="close button" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="/api/1.0/storage/" id="newFile" name="newFile" method="POST" enctype = "multipart/form-data">
+                    <div class="modal-body">
+                        <input type="hidden" name="CSRF" id="CSRF" value="{{ CSRF }}" />
+                        <div class="form-floating">
+                            <input type="text" class="form-control textbox" id="storageName" name="name" placeholder="Name" />
+                            <label for="storageName">File Name</label>
+                        </div>
+                        </br>
+                        <div class="input-group">
+                            <input name="storageFile" type="file" class="form-control" id="storageFile" />
+                        </div>
+                        </br>
+                        <div class="form-floating">
+                            <textarea type="text" class="form-control textbox" id="storageDescription" name="comment" placeholder="Description" style="height: 250px;"></textarea>
+                            <label for="storageDescription">Description</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer justify-content-start">
+                        <button type="submit" class="btn btn-primary button bi-upload"> Upload</button>
+                        <button type="button" class="btn btn-primary button" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Global Scripts -->
+    <script>  
+        function doStorageSearch() {
+            var input = document.getElementById("storageSearch");
+            var searchFilter = input.value.toUpperCase();
+            var regex = new RegExp('\\b\\w*' + searchFilter + '\\w*\\b');
+            $('.storageContainer').hide().filter(function () {
+                var nr = regex.test($(this).data('name').toUpperCase());
+                if (nr) {
+                    return true;
+                }
+                return false;
+            }).show();
+        }
+
+        $(document).ready(function() {
+            doConductsSearch();
+        });
+
+        function deleteStorage(storageID) {
+            if (confirm("Are you sure you want to delete this file?")) {
+                var body = JSON.stringify({ CSRF : CSRF })
+                $.ajax({ url: "/api/1.0/storage/file/"+storageID+"/", type : "DELETE", data:body, contentType:"application/json", success: function ( result ) {
+                        window.location.reload();
+                    }
+                });
+            }
+        }
+    </script>
+{% endblock %}

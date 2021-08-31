@@ -1,6 +1,7 @@
 import time
 import json
 import  uuid
+import copy
 from operator import itemgetter
 
 from flask import Flask, request, render_template, make_response, redirect
@@ -9,7 +10,13 @@ import jimi
 
 @jimi.api.webServer.route("/conductEditor/", methods=["GET"])
 def editConduct():
-    return render_template("conductEditor.html", CSRF=jimi.api.g.sessionData["CSRF"])
+    conductID = request.args.get('conductID')
+    conductObj = jimi.conduct._conduct().query(jimi.api.g.sessionData,id=conductID)["results"]
+    if len(conductObj) == 1:
+        conductObj = conductObj[0]
+        return render_template("conductEditor.html", CSRF=jimi.api.g.sessionData["CSRF"],conductName=conductObj["name"])
+    else:
+        return { }, 404
 
 @jimi.api.webServer.route("/conductEditor/<conductID>/", methods=["POST"])
 def conductFlowchartPoll(conductID):
@@ -23,137 +30,148 @@ def conductFlowchartPoll(conductID):
     flowchartOperators = data["operators"]
     flowchartLinks = data["links"]
 
-    flowchartResponse = { "operators" : { "delete" : {}, "create" : {}, "update" : {} }, "links" : { "delete" : {}, "create" : {}, "update" : {} } }
+    flowchartResponse = { "operators" : { "delete" : {}, "create" : {}, "update" : {}, "nodes" : [] }, "links" : { "delete" : {}, "create" : {}, "update" : {}, "links" : [] } }
 
     # Getting all UI flow details for flows in this conduct
     flows = [ x for x in conductObj["flow"] ]
     flowTriggers = [ jimi.db.ObjectId(x["triggerID"]) for x in flows if x["type"] == "trigger" ]
     flowActions = [ jimi.db.ObjectId(x["actionID"]) for x in flows if x["type"] == "action" ]
     flowsList = [ x["flowID"] for x in flows ]
-    linksList = []
+    nodesList = {}
+    linksList = {}
 
-    # For every refresh the entire flow object and UI is loaded from the database - this may need improvment for speed in future
+    # For every refresh the entire flow object and UI is loaded from the database - this may need improvement for speed in future
     flowsUI = jimi.webui._modelUI().getAsClass(jimi.api.g.sessionData,query={ "flowID" : { "$in" :flowsList }, "conductID" : conductID })
-    actions = jimi.action._action().getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
-    triggers = jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowTriggers } })
-    jimi.cache.globalCache.newCache("modelCache",sessionData=jimi.api.g.sessionData)
+    flowsUIByID = {}
+    for obj in flowsUI:
+        flowsUIByID[obj.flowID] = obj
+    actions = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
+    actionsByID = {}
+    for obj in actions:
+        actionsByID[obj._id] = obj
+    triggers = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowTriggers } })
+    triggersByID = {}
+    for obj in triggers:
+        triggersByID[obj._id] = obj
+
+    nodeTemplate = {
+        "id" : "",
+        "x" : 0,
+        "y" : 0,
+        "label" : "",
+        "shape" : "dot",
+        "widthConstraint" : { 
+            "minimum": 75, 
+            "maximum": 275
+        },
+        "heightConstraint" : { 
+            "minimum": 35, 
+            "maximum": 75 
+        },
+        "borderWidth" : 1,
+        "font" : { 
+            "color" : "#adadad", 
+            "multi": True 
+        },
+        "shadow" : { 
+            "enabled": True, 
+            "color": "rgba(0, 0, 0, 0.12)",	
+            "size": 10, 
+            "x": 5, 
+            "y": 5	
+        }
+    }
+    linkTemplate = {
+        "id": "",
+		"from": "", 
+		"to": "",
+		"label": "",
+		"color": {
+			"color": "#6FA92D"
+		},
+		"arrows": {
+			"middle": {
+			  "enabled": True,
+			  "type": "arrow"
+			}
+		},
+		"smooth": {
+			"enabled": True,
+			"type": "cubicBezier",
+			"roundness": 0.7
+		},
+		"width": 1.5
+    }
 
     for flow in flows:
-        if "type" in flow:
+        try:
             flowType = flow["type"]
-            if "subtype" in flow:
+            try:
                 flowSubtype = flow["subtype"]
-            else:
+            except KeyError:
                 flowSubtype = ""
             if "{0}{1}".format(flowType,"ID") in flow:
                 objectID = "{0}{1}".format(flowType,"ID")
                 flowID = flow["flowID"]
-                # Default to create
-                flowchartResponseType = "create"
-                if flowID in flowchartOperators:
-                    # If it already exits then its an update
-                    flowchartResponseType = "update"
-                # Setting position if it has changed since last pollTime
-                foundFlowUI = False
-                foundObject = False
                 name = flow["flowID"]
-                node = {}
-                for flowUI in flowsUI:
-                    if flow["flowID"] == flowUI.flowID:
-                        foundFlowUI = True
-                        if flowchartResponseType == "create":
-                            node["x"] = flowUI.x
-                            node["y"] = flowUI.y
-                            node["shape"] = "box"
-                            node["widthConstraint"] = { "minimum": 75, "maximum": 275 }
-                            node["heightConstraint"] = { "minimum": 35, "maximum": 75 }
-                            node["borderWidth"] = 1
-                            node["borderWidthSelected"] = 2.5
-                            node["font"] = { "color" : "#adadad", "multi": True }
-                            node["shadow"] = { "enabled": True, "color": 'rgba(0, 0, 0, 0.12)',	"size": 10, "x": 5, "y": 5	}
-                        elif flowUI.x != flowchartOperators[flowID]["node"]["x"] or flowUI.y != flowchartOperators[flowID]["node"]["y"]:
-                            node["x"] = flowUI.x
-                            node["y"] = flowUI.y
-                        if flow["type"] == "trigger":
-                            for t in triggers:
-                                if flow["triggerID"] == t._id:
-                                    name = t.name
-                                    modeClass = jimi.cache.globalCache.get("modelCache",t.classID,jimi.model.getClassObject,sessionData=jimi.api.g.sessionData)[0]
-                                    color = None
-                                    if t.enabled:
-                                        color = "#0a0a0a"
-                                    duration = t.maxDuration
-                                    if duration == 0:
-                                        duration = 60
-                                    if (((t.startCheck != 0) and (t.startCheck + duration > time.time())) or (t.lastCheck > time.time()-2.5)):
-                                        color = "green"
-                                    if ((t.startCheck != 0) and (t.startCheck + duration < time.time())):
-                                        color = "red"
-                                    if not t.enabled:
-                                        color = "gray"
-
-                                    label = "({0}.{1},{2})\n<b>{3}</b>\n{4}".format(t.systemID,t.systemIndex,t.clusterSet,t.name,modeClass.name)
-                                    if flowchartResponseType == "create":
-                                        node["label"] = label
-                                        node["color"] = { "border" : "#595959", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
-                                    else:
-                                        if color != flowchartOperators[flowID]["node"]["color"]["background"]:
-                                            node["color"] = { "border" : "#595959", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
-                                        if label != flowchartOperators[flowID]["node"]["label"]:
-                                            node["label"] = label
-                                    foundObject = True
-                                    break
-                        elif flow["type"] == "action":
-                            for a in actions:
-                                if flow["actionID"] == a._id:
-                                    name = a.name
-                                    modeClass = jimi.cache.globalCache.get("modelCache",a.classID,jimi.model.getClassObject,sessionData=jimi.api.g.sessionData)[0]
-
-                                    #if modeClass.name == "action":
-                                    #    node["shape"] = "diamond"
-                                    #    node["size"] = 35
-
-                                    color = None
-                                    if a.enabled:
-                                        color = "#0a0a0a"
-                                    if not a.enabled:
-                                        color = "gray"
-
-                                    label = "<b>{0}</b>\n{1}".format(a.name,modeClass.name)
-                                    if flowchartResponseType == "create":
-                                        node["label"] = label
-                                        node["color"] = { "border" : "#595959", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
-                                    else:
-                                        if color != flowchartOperators[flowID]["node"]["color"]["background"]:
-                                            node["color"] = { "border" : "#595959", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
-                                        if label != flowchartOperators[flowID]["node"]["label"]:
-                                            node["label"] = label
-                                    foundObject = True
-                                    break
-                        if node:
-                            if not foundObject:
-                                node["label"] = "Unknown Object"
-                                node["color"] = { "background" : "black" }
-                            flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "name" : name, "node" : node }
-                        break
-                if not foundFlowUI:
-                    node["x"] = 0
-                    node["y"] = 0
-                    node["shape"] = "dot"
-                    node["borderWidth"] = 1
+                # Generate nodes
+                node = copy.deepcopy(nodeTemplate)
+                try:
+                    flowUI = flowsUIByID[flow["flowID"]]
+                    node["id"] = flowID
+                    node["x"] = flowUI.x
+                    node["y"] = flowUI.y
+                    node["shape"] = "box"
+                    if flow["type"] == "trigger":
+                        node["flowType"] = "trigger"
+                        obj = triggersByID[flow["triggerID"]]
+                        node["objID"] = obj._id
+                        node["name"] = obj.name
+                        modeClass = jimi.cache.globalCache.get("modelCache",obj.classID,jimi.model.getClassObject,sessionData=jimi.api.g.sessionData)[0]
+                        label = "({0}.{1},{2})\n<b>{3}</b>\n{4}".format(obj.systemID,obj.systemIndex,obj.clusterSet,obj.name,modeClass.name)
+                        color = None
+                        if obj.enabled:
+                            color = "#0a0a0a"
+                        duration = obj.maxDuration
+                        if duration == 0:
+                            duration = 60
+                        if (((obj.startCheck != 0) and (obj.startCheck + duration > time.time())) or (obj.lastCheck > time.time()-2.5)):
+                            color = "green"
+                        if ((obj.startCheck != 0) and (obj.startCheck + duration < time.time())):
+                            color = "red"
+                        if not obj.enabled:
+                            color = "gray"
+                        node["color"] = { "border" : "#595959", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
+                    elif flow["type"] == "action":
+                        node["flowType"] = "action"
+                        obj = actionsByID[flow["actionID"]]
+                        node["objID"] = obj._id
+                        node["name"] = obj.name
+                        modeClass = jimi.cache.globalCache.get("modelCache",obj.classID,jimi.model.getClassObject,sessionData=jimi.api.g.sessionData)[0]
+                        label = "<b>{0}</b>\n{1}".format(obj.name,modeClass.name)
+                        color = None
+                        if obj.enabled:
+                            color = "#0a0a0a"
+                        if not obj.enabled:
+                            color = "gray"
+                        node["color"] = { "border" : "#595959", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
+                    node["label"] = label
+                except (IndexError, KeyError) as e:
                     node["label"] = "Unknown Object"
                     node["color"] = { "background" : "black" }
-                    flowchartResponse["operators"][flowchartResponseType][flowID] = { "_id" : flow[objectID], "flowID" : flowID, "flowType" : flowType, "flowSubtype" : flowSubtype, "node" : node }
- 
-                # Do any links need to be created
+                nodesList[flowID] = node
+                # Generate links
                 for nextFlow in flow["next"]:
+                    link = copy.deepcopy(linkTemplate)
                     linkName = "{0}->{1}".format(flowID,nextFlow["flowID"])
+                    link["id"] = linkName
+                    link["to"] = nextFlow["flowID"]
+                    link["from"] = flowID
                     try:
-                        text = str(nextFlow["order"])
+                        if nextFlow["order"] > 0:
+                            link["label"] = str(nextFlow["order"])
                     except KeyError:
-                        text = "0"
-                    if text == "0":
-                        text = " "
+                        pass
                     color = "green"
                     if type(nextFlow["logic"]) is bool:
                         if nextFlow["logic"] == True:
@@ -167,23 +185,54 @@ def conductFlowchartPoll(conductID):
                             color = "#D04D8A"
                         elif nextFlow["logic"] == "*":
                             color = "#3DBEFF"
-                    linksList.append(linkName)
-                    if linkName not in flowchartLinks.keys():
-                        flowchartResponse["links"]["create"][linkName] = { "from" : flowID, "to" : nextFlow["flowID"], "logic" : nextFlow["logic"], "color" : color, "text" : text }
-                    elif flowchartLinks[linkName]["color"] != color:
-                        flowchartResponse["links"]["update"][linkName] = { "from" : flowID, "to" : nextFlow["flowID"], "logic" : nextFlow["logic"], "color" : color, "text" : text }
-                    elif flowchartLinks[linkName]["text"] != text:
-                        flowchartResponse["links"]["update"][linkName] = { "from" : flowID, "to" : nextFlow["flowID"], "logic" : nextFlow["logic"], "color" : color, "text" : text }
+                    link["color"] = color
+                    linksList[linkName] = link
+        except KeyError:
+            pass
 
+    if len(flowchartOperators) == 0 and len(flowchartLinks) == 0:
+        flowchartResponse["operators"]["nodes"] = [ x for x in nodesList.values() ]
+        flowchartResponse["links"]["links"] = [ x for x in linksList.values() ]
+    else:
+        # Comparing displayed nodes to generated nodes
+        for node in flowchartOperators:
+            try:
+                if node != nodesList[node["id"]]:
+                    flowchartResponse["operators"]["update"][node["id"]] = nodesList[node["id"]]
+                del nodesList[node["id"]]
+            except KeyError:
+                flowchartResponse["operators"]["delete"][node["id"]] = node
+        for node in nodesList.values():
+            flowchartResponse["operators"]["create"][node["id"]] = node
+        # Comparing displayed links to generated links
+        for link in flowchartLinks:
+            try:
+                if link != linksList[link["id"]]:
+                    flowchartResponse["links"]["update"][link["id"]] = linksList[link["id"]]
+                del linksList[link["id"]]
+            except KeyError:
+                flowchartResponse["links"]["delete"][link["id"]] = link
+        for link in linksList.values():
+            flowchartResponse["links"]["create"][link["id"]] = link
 
-    # Checking for deleted operators
-    for flowchartOperator in flowchartOperators:
-        if flowchartOperator not in flowsList:
-            flowchartResponse["operators"]["delete"][flowchartOperator] = { "flowID" : flowchartOperator }
-    # Checking for deleted links
-    for flowchartLink in flowchartLinks.keys():
-        if flowchartLink not in linksList:
-            flowchartResponse["links"]["delete"][flowchartLink] = { "linkName" : flowchartLink }
+    # Active user stuff (BETA)
+    editorObj = jimi.webui._editorUI().getAsClass(query={"objectId":conductID,"objectType":"conduct"})
+    if len(editorObj) == 1:
+        editorObj = editorObj[0]
+    else:
+        jimi.webui._editorUI().new(conductID,"conduct")
+        editorObj = jimi.webui._editorUI().getAsClass(query={"objectId":conductID,"objectType":"conduct"})[0]
+    editorObj.currentUsers[jimi.api.g.sessionData["user"]] = time.time()
+    #Remove old users
+    if jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj["acl"],"write"):
+        popList = []
+        for user in editorObj.currentUsers:
+            if editorObj.currentUsers[user] < time.time() - 5:
+                popList.append(user)
+        for user in popList:
+            editorObj.currentUsers.pop(user)
+        editorObj.update(["currentUsers"])
+    flowchartResponse["currentUsers"] = [user for user in editorObj.currentUsers if editorObj.currentUsers[user] > time.time() - 5]
 
     return flowchartResponse, 200
 
@@ -222,8 +271,8 @@ def conductExport(conductID):
 
     flowTriggers = [ jimi.db.ObjectId(x["triggerID"]) for x in flows if x["type"] == "trigger" ]
     flowActions = [ jimi.db.ObjectId(x["actionID"]) for x in flows if x["type"] == "action" ]
-    actions = jimi.action._action().getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
-    triggers = jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowTriggers } })
+    actions = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
+    triggers = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowTriggers } })
     result = { "flow" : flows, "action" : {}, "trigger" : {}, "ui" : {} }
 
     for flow in flows:
@@ -272,7 +321,7 @@ def conductImportData(conductID):
         conductObj = conductObj[0]
     else:
         return { }, 404
-    access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+    access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
     if access:
         data = json.loads(jimi.api.request.data)
         importData = json.loads(data["importData"])
@@ -321,10 +370,26 @@ def conductImportData(conductID):
                     classObj = classObj[0]
                     existingTrigger = []
                     if data["duplicateObjects"] == False:
-                        existingTrigger = jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,query={ "name" : importData["trigger"][flow["triggerID"]]["name"], "classID" : classObj._id })
+                        existingTrigger = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,query={ "name" : importData["trigger"][flow["triggerID"]]["name"], "classID" : classObj._id })
                     if len(existingTrigger) > 0:
-                        existingTrigger = existingTrigger[0]
+                        existingTriggers = existingTrigger
+                        existingTrigger = None
+                        # Checking that the found object is the same as the imported object
+                        for existingTriggerItem in existingTriggers:
+                            members = [attr for attr in dir(existingTriggerItem) if not callable(getattr(existingTriggerItem, attr)) and not "__" in attr and attr ]
+                            blacklist = ["_id","classID","className","acl","lastCheck"]
+                            same = True
+                            for member in members:
+                                if member in importData["trigger"][flow["triggerID"]] and member not in blacklist:
+                                    if getattr(existingTriggerItem,member) != importData["trigger"][flow["triggerID"]][member]:
+                                        same = False
+                                        break 
+                            if same:
+                                existingTrigger = existingTriggerItem
+                                break
                     else:
+                        existingTrigger = None
+                    if existingTrigger == None:
                         _class = classObj.classObject()
                         acl = { "ids" : [ { "accessID" : jimi.api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
                         newObjectID = _class().new(importData["trigger"][flow["triggerID"]]["name"],acl=acl).inserted_id
@@ -348,10 +413,26 @@ def conductImportData(conductID):
                     classObj = classObj[0]
                     existingAction = []
                     if data["duplicateObjects"] == False:
-                        existingAction = jimi.action._action().getAsClass(jimi.api.g.sessionData,query={ "name" : importData["action"][flow["actionID"]]["name"], "classID" : classObj._id })
+                        existingAction = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,query={ "name" : importData["action"][flow["actionID"]]["name"], "classID" : classObj._id })
                     if len(existingAction) > 0:
-                        existingAction = existingAction[0]
+                        existingActions = existingAction
+                        existingAction = None
+                        # Checking that the found object is the same as the imported object
+                        for existingActionItem in existingActions:
+                            members = [attr for attr in dir(existingActionItem) if not callable(getattr(existingActionItem, attr)) and not "__" in attr and attr ]
+                            blacklist = ["_id","classID","className","acl","lastCheck"]
+                            same = True
+                            for member in members:
+                                if member in importData["action"][flow["actionID"]] and member not in blacklist:
+                                    if getattr(existingActionItem,member) != importData["action"][flow["actionID"]][member]:
+                                        same = False
+                                        break 
+                            if same:
+                                existingAction = existingActionItem
+                                break
                     else:
+                        existingAction = None
+                    if existingAction == None:
                         _class = classObj.classObject()
                         acl = { "ids" : [ { "accessID" : jimi.api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
                         newObjectID = _class().new(importData["action"][flow["actionID"]]["name"],acl=acl).inserted_id
@@ -451,8 +532,8 @@ def getConductFlowCodify(conductID):
     flowTriggers = [ jimi.db.ObjectId(x["triggerID"]) for x in flows if x["type"] == "trigger" ]
     flowActions = [ jimi.db.ObjectId(x["actionID"]) for x in flows if x["type"] == "action" ]
 
-    actions = jimi.action._action().getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
-    triggers = jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowTriggers } })
+    actions = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowActions } })
+    triggers = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,query={ "_id" : { "$in" : flowTriggers } })
 
     flowID = None
     if data:
@@ -482,7 +563,7 @@ def deleteFlow(conductID,flowID):
         conductObj = conductObj[0]
     else:
         return { }, 404
-    access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+    access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
     if access:
         if jimi.db.fieldACLAccess(jimi.api.g.sessionData,conductObj.acl,"flow","delete"):
             flow = [ x for x in conductObj.flow if x["flowID"] ==  flowID]
@@ -512,7 +593,7 @@ def newFlow(conductID):
     else:
         return { }, 404
 
-    access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+    access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
     if access:
         data = json.loads(jimi.api.request.data)
         # Get new UUID store within current conduct flow and return UUID
@@ -530,7 +611,7 @@ def newFlow(conductID):
             newFlowObjectID = _class().new(flow["flowID"],acl=acl).inserted_id
             # Working out by bruteforce which type this is ( try and load it by parent class and check for error) - get on trigger if it does not exist will return None
             modelFlowObjectType = "action"
-            if len(jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,id=newFlowObjectID)) > 0:
+            if len(jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,id=newFlowObjectID)) > 0:
                 modelFlowObjectType = "trigger"
             modelFlowObject = _class().getAsClass(jimi.api.g.sessionData,id=newFlowObjectID)
             if len(modelFlowObject) == 1:
@@ -563,7 +644,7 @@ def dropExistingObject(conductID):
         conductObj = conductObj[0]
     else:
         return { }, 404
-    access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+    access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
     if access:
         data = json.loads(jimi.api.request.data)
         if data["action"] == "drop":
@@ -576,9 +657,9 @@ def dropExistingObject(conductID):
             }
             modelFlowObject = None
             if data["flowType"] == "trigger":
-                modelFlowObject = jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,id=data["_id"])[0]
+                modelFlowObject = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,id=data["_id"])[0]
             elif data["flowType"] == "action":
-                modelFlowObject = jimi.action._action().getAsClass(jimi.api.g.sessionData,id=data["_id"])[0]
+                modelFlowObject = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,id=data["_id"])[0]
             if modelFlowObject:
                 name = modelFlowObject.name
             else:
@@ -607,7 +688,7 @@ def updateFlow(conductID,flowID):
         flow = flow[0]
         data = json.loads(jimi.api.request.data)
         if data["action"] == "update":
-            access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+            access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
             if access:
                 if "x" in data and "y" in data:
                     try:
@@ -638,7 +719,7 @@ def updateFlow(conductID,flowID):
                     jimi.webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],x,y)
                     return { }, 201
         elif data["action"] == "copy":
-            access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+            access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
             if access:
                 flow = [ x for x in conductObj.flow if x["flowID"] ==  data["operatorId"]]
                 if len(flow) == 1:
@@ -660,7 +741,7 @@ def updateFlow(conductID,flowID):
                     conductObj.update(["flow"],sessionData=jimi.api.g.sessionData)
                     return { }, 201
         elif data["action"] == "clone":
-            access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+            access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
             if access:
                 flow = [ x for x in conductObj.flow if x["flowID"] ==  data["operatorId"]]
                 if len(flow) == 1:
@@ -670,12 +751,12 @@ def updateFlow(conductID,flowID):
                     # Check if the modelType and object are unchanged
                     if "type" in flow:
                         if flow["type"] == "trigger":
-                            modelFlowObject = jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                            modelFlowObject = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
                             if len(modelFlowObject) == 1:
                                 modelFlowObject = modelFlowObject[0]
                             modelFlowObjectType = "trigger"
                         if flow["type"] == "action":
-                            modelFlowObject = jimi.action._action().getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                            modelFlowObject = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
                             if len(modelFlowObject) == 1:
                                 modelFlowObject = modelFlowObject[0]
                             modelFlowObjectType = "action"
@@ -738,7 +819,7 @@ def newFlowLink(conductID,fromFlowID,toFlowID):
         conductObj = conductObj[0]
     else:
         return { }, 404
-    access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+    access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
     if access:
         fromFlow = [ x for x in conductObj.flow if x["flowID"] ==  fromFlowID][0]
         toFlow = [ x for x in conductObj.flow if x["flowID"] ==  toFlowID][0]
@@ -773,7 +854,7 @@ def deleteFlowLink(conductID,fromFlowID,toFlowID):
         conductObj = conductObj[0]
     else:
         return { }, 404
-    access, accessIDs, adminBypass = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+    access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
     if access:
         fromFlow = [ x for x in conductObj.flow if x["flowID"] ==  fromFlowID]
         if len(fromFlow) > 0:
@@ -807,11 +888,11 @@ def getACL(conductID,flowID):
         flow = flow[0]
         if "type" in flow:
             if flow["type"] == "trigger":
-                modelFlowObject = jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                modelFlowObject = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
                 if len(modelFlowObject) == 1:
                     modelFlowObject = modelFlowObject[0]
             if flow["type"] == "action":
-                modelFlowObject = jimi.action._action().getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                modelFlowObject = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
                 if len(modelFlowObject) == 1:
                     modelFlowObject = modelFlowObject[0]
     acl = None
@@ -841,11 +922,11 @@ def editACL(conductID,flowID):
         flow = flow[0]
         if "type" in flow:
             if flow["type"] == "trigger":
-                modelFlowObject = jimi.trigger._trigger().getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                modelFlowObject = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
                 if len(modelFlowObject) == 1:
                     modelFlowObject = modelFlowObject[0]
             if flow["type"] == "action":
-                modelFlowObject = jimi.action._action().getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                modelFlowObject = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
                 if len(modelFlowObject) == 1:
                     modelFlowObject = modelFlowObject[0]
 
@@ -886,10 +967,10 @@ def editACL(conductID,flowID):
 
 @jimi.api.webServer.route("/conductEditor/existingObjects/triggers/", methods=["GET"])
 def getExistingObjectsTriggers():
-    triggers = jimi.trigger._trigger().query(sessionData=jimi.api.g.sessionData,query={ "scope" : { "$gt" : 0 } })["results"]
+    triggers = jimi.trigger._trigger(False).query(sessionData=jimi.api.g.sessionData,query={ "scope" : { "$gt" : 0 } })["results"]
     return { "results" : triggers}, 200
 
 @jimi.api.webServer.route("/conductEditor/existingObjects/actions/", methods=["GET"])
 def getExistingObjectsActions():
-    actions = jimi.action._action().query(sessionData=jimi.api.g.sessionData,query={ "scope" : { "$gt" : 0 } })["results"]
+    actions = jimi.action._action(False).query(sessionData=jimi.api.g.sessionData,query={ "scope" : { "$gt" : 0 } })["results"]
     return { "results" : actions}, 200

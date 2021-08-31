@@ -58,6 +58,7 @@
                 </div>
                 <div class="tab-pane fade" id="conducts" role="tabpanel" aria-labelledby="access-tab">
                   <br>
+                  <i>This feature is not currently implemented!</i>
                   <div class="row align-items-start">
                     <div class="col">
                       <h2>Available Conducts</h2>
@@ -85,7 +86,7 @@
                                   </label>
                                   <label class="btn btn-secondary active bi-trash">
                                     {% if conduct["acl"]["delete"] %}
-                                      <input type="checkbox" autocomplete="off" checked>
+                                      <input type="checkbox" id="{{ conduct["name"] }}" autocomplete="off" checked>
                                     {% else %}
                                       <input type="checkbox" autocomplete="off">
                                     {% endif %}
@@ -95,6 +96,7 @@
                             </div>
                           {% endfor %}
                       </div>
+                      <button type="button" class="btn btn-primary button bi-save" onclick="editConducts()"> Save</button>
                     </div>
                     <div class="col">
                       <h2>Current Conducts</h2>
@@ -137,6 +139,7 @@
                 </div>
                 <div class="tab-pane fade" id="models" role="tabpanel" aria-labelledby="access-tab">
                   <br>
+                  <i>This feature is not currently implemented!</i>
                   <div class="row align-items-start">
                     <div class="col">
                       <h2>Available Models</h2>
@@ -222,6 +225,19 @@
               </div>
     </div>
     <script>
+        function editGroup() {
+          var body = JSON.stringify({ CSRF : CSRF, name: $("#name").val(), description: $("#description").val(), enabled: $("#active").val()})
+          $.ajax({ type : "PUT",  data:body, contentType:"application/json", 
+              success: function ( result ) 
+              {
+                  dropdownAlert($("#alertArea"),"success","Group updated successfully",2500);
+              },
+              error: function ( result )
+              {
+                  dropdownAlert($("#alertArea"),"error",result.responseJSON.message,2500);
+              }
+          });
+        }
         function editGroup() {
           var body = JSON.stringify({ CSRF : CSRF, name: $("#name").val(), description: $("#description").val(), enabled: $("#active").val()})
           $.ajax({ type : "PUT",  data:body, contentType:"application/json", 
