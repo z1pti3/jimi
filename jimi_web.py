@@ -38,6 +38,13 @@ if "webui" not in jimi.db.list_collection_names():
 def indexPage():
 	return jimi.api.make_response(redirect("/status/"))
 
+@jimi.api.webServer.route("/theme.css")
+def __PUBLIC__getTheme():
+	try:
+		return send_from_directory(str(Path("web/build/static/css/")), "theme-{0}.css".format(jimi.api.g.sessionData["theme"]))
+	except:
+		return send_from_directory(str(Path("web/build/static/css/")), "theme-dark.css")
+
 @jimi.api.webServer.route("/login/")
 def loginPage():
 	return render_template("login.html")

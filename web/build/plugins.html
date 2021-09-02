@@ -7,7 +7,7 @@
 {% block main %}
     <div class="container px-4 py-5 text-center" id="custom-cards">
         <div class="text-start" >
-            <input type="text" class="form-control textbox w-50" id="pluginSearch" onkeyup="doPluginSearch()" placeholder="Search for plugins">
+            <input type="text" class="form-control textbox w-50" id="pluginSearch" onkeyup="doPluginSearch()" placeholder="Search for applications">
         </div>
         <div class="row row-cols-1 row-cols-lg-5 align-items-stretch g-2 py-4">
             {% for plugin in plugins|sort(attribute='name') %}

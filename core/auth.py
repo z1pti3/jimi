@@ -54,6 +54,7 @@ class _user(jimi.db._document):
     primaryGroup = str()
     additionalGroups = list()
     icon = str()
+    theme = "dark"
     loginType = "local"
 
     _dbCollection = jimi.db.db["users"]
@@ -306,7 +307,7 @@ def validateUser(username,password,otp=None):
             sessionID = secrets.token_hex(32)
             if _session().new(user.username,sessionID,"jimi").inserted_id:
                 jimi.audit._audit().add("auth","login",{ "action" : "success", "src_ip" : jimi.api.request.remote_addr, "username" : user.username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" :user.primaryGroup, "admin" : isAdmin(user), "sessionID" : sessionID, "api" : False })
-                return generateSession({"jimi" : { "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True, "sessionID" : sessionID, "api" : False }})
+                return generateSession({"jimi" : { "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True, "sessionID" : sessionID, "api" : False, "theme" : user.theme }})
             else:
                 jimi.audit._audit().add("auth","session",{ "action" : "failure", "src_ip" : jimi.api.request.remote_addr, "username" : username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" :user.primaryGroup, "admin" : isAdmin(user), "sessionID" : sessionID, "api" : False, "application" : "jimi" })
         else:
@@ -425,6 +426,11 @@ if jimi.api.webServer:
                     if "renew" in validSession:
                         jimi.api.g.renew = validSession["renew"]
                 else:
+                    if "jimiAuth" in jimi.api.request.cookies:
+                        validSession = validateSession(jimi.api.request.cookies["jimiAuth"],"jimi")
+                        if validSession:
+                            jimi.api.g.sessionData = validSession["sessionData"]
+                            jimi.api.g.sessionToken = validSession["sessionToken"]
                     jimi.api.g.type = "bypass"
             else:
                 jimi.api.g.sessionData = { "_id" : "0", "user" : "noAuth", "CSRF" : "" }
