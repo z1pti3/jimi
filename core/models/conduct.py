@@ -65,6 +65,8 @@ class _conduct(jimi.db._document):
         ####################################
 
         data["persistentData"]["system"]["conduct"] = self
+
+        # Feature preload and cache so that we dont have to loop here?
         if self.statics:
             data["flowData"]["var"]["statics"] = {}
             for staticName, staticValue in self.statics.items():
