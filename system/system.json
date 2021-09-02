@@ -522,9 +522,9 @@
             "display_name" : "globalSet",
             "className" : "_globalSet",
             "class_location" : "models.global",
-            "description" : "Define global persistent variables .",
+            "description" : "Define global persistent variables.",
             "fields" : [
-                { "schema_item" : "globalName", "schema_value" : "globalName", "type" : "input", "label" : "globalName", "description" : "Name of the global variable to define.", "required" : true, "jimi_syntax" : true },
+                { "schema_item" : "globalName", "schema_value" : "globalName", "type" : "input", "label" : "globalName", "description" : "Name of the global variable to define. Care should be taken when setting a name so that it is unique and complex on shared systems. ", "required" : true, "jimi_syntax" : true },
                 { "schema_item" : "globalValue", "schema_value" : "globalValue", "type" : "input", "label" : "globalValue", "description" : "Value to set to the named global variable.", "required" : true, "jimi_syntax" : true }
             ],
             "data_out" : {
