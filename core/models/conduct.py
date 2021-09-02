@@ -11,6 +11,7 @@ class _conduct(jimi.db._document):
     enabled = True
     log = bool()
     comment = str()
+    statics = dict()
 
     _dbCollection = jimi.db.db["conducts"]
 
@@ -64,6 +65,10 @@ class _conduct(jimi.db._document):
         ####################################
 
         data["persistentData"]["system"]["conduct"] = self
+        if self.statics:
+            data["flowData"]["var"]["statics"] = {}
+            for staticName, staticValue in self.statics.items():
+                data["flowData"]["var"]["statics"][staticName] = staticValue
 
         flowDict = jimi.cache.globalCache.get("flowDict",self._id,getFlowDict,self.flow)
         
