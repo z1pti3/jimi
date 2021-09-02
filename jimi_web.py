@@ -41,9 +41,9 @@ def indexPage():
 @jimi.api.webServer.route("/theme.css")
 def __PUBLIC__getTheme():
 	try:
-		return send_from_directory(str(Path("web/build/static/css/")), "theme-{0}.css".format(jimi.api.g.sessionData["theme"]))
+		return send_from_directory(str(Path("web/build/static/themes/")), "theme-{0}.css".format(jimi.api.g.sessionData["theme"]))
 	except:
-		return send_from_directory(str(Path("web/build/static/css/")), "theme-dark.css")
+		return send_from_directory(str(Path("web/build/static/themes/")), "theme-dark.css")
 
 @jimi.api.webServer.route("/login/")
 def loginPage():

@@ -1,0 +1,334 @@
+:root {
+    /* Main */
+    --mainBackgroundColor: #222222;
+    --textColor: #adadad;
+    --textColorHover: #f1f1f1;
+    --textDisabledColor: #615f5f;
+    --hoverColor: #220433;
+
+    /* Scrollbar */
+    --scrollbarColor: #111111;
+    --scrollbarBackgroundColor: #333333;
+    --scrollbarBorderColor: #f1f1f1;
+
+    /* Panel */
+    --panelBackgroundColor: #333333;
+    --panelBorderColor: #000000;
+    --panelShadowColor1: rgba(0, 0, 0, 0.12);
+    --panelShadowColor2: rgba(0, 0, 0, 0.24);
+    --panelComponentBackground: #111111;
+    --panelComponentBackground-Focus: #020202;
+    --panelComponentBorder: #2e6da4;
+    --panelComponentBorder-Focus: #167bff;
+
+    /* Component */
+    --componentBorderColor: #000000;
+    --componentBorderColorSelect: #167bff;
+    --componentBackground1: #111111;
+    --componentBackground2: #1f1f1f;
+    --componentBackgroundSelect: #030303;
+
+
+    /* Alerts */
+    --errorBackgroundColor: #ffffff;
+    --errorColor: #ec0e0e;
+    --alertBackgroundColor: #ffffff;
+    --alertColor: #15b438;
+}
+
+*::-webkit-scrollbar {
+    width: 12px;
+}
+
+*::-webkit-scrollbar-track {
+    background: var(--scrollbarColor);
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbarBackgroundColor);
+}
+
+a {
+    color: var(--textColor);
+    text-decoration: unset;
+}
+
+a:hover {
+    color: var(--textColorHover);
+    text-decoration: underline;
+}
+
+body {
+    background-color: var(--mainBackgroundColor);
+    color: var(--textColor);
+    padding-bottom: 25px;
+    height: 100%;
+    overflow-y: scroll;
+    font-family: sans-serif;
+}
+
+.panel {
+    overflow-y: auto;
+    background-color: var(--panelBackgroundColor);
+    box-shadow: 0 1px 6px var(--panelShadowColor1), 0 1px 4px var(--panelShadowColor2);
+    color: var(--textColor);
+    border-radius: 5px;
+    padding: 5px;
+    border-style: solid;
+    border-color: var(--panelBorderColor);
+    border-width: 1px;
+    border-radius: 5px;
+}
+
+.content {
+    overflow-y: auto;
+}
+
+.panelHeader {
+    font-size: 15px;
+    text-align: center;
+    width: 100%;
+}
+
+.chartContainer {
+    height: calc(100% - 22px);
+}
+
+.chart {
+    /* width: unset!important;
+    height: unset!important; */
+}
+
+.panelTextbox {
+    background-color: var(--panelComponentBackground);
+    color: var(--textColor);
+    border: none;
+}
+
+.panelTextbox:focus {
+    background-color: var(--panelComponentBackground);
+    color: var(--textColor);
+    border: none;
+}
+
+.dictTable {
+    width: 100%;
+    border-style: solid;
+    border-color: var(--panelComponentBackground);
+}
+
+.pluginPanel {
+    min-height: 250px;
+    min-width: 250px;
+}
+
+/* dataTable */
+div.dts {
+    height: calc(100% - 100px);
+}
+
+div.dts div.dataTables_scrollBody {
+    background: unset;
+    background-color: var(--panelBackgroundColor);
+}
+
+.dataTables_scrollHead div table {
+    border-color: var(--panelBorderColor);
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-top-style: solid;
+    border-top-width: 1px;
+}
+
+.theme-table .sorting {
+    padding-top: 13px;
+    font-size: 18px;
+}
+
+.theme-table td {
+    padding-right: 12px;
+}
+
+.theme-table {
+    background-color: var(--panelBackgroundColor);
+    color: var(--textColor);
+    font-size: 17px;
+}
+
+.theme-tableRowOdd {
+    background-color: var(--componentBackground2);
+}
+
+/* .theme-tableRowOdd:hover {
+    background-color: var(--panelComponentBackground);
+} */
+
+.theme-tableRowEven {
+    background-color: var(--panelBackgroundColor);
+}
+
+/* .theme-tableRowEven:hover {
+    background-color: var(--panelComponentBackground);
+} */
+
+/* visjs */
+.vis-network:focus {
+    outline: none;
+}
+
+.visjstimeline {
+    height: calc(100% - 22px);  
+}
+
+.vis-time-axis .vis-text {
+    color: var(--textColor);
+}
+
+/* bootstrap extras */
+
+.h-search {
+    height: 46px;
+}
+
+.h-10 {
+    height: 10%!important;
+}
+
+.h-20 {
+    height: 20%!important;
+}
+
+
+.h-30 {
+    height: 30%!important;
+}
+
+.h-40 {
+    height: 40%!important;
+}
+
+.h-60 {
+    height: 60%!important;
+}
+
+.h-60-search {
+    height: calc(60% - 46px);
+}
+
+.noHover:hover {
+    text-decoration: none;
+}
+
+.hide {
+    display: none;
+}
+
+.unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.textbox {
+    background-color: var(--componentBackground1); 
+    color: var(--textColor);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--componentBorderColor);
+    display:inline;
+}
+
+.textboxError {
+    border-width: 1px;
+    border-color: var(--errorColor);
+}
+
+.textbox:disabled {
+    background-color: var(--panelComponentBackground); 
+    color: var(--textDisabledColor);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--panelComponentBorder);
+}
+
+.textbox:focus {
+    background-color: var(--componentBackgroundSelect);
+    color: var(--textColor);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--componentBorderColorSelect);
+}
+
+.textbox:hover {
+    background-color: var(--componentBackgroundSelect);
+}
+
+.textarea {
+    background-color: var(--panelComponentBackground); 
+    color: var(--textColor);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--panelComponentBorder);
+    display:inline;
+    height: 150px !important;
+}
+
+.textarea:disabled {
+    background-color: var(--panelComponentBackground); 
+    color: var(--textDisabledColor);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--panelComponentBorder);
+}
+
+.textarea:focus {
+    background-color: var(--panelComponentBackground-Focus); 
+    color: var(--textColor);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--panelComponentBorder);
+}
+
+.textarea:hover {
+    background-color: var(--panelComponentBackground-Focus); 
+    color: var(--textColor);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--panelComponentBorder);
+}
+
+.button {
+    background-color: var(--componentBackground2);
+    border-color: var(--componentBorderColor);
+    color: var(--textColor);
+    border-style: solid;
+    border-width: 1px;
+    display:inline;
+}
+
+.button:hover, .button:focus, .button:active {
+    background-color: var(--componentBackgroundSelect);
+    border-color: var(--componentBorderColor);
+    border-style: solid;
+    border-width: 1px;
+    display:inline;
+}
+
+.small {
+    width: 100px;
+}
+
+.medium {
+    width: 350px;
+}
+
+.marSmall {
+    margin: 2px;
+}
+
+.dropdown-menu {
+    background-color: #111;
+}
