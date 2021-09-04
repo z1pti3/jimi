@@ -11,7 +11,6 @@ function GetURLParameter(sParam) {
     }
 }
 
-
 function sanitize(string) {
     const map = {
         '&': '&amp;',
@@ -24,7 +23,6 @@ function sanitize(string) {
     const reg = /[&<>"'/]/ig;
     return string.replace(reg, (match)=>(map[match]));
   }
-
 
   function syntaxHighlight(json) {
     if (typeof json != 'string') {
@@ -60,3 +58,247 @@ function getMenuPosition(mouse, direction, scrollDir, menu) {
     
     return position;
 }    
+
+function buildForm(fromData) {
+    var groups = {}
+    var $table = $('<table width="100%">');
+    for (objectItem in fromData) {
+        var $row = $('<tr>');
+        // Tooltips
+        var tooltip = "";
+        if (fromData[objectItem].hasOwnProperty("tooltip")) {
+            tooltip = fromData[objectItem]["tooltip"]
+        }
+        // Custom Label
+        var label = fromData[objectItem]["schemaitem"]
+        if (fromData[objectItem].hasOwnProperty("label")) {
+            label = fromData[objectItem]["label"]
+        }
+
+        // Required
+        var required = false;
+        if (fromData[objectItem].hasOwnProperty("required")) {
+            required = fromData[objectItem]["required"]
+            if (required) {
+                label = label+"*";
+            }
+        }
+
+        // Group
+        var group = 0;
+        if (fromData[objectItem].hasOwnProperty("group")) {
+            group = fromData[objectItem]["group"]
+        }
+        
+        if (fromData[objectItem]["type"] == "group-checkbox") {
+            var $cell = $('<td width="100px">');
+            $cell.append($('<label>').attr({for: fromData[objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", title : tooltip, class: "theme-panelLabel"}).text(label+":"));
+            $row.append($cell);
+            var $cell = $('<td>');
+            if (fromData[objectItem]["checked"] == true) {
+                $cell.append($('<input class="theme-panelCheckbox">').attr({type: 'checkbox', required: required, id: "properties_items"+fromData[objectItem]["schemaitem"], current: true, checked: true, key: fromData[objectItem]["schemaitem"], tag: "formItem", "data-group" : group.toString()}));
+            }
+            else {
+                $cell.append($('<input class="theme-panelCheckbox">').attr({type: 'checkbox', required: required, id: "properties_items"+fromData[objectItem]["schemaitem"], current: false, key: fromData[objectItem]["schemaitem"], tag: "formItem", "data-group" : group.toString()}));
+            }
+            $cell.find("#properties_items"+fromData[objectItem]["schemaitem"]).on('change', function() {
+                if ($(this)[0].checked) {
+                    $(".group_"+$(this).attr("data-group")).removeClass("hide")
+                } else {
+                    $(".group_"+$(this).attr("data-group")).addClass("hide")
+                }
+            });
+            groups[group.toString()] = fromData[objectItem]["checked"];
+            $row.append($cell);
+        }
+        if (fromData[objectItem]["type"] == "input") {
+            var $cell = $('<td width="100px">');
+            $cell.append($('<label>').attr({for: fromData[objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", title : tooltip, class: "theme-panelLabel"}).text(label+":"));
+            $row.append($cell);
+            var $cell = $('<td>');
+            $cell.append($('<input class="form-control form-control-sm full-width textbox">').attr({type: 'text', value: fromData[objectItem]["textbox"], current: fromData[objectItem]["textbox"], required: required, id: "properties_items"+fromData[objectItem]["schemaitem"], key: fromData[objectItem]["schemaitem"], tag: "formItem"}));
+            $row.append($cell);
+        }
+        if (fromData[objectItem]["type"] == "checkbox") {
+            var $cell = $('<td>');
+            $row.append($cell);
+            var $cell = $('<td>');
+            var $div = $('<div class="form-check form-switch">')
+            var $checkbox = $('<input class="form-check-input" type="checkbox">').attr({required: required, id: "properties_items"+fromData[objectItem]["schemaitem"], current: fromData[objectItem]["checked"], checked: fromData[objectItem]["checked"], key: fromData[objectItem]["schemaitem"], tag: "formItem"})
+            var $label = $('<label class="form-check-label theme-panelLabel" for="flexSwitchCheckDefault">').attr({ for : "properties_items"+fromData[objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", "title" : tooltip }).text(label)
+            $div.append($checkbox)
+            $div.append($label)
+            $cell.append($div)
+            $row.append($cell);
+        }
+        if (fromData[objectItem]["type"] == "json-input") {
+            // output
+            // <label for="delay" class="theme-panelLabel">delay:</label>					
+            var $cell = $('<td width="100px">');
+            $cell.append($('<label>').attr({for: fromData[objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", title : tooltip, class: "theme-panelLabel"}).text(label+":"));
+            $row.append($cell);
+
+            // output
+            // <textarea class="inputFullWidth theme-panelTextArea" type="text" id="properties_itemsdelay" current="0" key="delay" tag="formItem"></textarea>
+            var $cell = $('<td>');
+            $cell.append($('<textarea class="form-control form-control-sm full-width textbox">').attr({type: 'text', required: required, id: "properties_items"+fromData[objectItem]["schemaitem"], current: JSON.stringify(fromData[objectItem]["textbox"]), key: fromData[objectItem]["schemaitem"], tag: "formItem"}));
+            $cell.find('#properties_items'+fromData[objectItem]["schemaitem"]).val(JSON.stringify(fromData[objectItem]["textbox"]));
+            $row.append($cell);
+        }
+        if (fromData[objectItem]["type"] == "dropdown") {
+  
+            var $cell = $('<td width="100px">');
+            $cell.append($('<label>').attr({for: fromData[objectItem]["schemaitem"], class: "theme-panelLabel"}).text(label+":"));
+            $row.append($cell);
+
+            var $cell = $('<td>');
+            var $select =$('<select class="inputFullWidth theme-panelTextArea">').attr({type: 'dropdown', required: required, id: "properties_items"+fromData[objectItem]["schemaitem"], current: JSON.stringify(fromData[objectItem]["dropdown"]), key: fromData[objectItem]["schemaitem"], tag: "formItem"});
+            
+              for (var i=0; i< fromData[objectItem]["dropdown"].length;i++){
+                $select.append($('<option>').attr({value: fromData[objectItem]["dropdown"][i]}).text(fromData[objectItem]["dropdown"][i]));
+            }
+            console.log(fromData[objectItem]["dropdown"]);
+            // Fixes legacy issues for dropdowns
+            if (fromData[objectItem]["value"] == null)
+            {
+                $select.val(fromData[objectItem]["current"])
+            }
+            else 
+            {
+                $select.val(fromData[objectItem]["value"])
+            }
+            $cell.append($select);
+            $row.append($cell);
+            
+        }
+        if (fromData[objectItem]["type"] == "unit-input") {
+  
+            var $cell = $('<td width="100px">');
+            $cell.append($('<label>').attr({for: fromData[objectItem]["schemaitem"], class: "theme-panelLabel"}).text(label+":"));
+            $row.append($cell);
+
+            var $cell = $('<td>');
+            $cell.append($('<input class="inputFullWidth theme-panelTextbox-34">').attr({type: 'text', value: fromData[objectItem]["textbox"], current: fromData[objectItem]["textbox"], required: required, id: "properties_items"+fromData[objectItem]["schemaitem"], key: fromData[objectItem]["schemaitem"], tag: "formItem"}));
+            var $select =$('<select class="inputFullWidth theme-panelTextArea-14">').attr({type: 'dropdown', required: required, id: "properties_items"+fromData[objectItem]["selectedunit"], key: fromData[objectItem]["unitschema"], tag: "formItem"});
+
+            for (var i=0; i< fromData[objectItem]["units"].length;i++){
+                $select.append($('<option>').attr({value: fromData[objectItem]["units"][i]}).text(fromData[objectItem]["units"][i]));
+            }
+            $select.val(fromData[objectItem]["currentunit"])
+            $cell.append($select);
+            $row.append($cell);
+            
+        }		
+        if (fromData[objectItem]["type"] == "break") {
+            if (fromData[objectItem]["start"] == true){
+                var $cell = $('<td colspan="2" width="100%">');
+                $cell.append($('<label>').attr({for: fromData[objectItem]["schemaitem"], class: "theme-panelBreakTitle"}).text(label));
+                $row.append($cell);
+            }
+            else 
+            {
+                var $cell = $('<td colspan="2" width="100%">');
+                $cell.append($('<label>').attr({class: "theme-panelBreakLine"}));
+                $row.append($cell);
+            }
+        }
+        if (fromData[objectItem]["type"] == "multiline") {
+            var $cell = $('<td width="100px">');
+            $cell.append($('<label>').attr({for: fromData[objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", title : tooltip, class: "theme-panelBreak"}).text(label+":"));
+            $row.append($cell);
+            var $cell = $('<td>');
+            var $multilineTextArea = $('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', required: required, id: "properties_items"+fromData[objectItem]["schemaitem"], current: fromData[objectItem]["textbox"], key: fromData[objectItem]["schemaitem"], tag: "formItem"});
+            $multilineTextArea.keydown(function(e) {
+                if(e.keyCode === 9) { // tab was pressed
+                    // get caret position/selection
+                    var start = this.selectionStart;
+                        end = this.selectionEnd;
+                    var $this = $(this);
+                    // set textarea value to: text before caret + tab + text after caret
+                    $this.val($this.val().substring(0, start)
+                                + "\t"
+                                + $this.val().substring(end));
+                    // put caret at right position again
+                    this.selectionStart = this.selectionEnd = start + 1;
+                    // prevent the focus lose
+                    return false;
+                }
+            });
+            $cell.append($multilineTextArea);
+            $cell.find('#properties_items'+fromData[objectItem]["schemaitem"]).val(fromData[objectItem]["textbox"]);
+            $row.append($cell);
+        }
+        if (fromData[objectItem]["type"] == "script") {
+            var $cell = $('<td width="100px">');
+            $table.addClass("objectPropertiesTableGrow")
+            $cell.append($('<label>').attr({for: fromData[objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", title : tooltip, class: "theme-panelBreak"}).text(label+":"));
+            $row.append($cell);
+            var $cell = $('<td height="100%">');
+            var $scriptTextArea = $('<div style="min-height: 250px; height: 100%">').attr({ type: "script", id: "properties_items"+fromData[objectItem]["schemaitem"], current: fromData[objectItem]["textbox"], key: fromData[objectItem]["schemaitem"], tag: "formItem" })
+            require(['vs/editor/editor.main'], function() {
+                var editor = monaco.editor.create($scriptTextArea.get(0), {
+                    theme: 'vs-dark',
+                    wordWrap: 'on',
+                    automaticLayout: true,
+                    minimap: {
+                        enabled: true
+                    },
+                    scrollbar: {
+                        vertical: 'auto'
+                    },
+                    readOnly: false,
+                    model: monaco.editor.createModel(fromData[objectItem]["textbox"],"python")
+                });
+                $scriptTextArea.data({editor : editor })
+            })
+            $scriptTextArea.resizable();
+            $cell.append($scriptTextArea);
+            $row.append($cell);
+        }
+        if (group > 0 && fromData[objectItem]["type"] != "group-checkbox") {
+            $row.addClass("group_"+group.toString())
+            if (!groups[group.toString()]) {
+                $row.addClass("hide");
+            }
+        }
+        $table.append($row);
+    }
+    return $table
+}
+
+function getForm(container) {
+    var jsonData = {};
+	var requiredMet = true;
+	container.find("[tag=formItem]").each(function() {
+		formItem = $(this)
+		resultItem = $(this).attr("key")
+		if (formItem.attr("type") == "text")
+		{
+			if (formItem.attr("required") && formItem.val() == "") {
+				dropdownAlert(container,"warning","Don't forget the required fields!",1000);
+				requiredMet = false;
+			}
+			if (formItem.attr("current") != formItem.val()) {
+				jsonData[resultItem] = formItem.val();
+			}
+		}
+		if (formItem.attr("type") == "checkbox")
+		{
+			if (String(formItem.attr("current")) != String(formItem.is(":checked"))) {
+				jsonData[resultItem] = formItem.is(":checked");
+			}
+		}
+		if (formItem.attr("type") == "dropdown")
+		{
+			jsonData[resultItem] = formItem.val();
+		}
+		if (formItem.attr("type") == "script")
+		{
+			jsonData[resultItem] = formItem.data("editor").getValue();
+		}
+	})
+	if (!requiredMet) {
+		return;
+	}
+    return jsonData;
+}
