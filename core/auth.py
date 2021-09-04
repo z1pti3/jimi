@@ -258,19 +258,30 @@ def validateSession(sessionToken,application,useCache=True):
 
 def validateExternalUser(username,password,method,**kwargs):
     if method == "ldap":
-        domains = jimi.settings.getSetting("ldap",None)["domains"]
-        if "domain" in kwargs:
-            domain = [x for x in domains if x["name"] == kwargs["domain"]][0]
+        ldapSettings = jimi.settings.getSetting("ldap",None)
+        if ldapSettings:
+            domains = ldapSettings["domains"]
+            if "domain" in kwargs:
+                domain = [x for x in domains if x["name"] == kwargs["domain"]][0]
+            else:
+                domain = domains[0]
             server = Server(domain["ip"], use_ssl=domain["ssl"], get_info=ALL)
-            conn = Connection(server, "{}\{}".format(kwargs["domain"],username), password, authentication=NTLM)
+            conn = Connection(server, "{}\{}".format(domain["name"],username), password, authentication=NTLM)
             if conn.bind():
                 # Generate new session
                 if authSettings["singleUserSessions"]:
                     _session().api_delete(query={ "user" : username, "application" : kwargs["application"] })
                 sessionID = secrets.token_hex(32)
                 if _session().new(username,sessionID,kwargs["application"]).inserted_id:
+                    #If there's a matching user in jimi's DB
+                    if "userData" in kwargs:
+                        user = kwargs["userData"]
+                        jimi.audit._audit().add("auth","login",{ "action" : "success", "src_ip" : jimi.api.request.remote_addr, "username" : user.username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" :user.primaryGroup, "admin" : isAdmin(user), "sessionID" : sessionID, "api" : False, "application" : kwargs["application"]  })
+                        return generateSession({kwargs["application"] : { "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True, "sessionID" : sessionID, "api" : False, "theme" : user.theme }})
                     jimi.audit._audit().add("auth","login",{ "action" : "success", "src_ip" : jimi.api.request.remote_addr, "username" : username, "sessionID" : sessionID, "api" : False, "application" : kwargs["application"] })
                     return generateSession({kwargs["application"] : { "_id" : kwargs["application"], "user" : username, "authenticated" : True, "sessionID" : sessionID, "api" : False}})
+
+                    
                 else:
                     jimi.audit._audit().add("auth","session",{ "action" : "failure", "src_ip" : jimi.api.request.remote_addr, "username" : username, "sessionID" : sessionID, "api" : False, "application" : kwargs["application"] })
 
@@ -467,6 +478,7 @@ if jimi.api.webServer:
                     data = json.loads(jimi.api.request.data)
                     #check if OTP has been passed
                     #if invalid user or user requires OTP, return 200 but request OTP
+                    userSession = None
                     if "otp" not in data:
                         user = _user().getAsClass(query={ "username" : data["username"] })
                         if len(user) == 1:
@@ -474,10 +486,14 @@ if jimi.api.webServer:
                             if user.totpSecret != "":
                                 return {}, 403
                             else:
-                                userSession = validateUser(data["username"],data["password"])
+                                if data["type"] == "local":
+                                    userSession = validateUser(data["username"],data["password"])
+                                else:
+                                    userSession = validateExternalUser(data["username"],data["password"],data["type"],application="jimi",userData=user)
                         else:
                             return {}, 403
-                    else:
+                    #Only local auth would support OTP
+                    elif data["type"] == "local":
                         userSession = validateUser(data["username"],data["password"],data["otp"])
                     if userSession:
                         sessionData = validateSession(userSession,"jimi")["sessionData"]

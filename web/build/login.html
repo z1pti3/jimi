@@ -122,9 +122,9 @@
         $("#login").submit(function(e) {
             e.preventDefault();
             if ($("#otp").parent().hasClass("hidden")) {
-                var body = JSON.stringify({ username: $("#username").val(), password: $("#password").val() })
+                var body = JSON.stringify({ username: $("#username").val(), password: $("#password").val(), type: $("#loginType").val() })
             } else {
-                var body = JSON.stringify({ username: $("#username").val(), password: $("#password").val(), otp: $("#otp").val() })
+                var body = JSON.stringify({ username: $("#username").val(), password: $("#password").val(), otp: $("#otp").val(), type: $("#loginType").val() })
             }
             var redirect = GetURLParameter("return");
             if (redirect == null) {
