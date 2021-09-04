@@ -47,7 +47,8 @@ def __PUBLIC__getTheme():
 
 @jimi.api.webServer.route("/login/")
 def loginPage():
-	return render_template("login.html")
+	loginTypes = jimi.settings.getSettingValue(None,jimi.api.g.sessionData,"auth","types")
+	return render_template("login.html",loginTypes=loginTypes)
 
 @jimi.api.webServer.route("/debugFlow/")
 def debugFlowPage():
