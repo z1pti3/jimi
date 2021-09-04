@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.035
+systemVersion = 3.04
 
 # Initialize 
 dbCollectionName = "system"
@@ -461,5 +461,12 @@ def systemUpgrade(currentVersion):
 
 	if currentVersion < 3.035:
 		jimi.model.registerModel("revision","_revision","_document","core.revision")
+
+	if currentVersion < 3.09:
+		#Adding additional auth settings
+		authSettings = jimi.settings._settings().getAsClass(query={"name" : "auth"})[0]
+		if "types" not in authSettings.values:
+			authSettings.values["types"] = ["local"]
+			authSettings.update(["values"])
 
 	return True
