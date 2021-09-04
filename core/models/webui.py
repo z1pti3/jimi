@@ -95,7 +95,7 @@ class _properties():
                 return formData
         
         # Old method
-        blacklist = ["classID","workerID","acl","lastUpdateTime","creationTime","createdBy","attemptCount","autoRestartCount","startCheck"]
+        blacklist = ["classID","workerID","acl","lastUpdateTime","creationTime","createdBy","attemptCount","autoRestartCount","startCheck","scope","clusterSet","lastCheck","startTime","systemIndex"]
         members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
         for member in members:
             if member not in blacklist:
