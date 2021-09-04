@@ -19,6 +19,24 @@
                     <input type="text" class="form-control textbox" id="name" value="" aria-describedby="nameHelp">
                 {% endif %}
                 <small id="nameHelp" class="form-text text-muted">The name of the organsation using JIMI</small>
+                <br>
+                <label for="loginTypes">Authentication Types</label>
+                <ul class="form-control listcontainer" id="loginTypes">
+                {% for type in loginTypes %}
+                    {% if type["enabled"] == true %}
+                    <li class="form-control listitem form-switch">
+                        <input class="form-check-input" type="checkbox" value="" aria-label="{{ type["name"] }}" checked>
+                        {{ type["name"] }}
+                    </li>
+                    {% else %}
+                    <li class="form-control listitem form-switch">
+                        <input class="form-check-input" type="checkbox" value="" aria-label="{{ type["name"] }}">
+                        {{ type["name"] }}
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                </ul>
+                <small id="authTypeHelp" class="form-text text-muted">The methods of authentication users can use on the system</small>
             </div>
         </form>
         <button type="button" class="btn btn-primary button bi-save" onclick="editOrganisation()"> Save</button>
@@ -30,7 +48,7 @@
     </div>
     <script>
         function editOrganisation() {
-                var body = JSON.stringify({ CSRF : CSRF, name: $("#name").val()})
+                var body = JSON.stringify({ CSRF : CSRF, name: $("#name").val() })
                 $.ajax({ type : "POST",  data:body, contentType:"application/json", 
                     success: function ( result ) 
                     {
