@@ -462,11 +462,14 @@ def systemUpgrade(currentVersion):
 	if currentVersion < 3.035:
 		jimi.model.registerModel("revision","_revision","_document","core.revision")
 
-	if currentVersion < 3.09:
+	if currentVersion < 3.04:
 		#Adding additional auth settings
 		authSettings = jimi.settings._settings().getAsClass(query={"name" : "auth"})[0]
 		if "types" not in authSettings.values:
 			authSettings.values["types"] = ["local"]
 			authSettings.update(["values"])
+
+		#Adding org model
+		jimi.model.registerModel("organisation","_organisation","_document","core.organisation")
 
 	return True
