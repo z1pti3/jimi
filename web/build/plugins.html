@@ -13,7 +13,7 @@
             {% for plugin in plugins|sort(attribute='name') %}
                 <div class="col pluginContainer" data-name="{{ plugin["name"] }}" style="height: 125px;">
                     <a href="/plugin/{{ plugin["name"] }}/" class="noHover">
-                        <div class="card h-100 panel">
+                        <div class="card h-100 panel panelHover">
                             <h5 class="card-title">{{ plugin["name"] }}</h5>
                         </div>
                     </a>
