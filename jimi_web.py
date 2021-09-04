@@ -63,7 +63,8 @@ def clusterAdminPage():
 @jimi.api.webServer.route("/admin/organisation/", methods=["GET"])
 @jimi.auth.adminEndpoint
 def organisationAdminPage():
-	return render_template("organisation.html",CSRF=jimi.api.g.sessionData["CSRF"])
+	organisation = jimi.organisation._organisation().query()["results"]
+	return render_template("organisation.html",CSRF=jimi.api.g.sessionData["CSRF"],organisation=organisation)
 
 # Should be migrated into plugins.py
 @jimi.api.webServer.route(jimi.api.base+"plugins/")

@@ -15,7 +15,7 @@ cache.globalCache.updateCacheSettings("settingsCache",cacheExpiry=3600)
 from core import logging
 from core import api
 from core import auth
-from core import admin, audit, cluster, debug, flow, model, plugin, scheduler, static, storage, workers, exceptions, revision
+from core import admin, audit, cluster, debug, flow, model, plugin, scheduler, static, storage, workers, exceptions, revision, organisation
 from core.models import  action, conduct, trigger, webui
 
 from system import logic, variable, system
