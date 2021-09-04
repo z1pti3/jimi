@@ -34,7 +34,7 @@
     <div class="modal fade" id="newUserModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content panel">
-                <form class="needs-validation" novalidate>
+                <form class="needs-validation" id="userCreationForm" novalidate>
                     <div class="modal-header">
                         <h5 class="modal-title" id="exampleModalLongTitle">Create new user</h5>
                         <button type="button" class="close button" data-bs-dismiss="modal" aria-label="Close">
@@ -134,5 +134,9 @@
         $(document).ready(function() {
             doSearch();
         });
+        var userModal = document.getElementById("newUserModal");
+        userModal.addEventListener('hidden.bs.modal',function(event) {
+            document.getElementById("userCreationForm").reset();
+        })
     </script>
 {% endblock %}
