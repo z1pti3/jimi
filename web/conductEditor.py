@@ -3,6 +3,7 @@ import json
 import  uuid
 import copy
 from operator import itemgetter
+from pathlib import Path
 
 from flask import Flask, request, render_template, make_response, redirect
 
@@ -59,6 +60,29 @@ def conductFlowchartPoll(conductID):
         revisionData = { "conduct" : jimi.conduct._conduct().query(id=conductID)["results"], "modelUI" : jimi.webui._modelUI().query(query={ "flowID" : { "$in" :flowsList }, "conductID" : conductID }) }
         if not jimi.revision._revision().newCustomData(conductObj["_id"],jimi.conduct._conduct()._dbCollection.name,revisionData):
             return { "msg" : "Unable to create conduct revision" }, 403
+
+    # Parse CSS Theme - Should cache this in future for improved speed? - If flow updates are slow this could be the problem????
+    colors = {
+        "nodeEnableColor" : "#0a0a0a",
+        "nodeDisabledColor" : "gray",
+        "nodeErrorColor" : "red",
+        "nodeRunningColor" : "green",
+        "nodeBorderColor" : "#595959",
+        "nodeUnknownColor" : "black",
+        "linkColor" : "green",
+        "linkTrueColor" : "#6FA92D",
+        "linkFalseColor" : "#FF392E",
+        "linkRCColor" : "#FBB121",
+        "linkLogicColor" : "#D04D8A",
+        "linkAllColor" : "#3DBEFF"
+    }
+    themeFile = "web/build/static/themes/theme-{0}.css".format(jimi.api.g.sessionData["theme"])
+    if jimi.helpers.safeFilepath(themeFile,"web/build/static/themes"):
+        with open(Path(themeFile)) as f:
+            themeFile = f.read()
+        for colorName, colorValue in colors.items():
+            if "--{0}: ".format(colorName) in themeFile:
+                colors[colorName] = themeFile.split("--{0}: ".format(colorName))[1].split(";")[0]
 
     nodeTemplate = {
         "id" : "",
@@ -137,17 +161,17 @@ def conductFlowchartPoll(conductID):
                         label = "({0}.{1},{2})\n<b>{3}</b>\n{4}".format(obj.systemID,obj.systemIndex,obj.clusterSet,obj.name,modeClass.name)
                         color = None
                         if obj.enabled:
-                            color = "#0a0a0a"
+                            color = colors["nodeEnableColor"]
                         duration = obj.maxDuration
                         if duration == 0:
                             duration = 60
                         if (((obj.startCheck != 0) and (obj.startCheck + duration > time.time())) or (obj.lastCheck > time.time()-2.5)):
-                            color = "green"
+                            color = colors["nodeRunningColor"]
                         if ((obj.startCheck != 0) and (obj.startCheck + duration < time.time())):
-                            color = "red"
+                            color = colors["nodeErrorColor"]
                         if not obj.enabled:
-                            color = "gray"
-                        node["color"] = { "border" : "#595959", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
+                            color = colors["nodeDisabledColor"]
+                        node["color"] = { "border" : colors["nodeBorderColor"], "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
                     elif flow["type"] == "action":
                         node["flowType"] = "action"
                         obj = actionsByID[flow["actionID"]]
@@ -157,14 +181,14 @@ def conductFlowchartPoll(conductID):
                         label = "<b>{0}</b>\n{1}".format(obj.name,modeClass.name)
                         color = None
                         if obj.enabled:
-                            color = "#0a0a0a"
+                            color = colors["nodeEnableColor"]
                         if not obj.enabled:
-                            color = "gray"
-                        node["color"] = { "border" : "#595959", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
+                            color = colors["nodeDisabledColor"]
+                        node["color"] = { "border" : colors["nodeBorderColor"], "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
                     node["label"] = label
                 except (IndexError, KeyError) as e:
                     node["label"] = "Unknown Object"
-                    node["color"] = { "background" : "black" }
+                    node["color"] = { "background" : colors["nodeUnknownColor"] }
                 nodesList[flowID] = node
                 # Generate links
                 for nextFlow in flow["next"]:
@@ -178,19 +202,19 @@ def conductFlowchartPoll(conductID):
                             link["label"] = str(nextFlow["order"])
                     except KeyError:
                         pass
-                    color = "green"
+                    color = colors["linkColor"]
                     if type(nextFlow["logic"]) is bool:
                         if nextFlow["logic"] == True:
-                            color = "#6FA92D"
+                            color = colors["linkTrueColor"]
                         else:
-                            color = "#FF392E"
+                            color = colors["linkFalseColor"]
                     elif type(nextFlow["logic"]) is int:
-                        color = "#FBB121"
+                        color = colors["linkRCColor"]
                     elif type(nextFlow["logic"]) is str:
                         if nextFlow["logic"].startswith("if "):
-                            color = "#D04D8A"
+                            color = colors["linkLogicColor"]
                         elif nextFlow["logic"] == "*":
-                            color = "#3DBEFF"
+                            color = colors["linkAllColor"]
                     link["color"] = color
                     linksList[linkName] = link
         except KeyError:
