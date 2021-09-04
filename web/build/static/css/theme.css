@@ -299,3 +299,7 @@ div.dts div.dataTables_scrollBody {
     position: relative;
     top: 40px
 }
+
+.hoverHand:hover {
+    cursor: hand;
+}
