@@ -35,15 +35,21 @@
 	{{ jimi.monaco() }}
 {% endblock %}
 
-{% block main %}
-	<div class="container-fluid h-100 w-100">
-		<h2 style="z-index: 1; right: 0; display: inline; position: relative;">{{ conductName }}</h2>
-		<button onclick="createNewObjectPanel()" class="btn btn-primary newModelObject button">+</button>
-		<button onclick="debugConduct()" class="btn btn-primary debugConductButton button bi-bug"> Debug</button>
-		<button onclick="codifyConduct()" class="btn btn-primary codifyConductButton button bi-code"> Codify</button>
-		<button onclick="exportConduct()" class="btn btn-primary exportConductButton button bi-box-arrow-in-down-right"> Export</button>
-		<button onclick="importConduct()" class="btn btn-primary importConductButton button bi-box-arrow-in-up-left"> Import</button>
-		<br><i style="z-index: 1; right: 0; display: inline; position: relative;">Users in this conduct: <span id="activeUsers"></span></i>
+{% block body %}
+	<div class="h-100 w-100">
+		<div class="ui-topBar" style="display: table; width: 100%;" >
+			<div style="display: table-cell;">
+				<h2 style="right: 0; display: inline; position: relative;">{{ conductName }}</h2>
+				<br><i style="right: 0; display: inline; position: relative;">Users in this conduct: <span id="activeUsers"></span></i>
+			</div>
+			<div style="display: table-cell; vertical-align: middle; width: 425px; height: 100%;">
+				<button onclick="createNewObjectPanel()" class="btn btn-primary topBarButton button">+</button>
+				<button onclick="debugConduct()" class="btn btn-primary topBarButton button bi-bug"> Debug</button>
+				<button onclick="codifyConduct()" class="btn btn-primary topBarButton button bi-code"> Codify</button>
+				<button onclick="exportConduct()" class="btn btn-primary topBarButton button bi-box-arrow-in-down-right"> Export</button>
+				<button onclick="importConduct()" class="btn btn-primary topBarButton button bi-box-arrow-in-up-left"> Import</button>
+			</div>
+		</div>
 		<div class="ui-main" style="position: fixed; left: 0; top: 0; width: 100%; height: 100%;">
 			<!-- Right Click Menus -->
 			<ul id="contextMenu" class="dropdown-menu contextMenuTrigger theme-dropdown-menu" role="menu" style="display:none;" >

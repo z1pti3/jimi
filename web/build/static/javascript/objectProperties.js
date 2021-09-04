@@ -408,7 +408,7 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 
 			// Set Initial Position
 			if (init) {
-				height = $("#flowchart").height();
+				height = $("#flowchart").height()+110;
 				width = $("#flowchart").width();
 				var posX = (width/2) - (panel.width()/2);
 				var posY = (height/2) - (panel.height()/2);
@@ -480,7 +480,7 @@ function createPropertiesPanel(flowID) {
 				panel.css("height","100%")
 				panel.css("width","100%")
 				// Center panel based on max 80% size
-				height = $("#flowchart").height();
+				height = $("#flowchart").height()+110;
 				width = $("#flowchart").width();
 				var posX = (width/2) - (panel.width()/2);
 				var posY = (height/2) - (panel.height()/2) + 20;

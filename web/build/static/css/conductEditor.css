@@ -29,6 +29,17 @@ html, body {
 	background: repeating-linear-gradient( 45deg, #eee, #eee 10px, #e5e5e5 10px, #e5e5e5 20px )
 }
 
+.ui-topBar {
+	z-index: 1;
+	background-color: var(--panelBackgroundColor);
+	box-shadow: 0 1px 6px var(--panelShadowColor1), 0 1px 4px var(--panelShadowColor2);
+	position: relative;
+	border-style: solid;
+    border-color: var(--panelBorderColor);
+    border-width: 1px;
+    border-radius: 5px;
+}
+
 /*flowchart*/
 .flowchart {
 	width: 100%;
@@ -133,34 +144,8 @@ html, body {
 	margin-bottom: 20px;
 }
 
-.newModelObject {
-	position: absolute;
-	z-index: 1;
-	right: 380px;
-}
-
-.codifyConductButton {
-	position: absolute;
-	z-index: 1;
-	right: 95px;
-}
-
-.exportConductButton {
-	position: absolute;
-	z-index: 1;
-	right: 190px;
-}
-
-.importConductButton {
-	position: absolute;
-	z-index: 1;
-	right: 0px;
-}
-
-.debugConductButton {
-	position: absolute;
-	z-index: 1;
-	right: 285px;
+.topBarButton {
+	position: relative;
 }
 
 .flowchart-operator-trigger {
