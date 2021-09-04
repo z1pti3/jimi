@@ -1,3 +1,43 @@
+:root {
+    /* Main */
+    --mainBackgroundColor: #222222;
+    --textColor: #adadad;
+    --textColorHover: #f1f1f1;
+    --textDisabledColor: #615f5f;
+    --hoverColor: #220433;
+
+    /* Scrollbar */
+    --scrollbarColor: #111111;
+    --scrollbarBackgroundColor: #333333;
+    --scrollbarBorderColor: #f1f1f1;
+
+    /* Panel */
+    --panelBackgroundColor: #333333;
+    --panel2BackgroundColor: #444444;
+    --panelBorderColor: #000000;
+    --panelShadowColor1: rgba(0, 0, 0, 0.12);
+    --panelShadowColor2: rgba(0, 0, 0, 0.24);
+    --panelComponentBackground: #111111;
+    --panelComponentBackground-Focus: #020202;
+    --panelComponentBorder: #2e6da4;
+    --panelComponentBorder-Focus: #167bff;
+
+    /* Component */
+    --componentBorderColor: #000000;
+    --componentBorderColorSelect: #167bff;
+    --componentBackground1: #111111;
+    --componentBackground2: #1f1f1f;
+    --componentBackgroundSelect: #030303;
+
+
+    /* Alerts */
+    --errorBackgroundColor: #ffffff;
+    --errorColor: #ec0e0e;
+    --alertBackgroundColor: #ffffff;
+    --alertColor: #15b438;
+}
+
+
 
 *::-webkit-scrollbar {
     width: 12px;
@@ -121,17 +161,9 @@ div.dts div.dataTables_scrollBody {
     background-color: var(--componentBackground2);
 }
 
-/* .theme-tableRowOdd:hover {
-    background-color: var(--panelComponentBackground);
-} */
-
 .theme-tableRowEven {
     background-color: var(--panelBackgroundColor);
 }
-
-/* .theme-tableRowEven:hover {
-    background-color: var(--panelComponentBackground);
-} */
 
 /* visjs */
 .vis-network:focus {

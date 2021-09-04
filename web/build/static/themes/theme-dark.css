@@ -13,6 +13,7 @@
 
     /* Panel */
     --panelBackgroundColor: #333333;
+    --panel2BackgroundColor: #222222;
     --panelBorderColor: #000000;
     --panelShadowColor1: rgba(0, 0, 0, 0.12);
     --panelShadowColor2: rgba(0, 0, 0, 0.24);

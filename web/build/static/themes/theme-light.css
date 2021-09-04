@@ -13,6 +13,7 @@
 
     /* Panel */
     --panelBackgroundColor: #dbdada;
+    --panel2BackgroundColor: #cacaca;
     --panelBorderColor: #000;
     --panelShadowColor1: rgba(0, 0, 0, 0.12);
     --panelShadowColor2: rgba(0, 0, 0, 0.24);

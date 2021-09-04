@@ -29,15 +29,17 @@ html, body {
 	background: repeating-linear-gradient( 45deg, #eee, #eee 10px, #e5e5e5 10px, #e5e5e5 20px )
 }
 
-.ui-topBar {
+.conductEditor-topBar {
 	z-index: 1;
-	background-color: var(--panelBackgroundColor);
+	background-color: var(--panel2BackgroundColor);
 	box-shadow: 0 1px 6px var(--panelShadowColor1), 0 1px 4px var(--panelShadowColor2);
 	position: relative;
 	border-style: solid;
     border-color: var(--panelBorderColor);
     border-width: 1px;
     border-radius: 5px;
+	padding-left: 14px;
+	padding-right: 14px;
 }
 
 /*flowchart*/
