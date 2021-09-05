@@ -207,6 +207,10 @@ div.dts div.dataTables_scrollBody {
     height: calc(60% - 46px);
 }
 
+.h-100-menu {
+    height: calc(100% - 40px);
+}
+
 .noHover:hover {
     text-decoration: none;
 }
