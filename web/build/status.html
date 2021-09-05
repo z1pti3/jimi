@@ -54,8 +54,17 @@
                 {{ jimi.table("3","Latest Failures","triggerFailures/",2500) }}
             </div>
         </div>
+        <ul id="contextMenu" class="dropdown-menu contextMenuTriggerChart" role="menu" style="display:none;" >
+            <li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="statusPageClearTriggerStartCheck()">Clear startCheck</a></li>
+        </ul>
     </div>
     <script>
+        var statusPageSelectedTrigger = null;
+        $('body').click(function () {
+            statusPageSelectedTrigger = null;
+		    $("#contextMenu").hide();
+		});
+
         $(document).ready(function() {
             triggerChartPoll();
         });
@@ -94,6 +103,16 @@
                                 }
                             });
                         })
+                        div.bind("contextmenu", function (e) {
+                            statusPageSelectedTrigger = $(this).attr("data-id")
+                            var top = e.pageY - 50;
+                            var left = e.pageX - 10;
+                            $('#contextMenu').css({
+                                top: top + 'px',
+                                left: left + 'px'
+                            }).show();
+                            return false;
+                        });
                         $("#triggerChart").append(div)
                     }
                     $("#enabledTriggers").text(triggers);
@@ -103,6 +122,14 @@
                 }
             });
             setTimeout(triggerChartPoll, 2500);
+        }
+        function statusPageClearTriggerStartCheck() {
+            if (statusPageSelectedTrigger) {
+                $.ajax({ url: "/api/1.0/models/trigger/"+statusPageSelectedTrigger+"/", type : "POST", data: JSON.stringify({ "CSRF" : CSRF, "startCheck" : 0 }), contentType:"application/json", success: function ( jsonResult ) {
+                        alert("Trigger '"+statusPageSelectedTrigger+"' startCheck Cleared!");
+                    }
+                });
+            }
         }
     </script>
 {% endblock %}
