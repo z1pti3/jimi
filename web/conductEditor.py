@@ -5,7 +5,8 @@ import copy
 from operator import itemgetter
 from pathlib import Path
 
-from flask import Flask, request, render_template, make_response, redirect
+from flask import Flask, request, render_template, make_response, redirect, send_file
+from werkzeug.utils import send_from_directory
 
 import jimi
 
@@ -338,7 +339,12 @@ def conductExport(conductID):
                     result["ui"][flow["flowID"]]["x"] = flowUI.x
                     result["ui"][flow["flowID"]]["y"] = flowUI.y
                     result["ui"][flow["flowID"]]["title"] = flowUI.title
-    return render_template("blank.html",content=json.dumps(result,indent=3), CSRF=jimi.api.g.sessionData["CSRF"]), 200
+    tempFilename = "data/temp/{0}".format(str(uuid.uuid4()))
+    if jimi.helpers.safeFilepath(tempFilename,"data/temp"):
+        with open(Path(tempFilename), "w") as f:
+            json.dump(result,f,indent=3)
+        return send_file(Path(tempFilename), attachment_filename=conductObj.name+".json", as_attachment=True)
+    return { }, 404
 
 @jimi.api.webServer.route("/conductEditor/<conductID>/import/", methods=["GET"])
 def conductImport(conductID):
@@ -584,7 +590,12 @@ def getConductFlowCodify(conductID):
         if "json" in data:
             return { "result" : flowCode, "CSRF" : jimi.api.g.sessionData["CSRF"] }, 200
 
-    return render_template("blank.html",content=flowCode, CSRF=jimi.api.g.sessionData["CSRF"]), 200
+    tempFilename = "data/temp/{0}".format(str(uuid.uuid4()))
+    if jimi.helpers.safeFilepath(tempFilename,"data/temp"):
+        with open(Path(tempFilename), "w") as f:
+            f.write(flowCode)
+        return send_file(Path(tempFilename), attachment_filename=conductObj.name+".json")
+    return { }, 404
 
 @jimi.api.webServer.route("/conductEditor/<conductID>/flow/<flowID>/", methods=["DELETE"])
 def deleteFlow(conductID,flowID):
