@@ -532,11 +532,10 @@ def statisticsTriggerPage(triggerID):
 def statisticsTriggerLineChart(triggerID):
 	line = ui.line()
 	triggerObject = jimi.trigger._trigger().getAsClass(sessionData=api.g.sessionData,id=triggerID)[0]
-	dt = datetime.datetime.now() - datetime.timedelta(days=30)
-	triggerPerformanceData = jimi.audit._audit().query(query={ "_id" : { "$gt" : jimi.db.ObjectId.from_datetime(generation_time=dt) }, "source" : "trigger", "type" : "end", "data.trigger_id" : triggerObject._id })["results"]
+	triggerPerformanceData = jimi.audit._audit().query(query={ "source" : "trigger", "type" : "end", "data.trigger_id" : triggerObject._id },limit=100,sort=[("_id",-1)])["results"]
 	dataPoints = []
 	labels = []
-	for data in triggerPerformanceData:
+	for data in reversed(triggerPerformanceData):
 		t = jimi.helpers.roundTime(datetime.datetime.fromtimestamp(data["time"]),1)
 		if t not in labels:
 			labels.append(t)
