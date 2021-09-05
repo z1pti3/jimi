@@ -323,7 +323,15 @@ div.dts div.dataTables_scrollBody {
 }
 
 .dropdown-menu {
-    background-color: #111;
+    background-color: var(--panelBackgroundColor);
+    box-shadow: 0 1px 6px var(--panelShadowColor1), 0 1px 4px var(--panelShadowColor2);
+    color: var(--textColor);
+    border-radius: 5px;
+    padding: 5px;
+    border-style: solid;
+    border-color: var(--panelBorderColor);
+    border-width: 1px;
+    border-radius: 5px;
 }
 
 .container_main {
@@ -333,6 +341,7 @@ div.dts div.dataTables_scrollBody {
 
 .hoverHand:hover {
     cursor: hand;
+    background-color: var(--hoverColor);
 }
 
 .panelHover:hover {
