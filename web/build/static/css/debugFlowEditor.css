@@ -72,7 +72,7 @@
 }
 
 .eventList {
-    height: calc(100% - 50px);
+    height: calc(100% - 90px);
     width: 100%;
     color: #ddd;
 }
@@ -112,12 +112,12 @@ hr {
 }
 
 #debugFlowEditor-out {
-    height: calc(100% - 50px);
+    height: calc(100% - 90px);
     width: 100%;
 }
 
 #debugFlowEditor-in {
-    height: calc(100% - 50px);
+    height: calc(100% - 90px);
     width: 100%;
 }
 

@@ -28,6 +28,7 @@
     --componentBackground1: #111111;
     --componentBackground2: #1f1f1f;
     --componentBackgroundSelect: #030303;
+    --componentDisabledColor: #222222;
 
     /* Alerts */
     --errorBackgroundColor: #ffffff;
@@ -308,6 +309,12 @@ div.dts div.dataTables_scrollBody {
     border-style: solid;
     border-width: 1px;
     display:inline;
+}
+
+.button:disabled {
+    background-color: var(--componentDisabledColor);
+    border-color: var(--componentBorderColor);
+    color: var(--textDisabledColor);
 }
 
 .small {
