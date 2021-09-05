@@ -24,6 +24,7 @@
 	<script src="{{ url_for('static', filename='javascript/existingObject.js') }}"></script>
 	<script src="{{ url_for('static', filename='javascript/triggerObject.js') }}"></script>
 	<script src="{{ url_for('static', filename='javascript/aclProperties.js') }}"></script>
+	<script src="{{ url_for('static', filename='javascript/objectSystemSettings.js') }}"></script>
 
 	<script src="{{ url_for('static', filename='javascript/hotkeys.js') }}"></script>
 
@@ -61,6 +62,8 @@
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="exportFlowObject()">Export</a></li>
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="CodifyFlowObject()">Codify</a></li>
 				<li class="divider theme-dropdown-menu-divider"></li>
+				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="editObjectSystemSettings()">System Settings</a></li>
+				<li class="divider theme-dropdown-menu-divider"></li>
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="editACL()">Security Settings</a></li>
 				<li class="divider theme-dropdown-menu-divider"></li>
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="deleteFlowObject()">Delete</a></li>
@@ -71,6 +74,8 @@
 				<li class="divider theme-dropdown-menu-divider"></li>
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="copyFlowObject()">Mirror Object</a></li>
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="duplicateFlowObject()">Duplicate</a></li>
+				<li class="divider theme-dropdown-menu-divider"></li>
+				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="editObjectSystemSettings()">System Settings</a></li>
 				<li class="divider theme-dropdown-menu-divider"></li>
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="editACL()">Security Settings</a></li>
 				<li class="divider theme-dropdown-menu-divider"></li>

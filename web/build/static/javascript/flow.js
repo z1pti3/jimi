@@ -274,6 +274,14 @@ function editACL() {
 	}
 }
 
+function editObjectSystemSettings() {
+	selectedNodes = network.getSelectedNodes()
+	if (selectedNodes.length == 1) {
+		node = nodes.get(selectedNodes[0])["id"]
+		createObjectSystemSettingsValuesPanel(node);
+	}
+}
+
 function deleteFlowObject() {
 	deleteSelected()
 }

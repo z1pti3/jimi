@@ -915,7 +915,6 @@ def deleteFlowLink(conductID,fromFlowID,toFlowID):
     else:
         return {}, 403
 
-
 @jimi.api.webServer.route("/conductEditor/<conductID>/editACL/<flowID>", methods=["GET"])
 def getACL(conductID,flowID):
     conductObj = jimi.conduct._conduct().getAsClass(jimi.api.g.sessionData,id=conductID)
@@ -1015,3 +1014,63 @@ def getExistingObjectsTriggers():
 def getExistingObjectsActions():
     actions = jimi.action._action(False).query(sessionData=jimi.api.g.sessionData,query={ "scope" : { "$gt" : 0 } })["results"]
     return { "results" : actions}, 200
+
+@jimi.api.webServer.route("/conductEditor/<conductID>/editObjectSystemSettings/<flowID>/", methods=["GET"])
+def getObjectSystemSettings(conductID,flowID):
+    conductObj = jimi.conduct._conduct().getAsClass(jimi.api.g.sessionData,id=conductID)
+    if len(conductObj) == 1:
+        conductObj = conductObj[0]
+    else:
+        return { }, 404
+
+    flow = [ x for x in conductObj.flow if x["flowID"] == flowID]
+    if len(flow) == 1:
+        flow = flow[0]
+        if "type" in flow:
+            if flow["type"] == "trigger":
+                modelFlowObject = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                if len(modelFlowObject) == 1:
+                    modelFlowObject = modelFlowObject[0]
+            if flow["type"] == "action":
+                modelFlowObject = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                if len(modelFlowObject) == 1:
+                    modelFlowObject = modelFlowObject[0]
+    if modelFlowObject:
+        return { "scope" : modelFlowObject.scope }, 200
+    return { }, 404
+
+@jimi.api.webServer.route("/conductEditor/<conductID>/editObjectSystemSettings/<flowID>/", methods=["POST"])
+def editObjectSystemSettings(conductID,flowID):
+    conductObj = jimi.conduct._conduct().getAsClass(jimi.api.g.sessionData,id=conductID)
+    if len(conductObj) == 1:
+        conductObj = conductObj[0]
+    else:
+        return { }, 404
+
+    data = json.loads(jimi.api.request.data)
+
+    flow = [ x for x in conductObj.flow if x["flowID"] == flowID]
+    if len(flow) == 1:
+        flow = flow[0]
+        if "type" in flow:
+            if flow["type"] == "trigger":
+                modelFlowObject = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                if len(modelFlowObject) == 1:
+                    modelFlowObject = modelFlowObject[0]
+            if flow["type"] == "action":
+                modelFlowObject = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                if len(modelFlowObject) == 1:
+                    modelFlowObject = modelFlowObject[0]
+
+    if modelFlowObject:
+        scope = data["scope"]
+        if scope != modelFlowObject.scope:
+            if jimi.db.fieldACLAccess(jimi.api.g.sessionData,modelFlowObject.acl,"scope","write"):
+                modelFlowObject.scope = scope
+                if "_id" in jimi.api.g.sessionData:
+                    jimi.audit._audit().add("flow","update",{ "_id" : jimi.api.g.sessionData["_id"], "user" : jimi.api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID, "scope" : data["scope"] })
+                else:
+                    jimi.audit._audit().add("flow","update",{ "user" : "system", "conductID" : conductID, "flowID" : flowID, "scope" : data["scope"] })
+                modelFlowObject.update(["scope"])
+                return { }, 200
+    return { }, 404
