@@ -6,26 +6,28 @@
 
 {% block main %}
     <div class="container px-4 py-5 text-center">
-        <main class="form-signin">
-            <form class="p-4 panel" id="updatePassword">
-                <h1 class="h4 mb-2 fw-normal">Change Password</h1>
-            
-                <div class="form-floating">
-                    <input type="password" class="form-control textbox" id="currentPassword" autoComplete="off" placeholder="Current Password" onkeyup="removeError()">
-                    <label for="currentPassword" class="bi-person"> Current Password</label>
-                </div>
-                <div class="form-floating">
-                    <input type="password" class="form-control textbox" id="newPassword" autoComplete="off" placeholder="New Password" onkeyup="removeError()">
-                    <label for="newPassword" class="bi-key"> New Password</label>
-                </div>
-                <div class="form-floating">
-                    <input type="password" class="form-control textbox" id="confirmNewPassword" autoComplete="off" placeholder="Confirm New Password" onkeyup="removeError()">
-                    <label for="confirmNewPassword" class="bi-key"> Confirm New Password</label>
-                </div>
-            
-                <button class="w-100 btn btn-primary btn-block button bi-lock" type="submit"> Save</button>
-            </form>
-        </main>
+        <div class="row justify-content-md-center">
+            <main class="col-5 form-signin">
+                <form class="p-4 panel" id="updatePassword">
+                    <h1 class="h4 mb-2 fw-normal">Change Password</h1>
+                
+                    <div class="form-floating">
+                        <input type="password" class="form-control textbox" id="currentPassword" autoComplete="off" placeholder="Current Password" onkeyup="removeError()">
+                        <label for="currentPassword" class="bi-person"> Current Password</label>
+                    </div>
+                    <div class="form-floating">
+                        <input type="password" class="form-control textbox" id="newPassword" autoComplete="off" placeholder="New Password" onkeyup="removeError()">
+                        <label for="newPassword" class="bi-key"> New Password</label>
+                    </div>
+                    <div class="form-floating">
+                        <input type="password" class="form-control textbox" id="confirmNewPassword" autoComplete="off" placeholder="Confirm New Password" onkeyup="removeError()">
+                        <label for="confirmNewPassword" class="bi-key"> Confirm New Password</label>
+                    </div>
+                
+                    <button class="w-100 btn btn-primary btn-block button bi-lock" type="submit"> Save</button>
+                </form>
+            </main>
+        </div>
     </div>
     <script>
         $("#updatePassword").submit(function(e) {
