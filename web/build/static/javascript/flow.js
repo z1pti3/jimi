@@ -290,6 +290,13 @@ function loadTriggerStatistics() {
 	}
 }
 
+function objectRevisionHistory() {
+	selectedNodes = network.getSelectedNodes()
+	if (selectedNodes.length == 1) {
+		createObjectRevisionHistoryPanel(nodes.get(selectedNodes[0])["flowType"],nodes.get(selectedNodes[0])["objID"]);
+	}
+}
+
 function deleteFlowObject() {
 	deleteSelected()
 }

@@ -25,6 +25,7 @@
 	<script src="{{ url_for('static', filename='javascript/triggerObject.js') }}"></script>
 	<script src="{{ url_for('static', filename='javascript/aclProperties.js') }}"></script>
 	<script src="{{ url_for('static', filename='javascript/objectSystemSettings.js') }}"></script>
+	<script src="{{ url_for('static', filename='javascript/objectRevisionHistory.js') }}"></script>
 
 	<script src="{{ url_for('static', filename='javascript/hotkeys.js') }}"></script>
 
@@ -68,6 +69,7 @@
 				<li class="divider theme-dropdown-menu-divider"></li>
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="editACL()">Security Settings</a></li>
 				<li class="divider theme-dropdown-menu-divider"></li>
+				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="objectRevisionHistory()">Revision History</a></li>
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="deleteFlowObject()">Delete</a></li>
 			</ul>
 			<ul id="contextMenu" class="dropdown-menu contextMenuAction" role="menu" style="display:none" >
@@ -81,6 +83,7 @@
 				<li class="divider theme-dropdown-menu-divider"></li>
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="editACL()">Security Settings</a></li>
 				<li class="divider theme-dropdown-menu-divider"></li>
+				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="objectRevisionHistory()">Revision History</a></li>
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="deleteFlowObject()">Delete</a></li>
 			</ul>
 			<div class="flowchart theme-content" id="flowchart"></div>
