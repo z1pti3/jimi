@@ -519,6 +519,33 @@ def performancePagePerformanceMemoryLineChart():
 	data = json.loads(jimi.api.request.data)
 	return line.generate(data), 200
 
+@jimi.api.webServer.route("/statistics/trigger/<triggerID>/")
+def statisticsTriggerPage(triggerID):
+	try:
+		triggerObject = jimi.trigger._trigger().getAsClass(sessionData=api.g.sessionData,id=triggerID)[0]
+		return render_template("statisticsTrigger.html",CSRF=jimi.api.g.sessionData["CSRF"],triggerID=triggerObject._id)
+	except:
+		pass
+	return { },404
+
+@jimi.api.webServer.route("/statistics/trigger/<triggerID>/durationLineChart/", methods=["POST"])
+def statisticsTriggerLineChart(triggerID):
+	line = ui.line()
+	triggerObject = jimi.trigger._trigger().getAsClass(sessionData=api.g.sessionData,id=triggerID)[0]
+	dt = datetime.datetime.now() - datetime.timedelta(days=30)
+	triggerPerformanceData = jimi.audit._audit().query(query={ "_id" : { "$gt" : jimi.db.ObjectId.from_datetime(generation_time=dt) }, "source" : "trigger", "type" : "end", "data.trigger_id" : triggerObject._id })["results"]
+	dataPoints = []
+	labels = []
+	for data in triggerPerformanceData:
+		t = jimi.helpers.roundTime(datetime.datetime.fromtimestamp(data["time"]),1)
+		if t not in labels:
+			labels.append(t)
+		dataPoints.append([t,data["data"]["duration"]])
+	line.addLabels(labels)
+	line.addDataset(triggerObject.name,dataPoints)
+	data = json.loads(jimi.api.request.data)
+	return line.generate(data), 200
+
 try:
 	api.startServer(False,{'server.socket_host': jimi.config["api"]["web"]["bind"], 'server.socket_port': jimi.config["api"]["web"]["port"], 'engine.autoreload.on': False, 'server.thread_pool' : 5, 'server.ssl_certificate' : jimi.config["api"]["web"]["secure"]["cert"],'server.ssl_private_key' : jimi.config["api"]["web"]["secure"]["key"]})
 	jimi.auth.webSecure = True

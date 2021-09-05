@@ -282,6 +282,14 @@ function editObjectSystemSettings() {
 	}
 }
 
+function loadTriggerStatistics() {
+	selectedNodes = network.getSelectedNodes()
+	if (selectedNodes.length == 1) {
+		node = nodes.get(selectedNodes[0])["objID"]
+		window.open("/statistics/trigger/"+nodes.get(selectedNodes[0])["objID"]+"/", "_blank");
+	}
+}
+
 function deleteFlowObject() {
 	deleteSelected()
 }

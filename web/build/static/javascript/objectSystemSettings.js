@@ -5,12 +5,20 @@ var panelObjectSystemSettingsHTML = `
 		<label id="title"></label>
 	</div>
 	<div class="propertiesPanel-body theme-panelBody">
-		object Scope:<br>
-		<select class="inputFullWidth theme-panelTextArea" id="objectScope">
-			<option>None</option>
-			<option>Group</option>
-			<option>Everyone</option>
-		</select>
+		<table width="100%">
+			<tr>
+				<td width="100px">
+					<label class="theme-panelLabel">Scope:</label>
+				</td>
+				<td>
+					<select class="inputFullWidth theme-panelTextArea" id="objectScope">
+						<option>None</option>
+						<option>Group</option>
+						<option>Everyone</option>
+					</select>
+				</td>
+			<tr>
+		</table>
 	</div>
 	<div class="propertiesPanel-footer theme-panelFooter">
 		<button id="save" class="btn btn-primary button bi-save"> Save</button>
