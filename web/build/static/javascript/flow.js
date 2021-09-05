@@ -166,7 +166,7 @@ function updateFlowchartNonBlocking(blocking) {
 	}
 	// Operator Deletions
 	for (operator in processlist["operators"]["delete"]) {
-		nodes.remove({ id: processlist["operators"]["delete"][operator]["flowID"] })
+		nodes.remove({ id: processlist["operators"]["delete"][operator]["id"] })
 		delete processlist["operators"]["delete"][operator]
 		nonlock++
 		if ((!blocking) && (nonlock > 0)) {
