@@ -40,7 +40,7 @@ def fileIntegrityRegister():
 	checksumHash = ""
 	registerRoots = ["system","core","web","screens","tools","plugins","data/storage"]
 	for registerRoot in registerRoots:
-		for root, dirs, files in os.walk(Path(registerRoot), topdown=False):
+		for root, dirs, files in os.walk(Path(registerRoot),followlinks=True):
 			for _file in files:
 				if "__pycache__" not in root and ".git" not in root:
 					filename = os.path.join(root, _file)
@@ -195,9 +195,9 @@ if jimi.api.webServer:
 			@jimi.api.webServer.route(jimi.api.base+"system/checksum/<sourceSystemID>/<targetSystemID>/", methods=["GET"])
 			@jimi.auth.adminEndpoint
 			def compareSystemFileIntegrity(sourceSystemID,targetSystemID):
-				sourceSystemID = int(sourceSystemID)
-				targetSystemID = int(targetSystemID)
-				sourceFiles = _systemFiles().getAsClass(query={ "systemID" : { "$in" : [sourceSystemID,targetSystemID] } })
+				sourceSystemID = sourceSystemID
+				targetSystemID = targetSystemID
+				sourceFiles = _systemFiles().getAsClass(query={ "systemID" : { "$in" : [int(sourceSystemID),int(targetSystemID)] } })
 				sourceFilesHash = {}
 				for sourceFile in sourceFiles:
 					if sourceFile not in sourceFilesHash:
