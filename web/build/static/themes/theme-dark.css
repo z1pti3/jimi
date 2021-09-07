@@ -1,5 +1,6 @@
 :root {
     /* Main */
+    --menuBackgroundColor: #333333;
     --mainBackgroundColor: #222222;
     --textColor: #adadad;
     --textColorHover: #f1f1f1;
