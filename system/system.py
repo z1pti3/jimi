@@ -200,7 +200,7 @@ if jimi.api.webServer:
 				sourceFiles = _systemFiles().getAsClass(query={ "systemID" : { "$in" : [int(sourceSystemID),int(targetSystemID)] } })
 				sourceFilesHash = {}
 				for sourceFile in sourceFiles:
-					if sourceFile not in sourceFilesHash:
+					if sourceFile.filename not in sourceFilesHash:
 						sourceFilesHash[sourceFile.filename] = {}
 					sourceFilesHash[sourceFile.filename][sourceFile.systemID] = sourceFile.fileHash
 				differences = { "remove" : [], "new" : [], "mismatch" : [] }
