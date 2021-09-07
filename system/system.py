@@ -195,9 +195,9 @@ if jimi.api.webServer:
 			@jimi.api.webServer.route(jimi.api.base+"system/checksum/<sourceSystemID>/<targetSystemID>/", methods=["GET"])
 			@jimi.auth.adminEndpoint
 			def compareSystemFileIntegrity(sourceSystemID,targetSystemID):
-				sourceSystemID = sourceSystemID
-				targetSystemID = targetSystemID
-				sourceFiles = _systemFiles().getAsClass(query={ "systemID" : { "$in" : [int(sourceSystemID),int(targetSystemID)] } })
+				sourceSystemID = int(sourceSystemID)
+				targetSystemID = int(targetSystemID)
+				sourceFiles = _systemFiles().getAsClass(query={ "systemID" : { "$in" : [sourceSystemID,targetSystemID] } })
 				sourceFilesHash = {}
 				for sourceFile in sourceFiles:
 					if sourceFile.filename not in sourceFilesHash:
