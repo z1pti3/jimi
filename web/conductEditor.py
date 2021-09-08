@@ -77,13 +77,16 @@ def conductFlowchartPoll(conductID):
         "linkLogicColor" : "#D04D8A",
         "linkAllColor" : "#3DBEFF"
     }
-    themeFile = "web/build/static/themes/theme-{0}.css".format(jimi.api.g.sessionData["theme"])
-    if jimi.helpers.safeFilepath(themeFile,"web/build/static/themes"):
-        with open(Path(themeFile)) as f:
-            themeFile = f.read()
-        for colorName, colorValue in colors.items():
-            if "--{0}: ".format(colorName) in themeFile:
-                colors[colorName] = themeFile.split("--{0}: ".format(colorName))[1].split(";")[0]
+    try:
+        themeFile = "web/build/static/themes/theme-{0}.css".format(jimi.api.g.sessionData["theme"])
+        if jimi.helpers.safeFilepath(themeFile,"web/build/static/themes"):
+            with open(Path(themeFile)) as f:
+                themeFile = f.read()
+            for colorName, colorValue in colors.items():
+                if "--{0}: ".format(colorName) in themeFile:
+                    colors[colorName] = themeFile.split("--{0}: ".format(colorName))[1].split(";")[0]
+    except:
+        pass
 
     nodeTemplate = {
         "id" : "",
