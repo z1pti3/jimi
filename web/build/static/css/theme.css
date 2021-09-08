@@ -32,10 +32,10 @@
     --componentDisabledColor: #222222;
 
     /* Alerts */
-    --errorBackgroundColor: #ffffff;
-    --errorColor: #ec0e0e;
-    --alertBackgroundColor: #ffffff;
-    --alertColor: #15b438;
+    --errorBackgroundColor: #ec0e0e;
+    --errorColor: #000000;
+    --alertBackgroundColor: #15b438;
+    --alertColor: #000000;
 }
 
 *::-webkit-scrollbar {
@@ -66,6 +66,10 @@ body {
     padding-bottom: 25px;
     height: 100%;
     font-family: sans-serif;
+}
+
+p {
+    color: var(--textColor);
 }
 
 .panel {
@@ -240,7 +244,7 @@ div.dts div.dataTables_scrollBody {
 
 .textboxError {
     border-width: 1px;
-    border-color: var(--errorColor);
+    border-color: var(--errorBackgroundColor);
 }
 
 .textbox:disabled {
@@ -312,6 +316,8 @@ div.dts div.dataTables_scrollBody {
     border-style: solid;
     border-width: 1px;
     display:inline;
+    outline: none;
+    box-shadow: none;
 }
 
 .button:disabled {
@@ -351,4 +357,14 @@ div.dts div.dataTables_scrollBody {
 
 .panelHover:hover {
     background-color: var(--hoverColor);
+}
+
+.mainAlert-success, .mainAlert-success .toast-header, .mainAlert-success .toast-body, .mainAlert-success .toast-body p {
+    background-color: var(--alertBackgroundColor);
+    color: var(--alertColor);
+}
+
+.mainAlert-warning, .mainAlert-warning .toast-header, .mainAlert-warning .toast-body, .mainAlert-warning .toast-body p {
+    background-color: var(--errorBackgroundColor);
+    color: var(--errorColor);
 }

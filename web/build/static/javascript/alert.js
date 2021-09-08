@@ -1,32 +1,21 @@
-var alertHTML = `
-<div class="alert theme-popupContainer" id="alert-container" role="alert">
-    <div class="alert theme-popup">
-        <p class="alert-p" id="alert-message"></p>
-    </div>
-</div>
-`
-
 function dropdownAlert(parent,type,message,timeout) {
-    var alert = $(alertHTML);
+    var alert = $("#mainAlert");
+    alert.removeClass("mainAlert-warning")
+    alert.removeClass("mainAlert-success")
     if (type == "success") {
-        alert.addClass("alert-success")
+        alert.addClass("mainAlert-success")
     }
     if (type == "error") {
-        alert.addClass("alert-danger")
+        alert.addClass("mainAlert-warning")
     }
     if (type == "warning") {
-        alert.addClass("alert-warning")
+        alert.addClass("mainAlert-warning")
     }
     if (type == "info") {
-        alert.addClass("alert-info")
+        alert.addClass("mainAlert-warning")
     }
-    $.when(parent.append(alert)).then(function() {
-        alert.find("#alert-message").text(message);
-        alert.slideDown();
-        window.setTimeout(function() {
-            $.when(alert.slideUp()).then(function() {
-                alert.remove(); 
-            })
-        }, timeout);
-    })
+    alert.find("#alert-header").text(type);
+    alert.find("#alert-message").text(message);
+    var toast = new bootstrap.Toast(document.getElementById('mainAlert'));
+    toast.show()
 }
