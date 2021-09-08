@@ -454,7 +454,7 @@ def statusPageTriggerFailuresTableAPI(action):
 	workerNames = [ "trigger:'{0}','{1}'".format(jimi.db.ObjectId(x["_id"]),x["name"]) for x in triggers ]
 	workerIds = [ x["_id"] for x in triggers ]
 	dt = datetime.datetime.now() - datetime.timedelta(days=1)
-	failureEvents = jimi.audit._audit().query(query={ "_id" : { "$gt" : jimi.db.ObjectId.from_datetime(generation_time=dt) }, "source" : "trigger", "type" : "trigger_failure", "$or" : [ { "data.workerName" : { "$in" : workerNames } }, { "data.workerID" : { "$in" : workerIds } } ] },sort=[("time",-1)])["results"]
+	failureEvents = jimi.audit._audit().query(query={ "_id" : { "$gt" : jimi.db.ObjectId.from_datetime(generation_time=dt) }, "source" : "trigger", "type" : "trigger_failure", "$or" : [ { "data.workerName" : { "$in" : workerNames } }, { "data.triggerName" : { "$in" : workerNames } }, { "data.workerID" : { "$in" : workerIds } }, { "data.triggerID" : { "$in" : workerIds } } ] },sort=[("time",-1)])["results"]
 	total = len(failureEvents)
 	columns = ["id","time","system","name","msg"]
 	table = ui.table(columns,total,total)
@@ -464,7 +464,13 @@ def statusPageTriggerFailuresTableAPI(action):
 		# Custom table data so it can be vertical
 		data = []
 		for failureEvent in failureEvents:
-			data.append([ui.safe(failureEvent["_id"]),ui.safe(failureEvent["time"]),ui.safe(failureEvent["systemID"]),ui.safe(failureEvent["data"]["workerName"]),ui.dictTable(failureEvent["data"]["msg"])])
+			if "workerName" in failureEvent["data"]:
+				name = failureEvent["data"]["workerName"]
+			elif "triggerName" in failureEvent["data"]:
+				name = failureEvent["data"]["triggerName"]
+			else:
+				name = ""
+			data.append([ui.safe(failureEvent["_id"]),ui.safe(failureEvent["time"]),ui.safe(failureEvent["systemID"]),ui.safe(name),ui.dictTable(failureEvent["data"]["msg"])])
 		table.data = data
 		return { "draw" : int(jimi.api.request.args.get('draw')), "recordsTable" : 0, "recordsFiltered" : 0, "recordsTotal" : 0, "data" : data } ,200
 
