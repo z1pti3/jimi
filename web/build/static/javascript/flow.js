@@ -463,11 +463,13 @@ function setupFlowchart() {
 			} else {
 				$(".contextMenuAction").hide();
 			}
+			offsetLeft = $("#flowchart").offset().left;
+			offsetTop = $("#flowchart").offset().top;
 			var $menu = $(menuHTML).show()
 				.css({
 					position: "absolute",
-					left: getMenuPosition(params["pointer"]["DOM"]["x"], 'width', 'scrollLeft', $(menuHTML)),
-					top: getMenuPosition(params["pointer"]["DOM"]["y"], 'height', 'scrollTop',$(menuHTML))
+					left: getMenuPosition(params["pointer"]["DOM"]["x"]+offsetLeft, 'width', 'scrollLeft', $(menuHTML)),
+					top: getMenuPosition(params["pointer"]["DOM"]["y"]+offsetTop, 'height', 'scrollTop',$(menuHTML))
 				})
 				.off('click')
 				.on('click', 'a', function (e) {

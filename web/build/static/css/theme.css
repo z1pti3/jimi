@@ -343,11 +343,6 @@ div.dts div.dataTables_scrollBody {
     border-radius: 5px;
 }
 
-.container_main {
-    position: relative;
-    top: 40px
-}
-
 .hoverHand:hover {
     cursor: hand;
     background-color: var(--hoverColor);
