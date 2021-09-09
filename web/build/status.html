@@ -83,11 +83,11 @@
                             color = "var(--panelComponentBorder)";
                         }
                         if (results["results"][result]["status"] == "Running") {
-                            color = "var(--alertColor)";
+                            color = "var(--alertBackgroundColor)";
                             runningTriggers += 1;
                         }
                         if (results["results"][result]["status"] == "Failed") {
-                            color = "var(--errorColor)";
+                            color = "var(--errorBackgroundColor)";
                             failedTriggers += 1;
                         }
                         totalExecutions = totalExecutions += results["results"][result]["executionCount"]
