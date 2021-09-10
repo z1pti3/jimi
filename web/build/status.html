@@ -71,6 +71,7 @@
         function triggerChartPoll() {
             $.ajax({ url: "/status/triggerChart/", type : "GET", contentType:"application/json", success: function ( results ) {
                     $("#triggerChart").empty();
+                    var systemData = {};
                     var triggers = 0;
                     var runningTriggers = 0;
                     var failedTriggers = 0;
@@ -79,6 +80,7 @@
                     for (result in results["results"]) {
                         triggers += 1;
                         color = "var(--panelBackgroundColor)";
+                        var display = false;
                         if (results["results"][result]["status"] == "Enabled") {
                             color = "var(--panelComponentBorder)";
                         }
@@ -91,7 +93,7 @@
                             failedTriggers += 1;
                         }
                         totalExecutions = totalExecutions += results["results"][result]["executionCount"]
-                        var div = $("<div class='col m-1 panel' style='height:50px; max-width:50px; background-color: "+color+"'>");
+                        var div = $("<div class='col m-1 panel' style='height:50px; min-width:50px; max-width:50px; background-color: "+color+"'>");
                         div.attr("data-bs-toggle","tooltip")
                         div.attr("data-id",results["results"][result]["_id"])
                         div.attr('title', results["results"][result]["name"]);
@@ -113,7 +115,20 @@
                             }).show();
                             return false;
                         });
-                        $("#triggerChart").append(div)
+                        if (systemData.hasOwnProperty(results["results"][result]["systemID"]) === false) {
+                            systemData[results["results"][result]["systemID"]] = {}
+                        }
+                        systemData[results["results"][result]["systemID"]][results["results"][result]["_id"]] = div
+                        
+                    }
+                    for (system in systemData) {
+                        var systemDiv = $('<div class="row g-0 justify-content-md-center">')
+                        console.log(system)
+                        systemDiv.append($('<label class="unselectable panelHeader">').text("System "+system))
+                        for (trigger in systemData[system]) {
+                            systemDiv.append(systemData[system][trigger])
+                        }
+                        $("#triggerChart").append(systemDiv)
                     }
                     $("#enabledTriggers").text(triggers);
                     $("#runningTriggers").text(runningTriggers);

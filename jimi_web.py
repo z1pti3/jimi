@@ -394,7 +394,7 @@ def statusPage():
 @jimi.api.webServer.route("/status/triggerStatus/", methods=["POST"])
 def statusPageTriggerStatusAPI():
 	doughnut = ui.doughnut()
-	triggers = jimi.trigger._trigger(False).getAsClass(sessionData=api.g.sessionData,query={ })
+	triggers = jimi.trigger._trigger(False).getAsClass(sessionData=api.g.sessionData,query={ "enabled" : True })
 	doughnut.addLabel("Running")
 	doughnut.addLabel("Pending")
 	doughnut.addLabel("Failed")
@@ -416,7 +416,7 @@ def statusPageTriggerStatusAPI():
 @jimi.api.webServer.route("/status/conductStatus/", methods=["POST"])
 def statusPageConductStatusAPI():
 	pie = ui.pie()
-	conducts = jimi.conduct._conduct().getAsClass(sessionData=api.g.sessionData,query={})
+	conducts = jimi.conduct._conduct().getAsClass(sessionData=api.g.sessionData,query={ })
 	pie.addLabel("Enabled")
 	pie.addLabel("Disabled")
 	data = [0,0]
@@ -431,7 +431,7 @@ def statusPageConductStatusAPI():
 
 @jimi.api.webServer.route("/status/triggerChart/", methods=["GET"])
 def statusPageTriggerChartAPI():
-	triggers = jimi.trigger._trigger(False).query(sessionData=api.g.sessionData,query={},fields=["_id","name","enabled","startCheck","maxDuration","lastCheck","executionCount"])
+	triggers = jimi.trigger._trigger(False).query(sessionData=api.g.sessionData,query={ "enabled" : True },fields=["_id","name","enabled","startCheck","maxDuration","lastCheck","executionCount","systemID"])
 	for trigger in triggers["results"]:
 		if "executionCount" not in trigger:
 			trigger["executionCount"] = 0
