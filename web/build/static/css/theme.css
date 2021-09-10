@@ -313,6 +313,7 @@ div.dts div.dataTables_scrollBody {
 .button:hover, .button:focus, .button:active {
     background-color: var(--componentBackgroundSelect);
     border-color: var(--componentBorderColor);
+    color: var(--textColor);
     border-style: solid;
     border-width: 1px;
     display:inline;

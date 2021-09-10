@@ -1,10 +1,11 @@
 :root {
     /* Main */
-    --mainBackgroundColor: #fafafa;
-    --textColor: #333333;
-    --textColorHover: #464646;
+    --menuBackgroundColor: #ffffff;
+    --mainBackgroundColor: #ffffff;
+    --textColor: #000000;
+    --textColorHover: #000000;
     --textDisabledColor: #615f5f;
-    --hoverColor: #bdbdbd;
+    --hoverColor: #f1f6ff;
 
     /* Scrollbar */
     --scrollbarColor: #ececec;
@@ -12,26 +13,40 @@
     --scrollbarBorderColor: #464646;
 
     /* Panel */
-    --panelBackgroundColor: #dbdada;
-    --panel2BackgroundColor: #cacaca;
+    --panelBackgroundColor: #ffffff;
+    --panel2BackgroundColor: #ffffff;
     --panelBorderColor: #000;
-    --panelShadowColor1: rgba(0, 0, 0, 0.12);
-    --panelShadowColor2: rgba(0, 0, 0, 0.24);
-    --panelComponentBackground: #ececec;
-    --panelComponentBackground-Focus: #bdbdbd;
+    --panelShadowColor1: #0000001f;
+    --panelShadowColor2: #0000003d;
+    --panelComponentBackground: #ffffff;
+    --panelComponentBackground-Focus: #ffffff;
     --panelComponentBorder: #2e6da4;
-    --panelComponentBorder-Focus: #167bff;
+    --panelComponentBorder-Focus: #ffffff;
 
     /* Component */
     --componentBorderColor: #000000;
     --componentBorderColorSelect: #167bff;
-    --componentBackground1: #ececec;
-    --componentBackground2: #d8d8d8;
-    --componentBackgroundSelect: #bdbdbd;
+    --componentBackground1: #ffffff;
+    --componentBackground2: #eeeeee;
+    --componentBackgroundSelect: #ffffff;
 
     /* Alerts */
     --errorBackgroundColor: #ec0e0e;
     --errorColor: #000000;
     --alertBackgroundColor: #15b438;
     --alertColor: #000000;
+
+    /* Conducts */
+    --nodeEnableColor: #0a0a0a;
+    --nodeDisabledColor: gray;
+    --nodeErrorColor: red;
+    --nodeRunningColor: green;
+    --nodeBorderColor: #595959;
+    --nodeUnknownColor: black;
+    --linkColor: green;
+    --linkTrueColor: #6FA92D;
+    --linkFalseColor: #FF392E;
+    --linkRCColor: #FBB121;
+    --linkLogicColor: #D04D8A;
+    --linkAllColor: #3DBEFF;
 }
