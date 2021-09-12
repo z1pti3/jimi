@@ -470,7 +470,7 @@ def statusPageTriggerFailuresTableAPI(action):
 				name = failureEvent["data"]["triggerName"]
 			else:
 				name = ""
-			data.append([ui.safe(failureEvent["_id"]),ui.safe(failureEvent["time"]),ui.safe(failureEvent["systemID"]),ui.safe(name),ui.dictTable(failureEvent["data"]["msg"])])
+			data.append([ui.safe(failureEvent["_id"]),ui.safe(jimi.helpers.getDateFromTimestamp(failureEvent["time"])),ui.safe(failureEvent["systemID"]),ui.safe(name),ui.dictTable(failureEvent["data"]["msg"])])
 		table.data = data
 		return { "draw" : int(jimi.api.request.args.get('draw')), "recordsTable" : 0, "recordsFiltered" : 0, "recordsTotal" : 0, "data" : data } ,200
 
