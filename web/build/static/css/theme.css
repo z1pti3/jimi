@@ -64,7 +64,6 @@ body {
     background-color: var(--mainBackgroundColor);
     color: var(--textColor);
     padding-bottom: 25px;
-    height: 100%;
     font-family: sans-serif;
 }
 
