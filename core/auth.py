@@ -98,7 +98,7 @@ class _user(jimi.db._document):
 
 class _group(jimi.db._document):
     name = str()
-    enabled = bool()
+    enabled = True
     members = list()
     apiTokens = list()
     description = str()
@@ -278,7 +278,7 @@ def validateExternalUser(username,password,method,**kwargs):
     return None
 
 def validateUser(username,password,otp=None):
-    user = _user().getAsClass(query={ "username" : username })
+    user = _user().getAsClass(query={ "username" : username, "enabled" : True })
     if len(user) == 1:
         user = user[0]
         # Account lockout check
@@ -332,9 +332,9 @@ def enumerateGroups(user):
     group = _group().getAsClass(id=user.primaryGroup)
     if len(group) == 1:
         group = group[0]
-        if user._id in group.members:
+        if user._id in group.members and group.enabled:
             accessIDs.append(group._id)
-    for groupItem in _group().getAsClass(query={ "members" : { "$in" : [ user._id ] } }):
+    for groupItem in _group().getAsClass(query={ "members" : { "$in" : [ user._id ] }, "enabled" : True }):
         if groupItem._id not in accessIDs:
             accessIDs.append(groupItem._id)
     accessIDs.append(everyone)
