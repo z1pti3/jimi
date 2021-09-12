@@ -54,7 +54,7 @@ def scan(path):
                     vars = extractVariables(c[1:])
                     try:
                         modulePath = "{0}.{1}".format(path.split(pluginPath)[1].replace("/",".").replace("\\","."),name.split(".py")[0])
-                        modules[defType][defName] =  { "path" : modulePath[1:], "vars" : vars }
+                        modules[defType][defName] =  { "path" : modulePath, "vars" : vars }
                     except:
                         pass
     return modules
