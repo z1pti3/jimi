@@ -54,6 +54,7 @@ class _user(jimi.db._document):
     primaryGroup = str()
     additionalGroups = list()
     icon = str()
+    timezone = "UTC"
     theme = "dark"
     loginType = "local"
 
