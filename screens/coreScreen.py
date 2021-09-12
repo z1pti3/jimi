@@ -31,7 +31,9 @@ class selectCore:
             rootUser = rootUser[0]
             rootPass = install.randomString(30)
             rootUser.setAttribute("passwordHash",rootPass)
-            rootUser.update(["passwordHash"])
+            rootUser.enabled = True
+            rootUser.failedLoginCount = 0
+            rootUser.update(["passwordHash","enabled","failedLoginCount"])
             logging.debug("Root user password reset! Password is: {}".format(rootPass),-1)
 
 from core import api, workers, logging, settings, helpers, screen, cache, auth
