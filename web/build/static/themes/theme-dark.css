@@ -30,9 +30,4 @@
     --componentBackground2: #1f1f1f;
     --componentBackgroundSelect: #030303;
 
-    /* Alerts */
-    --errorBackgroundColor: #ec0e0e;
-    --errorColor: #000000;
-    --alertBackgroundColor: #15b438;
-    --alertColor: #000000;
 }

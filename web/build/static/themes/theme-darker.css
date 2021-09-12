@@ -22,17 +22,4 @@
     --panelComponentBackground-Focus: #020202;
     --panelComponentBorder: #2e6da4;
     --panelComponentBorder-Focus: #167bff;
-
-    /* Component */
-    --componentBorderColor: #000000;
-    --componentBorderColorSelect: #167bff;
-    --componentBackground1: #111111;
-    --componentBackground2: #1f1f1f;
-    --componentBackgroundSelect: #030303;
-
-    /* Alerts */
-    --errorBackgroundColor: #ec0e0e;
-    --errorColor: #000000;
-    --alertBackgroundColor: #15b438;
-    --alertColor: #000000;
 }

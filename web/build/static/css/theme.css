@@ -32,9 +32,9 @@
     --componentDisabledColor: #222222;
 
     /* Alerts */
-    --errorBackgroundColor: #ec0e0e;
-    --errorColor: #000000;
-    --alertBackgroundColor: #15b438;
+    --errorBackgroundColor: #800303;
+    --errorColor: #adadad;
+    --alertBackgroundColor: #009b22;
     --alertColor: #000000;
 }
 
@@ -360,12 +360,26 @@ div.dts div.dataTables_scrollBody {
     background-color: var(--hoverColor);
 }
 
-.mainAlert-success, .mainAlert-success .toast-header, .mainAlert-success .toast-body, .mainAlert-success .toast-body p {
+
+.mainAlert-success {
+    padding: 0;
+}
+
+.mainAlert-success, .mainAlert-success .toast-header {
     background-color: var(--alertBackgroundColor);
     color: var(--alertColor);
 }
 
-.mainAlert-warning, .mainAlert-warning .toast-header, .mainAlert-warning .toast-body, .mainAlert-warning .toast-body p {
+.mainAlert-warning, .mainAlert-warning .toast-header {
     background-color: var(--errorBackgroundColor);
     color: var(--errorColor);
+}
+
+.mainAlert-warning {
+    padding: 0;
+}
+
+.mainAlert-success .toast-body, .mainAlert-success .toast-body p, .mainAlert-warning .toast-body, .mainAlert-warning .toast-body p {
+    background-color: var(--panelBackgroundColor);
+    color: var(--textColor);
 }

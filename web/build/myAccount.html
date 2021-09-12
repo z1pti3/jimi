@@ -2,6 +2,7 @@
 
 {% block head %}
     {{ jimi.jquery() }}
+    <script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
 {% endblock %}
 
 {% block main %}
@@ -10,6 +11,14 @@
             <main class="col-5 form-signin">
                 <form class="p-4 panel" id="updateSettings">
                     <h1 class="h4 mb-2 fw-normal">General Settings</h1>
+                    <div class="form-floating">
+                        <input type="input" class="form-control textbox" id="name" autoComplete="off" placeholder="Name" value="{{ name }}">
+                        <label for="name" class="bi-person"> Full Name</label>
+                    </div>
+                    <div class="form-floating">
+                        <input type="input" class="form-control textbox" id="email" autoComplete="off" placeholder="Theme" value="{{ email }}">
+                        <label for="email" class="bi-email"> Email Address</label>
+                    </div>
                     <div class="form-floating">
                         <input type="input" class="form-control textbox" id="theme" autoComplete="off" placeholder="Theme" value="{{ theme }}">
                         <label for="theme" class="bi-easel"> Set a theme</label>
@@ -41,9 +50,9 @@
     <script>
         $("#updateSettings").submit(function(e) {
             e.preventDefault();
-            var body = JSON.stringify({ CSRF : CSRF, theme: $("#theme").val() })
+            var body = JSON.stringify({ CSRF : CSRF, name: $("#name").val(), email: $("#email").val(), theme: $("#theme").val() })
             $.ajax({ url: "/api/1.0/auth/myAccount/", type : "POST", data:body, contentType:"application/json", success: function ( result ) {
-                    window.location.reload();
+                    dropdownAlert(null,"Success","Save Successful",1000);
                 }
             });
         })
@@ -55,9 +64,10 @@
             } else {
                 var body = JSON.stringify({ CSRF : CSRF, password: $("#currentPassword").val(), password1: $("#newPassword").val() })
                 $.ajax({ url: "/api/1.0/auth/myAccount/", type : "POST", data:body, contentType:"application/json", success: function ( result ) {
-                        window.location.reload();
+                        dropdownAlert(null,"Success","Save Successful",1000);
                     },
                     error: function ( result ) {
+                        dropdownAlert(null,"Error","Check that your current password is correct, the new and confirmed passwords match and that you meet the complexity requirements.",1000);
                         $("#currentPassword").addClass("textboxError");
                     }
                 });

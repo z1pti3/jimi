@@ -458,7 +458,12 @@ if jimi.api.webServer:
 
             @jimi.api.webServer.route("/myAccount/")
             def myAccountPage():
-                return render_template("myAccount.html",CSRF=jimi.api.g.sessionData["CSRF"],theme=jimi.api.g.sessionData["theme"])
+                if authSettings["enabled"]:
+                    user = _user().getAsClass(id=jimi.api.g.sessionData["_id"])
+                    if len(user) == 1:
+                        user = user[0]
+                        return render_template("myAccount.html",CSRF=jimi.api.g.sessionData["CSRF"],name=user.name,email=user.email,theme=user.theme)
+                return { }, 403
 
             # Checks that username and password are a match
             @jimi.api.webServer.route(jimi.api.base+"auth/", methods=["POST"])
@@ -571,6 +576,14 @@ if jimi.api.webServer:
                             else:
                                 return { "msg" : "Current password does not match" }, 400
                             user.update(["passwordHash","apiTokens"])
+                        if "name" in data:
+                            if data["name"] != user.name:
+                                user.name = data["name"]
+                                user.update(["name"])
+                        if "email" in data:
+                            if data["email"] != user.email:
+                                user.email = data["email"]
+                                user.update(["email"])
                         if "theme" in data:
                             if data["theme"] != user.theme:
                                 user.theme = data["theme"]
