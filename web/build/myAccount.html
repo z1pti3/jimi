@@ -8,6 +8,15 @@
     <div class="container px-4 py-5 text-center">
         <div class="row justify-content-md-center">
             <main class="col-5 form-signin">
+                <form class="p-4 panel" id="updateSettings">
+                    <h1 class="h4 mb-2 fw-normal">General Settings</h1>
+                    <div class="form-floating">
+                        <input type="input" class="form-control textbox" id="theme" autoComplete="off" placeholder="Theme" value="{{ theme }}">
+                        <label for="theme" class="bi-easel"> Set a theme</label>
+                    </div>
+                
+                    <button class="w-100 btn btn-primary btn-block button bi-lock" type="submit"> Save</button>
+                </form>
                 <form class="p-4 panel" id="updatePassword">
                     <h1 class="h4 mb-2 fw-normal">Change Password</h1>
                 
@@ -30,6 +39,14 @@
         </div>
     </div>
     <script>
+        $("#updateSettings").submit(function(e) {
+            e.preventDefault();
+            var body = JSON.stringify({ CSRF : CSRF, theme: $("#theme").val() })
+            $.ajax({ url: "/api/1.0/auth/myAccount/", type : "POST", data:body, contentType:"application/json", success: function ( result ) {
+                    window.location.reload();
+                }
+            });
+        })
         $("#updatePassword").submit(function(e) {
             e.preventDefault();
             if ($("#newPassword").val() != $("#confirmNewPassword").val()) {

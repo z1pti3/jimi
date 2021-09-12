@@ -458,7 +458,7 @@ if jimi.api.webServer:
 
             @jimi.api.webServer.route("/myAccount/")
             def myAccountPage():
-                return render_template("myAccount.html",CSRF=jimi.api.g.sessionData["CSRF"])
+                return render_template("myAccount.html",CSRF=jimi.api.g.sessionData["CSRF"],theme=jimi.api.g.sessionData["theme"])
 
             # Checks that username and password are a match
             @jimi.api.webServer.route(jimi.api.base+"auth/", methods=["POST"])
@@ -570,7 +570,13 @@ if jimi.api.webServer:
                                     return { "msg" : "New password does not meet complexity requirements" }, 400
                             else:
                                 return { "msg" : "Current password does not match" }, 400
-                        user.update(["passwordHash","apiTokens"])
+                            user.update(["passwordHash","apiTokens"])
+                        if "theme" in data:
+                            if data["theme"] != user.theme:
+                                user.theme = data["theme"]
+                                user.update(["theme"])
+                                jimi.api.g.renew = True
+                                jimi.api.g.sessionData["theme"] = user.theme
                         return {}, 200
                 else:
                     return {}, 200
