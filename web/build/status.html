@@ -58,6 +58,20 @@
             <li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="statusPageClearTriggerStartCheck()">Clear startCheck</a></li>
         </ul>
     </div>
+    <div class="modal fade" id="whatsNew" tabindex="-1" role="dialog">
+		<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+			<div class="modal-content panel">
+				<div class="modal-header">
+					<h5 class="modal-title" id="whatsNewBodyTitle">Whats New</h5>
+				</div>
+				<div class="modal-body" id="whatsNewBody">
+				</div>
+				<div class="modal-footer justify-content-start">
+					<button type="button" class="btn btn-primary button" onclick="closeWhatsNew()"> Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
     <script>
         var statusPageSelectedTrigger = null;
         $('body').click(function () {
@@ -67,7 +81,22 @@
 
         $(document).ready(function() {
             triggerChartPoll();
+            var whatsNew = GetURLParameter("whatsNew")
+            if (whatsNew == "1") {
+                $.ajax({ url: "/whatsNew/", type : "GET", contentType:"application/json", success: function ( results ) {
+                        $('#whatsNewBodyTitle').text(results["title"])
+                        $('#whatsNewBody').html(results["body"])
+                        $("#whatsNew").modal('toggle');
+                    }
+                });
+            }
         });
+        function closeWhatsNew() {
+            $.ajax({ url: "/api/1.0/auth/clearWhatsNew/", type : "GET", contentType:"application/json", success: function ( results ) {
+                    window.location = "/status/"
+                }
+            })
+        }
         function triggerChartPoll() {
             $.ajax({ url: "/status/triggerChart/", type : "GET", contentType:"application/json", success: function ( results ) {
                     $("#triggerChart").empty();

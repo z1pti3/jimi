@@ -1,0 +1,59 @@
+# Version 3.036
+
+## Features -
+
+### Changeable User Themes 
+
+Users now have the ability to change themes, this can be done through the My Accounts page
+
+### Update My Account Page
+
+Ability to change name and email address associated
+
+### Add Whats New
+
+Whats New ( This ) panel has been added to inform users of changes after an upgrade has taken place. Once a user pressing the "Close" button the panel will not be visible until the next upgrade
+
+## Bug Fixes -
+
+### Enabled User/Group Status
+
+User and Group status is now enforced
+
+### Improved root Password Reset Utility
+
+CLI reset of root user no longer requires waiting the lockout period to expire
+
+<!-- # Version 3.035
+
+## Features
+
+### Quick Clear Restart
+
+Status page list of triggers now supports right click to clear startChecks which will restart a trigger
+
+### Replaced Save / Error Alerts
+
+Save dialogs now appear down the bottom right of the screen instead of as banners
+
+### Bug Fixes
+
+* Cluster Restarting Trigger Failures No Longer Missing from Status Table
+
+# Version 3.034
+
+## Features
+
+### Object Revisions
+
+Changes made to objects are now stored within the revision system to enable quick and simple restore of previous versions.
+
+Within ConductsEditor right click on an object and select "Revision History"
+
+### Trigger Statistics
+
+Viewable last 100 execution times for a trigger
+
+Within ConductsEditor right click on an object and select "Statistics"
+
+## Bug Fixes -->

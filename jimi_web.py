@@ -12,6 +12,7 @@ import os
 from operator import itemgetter
 import logging
 import datetime
+import markdown
 
 logging.basicConfig(level=logging.ERROR)
 
@@ -21,6 +22,7 @@ api.createServer("jimi_web",template_folder=str(Path("web","build")),static_fold
 
 import jimi
 from web import ui
+from system import install as jimiInstaller
 
 # Other pages
 from web import modelEditor, conductEditor, codify
@@ -550,6 +552,15 @@ def statisticsTriggerLineChart(triggerID):
 	line.addDataset(triggerObject.name,dataPoints)
 	data = json.loads(jimi.api.request.data)
 	return line.generate(data), 200
+
+@jimi.api.webServer.route("/whatsNew/",methods=["GET"])
+def whatsNewPopup():
+	result = {}
+	result["title"] = "Release Notes - Your Current jimi Version {0}".format(jimiInstaller.systemVersion)
+	with open(Path("system/releaseNotes")) as f:
+		result["body"] = markdown.markdown(f.read())
+	
+	return result, 200
 
 try:
 	api.startServer(False,{'server.socket_host': jimi.config["api"]["web"]["bind"], 'server.socket_port': jimi.config["api"]["web"]["port"], 'engine.autoreload.on': False, 'server.thread_pool' : 5, 'server.ssl_certificate' : jimi.config["api"]["web"]["secure"]["cert"],'server.ssl_private_key' : jimi.config["api"]["web"]["secure"]["key"]})

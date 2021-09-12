@@ -13,3 +13,4 @@ json2html
 cherrypy
 psutil
 ldap3
+markdown

@@ -54,7 +54,8 @@ class _user(jimi.db._document):
     primaryGroup = str()
     additionalGroups = list()
     icon = str()
-    timezone = "UTC"
+    timezone = "utc"
+    whatsNew = False
     theme = "dark"
     loginType = "local"
 
@@ -487,6 +488,7 @@ if jimi.api.webServer:
                         userSession = validateUser(data["username"],data["password"],data["otp"])
                     if userSession:
                         sessionData = validateSession(userSession,"jimi")["sessionData"]
+                        user = _user().getAsClass(id=sessionData["_id"])[0]
                         redirect = jimi.api.request.args.get("return")
                         if redirect:
                             if "." in redirect or ".." in redirect:
@@ -498,6 +500,9 @@ if jimi.api.webServer:
                         # Default redirect forced update to /conducts/
                         if redirect == "/?":
                             redirect = "/conducts/"
+                        # Overwrite redirect if whatsNew needs to be shown
+                        if user.whatsNew:
+                            redirect = "/status/?whatsNew=1"
                         response = jimi.api.make_response({ "CSRF" : sessionData["CSRF"], "redirect" : redirect },200)
                         response.set_cookie("jimiAuth", value=userSession, max_age=authSettings["sessionTimeout"], httponly=True, secure=webSecure)
                         return response, 200
@@ -612,6 +617,17 @@ if jimi.api.webServer:
                     userProps["username"] = "username"
                     userProps["name"] = "name"
                     return userProps, 200
+                return { }, 404
+
+            @jimi.api.webServer.route(jimi.api.base+"auth/clearWhatsNew/", methods=["GET"])
+            def api_clearWhatsNew():
+                if authSettings["enabled"]:
+                    user = _user().getAsClass(id=jimi.api.g.sessionData["_id"])
+                    if len(user) == 1:
+                        user = user[0]
+                        user.whatsNew = False
+                        user.update(["whatsNew"])
+                        return { }, 200
                 return { }, 404
 
             @jimi.api.webServer.route(jimi.api.base+"auth/regenerateOTP/", methods=["GET"])
