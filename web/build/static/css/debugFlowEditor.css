@@ -13,10 +13,10 @@
 
 .debugFlowEditor-left {
     grid-area: left;
-    background-color: #333333;
+    background-color: var(--panelBackgroundColor);
     border-right-style: solid;
-    border-color: #000;
-    color: #ddd;
+    border-color: var(--panelBorderColor);
+    color: var(--textColor);
     padding: 0 10px 0 10px;
     overflow-y: scroll;
 }
@@ -34,11 +34,11 @@
     float: left;
     width: 50%;
     height: 100%;
-    background-color: #333333;
+    background-color: var(--panelBackgroundColor);
     border-top-style: solid;
     border-right-style: solid;
-    border-color: #000;
-    color: #ddd;
+    border-color: var(--panelBorderColor);
+    color: var(--textColor);
     padding: 0 10px 0 10px;
 }
 
@@ -47,11 +47,11 @@
     float: left;
     width: 50%;
     height: 100%;
-    background-color: #333333;
+    background-color: var(--panelBackgroundColor);
     border-top-style: solid;
     border-left-style: solid;
-    border-color: #000;
-    color: #ddd;
+    border-color: var(--panelBorderColor);
+    color: var(--textColor);
     padding: 0 10px 0 10px;
 }
 
@@ -74,37 +74,37 @@
 .eventList {
     height: calc(100% - 90px);
     width: 100%;
-    color: #ddd;
+    color: var(--textColor);
 }
 
 .eventItem {
     display: block;
     word-wrap: break-word;
     white-space: normal;
-    background-color: #111111;
+    background-color: var(--panelComponentBackground);
     padding: 0 10px 0 10px;
 }
 
 .eventItem:hover {
-    background-color: #167bff;
-    color: #111111;
+    background-color: var(--panelComponentBackground-Focus);
+    color: var(--textColor);
 }
 
 .eventItemInner {
     display: block;
     word-wrap: break-word;
     white-space: normal;
-    background-color: #525252;
+    background-color: var(--panel2BackgroundColor);
     padding: 0 10px 0 10px;
 }
 
 .eventItemInner:hover {
-    background-color: #167bff;
-    color: #111111;
+    background-color: var(--panelComponentBackground-Focus);
+    color: var(--textColor);
 }
 
 .click {
-    background-color: #167bff;
+    background-color: var(--panelComponentBackground-Focus);
 }
 
 hr {
