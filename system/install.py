@@ -462,4 +462,10 @@ def systemUpgrade(currentVersion):
 	if currentVersion < 3.035:
 		jimi.model.registerModel("revision","_revision","_document","core.revision")
 
+	if currentVersion < 3.036:
+		users = jimi.auth._user().getAsClass(query={  })
+		for user in users:
+			user.whatsNew = True
+			user.update(["whatsNew"])
+
 	return True
