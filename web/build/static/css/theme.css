@@ -65,6 +65,7 @@ body {
     color: var(--textColor);
     padding-bottom: 25px;
     font-family: sans-serif;
+    min-width: 1160px;
 }
 
 p {
