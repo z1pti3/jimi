@@ -13,6 +13,7 @@
     <script src="{{ url_for('static', filename='includes/datatables/js/datetime.moment.js') }}"></script>
 
     <script src="{{ url_for('static', filename='javascript/helpers.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
 {% endblock %}
 
 {% block main %}
@@ -192,7 +193,10 @@
                         } );
                         jsonData["CSRF"] = CSRF
                         $.ajax({url:"/api/1.0/models/"+modelName+"/"+id+"/", type:"POST", data: JSON.stringify(jsonData), contentType:"application/json", success: function ( result ) {
-                                alertNow("Object saved!");
+                                dropdownAlert(null,"Success","Save Successful",1000);
+                            },
+                            error: function ( result ) {
+                                dropdownAlert(null,"Error","Unknown error occurred",1000);
                             }
                         });
                         break;
@@ -201,23 +205,14 @@
             })
         }
 
-        function alertNow(message) {
-            var alert = $(".alert-container");
-            $("#alertMessage").text(message);
-            alert.toggleClass("hidden");
-            alert.slideDown();
-            window.setTimeout(function() {
-                alert.slideUp();
-                alert.toggleClass("hidden");
-                location.reload();
-            }, 750);
-        }
-
         function deleteObject(objectID) {
             if (confirm("Are you sure you want to delete object ("+objectID+")?")) {
                 var pathname = window.location.pathname;
                 $.ajax({url:"/api/1.0/models/"+GetURLParameter("modelName")+"/"+objectID+"/", data: JSON.stringify({CSRF: CSRF}), type:"DELETE", success: function ( result ) {
-                        alertNow("Object deleted!");
+                        dropdownAlert(null,"Success","Object deleted",1000);
+                    },
+                    error: function ( result ) {
+                        dropdownAlert(null,"Error","Unknown error occurred",1000);
                     }
                 })
             }
@@ -230,6 +225,9 @@
         function createObject() {
             $.ajax({url:"/api/1.0/models/"+GetURLParameter("modelName")+"/", data: JSON.stringify({CSRF: CSRF}), type:"PUT", success: function ( result ) {
                     editObject(result["_id"]);
+                },
+                error: function ( result ) {
+                    dropdownAlert(null,"Error","Unknown error occurred",1000);
                 }
             })
         }
@@ -263,7 +261,6 @@
         }
 
         $(document).ready(function () {
-            var alert = $(".alert-container");
             locationHandler();
         });
     </script>

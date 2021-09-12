@@ -17,6 +17,9 @@ function dropdownAlert(parent,type,message,timeout) {
     alert.find("#alert-header").text(type);
     alert.find("#alert-message").text(message);
     alert.find("#alert-smallText").text(localTime(new Date().getTime()/1000));
-    var toast = new bootstrap.Toast(document.getElementById('mainAlert'));
+    var toast = bootstrap.Toast.getInstance(document.getElementById('mainAlert'));
+    if (toast === null) {
+        toast = new bootstrap.Toast(document.getElementById('mainAlert'));
+    }
     toast.show()
 }
