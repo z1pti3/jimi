@@ -34,7 +34,7 @@ var panelViewObjectRevisionHistoryHTML = `
 var openObjectRevisionHistoryPanels = {}
 var openViewObjectRevisionHistoryPanels = {}
 
-function loadObjectRevisionHistoryPanel(panel,objectType,objectID) {
+function loadObjectRevisionHistoryPanel(panel,objectType,objectID,init=false) {
 	panel.find("#title").text("Object Revisions");
 	$.ajax({ url: "/api/1.0/models/"+objectType+"/"+objectID+"/", type : "GET", success: function( result ) {
 			classID= result["classID"]
@@ -47,11 +47,25 @@ function loadObjectRevisionHistoryPanel(panel,objectType,objectID) {
 						row.append(createdTime)
 						var createdBy = $('<td>').text(revision["createdBy"])
 						row.append(createdBy)
-						var options = $('<td>').append($('<button class="btn btn-primary button" onClick=restoreObjectRevisionHistory("'+classID+'","'+objectID+'","'+revision["_id"]+'")>').text("Restore"))
+						var options = $('<td>').append($('<button class="btn btn-primary button" onClick=restoreObjectRevisionHistory("'+classID+'","'+objectID+'","'+revision["_id"]+'","'+objectType+'")>').text("Restore"))
 						row.append(options)
 						var options = $('<td>').append($('<button class="btn btn-primary button" onClick=viewObjectRevisionHistory("'+classID+'","'+objectID+'","'+revision["_id"]+'")>').text("View"))
 						row.append(options)
 						panel.find('#objectRevisionsTable').append(row);
+					}
+					// Set Initial Position
+					if (init) {
+						height = $("#flowchart").height();
+						width = $("#flowchart").width();
+						// Checking for offset on conductEditor
+						try {  
+							offsetTop = $(".conductEditor-topBar").offset().top;
+						} catch(error) {  
+							offsetTop = 0; 
+						}
+						var posX = (width/2) - (panel.width()/2);
+						var posY = (height/2) - (panel.height()/2) + offsetTop;
+						panel.css({top : posY, left : posX});
 					}
 				}
 			});
@@ -66,15 +80,17 @@ function viewObjectRevisionHistory(classID,objectID,revisionID) {
 	});	
 }
 
-function restoreObjectRevisionHistory(classID,objectID,revisionID) {
+function restoreObjectRevisionHistory(classID,objectID,revisionID,objectType) {
 	$.ajax({ url: "/api/1.0/revisions/"+classID+"/"+objectID+"/"+revisionID+"/", type : "GET", success: function( result ) {
 			alert("Object restored!");
+			var panelID = objectType+"-"+objectID
+			loadObjectRevisionHistoryPanel($('#'+panelID),objectType,objectID);
 		}
 	});	
 }
 
 function createObjectRevisionHistoryPanel(objectType,objectID) {
-	panelID = objectType+"-"+objectID
+	var panelID = objectType+"-"+objectID
 	if (!openObjectRevisionHistoryPanels.hasOwnProperty(panelID)) {
 		openObjectRevisionHistoryPanels[panelID] = panelID;
 		var panel = $(panelObjectRevisionHistoryHTML);
@@ -82,6 +98,8 @@ function createObjectRevisionHistoryPanel(objectType,objectID) {
 		panel.resizable({
 			grid: 20
 		});
+
+		panel.attr("id",panelID);
 
 		// Events
 		panel.click(function () {
@@ -99,17 +117,10 @@ function createObjectRevisionHistoryPanel(objectType,objectID) {
 		})
 
 		// Loading properties form
-		loadObjectRevisionHistoryPanel(panel,objectType,objectID);
+		loadObjectRevisionHistoryPanel(panel,objectType,objectID,true);
 	
 		// Applying object to UI
 		$('.ui-main').append(panel);
-
-		// Set Initial Position
-		height = $("#flowchart").height();
-		width = $("#flowchart").width();
-		var posX = (width/2) - (panel.width()/2);
-		var posY = (height/2) - (panel.height()/2);
-		panel.css({top : posY, left : posX});
 	}
 }
 
@@ -136,6 +147,7 @@ function createViewObjectRevisionHistoryPanel(classID,objectID,revisionID,object
 		})
 
 		// Loading properties form
+		panel.find("#title").text("Object Revision "+revisionID+" - Preview");
 		panel.find(".propertiesPanel-body").append(buildForm(objectData));
 	
 		// Applying object to UI
@@ -144,8 +156,14 @@ function createViewObjectRevisionHistoryPanel(classID,objectID,revisionID,object
 		// Set Initial Position
 		height = $("#flowchart").height();
 		width = $("#flowchart").width();
+		// Checking for offset on conductEditor
+		try {  
+			offsetTop = $(".conductEditor-topBar").offset().top;
+		} catch(error) {  
+			offsetTop = 0; 
+		}
 		var posX = (width/2) - (panel.width()/2);
-		var posY = (height/2) - (panel.height()/2);
+		var posY = (height/2) - (panel.height()/2) + offsetTop;
 		panel.css({top : posY, left : posX});
 		panel.css("z-index", 2);
 	}
