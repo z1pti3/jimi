@@ -80,3 +80,25 @@ if jimi.api.webServer:
                 except:
                     pass
                 return { }, 404
+
+            @jimi.api.webServer.route(jimi.api.base+"revisions/<classID>/<objectID>/<revisionID>/view/", methods=["GET"])
+            def viewRevision(classID,objectID,revisionID):
+                try:
+                    # Checking that the requesting user has access to the object
+                    objectClass = jimi.model._model().getAsClass(sessionData=jimi.api.g.sessionData,id=classID)[0].classObject()
+                    objectClass = objectClass().getAsClass(sessionData=jimi.api.g.sessionData,id=objectID)[0]
+                    if objectClass:
+                        if objectClass.__class__.__name__ != "_conduct":
+                            # No ACL check needed as we check the objects ACL
+                            revisionsToRestore = _revision().query(query={ "_id" : { "$gte" : jimi.db.ObjectId(revisionID) }, "classID" : classID, "objectID" : objectID },fields=["objectData"],sort=[("_id",-1)])["results"]
+                            blacklist = ["classID","_id","acl"]
+                            members = [attr for attr in dir(objectClass) if not callable(getattr(objectClass, attr)) and not "__" in attr and attr ]
+                            for revisionToRestore in revisionsToRestore:
+                                for member in members:
+                                    if member in revisionToRestore["objectData"] and member not in blacklist:
+                                        if type(getattr(objectClass,member) == type(revisionToRestore["objectData"][member])):
+                                            setattr(objectClass,member,revisionToRestore["objectData"][member])
+                            return { "formData" : jimi.webui._properties().generate(objectClass) }, 200
+                except:
+                    pass
+                return { }, 404
