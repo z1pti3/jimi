@@ -45,6 +45,8 @@ function loadObjectRevisionHistoryPanel(panel,objectType,objectID) {
 						var row = $('<tr>')
 						var createdTime = $('<td>').text(localTime(revision["creationTime"]))
 						row.append(createdTime)
+						var createdBy = $('<td>').text(revision["createdBy"])
+						row.append(createdBy)
 						var options = $('<td>').append($('<button class="btn btn-primary button" onClick=restoreObjectRevisionHistory("'+classID+'","'+objectID+'","'+revision["_id"]+'")>').text("Restore"))
 						row.append(options)
 						var options = $('<td>').append($('<button class="btn btn-primary button" onClick=viewObjectRevisionHistory("'+classID+'","'+objectID+'","'+revision["_id"]+'")>').text("View"))

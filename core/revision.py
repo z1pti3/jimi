@@ -49,7 +49,21 @@ if jimi.api.webServer:
                     objectClass = objectClass().getAsClass(sessionData=jimi.api.g.sessionData,id=objectID)[0]
                     if objectClass:
                         # No ACL check needed as we check the objects ACL
-                        revisions = _revision().query(query={ "classID" : classID, "objectID" : objectID },sort=[("_id", -1)],limit=100,fields=["_id","creationTime"])["results"]
+                        revisions = _revision().query(query={ "classID" : classID, "objectID" : objectID },sort=[("_id", -1)],limit=100,fields=["_id","creationTime","createdBy"])["results"]
+                        # Get users from createdBy
+                        userIDs = []
+                        for revision in revisions:
+                            if jimi.db.ObjectId(revision["createdBy"]) not in userIDs:
+                                userIDs.append(jimi.db.ObjectId(revision["createdBy"]))
+                        users = jimi.auth._user().query(query={ "_id" : { "$in" : userIDs } })["results"]
+                        userHash = {}
+                        for user in users:
+                            userHash[user["_id"]] = user["name"]
+                        for revision in revisions:
+                            try:
+                                revision["createdBy"] = userHash[revision["createdBy"]]
+                            except KeyError:
+                                revision["createdBy"] = "Unknown"
                         return { "revisions" : revisions }, 200
                 except:
                     pass
