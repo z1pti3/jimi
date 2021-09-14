@@ -9,7 +9,7 @@
     <div class="container px-4 py-5">
         <div id="alertArea"></div>
         <h2>Organisation Settings</h2>
-        <br>
+        <hr>
         <form>
             <div class="form-group">
                 <h3>General</h3>
@@ -82,13 +82,26 @@
                             </div>
                             <input type="number" class="form-control textbox" id="numbers" value="{{ passwordPolicy["minNumbers"] }}" aria-describedby="numberHelp">
                         </div>
+                    </div>    
+                </div>  
+                <button type="button" class="btn btn-primary button bi-save" onclick="editOrganisation()"> Save</button>           
+                </form>
+                <hr>
+                {% for type in loginTypes %}
+                {% if type["name"] == "ldap" and "settings" in type %}
+                <form>
+                    <div class="form-group">
+                        <div class="form-row">
+                            <h3>LDAP Settings</h3>
+                        </div> 
                     </div>
-                </div> 
-        </form>
-        <button type="button" class="btn btn-primary button bi-save" onclick="editOrganisation()"> Save</button>
-        <hr>
+                    <button type="button" class="btn btn-primary button bi-save" onclick="editLdap()"> Save</button> 
+                </form>
+                <hr>
+                {% endif %}
+                {% endfor %}
+
         <h2>Users and Groups</h2>
-        <br>
         <a type="button" class="btn btn-primary button bi-person" href="/admin/users"> Edit Users</a>
         <a type="button" class="btn btn-primary button bi-people" href="/admin/groups"> Edit Groups</a>
     </div>
