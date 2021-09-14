@@ -125,6 +125,7 @@
                         var div = $("<div class='col m-1 panel' style='height:50px; min-width:50px; max-width:50px; background-color: "+color+"'>");
                         div.attr("data-bs-toggle","tooltip")
                         div.attr("data-id",results["results"][result]["_id"])
+                        div.attr("data-name",results["results"][result]["name"])
                         div.attr('title', results["results"][result]["name"]);
                         div.dblclick(function() { 
                             $.ajax({ url: "/api/1.0/trigger/"+$(this).attr("data-id")+"/whereUsed/", type : "GET", contentType:"application/json", success: function ( jsonResult ) {
@@ -135,7 +136,7 @@
                             });
                         })
                         div.bind("contextmenu", function (e) {
-                            statusPageSelectedTrigger = $(this).attr("data-id")
+                            statusPageSelectedTrigger = [$(this).attr("data-id"),$(this).attr("data-name")]
                             var top = e.pageY - 50;
                             var left = e.pageX - 10;
                             $('#contextMenu').css({
@@ -163,14 +164,16 @@
                     $("#runningTriggers").text(runningTriggers);
                     $("#failedTriggers").text(failedTriggers);
                     $("#totalExecutions").text(totalExecutions);
+                    setTimeout(triggerChartPoll, 2500);
                 }
             });
-            setTimeout(triggerChartPoll, 2500);
         }
         function statusPageClearTriggerStartCheck() {
             if (statusPageSelectedTrigger) {
-                $.ajax({ url: "/api/1.0/models/trigger/"+statusPageSelectedTrigger+"/", type : "POST", data: JSON.stringify({ "CSRF" : CSRF, "startCheck" : 0 }), contentType:"application/json", success: function ( jsonResult ) {
-                        alert("Trigger '"+statusPageSelectedTrigger+"' startCheck Cleared!");
+                var triggerID = statusPageSelectedTrigger[0];
+                var triggerName = statusPageSelectedTrigger[1]
+                $.ajax({ url: "/api/1.0/models/trigger/"+triggerID+"/", type : "POST", data: JSON.stringify({ "CSRF" : CSRF, "startCheck" : 0 }), contentType:"application/json", success: function ( jsonResult ) {
+                        dropdownAlert(null,"Success","Trigger '"+triggerName+"' Cleared",1000);
                     }
                 });
             }
