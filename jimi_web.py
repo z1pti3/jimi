@@ -67,11 +67,12 @@ def clusterAdminPage():
 def organisationAdminPage():
 	organisation = jimi.organisation._organisation().query()["results"]
 	loginTypes = jimi.settings.getSettingValue(None,jimi.api.g.sessionData,"auth","types")
+	passwordPolicy = jimi.settings.getSettingValue(None,jimi.api.g.sessionData,"auth","policy")
 	availableTypes = [{"name":"local","enabled":False},{"name":"ldap","enabled":False},{"name":"oauth","enabled":False}]
 	for loginType in availableTypes:
 		if loginType["name"] in loginTypes:
 			loginType["enabled"] = True
-	return render_template("organisation.html",CSRF=jimi.api.g.sessionData["CSRF"],organisation=organisation,loginTypes=availableTypes)
+	return render_template("organisation.html",CSRF=jimi.api.g.sessionData["CSRF"],organisation=organisation,loginTypes=availableTypes,passwordPolicy=passwordPolicy)
 
 # Should be migrated into plugins.py
 @jimi.api.webServer.route(jimi.api.base+"plugins/")

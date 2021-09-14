@@ -8,21 +8,25 @@
     <script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
     <div class="container px-4 py-5">
         <div id="alertArea"></div>
-        <h2>General Details</h2>
+        <h2>Organisation Settings</h2>
         <br>
         <form>
             <div class="form-group">
-                <label for="name">Organisation Name</label>
-                {% if organisation|length > 0 %}
-                    <input type="text" class="form-control textbox" id="name" value="{{ organisation[0]['name'] }}" aria-describedby="nameHelp">
-                {% else %}
-                    <input type="text" class="form-control textbox" id="name" value="" aria-describedby="nameHelp">
-                {% endif %}
-                <small id="nameHelp" class="form-text text-muted">The name of the organsation using JIMI</small>
-                <br>
-                <label for="loginTypes">Authentication Types</label>
-                <br>
-                {% for type in loginTypes %}
+                <h3>General</h3>
+                <div class="form-row">
+                    <label for="name">Organisation Name</label>
+                    {% if organisation|length > 0 %}
+                        <input type="text" class="form-control textbox" id="name" value="{{ organisation[0]['name'] }}" aria-describedby="nameHelp">
+                    {% else %}
+                        <input type="text" class="form-control textbox" id="name" value="" aria-describedby="nameHelp">
+                    {% endif %}
+                    <small id="nameHelp" class="form-text text-muted">The name of the organsation using JIMI</small>
+                </div>
+                <hr>
+                <h3>Security</h3>
+                <div class="form-row">
+                    <label>Authentication Types</label>
+                    {% for type in loginTypes %}
                     <div class="form-switch">
                     {% if type["enabled"] == true %}
                         <input class="form-check-input" name="authTypes" type="checkbox" value="{{ type["name"] }}" aria-label="{{ type["name"] }}" checked>
@@ -34,7 +38,52 @@
                     </div> 
                 {% endfor %}
                 <small id="authTypeHelp" class="form-text text-muted">The methods of authentication users can use on the system</small>
-            </div>
+                </div>
+                <br>
+                <label>Password Policy (applies to local login only)</label>
+                <div class="form-row">
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1">length</span>
+                        </div>
+                        <input type="number" class="form-control textbox" id="length" value="{{ passwordPolicy["minLength"] }}" aria-describedby="lengthHelp">
+                    </div>
+                </div>
+                <small>Passwords must have a minimum of each type of character specified below</small>
+                <div class="row">
+                    <div class="col-2">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="basic-addon1">lower</span>
+                            </div>
+                            <input type="number" class="form-control textbox" id="lower" value="{{ passwordPolicy["minLower"] }}" aria-describedby="lowerHelp">
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="basic-addon1">upper</span>
+                            </div>
+                            <input type="number" class="form-control textbox" id="upper" value="{{ passwordPolicy["minUpper"] }}" aria-describedby="upperHelp">
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="basic-addon1">special</span>
+                            </div>
+                            <input type="number" class="form-control textbox" id="special" value="{{ passwordPolicy["minSpecial"] }}" aria-describedby="specialHelp">
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="basic-addon1">numbers</span>
+                            </div>
+                            <input type="number" class="form-control textbox" id="numbers" value="{{ passwordPolicy["minNumbers"] }}" aria-describedby="numberHelp">
+                        </div>
+                    </div>
+                </div> 
         </form>
         <button type="button" class="btn btn-primary button bi-save" onclick="editOrganisation()"> Save</button>
         <hr>
@@ -50,7 +99,7 @@
                 {
                     authTypes.push(pair[1])
                 }
-                var body = JSON.stringify({ CSRF : CSRF, name: $("#name").val(), authTypes: authTypes })
+                var body = JSON.stringify({ CSRF : CSRF, name: $("#name").val(), authTypes: authTypes, length: $("#length").val(), lower: $("#lower").val(), upper: $("#upper").val(), special: $("#special").val(), numbers: $("#numbers").val(), })
                 $.ajax({ type : "POST",  data:body, contentType:"application/json", 
                     success: function ( result ) 
                     {
