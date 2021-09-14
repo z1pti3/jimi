@@ -21,21 +21,18 @@
                 <small id="nameHelp" class="form-text text-muted">The name of the organsation using JIMI</small>
                 <br>
                 <label for="loginTypes">Authentication Types</label>
-                <ul class="form-control listcontainer" id="loginTypes">
+                <br>
                 {% for type in loginTypes %}
+                    <div class="form-switch">
                     {% if type["enabled"] == true %}
-                    <li class="form-control listitem form-switch">
-                        <input class="form-check-input" type="checkbox" value="" aria-label="{{ type["name"] }}" checked>
+                        <input class="form-check-input" name="authTypes" type="checkbox" value="{{ type["name"] }}" aria-label="{{ type["name"] }}" checked>
                         {{ type["name"] }}
-                    </li>
                     {% else %}
-                    <li class="form-control listitem form-switch">
-                        <input class="form-check-input" type="checkbox" value="" aria-label="{{ type["name"] }}">
+                        <input class="form-check-input" name="authTypes" type="checkbox" value="{{ type["name"] }}" aria-label="{{ type["name"] }}">
                         {{ type["name"] }}
-                    </li>
                     {% endif %}
+                    </div> 
                 {% endfor %}
-                </ul>
                 <small id="authTypeHelp" class="form-text text-muted">The methods of authentication users can use on the system</small>
             </div>
         </form>
@@ -48,7 +45,12 @@
     </div>
     <script>
         function editOrganisation() {
-                var body = JSON.stringify({ CSRF : CSRF, name: $("#name").val() })
+                var authTypes = [];
+                for (var pair of new FormData(document.querySelector("form")).entries())
+                {
+                    authTypes.push(pair[1])
+                }
+                var body = JSON.stringify({ CSRF : CSRF, name: $("#name").val(), authTypes: authTypes })
                 $.ajax({ type : "POST",  data:body, contentType:"application/json", 
                     success: function ( result ) 
                     {

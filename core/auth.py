@@ -484,6 +484,10 @@ if jimi.api.webServer:
                     #check if OTP has been passed
                     #if invalid user or user requires OTP, return 200 but request OTP
                     userSession = None
+                    #Check if there's only one login type available
+                    loginTypes = jimi.settings.getSettingValue(None,jimi.api.g.sessionData,"auth","types")
+                    if len(loginTypes) == 1:
+                        data["type"] = loginTypes[0]
                     if "otp" not in data:
                         user = _user().getAsClass(query={ "username" : data["username"] })
                         if len(user) == 1:

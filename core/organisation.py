@@ -20,6 +20,7 @@ if jimi.api.webServer:
             @jimi.auth.adminEndpoint
             def updateOrganisation():
                 try:
+                    #Updating org details
                     userData = request.json
                     organisation = _organisation().getAsClass(query={})
                     if len(organisation) > 0:
@@ -28,6 +29,14 @@ if jimi.api.webServer:
                         organisation.update(["name"])
                     else:
                         _organisation().new(userData["name"])
+                    #Updating auth types allowed
+                    if len(userData["authTypes"]) > 0:
+                        authSettings = jimi.settings._settings().getAsClass(query={"name" : "auth"})[0]
+                        authSettings.values["types"] = userData["authTypes"]
+                        authSettings.update(["values"])
+                    else:
+                        response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Please select at least one authentication type!" },403)
+                        return response
                     response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Organisation updated successfully" },200)
                 except:
                     response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Could not update the organisation" },403)
