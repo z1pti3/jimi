@@ -122,7 +122,7 @@ class _trigger(jimi.db._document):
                         durationRemaining = ( self.startTime + maxDuration ) - time.time()
                         eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerBatchHandler,(self._id,events,False,False),maxDuration=durationRemaining)
                     eventHandler.waitAll()
-                    if eventHandler.failures > 0:
+                    if eventHandler.failures or eventHandler.failureCount() > 0:
                         raise jimi.exceptions.triggerConcurrentCrash(self._id,self.name,eventHandler.failures)
                     eventHandler.stop()
         else:

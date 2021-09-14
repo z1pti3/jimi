@@ -212,8 +212,7 @@ class workerHandler:
                     if not self.failures and worker.resultException != None and worker.endTime != 0:
                         self.failures = True
                     if self.cleanUp:
-                        # Making sure that only completed workers i.e. endTime!=0 are clearned
-                        if worker.resultException == None and worker.endTime != 0 or (( worker.endTime + 60 < now ) and worker.endTime != 0):
+                        if worker.endTime != 0 or (( worker.endTime + 60 < now ) and worker.endTime != 0):
                             self.workerList.remove(worker)
                 tick = now
 
