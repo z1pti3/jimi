@@ -176,10 +176,16 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 
 			// Set Initial Position
 			if (init) {
-				height = $("#flowchart").height()+110;
+				height = $("#flowchart").height();
 				width = $("#flowchart").width();
+				// Checking for offset on conductEditor
+				try {  
+					offsetTop = $(".conductEditor-topBar").offset().top;
+				} catch(error) {  
+					offsetTop = 0; 
+				}
 				var posX = (width/2) - (panel.width()/2);
-				var posY = (height/2) - (panel.height()/2);
+				var posY = (height/2) - (panel.height()/2) + offsetTop;
 				panel.css({top : posY, left : posX});
 			}
 		}
@@ -248,10 +254,16 @@ function createPropertiesPanel(flowID) {
 				panel.css("height","100%")
 				panel.css("width","100%")
 				// Center panel based on max 80% size
-				height = $("#flowchart").height()+110;
+				height = $("#flowchart").height();
 				width = $("#flowchart").width();
+				// Checking for offset on conductEditor
+				try {  
+					offsetTop = $(".conductEditor-topBar").offset().top;
+				} catch(error) {  
+					offsetTop = 0; 
+				}
 				var posX = (width/2) - (panel.width()/2);
-				var posY = (height/2) - (panel.height()/2) + 20;
+				var posY = (height/2) - (panel.height()/2) + offsetTop;
 				panel.css({top : posY, left : posX});
 			}
 		})
@@ -274,7 +286,7 @@ function createPropertiesPanel(flowID) {
 				panel.find(".propertiesPanel-main").css("display","unset");
 				panel.find(".propertiesPanel-help").css("display","none");
 				panel.find("#help").text("Show Help");
-				panel.width(panel.width()-900);
+				panel.width(panel.width());
 				panel.height(panel.height());
 				left = parseInt(panel.css("left"));
 				panel.css({left: left + 450});
@@ -282,7 +294,7 @@ function createPropertiesPanel(flowID) {
 				panel.find(".propertiesPanel-main").css("display","flex");
 				panel.find(".propertiesPanel-help").css("display","unset");
 				panel.find("#help").text("Hide Help");
-				panel.width(panel.width()+900);
+				panel.width(panel.width());
 				panel.height(panel.height());
 				left = parseInt(panel.css("left"));
 				panel.css({left: left - 450});

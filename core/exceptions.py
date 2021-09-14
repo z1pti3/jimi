@@ -27,8 +27,8 @@ class workerKilled(Exception):
         self.workerName = workerName
         self.workerID = workerID
         jimi.logging.debug("Error: Worker killed. workerName='{0}', workerID='{1}'".format(self.workerName,self.workerID),-1)
-        jimi.audit._audit().add("trigger","trigger_failure",{"type" : "systemEvent", "eventType" : "WorkerKilled", "workerName" : workerName, "workerID" : workerID, "msg" : "" })
-        jimi.systemTrigger.failedTrigger(self.workerName,self.workerID,"WorkerKilled","")
+        jimi.audit._audit().add("trigger","trigger_failure",{"type" : "systemEvent", "eventType" : "WorkerKilled", "workerName" : workerName, "workerID" : workerID, "msg" : "Worker killed by the system" })
+        jimi.systemTrigger.failedTrigger(self.workerName,self.workerID,"WorkerKilled","Worker killed by system")
         
     def __str__(self):
         return "Error: Worker killed. worker_name='{0}', worker_id='{1}'".format(self.workerName,self.workerID)

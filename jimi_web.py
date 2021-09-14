@@ -12,6 +12,7 @@ import os
 from operator import itemgetter
 import logging
 import datetime
+import markdown
 
 logging.basicConfig(level=logging.ERROR)
 
@@ -21,6 +22,7 @@ api.createServer("jimi_web",template_folder=str(Path("web","build")),static_fold
 
 import jimi
 from web import ui
+from system import install as jimiInstaller
 
 # Other pages
 from web import modelEditor, conductEditor, codify
@@ -401,7 +403,7 @@ def statusPage():
 @jimi.api.webServer.route("/status/triggerStatus/", methods=["POST"])
 def statusPageTriggerStatusAPI():
 	doughnut = ui.doughnut()
-	triggers = jimi.trigger._trigger(False).getAsClass(sessionData=api.g.sessionData,query={ })
+	triggers = jimi.trigger._trigger(False).getAsClass(sessionData=api.g.sessionData,query={ "enabled" : True })
 	doughnut.addLabel("Running")
 	doughnut.addLabel("Pending")
 	doughnut.addLabel("Failed")
@@ -423,7 +425,7 @@ def statusPageTriggerStatusAPI():
 @jimi.api.webServer.route("/status/conductStatus/", methods=["POST"])
 def statusPageConductStatusAPI():
 	pie = ui.pie()
-	conducts = jimi.conduct._conduct().getAsClass(sessionData=api.g.sessionData,query={})
+	conducts = jimi.conduct._conduct().getAsClass(sessionData=api.g.sessionData,query={ })
 	pie.addLabel("Enabled")
 	pie.addLabel("Disabled")
 	data = [0,0]
@@ -438,7 +440,7 @@ def statusPageConductStatusAPI():
 
 @jimi.api.webServer.route("/status/triggerChart/", methods=["GET"])
 def statusPageTriggerChartAPI():
-	triggers = jimi.trigger._trigger(False).query(sessionData=api.g.sessionData,query={},fields=["_id","name","enabled","startCheck","maxDuration","lastCheck","executionCount"])
+	triggers = jimi.trigger._trigger(False).query(sessionData=api.g.sessionData,query={ "enabled" : True },fields=["_id","name","enabled","startCheck","maxDuration","lastCheck","executionCount","systemID"])
 	for trigger in triggers["results"]:
 		if "executionCount" not in trigger:
 			trigger["executionCount"] = 0
@@ -461,9 +463,9 @@ def statusPageTriggerFailuresTableAPI(action):
 	workerNames = [ "trigger:'{0}','{1}'".format(jimi.db.ObjectId(x["_id"]),x["name"]) for x in triggers ]
 	workerIds = [ x["_id"] for x in triggers ]
 	dt = datetime.datetime.now() - datetime.timedelta(days=1)
-	failureEvents = jimi.audit._audit().query(query={ "_id" : { "$gt" : jimi.db.ObjectId.from_datetime(generation_time=dt) }, "source" : "trigger", "type" : "trigger_failure", "$or" : [ { "data.workerName" : { "$in" : workerNames } }, { "data.workerID" : { "$in" : workerIds } } ] },sort=[("time",-1)])["results"]
+	failureEvents = jimi.audit._audit().query(query={ "_id" : { "$gt" : jimi.db.ObjectId.from_datetime(generation_time=dt) }, "source" : "trigger", "type" : "trigger_failure", "$or" : [ { "data.workerName" : { "$in" : workerNames } }, { "data.triggerName" : { "$in" : workerNames } }, { "data.workerID" : { "$in" : workerIds } }, { "data.triggerID" : { "$in" : workerIds } } ] },sort=[("time",-1)])["results"]
 	total = len(failureEvents)
-	columns = ["id","time","system","name","msg"]
+	columns = ["time","system","name","msg"]
 	table = ui.table(columns,total,total)
 	if action == "build":
 		return table.getColumns() ,200
@@ -471,7 +473,13 @@ def statusPageTriggerFailuresTableAPI(action):
 		# Custom table data so it can be vertical
 		data = []
 		for failureEvent in failureEvents:
-			data.append([ui.safe(failureEvent["_id"]),ui.safe(failureEvent["time"]),ui.safe(failureEvent["systemID"]),ui.safe(failureEvent["data"]["workerName"]),ui.dictTable(failureEvent["data"]["msg"])])
+			if "workerName" in failureEvent["data"]:
+				name = failureEvent["data"]["workerName"]
+			elif "triggerName" in failureEvent["data"]:
+				name = failureEvent["data"]["triggerName"]
+			else:
+				name = ""
+			data.append([ui.safe(jimi.helpers.getDateFromTimestamp(failureEvent["time"])),ui.safe(failureEvent["systemID"]),ui.safe(name),ui.dictTable(failureEvent["data"]["msg"])])
 		table.data = data
 		return { "draw" : int(jimi.api.request.args.get('draw')), "recordsTable" : 0, "recordsFiltered" : 0, "recordsTotal" : 0, "data" : data } ,200
 
@@ -525,6 +533,41 @@ def performancePagePerformanceMemoryLineChart():
 		line.addDataset(key,value)
 	data = json.loads(jimi.api.request.data)
 	return line.generate(data), 200
+
+@jimi.api.webServer.route("/statistics/trigger/<triggerID>/")
+def statisticsTriggerPage(triggerID):
+	try:
+		triggerObject = jimi.trigger._trigger().getAsClass(sessionData=api.g.sessionData,id=triggerID)[0]
+		return render_template("statisticsTrigger.html",CSRF=jimi.api.g.sessionData["CSRF"],triggerID=triggerObject._id)
+	except:
+		pass
+	return { },404
+
+@jimi.api.webServer.route("/statistics/trigger/<triggerID>/durationLineChart/", methods=["POST"])
+def statisticsTriggerLineChart(triggerID):
+	line = ui.line()
+	triggerObject = jimi.trigger._trigger().getAsClass(sessionData=api.g.sessionData,id=triggerID)[0]
+	triggerPerformanceData = jimi.audit._audit().query(query={ "source" : "trigger", "type" : "end", "data.trigger_id" : triggerObject._id },limit=100,sort=[("_id",-1)])["results"]
+	dataPoints = []
+	labels = []
+	for data in reversed(triggerPerformanceData):
+		t = jimi.helpers.roundTime(datetime.datetime.fromtimestamp(data["time"]),1)
+		if t not in labels:
+			labels.append(t)
+		dataPoints.append([t,data["data"]["duration"]])
+	line.addLabels(labels)
+	line.addDataset(triggerObject.name,dataPoints)
+	data = json.loads(jimi.api.request.data)
+	return line.generate(data), 200
+
+@jimi.api.webServer.route("/whatsNew/",methods=["GET"])
+def whatsNewPopup():
+	result = {}
+	result["title"] = "Release Notes - Your Current jimi Version {0}".format(jimiInstaller.systemVersion)
+	with open(Path("system/releaseNotes")) as f:
+		result["body"] = markdown.markdown(f.read())
+	
+	return result, 200
 
 try:
 	api.startServer(False,{'server.socket_host': jimi.config["api"]["web"]["bind"], 'server.socket_port': jimi.config["api"]["web"]["port"], 'engine.autoreload.on': False, 'server.thread_pool' : 5, 'server.ssl_certificate' : jimi.config["api"]["web"]["secure"]["cert"],'server.ssl_private_key' : jimi.config["api"]["web"]["secure"]["key"]})

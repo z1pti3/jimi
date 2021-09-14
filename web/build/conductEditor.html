@@ -2,20 +2,9 @@
 
 {% block head %}
     {{ jimi.jquery() }}
-	<script src="{{ url_for('static', filename='includes/jquery/js/jquery-ui-1.12.1.js') }}"></script>
-
-	<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.theme.css') }}">
-	<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.css') }}">
-	<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.structure.css') }}">
-
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
-
 	<script src="{{ url_for('static', filename='includes/select2/select2.min.js') }}"></script>
 	<link rel="stylesheet" href="{{ url_for('static', filename='includes/select2/select2.min.css') }}">
-
-	<script src="{{ url_for('static', filename='includes/visjs/js/vis-network.min.js') }}"></script>
-
-	<script src="{{ url_for('static', filename='javascript/helpers.js') }}"></script>
+	{{ jimi.visjs() }}
 	<script src="{{ url_for('static', filename='javascript/flow.js') }}"></script>
 	<script src="{{ url_for('static', filename='javascript/objectProperties.js') }}"></script>
 	<script src="{{ url_for('static', filename='javascript/linkProperties.js') }}"></script>
@@ -24,6 +13,8 @@
 	<script src="{{ url_for('static', filename='javascript/existingObject.js') }}"></script>
 	<script src="{{ url_for('static', filename='javascript/triggerObject.js') }}"></script>
 	<script src="{{ url_for('static', filename='javascript/aclProperties.js') }}"></script>
+	<script src="{{ url_for('static', filename='javascript/objectSystemSettings.js') }}"></script>
+	<script src="{{ url_for('static', filename='javascript/objectRevisionHistory.js') }}"></script>
 
 	<script src="{{ url_for('static', filename='javascript/hotkeys.js') }}"></script>
 
@@ -32,6 +23,9 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/alert.css') }}">
 
 	<link rel="stylesheet" href="{{ url_for('static', filename='themes/default/default.css') }}">
+{% endblock %}
+
+{% block head2 %}
 	{{ jimi.monaco() }}
 {% endblock %}
 
@@ -50,9 +44,9 @@
 				<button onclick="importConduct()" class="btn btn-primary topBarButton button bi-box-arrow-in-up-left"> Import</button>
 			</div>
 		</div>
-		<div class="ui-main" style="position: fixed; left: 0; top: 0; width: 100%; height: 100%;">
+		<div class="ui-main">
 			<!-- Right Click Menus -->
-			<ul id="contextMenu" class="dropdown-menu contextMenuTrigger theme-dropdown-menu" role="menu" style="display:none;" >
+			<ul id="contextMenu" class="dropdown-menu contextMenuTrigger" role="menu" style="display:none;" >
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="editFlowObject()">Edit</a></li>
 				<li class="divider theme-dropdown-menu-divider"></li>
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="copyFlowObject()">Mirror Object</a></li>
@@ -61,19 +55,27 @@
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="exportFlowObject()">Export</a></li>
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="CodifyFlowObject()">Codify</a></li>
 				<li class="divider theme-dropdown-menu-divider"></li>
+				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="loadTriggerStatistics()">Statistics</a></li>
+				<li class="divider theme-dropdown-menu-divider"></li>
+				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="editObjectSystemSettings()">System Settings</a></li>
+				<li class="divider theme-dropdown-menu-divider"></li>
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="editACL()">Security Settings</a></li>
 				<li class="divider theme-dropdown-menu-divider"></li>
+				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="objectRevisionHistory()">Revision History</a></li>
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="deleteFlowObject()">Delete</a></li>
 			</ul>
-			<ul id="contextMenu" class="dropdown-menu contextMenuAction theme-dropdown-menu" role="menu" style="display:none" >
+			<ul id="contextMenu" class="dropdown-menu contextMenuAction" role="menu" style="display:none" >
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="editFlowObject()">Edit</a></li>
 				<li id="connectFlowObject"><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="connectFlowObject()">Connect Flow</a></li>
 				<li class="divider theme-dropdown-menu-divider"></li>
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="copyFlowObject()">Mirror Object</a></li>
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="duplicateFlowObject()">Duplicate</a></li>
 				<li class="divider theme-dropdown-menu-divider"></li>
+				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="editObjectSystemSettings()">System Settings</a></li>
+				<li class="divider theme-dropdown-menu-divider"></li>
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="editACL()">Security Settings</a></li>
 				<li class="divider theme-dropdown-menu-divider"></li>
+				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="objectRevisionHistory()">Revision History</a></li>
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="deleteFlowObject()">Delete</a></li>
 			</ul>
 			<div class="flowchart theme-content" id="flowchart"></div>
@@ -100,6 +102,6 @@
 				});
 		};
 		})(jQuery, window);
-		$(".flowchart").contextMenu({menuSelector: "#contextMenu" });
+		$("#flowchart").contextMenu({menuSelector: "#contextMenu" });
 	</script>
 {% endblock %}

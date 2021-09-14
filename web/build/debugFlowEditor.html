@@ -1,119 +1,87 @@
-﻿<!DOCTYPE html>
+﻿{% extends "main.html" %}
 
-<script>
-	var CSRF = "{{CSRF}}"
-</script>
+{% block head %}
+    {{ jimi.jquery() }}
+	{{ jimi.visjs() }}	
+	<script src="{{ url_for('static', filename='javascript/debugFlowEditor.js') }}"></script>
+	<script src="{{ url_for('static', filename='javascript/objectProperties.js') }}"></script>
+	<script src="{{ url_for('static', filename='javascript/linkProperties.js') }}"></script>
+	<script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
+	<script src="{{ url_for('static', filename='javascript/existingObject.js') }}"></script>
+	<script src="{{ url_for('static', filename='javascript/hotkeys.js') }}"></script>	
 
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
-	<head>
-		<meta charset="utf-8" />
-		<title></title>
-		<script src="{{ url_for('static', filename='/includes/jquery-3.6.0/js/jquery-3.6.0.min.js') }}"></script>
-		<script src="{{ url_for('static', filename='includes/jquery/js/jquery-ui-1.12.1.js') }}"></script>
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/conductEditor.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/objectProperties.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/alert.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/debugFlowEditor.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename='themes/default/default.css') }}">
+{% endblock %}
 
-		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.theme.css') }}">
-		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.css') }}">
-		<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.structure.css') }}">
+{% block head2 %}
+	{{ jimi.monaco() }}
+{% endblock %}
 
-		<link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-3.3.7/css/bootstrap.min.css') }}">
-		<script src="{{ url_for('static', filename='includes/bootstrap-3.3.7/js/bootstrap.min.js') }}"></script>
-		<link rel="stylesheet" href="{{ url_for('static', filename='includes/bootstrap-icons-1.5.0/bootstrap-icons.css') }}">
-
-		<link rel="stylesheet" href="{{ url_for('static', filename='css/datatable.css') }}">
-
-		<script src="{{ url_for('static', filename='includes/select2/select2.min.js') }}"></script>
-		<link rel="stylesheet" href="{{ url_for('static', filename='includes/select2/select2.min.css') }}">
-
-		<script src="{{ url_for('static', filename='includes/visjs/js/vis-network.min.js') }}"></script>
-
-		<script src="{{ url_for('static', filename='javascript/helpers.js') }}"></script>
-		<script src="{{ url_for('static', filename='javascript/objectProperties.js') }}"></script>
-		<script src="{{ url_for('static', filename='javascript/linkProperties.js') }}"></script>
-		<script src="{{ url_for('static', filename='javascript/newObject.js') }}"></script>
-		<script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
-		<script src="{{ url_for('static', filename='javascript/existingObject.js') }}"></script>
-		<script src="{{ url_for('static', filename='javascript/triggerObject.js') }}"></script>
-		<script src="{{ url_for('static', filename='javascript/aclProperties.js') }}"></script>
-
-		<script src="{{ url_for('static', filename='javascript/hotkeys.js') }}"></script>
-
-		<link rel="stylesheet" href="{{ url_for('static', filename='css/conductEditor.css') }}">
-		<link rel="stylesheet" href="{{ url_for('static', filename='css/objectProperties.css') }}">
-		<link rel="stylesheet" href="{{ url_for('static', filename='css/alert.css') }}">
-
-		<link rel="stylesheet" href="{{ url_for('static', filename='themes/default/default.css') }}">
-
-		<script src="{{ url_for('static', filename='javascript/debugFlowEditor.js') }}"></script>
-		<link rel="stylesheet" href="{{ url_for('static', filename='css/debugFlowEditor.css') }}">
-
-		<link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
-		<link rel="stylesheet" href="/theme.css">
-
-		<script>
-			var require = { paths: { 'vs': "{{ url_for('static', filename='includes/monaco-0.26.1/vs') }}" } };
-		</script>
-		<script src="{{ url_for('static', filename='includes/monaco-0.26.1/vs/loader.js') }}"></script>
-	</head>
-	<body>
-		<div class="debugFlowEditor-container">
-			<!-- Right Click Menus -->
-			<ul id="contextMenu" class="dropdown-menu contextMenuTrigger theme-dropdown-menu" role="menu" style="display:none" >
-				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="runDebuggerNew()">Run</a></li>
-				<li class="divider theme-dropdown-menu-divider"></li>
-				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="editFlowObject()">Edit</a></li>
-			</ul>
-			<ul id="contextMenu" class="dropdown-menu contextMenuAction theme-dropdown-menu" role="menu" style="display:none" >
-				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="runDebuggerNew()">Run</a></li>
-				<li class="divider theme-dropdown-menu-divider"></li>
-				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="editFlowObject()">Edit</a></li>
-			</ul>
-			<div class="debugFlowEditor-left">
-				<span>executed-flows:</span>
+{% block body %}
+	<div class="debugFlowEditor-container">
+		<!-- Right Click Menus -->
+		<ul id="contextMenu" class="dropdown-menu contextMenuTrigger" role="menu" style="display:none" >
+			<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="runDebuggerNew()">Run</a></li>
+			<li class="divider theme-dropdown-menu-divider"></li>
+			<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="editFlowObject()">Edit</a></li>
+		</ul>
+		<ul id="contextMenu" class="dropdown-menu contextMenuAction" role="menu" style="display:none" >
+			<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="runDebuggerNew()">Run</a></li>
+			<li class="divider theme-dropdown-menu-divider"></li>
+			<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="editFlowObject()">Edit</a></li>
+		</ul>
+		<div class="debugFlowEditor-left">
+			<span>executed-flows:</span>
+			<hr>
+			<div class="eventList">
+			</div>
+		</div>
+		<div class="debugFlowEditor-right">
+			<div class="ui-main debugFlowchart">
+				<button onclick="clearDebugger()" id="debug_clear_button" class="btn btn-primary button clearDebugger">Clear</button>
+				<button onclick="showDebugSessions()" id="debug_sessions_button" class="btn btn-primary button sessionsDebugger">Sessions</button>
+				<button onclick="runDebugger()" id="debug_continue_button" disabled class="btn btn-primary button runDebugger">Continue</button>
+				<div class="debugFlowchart theme-content" id="flowchart"></div>
+			</div>
+		</div>
+		<div class="debugFlowEditor-bottom">
+			<div class="debugFlowEditor-in">
+				<span>data-in:</span>
 				<hr>
-				<div class="eventList">
-				</div>
+				<textarea id="debugFlowEditor-in" class="theme-panelTextArea"></textarea>
 			</div>
-			<div class="debugFlowEditor-right">
-				<div class="ui-main debugFlowchart">
-					<button onclick="clearDebugger()" id="debug_clear_button" class="btn btn-primary clearDebugger theme-panelButton">Clear</button>
-					<button onclick="showDebugSessions()" id="debug_sessions_button" class="btn btn-primary sessionsDebugger theme-panelButton">Sessions</button>
-					<button onclick="runDebugger()" id="debug_continue_button" disabled class="btn btn-primary runDebugger theme-panelButton">Continue</button>
-					<div class="debugFlowchart theme-content" id="flowchart"></div>
-				</div>
+			<div class="debugFlowEditor-out">
+				<span>data-out:</span>
+				<hr>
+				<textarea id="debugFlowEditor-out" class="theme-panelTextArea"></textarea>
 			</div>
-			<div class="debugFlowEditor-bottom">
-				<div class="debugFlowEditor-in">
-					<span>data-in:</span>
-					<hr>
-					<textarea id="debugFlowEditor-in" class="theme-panelTextArea"></textarea>
+		</div>
+	</div>
+	<div class="modal fade" id="debugSessions" tabindex="-1" role="dialog">
+		<div class="modal-dialog modal-fullscreen" role="document">
+			<div class="modal-content panel">
+				<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalLongTitle">Debug Sessions</h5>
 				</div>
-				<div class="debugFlowEditor-out">
-					<span>data-out:</span>
-					<hr>
-					<textarea id="debugFlowEditor-out" class="theme-panelTextArea"></textarea>
+				<div class="modal-body">
+					<div class="list-group" id="existingDebugList">
+						
+					</div>
+				</div>
+				<div class="modal-footer justify-content-start">
+					<button type="button" class="btn btn-primary button" onclick="newDebugSession()"> New</button>
+					<button type="button" class="btn btn-primary button" onclick="getDebugSessions()">Refresh</button>
 				</div>
 			</div>
 		</div>
-		<div class="modal fade" id="debugSessions" tabindex="-1" role="dialog">
-			<div class="modal-dialog modal-dialog-centered" role="document">
-				<div class="modal-content panel">
-					<div class="modal-header">
-						<h5 class="modal-title" id="exampleModalLongTitle">Debug Sessions</h5>
-					</div>
-					<div class="modal-body">
-						<div class="list-group" id="existingDebugList">
-							
-						</div>
-					</div>
-					<div class="modal-footer justify-content-start">
-						<button type="button" class="btn btn-primary button" onclick="newDebugSession()"> New</button>
-						<button type="button" class="btn btn-primary button" onclick="getDebugSessions()">Refresh</button>
-					</div>
-				</div>
-			</div>
-		</div>
-		<!-- Startup -->
-		<script>
+	</div>
+	<!-- Startup -->
+	<script>
+		$(document).ready(function() {
 			if (!GetURLParameter("debugID")) {
 				getDebugSessions();
 				$("#debugSessions").modal('toggle');
@@ -121,25 +89,24 @@
 				debugSession = GetURLParameter("debugID");
 				refreshDebugSession();
 			}
-		</script>
-	</body>
-</html>
-
-<!-- Right Click Menu -->
-<script>
-	(function ($, window) {
-		$.fn.contextMenu = function (settings) {
-			return this.each(function () {
-				$(this).on("contextmenu", function (e) {
-					return false
+		})
+	</script>
+	<!-- Right Click Menu -->
+	<script>
+		(function ($, window) {
+			$.fn.contextMenu = function (settings) {
+				return this.each(function () {
+					$(this).on("contextmenu", function (e) {
+						return false
+					});
+					//make sure menu closes on any click
+					$('body').click(function () {
+						$(".contextMenuTrigger").hide();
+						$(".contextMenuAction").hide();
+					});
 				});
-				//make sure menu closes on any click
-				$('body').click(function () {
-					$(".contextMenuTrigger").hide();
-					$(".contextMenuAction").hide();
-				});
-			});
-	};
-	})(jQuery, window);
-	$(".debugFlowchart").contextMenu({menuSelector: "#contextMenu" });
-</script>
+		};
+		})(jQuery, window);
+		$(".debugFlowchart").contextMenu({menuSelector: "#contextMenu" });
+	</script>
+{% endblock %}

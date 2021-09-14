@@ -530,3 +530,8 @@ def replaceBackspaces(string):
     while "\b" in string:
         string = "{}{}".format(string[:string.index("\b")-1],string[string.index("\b")+1:])
     return string
+
+
+def getDateFromTimestamp(timestamp):
+    ts = datetime.datetime.fromtimestamp(timestamp)
+    return ts.strftime("%d-%m-%Y %H:%M:%S")

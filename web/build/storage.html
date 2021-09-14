@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block main %}
-    <div class="container col-5 px-4 py-5 text-center" id="custom-cards">
+    <div class="container px-4 py-5 text-center" id="custom-cards">
         <div class="text-start" >
             <input type="text" class="form-control textbox w-50" id="storageSearch" onkeyup="doStorageSearch()" placeholder="Search for files">
             <a href="#" class="bi-plus-square" style="font-size: 25px; display: inline-block; vertical-align: middle;" title="Upload new file" data-bs-toggle="modal" data-bs-target="#newStorageModal"></a>
@@ -15,7 +15,7 @@
                 <li class="list-group-item text-start storageContainer" data-name="{{ storageItem["fileData"] }}" style="background-color: var(--mainBackgroundColor); border-color: var(--panelComponentBorder); color: var(--textColor);"">
                     <div class="d-flex" style="justify-content: space-between;">
                         <div>
-                            <a href="/storage/{{ storageItem["_id"] }}/">
+                            <a href="/storage/file/{{ storageItem["_id"] }}/">
                                 <i class="bi-file-earmark" style="font-size: 1.25rem; padding-right: 15px;"></i><span class="fs-4 mb-2">{{ storageItem["fileData"] }}</span>
                             </a>
                         </div>

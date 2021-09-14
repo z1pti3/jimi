@@ -17,14 +17,14 @@ p {
 }
 
 .theme-panelContainer {
-    background-color: var(--mainBackgroundColor);
+    background-color: var(--panelBackgroundColor);
     color: var(--textColor);
     border-color: var(--panelBorderColor);
     border-radius: 2px;
 }
 
 .theme-panelHeader {
-    background-color: var(--mainBackgroundColor);
+    background-color: var(--panelBackgroundColor);
     color: var(--textColor);
 }
 
@@ -34,11 +34,11 @@ p {
 }
 
 .theme-panelBody {
-    background-color: var(--mainBackgroundColor);
+    background-color: var(--panelBackgroundColor);
 }
 
 .theme-panelFooter {
-    background-color: var(--mainBackgroundColor);
+    background-color: var(--panelBackgroundColor);
 }
 
 .theme-panelButton {

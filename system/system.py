@@ -37,15 +37,15 @@ def fileIntegrityRegister():
 		if not storageFile.getLocalFilePath():
 			jimi.logging.debug("Error: System integrity register could not find or get storage file. storageID={0}".format(storageFile._id),-1)
 
-	checksumHash = ""
+	checksumHash = []
 	registerRoots = ["system","core","web","screens","tools","plugins","data/storage"]
 	for registerRoot in registerRoots:
-		for root, dirs, files in os.walk(Path(registerRoot), topdown=False):
+		for root, dirs, files in os.walk(Path(registerRoot),followlinks=True):
 			for _file in files:
 				if "__pycache__" not in root and ".git" not in root:
 					filename = os.path.join(root, _file)
 					fileHash = jimi.helpers.getFileHash(filename)
-					checksumHash+=fileHash
+					checksumHash.append(fileHash)
 					try:
 						if knownFilesHash[filename].fileHash != fileHash:
 							knownFilesHash[filename].fileHash = fileHash
@@ -57,8 +57,8 @@ def fileIntegrityRegister():
 	# Remove old files
 	for knownFile in knownFilesHash:
 		knownFilesHash[knownFile].delete()
-	
-	checksum = jimi.helpers.getStringHash(checksumHash)
+	checksumHash.sort()
+	checksum = jimi.helpers.getStringHash(",".join(checksumHash))
 	jimi.logging.debug("Info: System integrity hash. hash={0}".format(checksum),-1)
 	return checksum
 
@@ -200,7 +200,7 @@ if jimi.api.webServer:
 				sourceFiles = _systemFiles().getAsClass(query={ "systemID" : { "$in" : [sourceSystemID,targetSystemID] } })
 				sourceFilesHash = {}
 				for sourceFile in sourceFiles:
-					if sourceFile not in sourceFilesHash:
+					if sourceFile.filename not in sourceFilesHash:
 						sourceFilesHash[sourceFile.filename] = {}
 					sourceFilesHash[sourceFile.filename][sourceFile.systemID] = sourceFile.fileHash
 				differences = { "remove" : [], "new" : [], "mismatch" : [] }

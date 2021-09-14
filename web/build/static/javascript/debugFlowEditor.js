@@ -150,7 +150,7 @@ function updateFlowchartNonBlocking(blocking) {
 	}
 	// Operator Deletions
 	for (operator in processlist["operators"]["delete"]) {
-		nodes.remove({ id: processlist["operators"]["delete"][operator]["flowID"] })
+		nodes.remove({ id: processlist["operators"]["delete"][operator]["id"] })
 		delete processlist["operators"]["delete"][operator]
 		nonlock++
 		if ((!blocking) && (nonlock > 0)) {
@@ -314,6 +314,7 @@ function setupFlowchart() {
 		selectedNodes = network.getSelectedNodes()
 		if (selectedNodes.length == 1) {
 			offsetLeft = $("#flowchart").offset().left;
+			offsetTop = $("#flowchart").offset().top;
 			nodeID = (network.getNodeAt({ "x" : params["pointer"]["DOM"]["x"], "y" : params["pointer"]["DOM"]["y"] }));
 			if ((nodeID) || (nodeID == 0)) {
 				if (nodes.get(nodeID)["flowType"] == "trigger") {
@@ -330,7 +331,7 @@ function setupFlowchart() {
 					.css({
 						position: "absolute",
 						left: getMenuPosition(params["pointer"]["DOM"]["x"]+offsetLeft, 'width', 'scrollLeft', $(menuHTML)),
-						top: getMenuPosition(params["pointer"]["DOM"]["y"], 'height', 'scrollTop',$(menuHTML))
+						top: getMenuPosition(params["pointer"]["DOM"]["y"]+offsetTop, 'height', 'scrollTop',$(menuHTML))
 					})
 					.off('click')
 					.on('click', 'a', function (e) {

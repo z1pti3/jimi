@@ -1,5 +1,6 @@
 :root {
     /* Main */
+    --menuBackgroundColor: #111111;
     --mainBackgroundColor: #222222;
     --textColor: #adadad;
     --textColorHover: #f1f1f1;
@@ -12,7 +13,7 @@
     --scrollbarBorderColor: #f1f1f1;
 
     /* Panel */
-    --panelBackgroundColor: #111111;
+    --panelBackgroundColor: #1b1b1b;
     --panel2BackgroundColor: #222222;
     --panelBorderColor: #000000;
     --panelShadowColor1: rgba(0, 0, 0, 0.12);
@@ -21,18 +22,4 @@
     --panelComponentBackground-Focus: #020202;
     --panelComponentBorder: #2e6da4;
     --panelComponentBorder-Focus: #167bff;
-
-    /* Component */
-    --componentBorderColor: #000000;
-    --componentBorderColorSelect: #167bff;
-    --componentBackground1: #111111;
-    --componentBackground2: #1f1f1f;
-    --componentBackgroundSelect: #030303;
-
-
-    /* Alerts */
-    --errorBackgroundColor: #ffffff;
-    --errorColor: #ec0e0e;
-    --alertBackgroundColor: #ffffff;
-    --alertColor: #15b438;
 }

@@ -11,13 +11,12 @@
         {{ jimi.theme() }}
         <style>
             #topbar {
-                position: fixed;
                 top: 0;
                 left: 0;
                 z-index: 1;
                 width: 100%;
                 max-width: 100%;
-                background-color: var(--panelBackgroundColor);
+                background-color: var(--menuBackgroundColor);
                 height: 50px;
                 box-shadow: 0 1px 6px var(--panelShadowColor1), 0 1px 4px var(--panelShadowColor2);
                 border-style: solid;
@@ -94,15 +93,24 @@
 
             }
 
+            .linkDropdown {
+                display: block;
+                padding-top: 5px;
+                padding-bottom: 5px;
+                text-align: left;
+            }
         </style>
+        {% block head2 %}
+        {% endblock %}
     </head>
     <body>
-        <header class="site-header sticky-top py-1">
+        <header class="site-header sticky-top">
             <nav class="container-fluid flex-md-row justify-content-between" id="topbar">
                 <a exact class="home" href="/">jimi</a>
                 <a exact class="link bi-columns" href="/status/">Status</a>
                 <a exact class="link bi-stack" href="/conducts/">Conducts</a>
                 <a exact class="link bi-grid" href="/plugins/">Applications</a>
+                <a exact class="link bi-files" href="/storage/">Storage</a>
                 <a exact class="link bi-code" href="/codify/">Codify</a>
                 <a exact class="link bi-table" href="/modelEditor">Model Editor</a>
                 <div class="container" id="topbar-right">
@@ -110,9 +118,10 @@
                     <a class="link linkRight bi-person" href="/myAccount/">My Account</a>
                     <div class="dropdown">
                         <a class="link linkRight bi-gear" href="#" data-bs-toggle="dropdown" aria-expanded="false" id="adminDropdown">Administration</a>
-                        <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                          <li><a class="link bi-server" href="/admin/cluster/">Cluster Settings</a></li>
-                          <li><a class="link bi-building" href="/admin/organisation/">Organisation Settings</a></li>
+                        <ul class="dropdown-menu" style="z-index: 1; position: relative;" aria-labelledby="adminDropdown">
+                          <li><a class="link linkDropdown bi-shop" href="/plugins/store/"> Application Store</a></li>
+                          <li><a class="link linkDropdown bi-server" href="/admin/cluster/"> Cluster Settings</a></li>
+                          <li><a class="link linkDropdown bi-building" href="/admin/organisation/"> Organisation Settings</a></li>
                         </ul>
                     </div>                
                 </div>
@@ -127,5 +136,18 @@
                 </div>
             {% endblock %}
         </main>
+
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+            <div id="mainAlert" class="toast panel" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto" id="alert-header">Bootstrap</strong>
+                    <small id="alert-smallText">jimi</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    <p id="alert-message"></p>
+                </div>
+            </div>
+        </div>
     </body>
 </html>

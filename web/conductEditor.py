@@ -3,8 +3,10 @@ import json
 import  uuid
 import copy
 from operator import itemgetter
+from pathlib import Path
 
-from flask import Flask, request, render_template, make_response, redirect
+from flask import Flask, request, render_template, make_response, redirect, send_file
+from werkzeug.utils import send_from_directory
 
 import jimi
 
@@ -54,11 +56,37 @@ def conductFlowchartPoll(conductID):
     for obj in triggers:
         triggersByID[obj._id] = obj
 
-    if not jimi.revision._revision().gotRecent(conductObj["_id"],jimi.conduct._conduct()._dbCollection.name):
+    if not jimi.revision._revision().gotRecent(conductObj["_id"],conductObj["classID"]):
         # Get data without sessionData so that it is complete
         revisionData = { "conduct" : jimi.conduct._conduct().query(id=conductID)["results"], "modelUI" : jimi.webui._modelUI().query(query={ "flowID" : { "$in" :flowsList }, "conductID" : conductID }) }
-        if not jimi.revision._revision().newCustomData(conductObj["_id"],jimi.conduct._conduct()._dbCollection.name,revisionData):
+        if not jimi.revision._revision().newCustomData(conductObj["_id"],conductObj["classID"],revisionData):
             return { "msg" : "Unable to create conduct revision" }, 403
+
+    # Parse CSS Theme - Should cache this in future for improved speed? - If flow updates are slow this could be the problem????
+    colors = {
+        "nodeEnableColor" : "#0a0a0a",
+        "nodeDisabledColor" : "gray",
+        "nodeErrorColor" : "red",
+        "nodeRunningColor" : "green",
+        "nodeBorderColor" : "#595959",
+        "nodeUnknownColor" : "black",
+        "linkColor" : "green",
+        "linkTrueColor" : "#6FA92D",
+        "linkFalseColor" : "#FF392E",
+        "linkRCColor" : "#FBB121",
+        "linkLogicColor" : "#D04D8A",
+        "linkAllColor" : "#3DBEFF"
+    }
+    try:
+        themeFile = "web/build/static/themes/theme-{0}.css".format(jimi.api.g.sessionData["theme"])
+        if jimi.helpers.safeFilepath(themeFile,"web/build/static/themes"):
+            with open(Path(themeFile)) as f:
+                themeFile = f.read()
+            for colorName, colorValue in colors.items():
+                if "--{0}: ".format(colorName) in themeFile:
+                    colors[colorName] = themeFile.split("--{0}: ".format(colorName))[1].split(";")[0]
+    except:
+        pass
 
     nodeTemplate = {
         "id" : "",
@@ -137,17 +165,17 @@ def conductFlowchartPoll(conductID):
                         label = "({0}.{1},{2})\n<b>{3}</b>\n{4}".format(obj.systemID,obj.systemIndex,obj.clusterSet,obj.name,modeClass.name)
                         color = None
                         if obj.enabled:
-                            color = "#0a0a0a"
+                            color = colors["nodeEnableColor"]
                         duration = obj.maxDuration
                         if duration == 0:
                             duration = 60
                         if (((obj.startCheck != 0) and (obj.startCheck + duration > time.time())) or (obj.lastCheck > time.time()-2.5)):
-                            color = "green"
+                            color = colors["nodeRunningColor"]
                         if ((obj.startCheck != 0) and (obj.startCheck + duration < time.time())):
-                            color = "red"
+                            color = colors["nodeErrorColor"]
                         if not obj.enabled:
-                            color = "gray"
-                        node["color"] = { "border" : "#595959", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
+                            color = colors["nodeDisabledColor"]
+                        node["color"] = { "border" : colors["nodeBorderColor"], "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
                     elif flow["type"] == "action":
                         node["flowType"] = "action"
                         obj = actionsByID[flow["actionID"]]
@@ -157,14 +185,14 @@ def conductFlowchartPoll(conductID):
                         label = "<b>{0}</b>\n{1}".format(obj.name,modeClass.name)
                         color = None
                         if obj.enabled:
-                            color = "#0a0a0a"
+                            color = colors["nodeEnableColor"]
                         if not obj.enabled:
-                            color = "gray"
-                        node["color"] = { "border" : "#595959", "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
+                            color = colors["nodeDisabledColor"]
+                        node["color"] = { "border" : colors["nodeBorderColor"], "background" : color, "highlight" : { "background" : color }, "hover" : { "background" : color } }
                     node["label"] = label
                 except (IndexError, KeyError) as e:
                     node["label"] = "Unknown Object"
-                    node["color"] = { "background" : "black" }
+                    node["color"] = { "background" : colors["nodeUnknownColor"] }
                 nodesList[flowID] = node
                 # Generate links
                 for nextFlow in flow["next"]:
@@ -178,19 +206,19 @@ def conductFlowchartPoll(conductID):
                             link["label"] = str(nextFlow["order"])
                     except KeyError:
                         pass
-                    color = "green"
+                    color = colors["linkColor"]
                     if type(nextFlow["logic"]) is bool:
                         if nextFlow["logic"] == True:
-                            color = "#6FA92D"
+                            color = colors["linkTrueColor"]
                         else:
-                            color = "#FF392E"
+                            color = colors["linkFalseColor"]
                     elif type(nextFlow["logic"]) is int:
-                        color = "#FBB121"
+                        color = colors["linkRCColor"]
                     elif type(nextFlow["logic"]) is str:
                         if nextFlow["logic"].startswith("if "):
-                            color = "#D04D8A"
+                            color = colors["linkLogicColor"]
                         elif nextFlow["logic"] == "*":
-                            color = "#3DBEFF"
+                            color = colors["linkAllColor"]
                     link["color"] = color
                     linksList[linkName] = link
         except KeyError:
@@ -314,7 +342,12 @@ def conductExport(conductID):
                     result["ui"][flow["flowID"]]["x"] = flowUI.x
                     result["ui"][flow["flowID"]]["y"] = flowUI.y
                     result["ui"][flow["flowID"]]["title"] = flowUI.title
-    return render_template("blank.html",content=json.dumps(result,indent=3), CSRF=jimi.api.g.sessionData["CSRF"]), 200
+    tempFilename = "data/temp/{0}".format(str(uuid.uuid4()))
+    if jimi.helpers.safeFilepath(tempFilename,"data/temp"):
+        with open(Path(tempFilename), "w") as f:
+            json.dump(result,f,indent=3)
+        return send_file(Path(tempFilename), attachment_filename=conductObj.name+".json", as_attachment=True)
+    return { }, 404
 
 @jimi.api.webServer.route("/conductEditor/<conductID>/import/", methods=["GET"])
 def conductImport(conductID):
@@ -560,7 +593,12 @@ def getConductFlowCodify(conductID):
         if "json" in data:
             return { "result" : flowCode, "CSRF" : jimi.api.g.sessionData["CSRF"] }, 200
 
-    return render_template("blank.html",content=flowCode, CSRF=jimi.api.g.sessionData["CSRF"]), 200
+    tempFilename = "data/temp/{0}".format(str(uuid.uuid4()))
+    if jimi.helpers.safeFilepath(tempFilename,"data/temp"):
+        with open(Path(tempFilename), "w") as f:
+            f.write(flowCode)
+        return send_file(Path(tempFilename), attachment_filename=conductObj.name+".json")
+    return { }, 404
 
 @jimi.api.webServer.route("/conductEditor/<conductID>/flow/<flowID>/", methods=["DELETE"])
 def deleteFlow(conductID,flowID):
@@ -880,7 +918,6 @@ def deleteFlowLink(conductID,fromFlowID,toFlowID):
     else:
         return {}, 403
 
-
 @jimi.api.webServer.route("/conductEditor/<conductID>/editACL/<flowID>", methods=["GET"])
 def getACL(conductID,flowID):
     conductObj = jimi.conduct._conduct().getAsClass(jimi.api.g.sessionData,id=conductID)
@@ -980,3 +1017,63 @@ def getExistingObjectsTriggers():
 def getExistingObjectsActions():
     actions = jimi.action._action(False).query(sessionData=jimi.api.g.sessionData,query={ "scope" : { "$gt" : 0 } })["results"]
     return { "results" : actions}, 200
+
+@jimi.api.webServer.route("/conductEditor/<conductID>/editObjectSystemSettings/<flowID>/", methods=["GET"])
+def getObjectSystemSettings(conductID,flowID):
+    conductObj = jimi.conduct._conduct().getAsClass(jimi.api.g.sessionData,id=conductID)
+    if len(conductObj) == 1:
+        conductObj = conductObj[0]
+    else:
+        return { }, 404
+
+    flow = [ x for x in conductObj.flow if x["flowID"] == flowID]
+    if len(flow) == 1:
+        flow = flow[0]
+        if "type" in flow:
+            if flow["type"] == "trigger":
+                modelFlowObject = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                if len(modelFlowObject) == 1:
+                    modelFlowObject = modelFlowObject[0]
+            if flow["type"] == "action":
+                modelFlowObject = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                if len(modelFlowObject) == 1:
+                    modelFlowObject = modelFlowObject[0]
+    if modelFlowObject:
+        return { "scope" : modelFlowObject.scope }, 200
+    return { }, 404
+
+@jimi.api.webServer.route("/conductEditor/<conductID>/editObjectSystemSettings/<flowID>/", methods=["POST"])
+def editObjectSystemSettings(conductID,flowID):
+    conductObj = jimi.conduct._conduct().getAsClass(jimi.api.g.sessionData,id=conductID)
+    if len(conductObj) == 1:
+        conductObj = conductObj[0]
+    else:
+        return { }, 404
+
+    data = json.loads(jimi.api.request.data)
+
+    flow = [ x for x in conductObj.flow if x["flowID"] == flowID]
+    if len(flow) == 1:
+        flow = flow[0]
+        if "type" in flow:
+            if flow["type"] == "trigger":
+                modelFlowObject = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                if len(modelFlowObject) == 1:
+                    modelFlowObject = modelFlowObject[0]
+            if flow["type"] == "action":
+                modelFlowObject = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                if len(modelFlowObject) == 1:
+                    modelFlowObject = modelFlowObject[0]
+
+    if modelFlowObject:
+        scope = data["scope"]
+        if scope != modelFlowObject.scope:
+            if jimi.db.fieldACLAccess(jimi.api.g.sessionData,modelFlowObject.acl,"scope","write"):
+                modelFlowObject.scope = scope
+                if "_id" in jimi.api.g.sessionData:
+                    jimi.audit._audit().add("flow","update",{ "_id" : jimi.api.g.sessionData["_id"], "user" : jimi.api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID, "scope" : data["scope"] })
+                else:
+                    jimi.audit._audit().add("flow","update",{ "user" : "system", "conductID" : conductID, "flowID" : flowID, "scope" : data["scope"] })
+                modelFlowObject.update(["scope"])
+                return { }, 200
+    return { }, 404

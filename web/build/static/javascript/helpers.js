@@ -1,3 +1,16 @@
+function localTime(epoch) {
+    function appendLeadingZeroes(n){
+        if(n <= 9){
+            return "0" + n;
+        }
+        return n
+    }
+    var d = new Date(0);
+    d.setUTCSeconds(epoch);
+    var formattedDate = appendLeadingZeroes(d.getDate()) + "-" + appendLeadingZeroes(d.getMonth()+1) + "-" + appendLeadingZeroes(d.getFullYear()) + " " + appendLeadingZeroes(d.getHours()) + ":" + appendLeadingZeroes(d.getMinutes()) + ":" + appendLeadingZeroes(d.getSeconds());
+    return formattedDate;
+}
+
 function GetURLParameter(sParam) {
     var sPageURL = window.location.search.substring(1);
     var sURLVariables = sPageURL.split('&');

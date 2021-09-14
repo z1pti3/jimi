@@ -54,6 +54,8 @@ class _user(jimi.db._document):
     primaryGroup = str()
     additionalGroups = list()
     icon = str()
+    timezone = "utc"
+    whatsNew = False
     theme = "dark"
     loginType = "local"
 
@@ -98,7 +100,7 @@ class _user(jimi.db._document):
 
 class _group(jimi.db._document):
     name = str()
-    enabled = bool()
+    enabled = True
     members = list()
     apiTokens = list()
     description = str()
@@ -287,7 +289,7 @@ def validateExternalUser(username,password,method,**kwargs):
     return None
 
 def validateUser(username,password,otp=None):
-    user = _user().getAsClass(query={ "username" : username })
+    user = _user().getAsClass(query={ "username" : username, "enabled" : True })
     if len(user) == 1:
         user = user[0]
         # Account lockout check
@@ -341,9 +343,9 @@ def enumerateGroups(user):
     group = _group().getAsClass(id=user.primaryGroup)
     if len(group) == 1:
         group = group[0]
-        if user._id in group.members:
+        if user._id in group.members and group.enabled:
             accessIDs.append(group._id)
-    for groupItem in _group().getAsClass(query={ "members" : { "$in" : [ user._id ] } }):
+    for groupItem in _group().getAsClass(query={ "members" : { "$in" : [ user._id ] }, "enabled" : True }):
         if groupItem._id not in accessIDs:
             accessIDs.append(groupItem._id)
     accessIDs.append(everyone)
@@ -467,7 +469,12 @@ if jimi.api.webServer:
 
             @jimi.api.webServer.route("/myAccount/")
             def myAccountPage():
-                return render_template("myAccount.html",CSRF=jimi.api.g.sessionData["CSRF"])
+                if authSettings["enabled"]:
+                    user = _user().getAsClass(id=jimi.api.g.sessionData["_id"])
+                    if len(user) == 1:
+                        user = user[0]
+                        return render_template("myAccount.html",CSRF=jimi.api.g.sessionData["CSRF"],name=user.name,email=user.email,theme=user.theme)
+                return { }, 403
 
             # Checks that username and password are a match
             @jimi.api.webServer.route(jimi.api.base+"auth/", methods=["POST"])
@@ -495,6 +502,7 @@ if jimi.api.webServer:
                         userSession = validateUser(data["username"],data["password"],data["otp"])
                     if userSession:
                         sessionData = validateSession(userSession,"jimi")["sessionData"]
+                        user = _user().getAsClass(id=sessionData["_id"])[0]
                         redirect = jimi.api.request.args.get("return")
                         if redirect:
                             if "." in redirect or ".." in redirect:
@@ -506,6 +514,9 @@ if jimi.api.webServer:
                         # Default redirect forced update to /conducts/
                         if redirect == "/?":
                             redirect = "/conducts/"
+                        # Overwrite redirect if whatsNew needs to be shown
+                        if user.whatsNew:
+                            redirect = "/status/?whatsNew=1"
                         response = jimi.api.make_response({ "CSRF" : sessionData["CSRF"], "redirect" : redirect },200)
                         response.set_cookie("jimiAuth", value=userSession, max_age=authSettings["sessionTimeout"], httponly=True, secure=webSecure)
                         return response, 200
@@ -584,7 +595,21 @@ if jimi.api.webServer:
                                     return { "msg" : "New password does not meet complexity requirements" }, 400
                             else:
                                 return { "msg" : "Current password does not match" }, 400
-                        user.update(["passwordHash","apiTokens"])
+                            user.update(["passwordHash","apiTokens"])
+                        if "name" in data:
+                            if data["name"] != user.name:
+                                user.name = data["name"]
+                                user.update(["name"])
+                        if "email" in data:
+                            if data["email"] != user.email:
+                                user.email = data["email"]
+                                user.update(["email"])
+                        if "theme" in data:
+                            if data["theme"] != user.theme:
+                                user.theme = data["theme"]
+                                user.update(["theme"])
+                                jimi.api.g.renew = True
+                                jimi.api.g.sessionData["theme"] = user.theme
                         return {}, 200
                 else:
                     return {}, 200
@@ -606,6 +631,17 @@ if jimi.api.webServer:
                     userProps["username"] = "username"
                     userProps["name"] = "name"
                     return userProps, 200
+                return { }, 404
+
+            @jimi.api.webServer.route(jimi.api.base+"auth/clearWhatsNew/", methods=["GET"])
+            def api_clearWhatsNew():
+                if authSettings["enabled"]:
+                    user = _user().getAsClass(id=jimi.api.g.sessionData["_id"])
+                    if len(user) == 1:
+                        user = user[0]
+                        user.whatsNew = False
+                        user.update(["whatsNew"])
+                        return { }, 200
                 return { }, 404
 
             @jimi.api.webServer.route(jimi.api.base+"auth/regenerateOTP/", methods=["GET"])

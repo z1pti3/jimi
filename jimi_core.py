@@ -99,7 +99,7 @@ if __name__ == "__main__":
     logging.debug("System integrity hash generated. hash=%s",checksum)
     masterId = jimi.cluster.getMasterId()
     clusterMember = jimi.cluster.getClusterMemberById(systemId)
-    masterMember = jimi.cluster.getClusterMemberById(jimi.cluster.getMasterId())
+    masterMember = jimi.cluster.getClusterMemberById(masterId)
     logging.info("Current jimi master is on %i",masterId)
     if masterMember and masterId != systemId and checksum != masterMember.checksum:
         logging.error("Checksum mismatch between system %i and master %i",systemId,masterId)

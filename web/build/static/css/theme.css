@@ -1,5 +1,6 @@
 :root {
     /* Main */
+    --menuBackgroundColor: #333333;
     --mainBackgroundColor: #222222;
     --textColor: #adadad;
     --textColorHover: #f1f1f1;
@@ -28,16 +29,14 @@
     --componentBackground1: #111111;
     --componentBackground2: #1f1f1f;
     --componentBackgroundSelect: #030303;
-
+    --componentDisabledColor: #222222;
 
     /* Alerts */
-    --errorBackgroundColor: #ffffff;
-    --errorColor: #ec0e0e;
-    --alertBackgroundColor: #ffffff;
-    --alertColor: #15b438;
+    --errorBackgroundColor: #800303;
+    --errorColor: #adadad;
+    --alertBackgroundColor: #009b22;
+    --alertColor: #000000;
 }
-
-
 
 *::-webkit-scrollbar {
     width: 12px;
@@ -65,8 +64,12 @@ body {
     background-color: var(--mainBackgroundColor);
     color: var(--textColor);
     padding-bottom: 25px;
-    height: 100%;
     font-family: sans-serif;
+    min-width: 1160px;
+}
+
+p {
+    color: var(--textColor);
 }
 
 .panel {
@@ -209,6 +212,10 @@ div.dts div.dataTables_scrollBody {
     height: calc(60% - 46px);
 }
 
+.h-100-menu {
+    height: calc(100% - 40px);
+}
+
 .noHover:hover {
     text-decoration: none;
 }
@@ -251,7 +258,7 @@ div.dts div.dataTables_scrollBody {
 
 .textboxError {
     border-width: 1px;
-    border-color: var(--errorColor);
+    border-color: var(--errorBackgroundColor);
 }
 
 .textbox:disabled {
@@ -320,9 +327,18 @@ div.dts div.dataTables_scrollBody {
 .button:hover, .button:focus, .button:active {
     background-color: var(--componentBackgroundSelect);
     border-color: var(--componentBorderColor);
+    color: var(--textColor);
     border-style: solid;
     border-width: 1px;
     display:inline;
+    outline: none;
+    box-shadow: none;
+}
+
+.button:disabled {
+    background-color: var(--componentDisabledColor);
+    border-color: var(--componentBorderColor);
+    color: var(--textDisabledColor);
 }
 
 .small {
@@ -338,18 +354,46 @@ div.dts div.dataTables_scrollBody {
 }
 
 .dropdown-menu {
-    background-color: #111;
-}
-
-.container_main {
-    position: relative;
-    top: 40px
+    background-color: var(--panelBackgroundColor);
+    box-shadow: 0 1px 6px var(--panelShadowColor1), 0 1px 4px var(--panelShadowColor2);
+    color: var(--textColor);
+    border-radius: 5px;
+    padding: 5px;
+    border-style: solid;
+    border-color: var(--panelBorderColor);
+    border-width: 1px;
+    border-radius: 5px;
 }
 
 .hoverHand:hover {
     cursor: hand;
+    background-color: var(--hoverColor);
 }
 
 .panelHover:hover {
     background-color: var(--hoverColor);
+}
+
+
+.mainAlert-success {
+    padding: 0;
+}
+
+.mainAlert-success, .mainAlert-success .toast-header {
+    background-color: var(--alertBackgroundColor);
+    color: var(--alertColor);
+}
+
+.mainAlert-warning, .mainAlert-warning .toast-header {
+    background-color: var(--errorBackgroundColor);
+    color: var(--errorColor);
+}
+
+.mainAlert-warning {
+    padding: 0;
+}
+
+.mainAlert-success .toast-body, .mainAlert-success .toast-body p, .mainAlert-warning .toast-body, .mainAlert-warning .toast-body p {
+    background-color: var(--panelBackgroundColor);
+    color: var(--textColor);
 }

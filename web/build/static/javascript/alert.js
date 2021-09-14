@@ -1,32 +1,25 @@
-var alertHTML = `
-<div class="alert theme-popupContainer" id="alert-container" role="alert">
-    <div class="alert theme-popup">
-        <p class="alert-p" id="alert-message"></p>
-    </div>
-</div>
-`
-
 function dropdownAlert(parent,type,message,timeout) {
-    var alert = $(alertHTML);
-    if (type == "success") {
-        alert.addClass("alert-success")
+    var alert = $("#mainAlert");
+    alert.removeClass("mainAlert-warning")
+    alert.removeClass("mainAlert-success")
+    if (type.toLowerCase() == "success") {
+        alert.addClass("mainAlert-success")
     }
-    if (type == "error") {
-        alert.addClass("alert-danger")
+    if (type.toLowerCase() == "error") {
+        alert.addClass("mainAlert-warning")
     }
-    if (type == "warning") {
-        alert.addClass("alert-warning")
+    if (type.toLowerCase() == "warning") {
+        alert.addClass("mainAlert-warning")
     }
-    if (type == "info") {
-        alert.addClass("alert-info")
+    if (type.toLowerCase() == "info") {
+        alert.addClass("mainAlert-warning")
     }
-    $.when(parent.append(alert)).then(function() {
-        alert.find("#alert-message").text(message);
-        alert.slideDown();
-        window.setTimeout(function() {
-            $.when(alert.slideUp()).then(function() {
-                alert.remove(); 
-            })
-        }, timeout);
-    })
+    alert.find("#alert-header").text(type);
+    alert.find("#alert-message").text(message);
+    alert.find("#alert-smallText").text(localTime(new Date().getTime()/1000));
+    var toast = bootstrap.Toast.getInstance(document.getElementById('mainAlert'));
+    if (toast === null) {
+        toast = new bootstrap.Toast(document.getElementById('mainAlert'));
+    }
+    toast.show()
 }

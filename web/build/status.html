@@ -54,14 +54,53 @@
                 {{ jimi.table("3","Latest Failures","triggerFailures/",2500) }}
             </div>
         </div>
+        <ul id="contextMenu" class="dropdown-menu contextMenuTriggerChart" role="menu" style="display:none;" >
+            <li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="statusPageClearTriggerStartCheck()">Clear startCheck</a></li>
+        </ul>
     </div>
+    <div class="modal fade" id="whatsNew" tabindex="-1" role="dialog">
+		<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+			<div class="modal-content panel">
+				<div class="modal-header">
+					<h5 class="modal-title" id="whatsNewBodyTitle">Whats New</h5>
+				</div>
+				<div class="modal-body" id="whatsNewBody">
+				</div>
+				<div class="modal-footer justify-content-start">
+					<button type="button" class="btn btn-primary button" onclick="closeWhatsNew()"> Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
     <script>
+        var statusPageSelectedTrigger = null;
+        $('body').click(function () {
+            statusPageSelectedTrigger = null;
+		    $("#contextMenu").hide();
+		});
+
         $(document).ready(function() {
             triggerChartPoll();
+            var whatsNew = GetURLParameter("whatsNew")
+            if (whatsNew == "1") {
+                $.ajax({ url: "/whatsNew/", type : "GET", contentType:"application/json", success: function ( results ) {
+                        $('#whatsNewBodyTitle').text(results["title"])
+                        $('#whatsNewBody').html(results["body"])
+                        $("#whatsNew").modal('toggle');
+                    }
+                });
+            }
         });
+        function closeWhatsNew() {
+            $.ajax({ url: "/api/1.0/auth/clearWhatsNew/", type : "GET", contentType:"application/json", success: function ( results ) {
+                    window.location = "/status/"
+                }
+            })
+        }
         function triggerChartPoll() {
             $.ajax({ url: "/status/triggerChart/", type : "GET", contentType:"application/json", success: function ( results ) {
                     $("#triggerChart").empty();
+                    var systemData = {};
                     var triggers = 0;
                     var runningTriggers = 0;
                     var failedTriggers = 0;
@@ -70,21 +109,23 @@
                     for (result in results["results"]) {
                         triggers += 1;
                         color = "var(--panelBackgroundColor)";
+                        var display = false;
                         if (results["results"][result]["status"] == "Enabled") {
                             color = "var(--panelComponentBorder)";
                         }
                         if (results["results"][result]["status"] == "Running") {
-                            color = "var(--alertColor)";
+                            color = "var(--alertBackgroundColor)";
                             runningTriggers += 1;
                         }
                         if (results["results"][result]["status"] == "Failed") {
-                            color = "var(--errorColor)";
+                            color = "var(--errorBackgroundColor)";
                             failedTriggers += 1;
                         }
                         totalExecutions = totalExecutions += results["results"][result]["executionCount"]
-                        var div = $("<div class='col m-1 panel' style='height:50px; max-width:50px; background-color: "+color+"'>");
+                        var div = $("<div class='col m-1 panel' style='height:50px; min-width:50px; max-width:50px; background-color: "+color+"'>");
                         div.attr("data-bs-toggle","tooltip")
                         div.attr("data-id",results["results"][result]["_id"])
+                        div.attr("data-name",results["results"][result]["name"])
                         div.attr('title', results["results"][result]["name"]);
                         div.dblclick(function() { 
                             $.ajax({ url: "/api/1.0/trigger/"+$(this).attr("data-id")+"/whereUsed/", type : "GET", contentType:"application/json", success: function ( jsonResult ) {
@@ -94,15 +135,48 @@
                                 }
                             });
                         })
-                        $("#triggerChart").append(div)
+                        div.bind("contextmenu", function (e) {
+                            statusPageSelectedTrigger = [$(this).attr("data-id"),$(this).attr("data-name")]
+                            var top = e.pageY - 50;
+                            var left = e.pageX - 10;
+                            $('#contextMenu').css({
+                                top: top + 'px',
+                                left: left + 'px'
+                            }).show();
+                            return false;
+                        });
+                        if (systemData.hasOwnProperty(results["results"][result]["systemID"]) === false) {
+                            systemData[results["results"][result]["systemID"]] = {}
+                        }
+                        systemData[results["results"][result]["systemID"]][results["results"][result]["_id"]] = div
+                        
+                    }
+                    for (system in systemData) {
+                        var systemDiv = $('<div class="row g-0 justify-content-md-center">')
+                        console.log(system)
+                        systemDiv.append($('<label class="unselectable panelHeader">').text("System "+system))
+                        for (trigger in systemData[system]) {
+                            systemDiv.append(systemData[system][trigger])
+                        }
+                        $("#triggerChart").append(systemDiv)
                     }
                     $("#enabledTriggers").text(triggers);
                     $("#runningTriggers").text(runningTriggers);
                     $("#failedTriggers").text(failedTriggers);
                     $("#totalExecutions").text(totalExecutions);
+                    setTimeout(triggerChartPoll, 2500);
                 }
             });
-            setTimeout(triggerChartPoll, 2500);
+        }
+        function statusPageClearTriggerStartCheck() {
+            if (statusPageSelectedTrigger) {
+                var triggerID = statusPageSelectedTrigger[0];
+                var triggerName = statusPageSelectedTrigger[1]
+                $.ajax({ url: "/api/1.0/models/trigger/"+triggerID+"/", type : "POST", data: JSON.stringify({ "CSRF" : CSRF, "startCheck" : 0 }), contentType:"application/json", success: function ( jsonResult ) {
+                        dropdownAlert(null,"Success","Trigger '"+triggerName+"' Cleared",1000);
+                    }
+                });
+            }
         }
     </script>
 {% endblock %}

@@ -166,7 +166,7 @@ function updateFlowchartNonBlocking(blocking) {
 	}
 	// Operator Deletions
 	for (operator in processlist["operators"]["delete"]) {
-		nodes.remove({ id: processlist["operators"]["delete"][operator]["flowID"] })
+		nodes.remove({ id: processlist["operators"]["delete"][operator]["id"] })
 		delete processlist["operators"]["delete"][operator]
 		nonlock++
 		if ((!blocking) && (nonlock > 0)) {
@@ -271,6 +271,29 @@ function editACL() {
 	if (selectedNodes.length == 1) {
 		node = nodes.get(selectedNodes[0])["id"]
 		createACLValuesPanel(node);
+	}
+}
+
+function editObjectSystemSettings() {
+	selectedNodes = network.getSelectedNodes()
+	if (selectedNodes.length == 1) {
+		node = nodes.get(selectedNodes[0])["id"]
+		createObjectSystemSettingsValuesPanel(node);
+	}
+}
+
+function loadTriggerStatistics() {
+	selectedNodes = network.getSelectedNodes()
+	if (selectedNodes.length == 1) {
+		node = nodes.get(selectedNodes[0])["objID"]
+		window.open("/statistics/trigger/"+nodes.get(selectedNodes[0])["objID"]+"/", "_blank");
+	}
+}
+
+function objectRevisionHistory() {
+	selectedNodes = network.getSelectedNodes()
+	if (selectedNodes.length == 1) {
+		createObjectRevisionHistoryPanel(nodes.get(selectedNodes[0])["flowType"],nodes.get(selectedNodes[0])["objID"]);
 	}
 }
 
@@ -440,11 +463,13 @@ function setupFlowchart() {
 			} else {
 				$(".contextMenuAction").hide();
 			}
+			offsetLeft = $("#flowchart").offset().left;
+			offsetTop = $("#flowchart").offset().top;
 			var $menu = $(menuHTML).show()
 				.css({
 					position: "absolute",
-					left: getMenuPosition(params["pointer"]["DOM"]["x"], 'width', 'scrollLeft', $(menuHTML)),
-					top: getMenuPosition(params["pointer"]["DOM"]["y"], 'height', 'scrollTop',$(menuHTML))
+					left: getMenuPosition(params["pointer"]["DOM"]["x"]+offsetLeft, 'width', 'scrollLeft', $(menuHTML)),
+					top: getMenuPosition(params["pointer"]["DOM"]["y"]+offsetTop, 'height', 'scrollTop',$(menuHTML))
 				})
 				.off('click')
 				.on('click', 'a', function (e) {
