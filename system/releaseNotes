@@ -1,5 +1,9 @@
 # Version 3.037
 
+## Improved - Storage 
+
+Added UI options for file tokens and downloading of already uploaded files
+
 ## Improved - Object Revisions
 
 Object revision UI is no longer in BETA and now is officially released. As part of this release the UI has been updated to include the revision creator as well as a view button that enables you to see the content of the revision without restoring the object

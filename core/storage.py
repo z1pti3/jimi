@@ -3,6 +3,7 @@ import requests
 from pathlib import Path
 import json
 import time
+import secrets
 
 import jimi
 
@@ -116,7 +117,7 @@ if jimi.api.webServer:
 
             @jimi.api.webServer.route("/storage/", methods=["GET"])
             def storagePage():
-                storageFiles = _storage().query(sessionData=jimi.api.g.sessionData,query={ "systemStorage" : True },fields=["_id","fileData","fileHash","comment"])["results"]
+                storageFiles = _storage().query(sessionData=jimi.api.g.sessionData,query={ "systemStorage" : True },fields=["_id","fileData","fileHash","comment","accessTokens"])["results"]
                 return render_template("storage.html",storage=storageFiles,CSRF=jimi.api.g.sessionData["CSRF"])
 
             @jimi.api.webServer.route(jimi.api.base+"storage/", methods=["POST"])
@@ -183,6 +184,28 @@ if jimi.api.webServer:
                 if jimi.db.ACLAccess(jimi.api.g.sessionData,storageItem.acl,"delete"):
                     if storageItem.delete()["result"]:
                         return { }, 200
+                return { }, 404
+
+            @jimi.api.webServer.route(jimi.api.base+"storage/file/<storageID>/accessToken/<expiry>/", methods=["PUT"])
+            def createStorageFileAccessToken(storageID,expiry):
+                storageItem = jimi.storage._storage().getAsClass(sessionData=jimi.api.g.sessionData,id=storageID)[0]
+                if jimi.db.ACLAccess(jimi.api.g.sessionData,storageItem.acl,"write"):
+                    token = secrets.token_hex(128)
+                    storageItem.accessTokens.append({ "token" : token, "expiry" : int(time.time()+int(expiry)) })
+                    storageItem.update(["accessTokens"],sessionData=jimi.api.g.sessionData)
+                    return { "accessToken" : token }, 200
+                return { }, 404
+
+            @jimi.api.webServer.route(jimi.api.base+"storage/file/<storageID>/<accessToken>/", methods=["DELETE"])
+            def deleteStorageFileAccessToken(storageID,accessToken):
+                storageItem = jimi.storage._storage().getAsClass(sessionData=jimi.api.g.sessionData,id=storageID)[0]
+                if jimi.db.ACLAccess(jimi.api.g.sessionData,storageItem.acl,"delete"):
+                    for accessTokenItem in storageItem.accessTokens:
+                        if accessTokenItem["token"] == accessToken:
+                            storageItem.accessTokens.remove(accessTokenItem)
+                            break
+                    storageItem.update(["accessTokens"],sessionData=jimi.api.g.sessionData)
+                    return { }, 200
                 return { }, 404
 
             def getFileFromMaster(storageID,filePath):

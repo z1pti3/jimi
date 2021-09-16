@@ -47,6 +47,26 @@
                                         <input name="storageFile" type="file" class="form-control" id="storageFile{{ storageItem["_id"] }}" />
                                     </div>
                                     </br>
+                                    <table>
+                                        <thead>
+                                            <td>Token</td>
+                                            <td>Options</td>
+                                        </thead>
+                                        <tbody id="accessToken{{ storageItem["_id"] }}">
+                                            {% for accessToken in storageItem["accessTokens"] %}
+                                                <tr id="accessToken{{ storageItem["_id"] }}{{ accessToken["token"] }}">
+                                                    <td style="word-break: break-all">{{ accessToken["token"] }}</td>
+                                                    <td><button type="button" class="btn btn-primary button bi-trash" onclick="deleteAccessToken('{{ storageItem["_id"] }}','{{ accessToken["token"] }}')"> Delete</button></td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control textbox" id="storageAccessTokenExpiry{{ storageItem["_id"] }}" value="86400" name="storageAccessTokenExpiry" placeholder="86400" />
+                                        <label for="storageAccessTokenExpiry">Expiry</label>
+                                        <button type="button" class="btn btn-primary button" onclick="newAccessToken('{{ storageItem["_id"] }}')">Add Token</button>
+                                    </div>
+                                    </br>
                                     <div class="form-floating">
                                         <textarea type="text" class="form-control textbox" id="storageDescription{{ storageItem["_id"] }}" name="comment" placeholder="Description" style="height: 250px;">{{ storageItem["comment"] }}</textarea>
                                         <label for="storageDescription">Description</label>
@@ -61,7 +81,6 @@
                         </div>
                     </div>
                 </div>
-
             {% endfor %}
         </ul>
     </div>
@@ -124,6 +143,31 @@
                 var body = JSON.stringify({ CSRF : CSRF })
                 $.ajax({ url: "/api/1.0/storage/file/"+storageID+"/", type : "DELETE", data:body, contentType:"application/json", success: function ( result ) {
                         window.location.reload();
+                    }
+                });
+            }
+        }
+
+        function newAccessToken(storageID) {
+            var body = JSON.stringify({ CSRF : CSRF })
+            $.ajax({ url: "/api/1.0/storage/file/"+storageID+"/accessToken/"+$('#storageAccessTokenExpiry'+storageID).val()+"/", type : "PUT", data:body, contentType:"application/json", success: function ( result ) {
+                    var tr = $('<tr id="accessToken'+storageID+result["accessToken"]+'">')
+                    var td = $('<td style="word-break: break-all">').text(result["accessToken"])
+                    tr.append(td)
+                    var td = $('<td>')
+                    var button = $('<button type="button" class="btn btn-primary button bi-trash" onclick="deleteAccessToken(\''+storageID+'\',\''+result["accessToken"]+'\')">').text("Delete")
+                    td.append(button)
+                    tr.append(td)
+                    $('#accessToken'+storageID).append(tr)
+                }
+            });
+        }
+
+        function deleteAccessToken(storageID,accessToken) {
+            if (confirm("Are you sure you want to delete this access token?")) {
+                var body = JSON.stringify({ CSRF : CSRF })
+                $.ajax({ url: "/api/1.0/storage/file/"+storageID+"/"+accessToken+"/", type : "DELETE", data:body, contentType:"application/json", success: function ( result ) {
+                        $('#accessToken'+storageID+accessToken).remove()
                     }
                 });
             }
