@@ -85,7 +85,7 @@ class _forEach(jimi.action._action):
 					eventHandler.new("forEachTrigger:{0}".format(data["flowData"]["flow_id"]),data["persistentData"]["system"]["conduct"].triggerBatchHandler,(data["flowData"]["flow_id"],events,False,True,flowDebugSession),maxDuration=durationRemaining)
 
 				eventHandler.waitAll()
-				if eventHandler.failures:
+				if eventHandler.failures or eventHandler.failureCount() > 0:
 					if jimi.logging.debugEnabled:
 						jimi.logging.debug("forEachTrigger concurrent crash: forEachID={0}".format(self._id),5)
 					eventHandler.stop()

@@ -82,23 +82,21 @@ class workerHandler:
                     raise e
 
             except SystemExit as e:
+                self.resultException = e
                 if self.debugSession:
                     self.crash = True
                     jimi.debug.flowDebugSession[self.debugSession].startEvent("Worker Killed",str(e),jimi.conduct.dataTemplate())
                 elif self.raiseException:
                     self.crash = True
                     jimi.exceptions.workerKilled(self.id,self.name)
-                else:
-                    self.resultException = e
             except Exception as e:
+                self.resultException = e
                 if self.debugSession:
                     self.crash = True
                     jimi.debug.flowDebugSession[self.debugSession].startEvent("Worker Crash",str(e),jimi.conduct.dataTemplate())
                 elif self.raiseException:
                     self.crash = True
                     jimi.exceptions.workerCrash(self.id,self.name,''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
-                else:
-                    self.resultException = e
             finally:
                 if p.exitcode == None:
                     p.terminate()
@@ -122,23 +120,21 @@ class workerHandler:
                 else:
                     self.result = self.call()
             except SystemExit as e:
+                self.resultException = e
                 if self.debugSession:
                     self.crash = True
                     jimi.debug.flowDebugSession[self.debugSession].startEvent("Worker Killed",str(e),jimi.conduct.dataTemplate())
                 elif self.raiseException:
                     self.crash = True
                     jimi.exceptions.workerKilled(self.id,self.name)
-                else:
-                    self.resultException = e
             except Exception as e:
+                self.resultException = e
                 if self.debugSession:
                     self.crash = True
                     jimi.debug.flowDebugSession[self.debugSession].startEvent("Worker Crash",str(e),jimi.conduct.dataTemplate())
                 elif self.raiseException:
                     self.crash = True
                     jimi.exceptions.workerCrash(self.id,self.name,''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
-                else:
-                    self.resultException = e
             if jimi.logging.debugEnabled:
                 jimi.logging.debug("Threaded worker completed, workerID={0}".format(self.id))
             self.running = False
@@ -216,8 +212,7 @@ class workerHandler:
                     if not self.failures and worker.resultException != None and worker.endTime != 0:
                         self.failures = True
                     if self.cleanUp:
-                        # Making sure that only completed workers i.e. endTime!=0 are clearned
-                        if worker.resultException == None and worker.endTime != 0 or (( worker.endTime + 60 < now ) and worker.endTime != 0):
+                        if worker.endTime != 0 or (( worker.endTime + 60 < now ) and worker.endTime != 0):
                             self.workerList.remove(worker)
                 tick = now
 

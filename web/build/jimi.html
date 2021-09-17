@@ -15,6 +15,7 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.css') }}">
 	<link rel="stylesheet" href="{{ url_for('static', filename='includes/jquery/css/jquery-ui.structure.css') }}">
     <script src="{{ url_for('static', filename='javascript/helpers.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
 {% endmacro -%}
 
 {% macro charts() -%}
@@ -38,7 +39,7 @@
                     credentials: 'include',
                     body: JSON.stringify(bodyData)
                 };
-                fetch('{{ pollAPI }}',requestOptions,2000).then(result => {
+                fetch('{{ pollAPI }}',requestOptions,{{ autoPoll }}).then(result => {
                     return result.json()
                 }).then(resultJson => {
                     if ( resultJson["labels"].length > 0 ) {

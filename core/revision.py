@@ -49,7 +49,21 @@ if jimi.api.webServer:
                     objectClass = objectClass().getAsClass(sessionData=jimi.api.g.sessionData,id=objectID)[0]
                     if objectClass:
                         # No ACL check needed as we check the objects ACL
-                        revisions = _revision().query(query={ "classID" : classID, "objectID" : objectID },sort=[("_id", -1)],limit=100,fields=["_id","creationTime"])["results"]
+                        revisions = _revision().query(query={ "classID" : classID, "objectID" : objectID },sort=[("_id", -1)],limit=100,fields=["_id","creationTime","createdBy"])["results"]
+                        # Get users from createdBy
+                        userIDs = []
+                        for revision in revisions:
+                            if jimi.db.ObjectId(revision["createdBy"]) not in userIDs:
+                                userIDs.append(jimi.db.ObjectId(revision["createdBy"]))
+                        users = jimi.auth._user().query(query={ "_id" : { "$in" : userIDs } })["results"]
+                        userHash = {}
+                        for user in users:
+                            userHash[user["_id"]] = user["name"]
+                        for revision in revisions:
+                            try:
+                                revision["createdBy"] = userHash[revision["createdBy"]]
+                            except KeyError:
+                                revision["createdBy"] = "Unknown"
                         return { "revisions" : revisions }, 200
                 except:
                     pass
@@ -77,6 +91,28 @@ if jimi.api.webServer:
                                                 fieldsUpdated.append(member)
                             objectClass.update(fieldsUpdated,sessionData=jimi.api.g.sessionData,revisioning=True)
                             return { }, 200
+                except:
+                    pass
+                return { }, 404
+
+            @jimi.api.webServer.route(jimi.api.base+"revisions/<classID>/<objectID>/<revisionID>/view/", methods=["GET"])
+            def viewRevision(classID,objectID,revisionID):
+                try:
+                    # Checking that the requesting user has access to the object
+                    objectClass = jimi.model._model().getAsClass(sessionData=jimi.api.g.sessionData,id=classID)[0].classObject()
+                    objectClass = objectClass().getAsClass(sessionData=jimi.api.g.sessionData,id=objectID)[0]
+                    if objectClass:
+                        if objectClass.__class__.__name__ != "_conduct":
+                            # No ACL check needed as we check the objects ACL
+                            revisionsToRestore = _revision().query(query={ "_id" : { "$gte" : jimi.db.ObjectId(revisionID) }, "classID" : classID, "objectID" : objectID },fields=["objectData"],sort=[("_id",-1)])["results"]
+                            blacklist = ["classID","_id","acl"]
+                            members = [attr for attr in dir(objectClass) if not callable(getattr(objectClass, attr)) and not "__" in attr and attr ]
+                            for revisionToRestore in revisionsToRestore:
+                                for member in members:
+                                    if member in revisionToRestore["objectData"] and member not in blacklist:
+                                        if type(getattr(objectClass,member) == type(revisionToRestore["objectData"][member])):
+                                            setattr(objectClass,member,revisionToRestore["objectData"][member])
+                            return { "formData" : jimi.webui._properties().generate(objectClass) }, 200
                 except:
                     pass
                 return { }, 404

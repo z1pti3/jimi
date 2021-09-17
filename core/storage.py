@@ -3,6 +3,7 @@ import requests
 from pathlib import Path
 import json
 import time
+import secrets
 
 import jimi
 
@@ -116,7 +117,7 @@ if jimi.api.webServer:
 
             @jimi.api.webServer.route("/storage/", methods=["GET"])
             def storagePage():
-                storageFiles = _storage().query(sessionData=jimi.api.g.sessionData,query={ "systemStorage" : True },fields=["_id","fileData","fileHash","comment"])["results"]
+                storageFiles = _storage().query(sessionData=jimi.api.g.sessionData,query={ "systemStorage" : True },fields=["_id","fileData","fileHash","comment","accessTokens"])["results"]
                 return render_template("storage.html",storage=storageFiles,CSRF=jimi.api.g.sessionData["CSRF"])
 
             @jimi.api.webServer.route(jimi.api.base+"storage/", methods=["POST"])
@@ -185,6 +186,53 @@ if jimi.api.webServer:
                         return { }, 200
                 return { }, 404
 
+            @jimi.api.webServer.route(jimi.api.base+"storage/file/<storageID>/accessToken/<expiry>/", methods=["PUT"])
+            def createStorageFileAccessToken(storageID,expiry):
+                storageItem = jimi.storage._storage().getAsClass(sessionData=jimi.api.g.sessionData,id=storageID)[0]
+                if jimi.db.ACLAccess(jimi.api.g.sessionData,storageItem.acl,"write"):
+                    token = secrets.token_hex(128)
+                    storageItem.accessTokens.append({ "token" : token, "expiry" : int(time.time()+int(expiry)) })
+                    storageItem.update(["accessTokens"],sessionData=jimi.api.g.sessionData)
+                    return { "accessToken" : token }, 200
+                return { }, 404
+
+            @jimi.api.webServer.route(jimi.api.base+"storage/file/<storageID>/<accessToken>/", methods=["DELETE"])
+            def deleteStorageFileAccessToken(storageID,accessToken):
+                storageItem = jimi.storage._storage().getAsClass(sessionData=jimi.api.g.sessionData,id=storageID)[0]
+                if jimi.db.ACLAccess(jimi.api.g.sessionData,storageItem.acl,"delete"):
+                    for accessTokenItem in storageItem.accessTokens:
+                        if accessTokenItem["token"] == accessToken:
+                            storageItem.accessTokens.remove(accessTokenItem)
+                            break
+                    storageItem.update(["accessTokens"],sessionData=jimi.api.g.sessionData)
+                    return { }, 200
+                return { }, 404
+
+            def getFileFromMaster(storageID,filePath):
+                apiToken = jimi.auth.generateSystemSession()
+                url = jimi.cluster.getMaster()
+                apiEndpoint = "storage/file/{0}/".format(storageID)
+                headers = { "X-api-token" : apiToken }
+                with requests.get("{0}{1}{2}".format(url,jimi.api.base,apiEndpoint), headers=headers, stream=True) as r:
+                    r.raise_for_status()
+                    with open(filePath, 'wb') as f:
+                        for chunk in r.iter_content(chunk_size=8192):
+                            f.write(chunk)
+
+            @jimi.api.webServer.route("/storage/file/<storageID>/", methods=["GET"])
+            def getStorageFile(storageID):
+                storageItem = jimi.storage._storage().query(sessionData=jimi.api.g.sessionData,id=storageID)["results"][0]
+                idFilePath = "data/temp/{0}".format(storageItem["_id"])
+                if not jimi.helpers.safeFilepath(idFilePath,"data/temp"):
+                    return {}, 404
+                fileWithinTemp = False
+                if os.path.exists(Path(idFilePath)):
+                    if jimi.helpers.getFileHash(idFilePath) == storageItem["fileHash"]:
+                        fileWithinTemp = True
+                if fileWithinTemp == False:
+                    getFileFromMaster(storageItem["_id"],idFilePath)
+                return jimi.api.send_file(idFilePath,attachment_filename=storageItem["fileData"],as_attachment=True)
+
             @jimi.api.webServer.route(jimi.api.base+"storage/file/<accessToken>/", methods=["GET"])
             def __PUBLIC__getStorageFile(accessToken):
                 storageFile = jimi.storage._storage().query(query={"accessTokens.token" : accessToken, "accessTokens.expiry" : { "$gt" : int(time.time()) }},fields=["_id","fileHash"])["results"]
@@ -198,14 +246,6 @@ if jimi.api.webServer:
                         if jimi.helpers.getFileHash(idFilePath) == storageFile["fileHash"]:
                             fileWithinTemp = True
                     if fileWithinTemp == False:
-                        apiToken = jimi.auth.generateSystemSession()
-                        url = jimi.cluster.getMaster()
-                        apiEndpoint = "storage/file/{0}/".format(storageFile["_id"])
-                        headers = { "X-api-token" : apiToken }
-                        with requests.get("{0}{1}{2}".format(url,jimi.api.base,apiEndpoint), headers=headers, stream=True) as r:
-                            r.raise_for_status()
-                            with open(idFilePath, 'wb') as f:
-                                for chunk in r.iter_content(chunk_size=8192):
-                                    f.write(chunk)
-                    return jimi.api.send_file(idFilePath,attachment_filename=storageFile["_id"])
+                        getFileFromMaster(storageFile["_id"],idFilePath)
+                    return jimi.api.send_file(idFilePath,attachment_filename=storageFile["fileData"],as_attachment=True)
                 return {}, 404
