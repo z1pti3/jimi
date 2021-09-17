@@ -1,0 +1,52 @@
+:root {
+    /* Main */
+    --menuBackgroundColor: #ff00c8;
+    --mainBackgroundColor: #ff74e8;
+    --textColor: rgb(255, 255, 255);
+    --textColorHover: #e000d5;
+    --textDisabledColor: #ffcdff;
+    --hoverColor: #ffcdff;
+
+    /* Scrollbar */
+    --scrollbarColor: #e000d57a;
+    --scrollbarBackgroundColor: #e000d5bd;
+    --scrollbarBorderColor: #e000d57a;
+
+    /* Panel */
+    --panelBackgroundColor: #ff6ee0;
+    --panel2BackgroundColor: #ff6ee0;
+    --panelBorderColor: #e000d5;
+    --panelShadowColor1: #44004b;
+    --panelShadowColor2: #44004b;
+    --panelComponentBackground: #ff6ee0;
+    --panelComponentBackground-Focus: #ff6ee0;
+    --panelComponentBorder: #e000d5;
+    --panelComponentBorder-Focus: #ffffff;
+
+    /* Component */
+    --componentBorderColor: #e000d5;
+    --componentBorderColorSelect: #e000d5;
+    --componentBackground1: #ff6ee0;
+    --componentBackground2: #ff6ee0;
+    --componentBackgroundSelect: #e000d5;
+
+    /* Alerts */
+    --errorBackgroundColor: #ec0e0e;
+    --errorColor: #ff6ee0;
+    --alertBackgroundColor: #15b438;
+    --alertColor: #ff6ee0;
+
+    /* Conducts */
+    --nodeEnableColor: #ff00c8;
+    --nodeDisabledColor: #97608e;
+    --nodeErrorColor: red;
+    --nodeRunningColor: green;
+    --nodeBorderColor: #595959;
+    --nodeUnknownColor: black;
+    --linkColor: green;
+    --linkTrueColor: #6FA92D;
+    --linkFalseColor: #FF392E;
+    --linkRCColor: #FBB121;
+    --linkLogicColor: #D04D8A;
+    --linkAllColor: #3DBEFF;
+}
