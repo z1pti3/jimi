@@ -10,6 +10,7 @@ import math
 import functools
 import onetimepass
 import bson
+import os
 from pathlib import Path
 from Crypto.Cipher import AES, PKCS1_OAEP # pycryptodome
 from Crypto.PublicKey import RSA
@@ -464,7 +465,12 @@ if jimi.api.webServer:
                     user = _user().getAsClass(id=jimi.api.g.sessionData["_id"])
                     if len(user) == 1:
                         user = user[0]
-                        return render_template("myAccount.html",CSRF=jimi.api.g.sessionData["CSRF"],name=user.name,email=user.email,theme=user.theme)
+                        themes = []
+                        themeFiles = os.listdir(Path("web/build/static/themes/"))
+                        for themeFile in themeFiles:
+                            if themeFile.endswith(".css"):
+                                themes.append(themeFile.split("theme-")[1].split(".css")[0])
+                        return render_template("myAccount.html",CSRF=jimi.api.g.sessionData["CSRF"],name=user.name,email=user.email,theme=user.theme,themes=themes)
                 return { }, 403
 
             # Checks that username and password are a match

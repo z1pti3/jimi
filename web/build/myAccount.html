@@ -20,7 +20,15 @@
                         <label for="email" class="bi-chat-text"> Email Address</label>
                     </div>
                     <div class="form-floating">
-                        <input type="input" class="form-control textbox" id="theme" autoComplete="off" placeholder="Theme" value="{{ theme }}">
+                        <select class="form-select textbox" id="theme">
+                            {% for themeItem in themes %}
+                                {% if themeItem == theme %}
+                                    <option selected value="{{ themeItem }}">{{ themeItem }}</option>
+                                {% else %}
+                                    <option value="{{ themeItem }}">{{ themeItem }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
                         <label for="theme" class="bi-easel"> Set a theme</label>
                     </div>
                 
