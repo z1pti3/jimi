@@ -154,6 +154,7 @@ class workerHandler:
             self.start()
     
     def start(self):
+        self.stopped = False
         workerThread = self._worker("workerThread",self.handler,None,True,0,False,True,None)
         workerThread.start()
         self.workerList.append(workerThread)

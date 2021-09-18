@@ -1,4 +1,5 @@
 import multiprocessing
+import threading
 import logging
 
 logging.basicConfig(level=logging.ERROR)
@@ -33,7 +34,8 @@ def startWorker(systemId,systemIndex):
     jimi.workers.workers = jimi.workers.workerHandler()
     logging.debug("Garbage Collector %s",jimi.settings.getSetting("cache","garbageCollector"))
     scheduler = jimi.scheduler._scheduler(systemId,systemIndex)
-    jimi.workers.workers.new("healthChecker",healthChecker,(scheduler,),True,0)
+    IndexHealthChecker = jimi.workers._threading(target=healthChecker,args=(scheduler,))
+    IndexHealthChecker.start()
     logging.info("Starting scheduler")
     scheduler.handler()
 
@@ -58,6 +60,22 @@ if __name__ == "__main__":
             if jimi.settings.getSetting("cache","garbageCollector"):
                 logging.debug("Running cache garbage collector")
                 jimi.cache.globalCache.cleanCache()
+            if jimi.workers.workers.lastHandle < time.time() - 60:
+                logging.error("Workers on systemID %i has failed restarting",systemId)
+                jimi.audit._audit().add("system","health_checker",{ "systemID" : systemId, "msg" : "Worker service has failed restarting." })
+                jimi.workers.workers.stop()
+                jimi.workers.workers.start()
+                workerRestartSuccessful = False
+                now = time.time() + 30
+                while now > time.time():
+                    if jimi.workers.workers.lastHandle > time.time() - 60:
+                        workerRestartSuccessful = True
+                        break
+                    time.sleep(1)
+                if not workerRestartSuccessful:
+                    logging.error("Workers on systemID %i has failed and could not be restarted",systemId)
+                    jimi.audit._audit().add("system","health_checker",{ "systemID" : systemId, "msg" : "Worker service has failed and could not be restarted." })
+                    os._exit(10)
             if cluster.lastHandle < time.time() - 60:
                 logging.error("Cluster service has failed")
                 jimi.audit._audit().add("system","health_checker",{ "systemID" : systemId, "systemIndex" : systemIndex["systemIndex"], "msg" : "Cluster service has failed." })
@@ -130,7 +148,8 @@ if __name__ == "__main__":
         startProcess(systemIndex)
 
     cluster = jimi.cluster._cluster()
-    jimi.workers.workers.new("healthChecker",healthChecker,(cluster,jimi.cluster.systemIndexes),True,0)
+    SystemHealthChecker = jimi.workers._threading(target=healthChecker,args=(cluster,jimi.cluster.systemIndexes))
+    SystemHealthChecker.start()
     logging.info("Starting cluster processing")
     cluster.handler()
 else:
