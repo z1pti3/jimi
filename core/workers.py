@@ -73,7 +73,8 @@ class workerHandler:
                 p.start()
                 try:
                     rc, e = Q.get(timeout=self.maxDuration)
-                    p.join(timeout=self.maxDuration)
+                    p.join(timeout=0)
+                    p.terminate()
                 except:
                     raise SystemExit
 
