@@ -1,5 +1,9 @@
 # Version 3.037
 
+## Improved - Theme Selection
+
+My Account now includes a dropdown menu for theme selection. No more guessing what the theme names are
+
 ## Improved - Storage 
 
 Added UI options for file tokens and downloading of already uploaded files
@@ -16,7 +20,15 @@ Added message to worker killed exception to make it clear that the failure on th
 
 The status page polling improved to reduce network utilization
 
-<!-- # Version 3.036
+## Fixed - Cluster Checksum and Updates
+
+Fixed a bug within the cluster checksum and update system that meant users had to update multiple times before it would be successful
+
+## Fixed - System HealthChecker Crashing
+
+An issue that caused the health checker service to crash has been resolved
+
+# Version 3.036
 
 ## Features -
 
@@ -40,9 +52,9 @@ User and Group status is now enforced
 
 ### Improved root Password Reset Utility
 
-CLI reset of root user no longer requires waiting the lockout period to expire -->
+CLI reset of root user no longer requires waiting the lockout period to expire
 
-<!-- # Version 3.035
+# Version 3.035
 
 ## Features
 
@@ -74,4 +86,24 @@ Viewable last 100 execution times for a trigger
 
 Within ConductsEditor right click on an object and select "Statistics"
 
-## Bug Fixes -->
+# Version 3.0
+
+Welcome to jimi version 3. 
+
+This release brings with it major changes both within the backend and frontend UI:
+
+* Updated UI older react interface is now fully removed
+* Improved flow performance
+* Sub system processes to maximize CPU on multi-processor systems 
+* forEach concurrency
+* System API security options
+* Trigger execution count
+* Updated authentication and authorization system
+* Advanced debug system
+* Better system memory handling 
+* Settings moved from settings.json to model editor
+* File object storage
+* Themes
+* Additional system functions
+* Moved to integrated webserver cherryPi
+* Many many more bug fixes

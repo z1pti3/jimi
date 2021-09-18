@@ -554,7 +554,7 @@ def statisticsTriggerLineChart(triggerID):
 def whatsNewPopup():
 	result = {}
 	result["title"] = "Release Notes - Your Current jimi Version {0}".format(jimiInstaller.systemVersion)
-	with open(Path("system/releaseNotes")) as f:
+	with open(Path("system/releaseNotes.md")) as f:
 		result["body"] = markdown.markdown(f.read())
 	
 	return result, 200
