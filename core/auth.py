@@ -232,8 +232,8 @@ def generateSession(dataDict):
             dataDict[application]["CSRF"] = secrets.token_urlsafe(16)
     return jwt.encode(dataDict, private_key, algorithm="RS256")
 
-def generateSystemSession():
-    data = {"jimi" : { "expiry" : time.time() + 10, "admin" : True, "system" : True, "_id" : 0, "user" : "system", "primaryGroup" : 0, "authenticated" : True, "api" : True }}
+def generateSystemSession(expiry=10):
+    data = {"jimi" : { "expiry" : time.time() + expiry, "admin" : True, "system" : True, "_id" : 0, "user" : "system", "primaryGroup" : 0, "authenticated" : True, "api" : True }}
     return jwt.encode(data, private_key, algorithm="RS256")
 
 def validateSession(sessionToken,application,useCache=True):

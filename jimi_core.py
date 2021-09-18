@@ -7,9 +7,11 @@ logging.basicConfig(level=logging.ERROR)
 def startWorker(systemId,systemIndex):
     def healthChecker(scheduler):
         import os
+        import time
         logging.info("Starting health checker")
         logging.debug("Garbage Collector %s",jimi.settings.getSetting("cache","garbageCollector"))
-        import time
+        # Waiting for startup i.e. scheduler to poll atleast once
+        time.sleep(10)
         while True:
             if jimi.settings.getSetting("cache","garbageCollector"):
                 logging.debug("Running cache garbage collector")
@@ -52,10 +54,12 @@ if __name__ == "__main__":
 
     def healthChecker(cluster,systemIndexes):
         import os
-        logging.info("Starting health checker")
-        logging.debug("Garbage Collector %s",jimi.settings.getSetting("cache","garbageCollector"))
         import time
         import psutil
+        logging.info("Starting health checker")
+        logging.debug("Garbage Collector %s",jimi.settings.getSetting("cache","garbageCollector"))
+        # Waiting for startup
+        time.sleep(10)
         while True:
             if jimi.settings.getSetting("cache","garbageCollector"):
                 logging.debug("Running cache garbage collector")
