@@ -169,7 +169,7 @@ if jimi.api.webServer:
 			@jimi.auth.systemEndpoint
 			def reloadModule(moduleName):
 				jimi.helpers.reloadModulesWithinPath(moduleName)
-				return {}, 200
+				return { }, 200
 		
 		if jimi.api.webServer.name == "jimi_web":
 			@jimi.api.webServer.route(jimi.api.base+"system/update/<systemID>/<pullFromSystemID>/", methods=["GET"])
@@ -179,8 +179,10 @@ if jimi.api.webServer:
 				if not url:
 					return {}, 404
 				apiEndpoint = "system/update/{0}/".format(pullFromSystemID)
-				response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url,timeout=60)
-				return { "url" : url, "response" : response.status_code }, 200
+				response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url,timeout=300)
+				if not response or response.status_code != 200:
+					return { "error" : "Error response from {0}".format(url) }, 503
+				return { }, 200
 
 			@jimi.api.webServer.route(jimi.api.base+"system/checksum/<systemID>/", methods=["GET"])
 			@jimi.auth.adminEndpoint
@@ -189,8 +191,10 @@ if jimi.api.webServer:
 				if not url:
 					return {}, 404
 				apiEndpoint = "system/checksum/"
-				response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url,timeout=60)
-				return { "url" : url, "response" : response.status_code }, 200
+				response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url,timeout=300)
+				if not response or response.status_code != 200:
+					return { "error" : "Error response from {0}".format(url) }, 503
+				return { }, 200
 
 			@jimi.api.webServer.route(jimi.api.base+"system/checksum/<sourceSystemID>/<targetSystemID>/", methods=["GET"])
 			@jimi.auth.adminEndpoint
@@ -219,13 +223,12 @@ if jimi.api.webServer:
 			@jimi.auth.adminEndpoint
 			def reloadModule(moduleName):
 				jimi.helpers.reloadModulesWithinPath(moduleName)
-				results = [{ "web" : jimi.cluster.getSystemId(), "status_code" : 200 }]
 				apiEndpoint = "system/reload/module/{0}/".format(moduleName)
 				servers = jimi.cluster.getAll()
 				for url in servers:
-					response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
-					if response.status_code == 200:
-						results.append({ "server" : url, "results" : json.loads(response.text) })
-				return { "results" : results }, 200
+					response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url,timeout=60)
+					if not response or response.status_code != 200:
+						return { "error" : "Error response from {0}".format(url) }, 503
+				return { }, 200
 
 

@@ -116,16 +116,13 @@ def workerStatusPage():
 @jimi.api.webServer.route(jimi.api.base+"/clearCache/", methods=["GET"])
 @jimi.auth.adminEndpoint
 def clearCachePage():
-	results = []
 	apiEndpoint = "admin/clearCache/"
 	servers = jimi.cluster.getAll()
 	for url in servers:
 		response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
-		if response.status_code != 200:
-			results.append({ "server" : url, "result" : False })
-		else:
-			results.append({ "server" : url, "result" : True, "results" : json.loads(response.text) })
-	return { "results" : results }, 200
+		if not response or response.status_code != 200:
+			return { "error" : "Error response from {0}".format(url) }, 503
+	return { }, 200
 
 # Should be migrated into admin.py
 @jimi.api.webServer.route(jimi.api.base+"/clearStartChecks/", methods=["GET"])
@@ -134,10 +131,10 @@ def clearStartChecksPage():
 	apiEndpoint = "admin/clearStartChecks/"
 	url = jimi.cluster.getMaster()
 	response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
-	if response.status_code != 200:
-		return { "server" : url, "result" : False }, 403
+	if not response or response.status_code != 200:
+		return { "error" : "Error response from {0}".format(url) }, 503
 	else:
-		return { "server" : url, "result" : True }, 200
+		return { }, 200
 
 # @jimi.api.webServer.route("/login")
 # def loginPage():

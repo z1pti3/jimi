@@ -328,11 +328,11 @@ if jimi.api.webServer:
             @jimi.auth.adminEndpoint
             def clearFlowDebugSessions():
                 apiEndpoint = "debug/clear/"
-                responses = []
                 for url in jimi.cluster.getAll():
                     response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
-                    responses.append({ "url" : url, "response" : response.status_code })
-                return { "result" : responses }, 200
+                    if not response or response.status_code != 200:
+                        return { "error" : "Error response from {0}".format(url) }, 503
+                return { }, 200
 
             @jimi.api.webServer.route(jimi.api.base+"debug/clear/<sessionID>/", methods=["GET"])
             @jimi.auth.adminEndpoint
