@@ -44,6 +44,8 @@ Users now have the ability to change themes, this can be done through the My Acc
 
 Ability to change name and email address associated
 
+![image](https://user-images.githubusercontent.com/66521110/133906668-cb097e21-11c9-4009-9e4c-5e2273d8fb3e.png)
+
 ### Add Whats New
 
 Whats New ( This ) panel has been added to inform users of changes after an upgrade has taken place. Once a user pressing the "Close" button the panel will not be visible until the next upgrade
@@ -70,6 +72,10 @@ Status page list of triggers now supports right click to clear startChecks which
 
 Save dialogs now appear down the bottom right of the screen instead of as banners
 
+![image](https://user-images.githubusercontent.com/66521110/133906645-737cb73b-44c8-4f48-b692-57509d490271.png)
+
+![image](https://user-images.githubusercontent.com/66521110/133906649-2f1c1d2f-282c-47d0-99cb-12736eaf4cc3.png)
+
 ### Bug Fixes
 
 * Cluster Restarting Trigger Failures No Longer Missing from Status Table
@@ -90,9 +96,13 @@ Viewable last 100 execution times for a trigger
 
 Within ConductsEditor right click on an object and select "Statistics"
 
+![image](https://user-images.githubusercontent.com/66521110/133906629-e6a9c087-7068-4c58-9503-1befaefa55f1.png)
+
 # Version 3.0
 
 Welcome to jimi version 3. 
+
+![image](https://user-images.githubusercontent.com/66521110/133906607-b8a11890-ac9a-419b-9074-1dbe41bea245.png)
 
 This release brings with it major changes both within the backend and frontend UI:
 
