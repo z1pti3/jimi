@@ -1,0 +1,69 @@
+:root {
+    /* Main */
+    --menuBackgroundColor: #333333;
+    --mainBackgroundColor: #222222;
+    --textColor: #c0c0c0;
+    --textColorHover: #ff6600;
+    --textDisabledColor: #615f5f;
+    --hoverColor: #161616;
+
+    /* Scrollbar */
+    --scrollbarColor: #111111;
+    --scrollbarBackgroundColor: #333333;
+    --scrollbarBorderColor: #000000;
+
+    /* Panel */
+    --panelBackgroundColor: #1f1f1f;
+    --panel2BackgroundColor: #222222;
+    --panelBorderColor: #000000;
+    --panelShadowColor1: rgba(0, 0, 0, 0.12);
+    --panelShadowColor2: rgba(0, 0, 0, 0.24);
+    --panelComponentBackground: #111111;
+    --panelComponentBackground-Focus: #ff6600;
+    --panelComponentBorder: #b1b1b1;
+    --panelComponentBorder-Focus: #ff6600;
+
+    /* Component */
+    --componentBorderColor: #ff6600;
+    --componentBorderColorSelect: #ff6600;
+    --componentBackground1: #111111;
+    --componentBackground2: #3a3a3a;
+    --componentBackgroundSelect: #030303;
+
+    /* Alerts */
+    --errorBackgroundColor: #ec0e0e;
+    --errorColor: rgb(255, 255, 255);
+    --alertBackgroundColor: #15b438;
+    --alertColor: rgb(255, 255, 255);
+
+}
+
+.mainAlert-success .toast-body, .mainAlert-success .toast-body, .mainAlert-warning .toast-body, .mainAlert-warning .toast-body { 
+    border-color: #ff6600 !important;
+    border-style: solid;
+    border-width: 1px;
+}
+
+.link {
+    color: #ff6600 !important
+}
+
+.link:hover {
+    color: #000000 !important;
+    background-color: #ff6600 !important;
+}
+
+.form-check-input:checked {
+    background-color: #ff6600;
+    border-color: #3b3b3b;
+}
+
+.form-check-input {
+    background-color: #3b3b3b;
+    border-color: #ff6600;
+}
+
+.btn:focus, .btn:active{ 
+    box-shadow: 1px 2px 3px #ff66008e !important;
+    border:1px solid #ff6600 !important;
+}

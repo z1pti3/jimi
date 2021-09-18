@@ -1,0 +1,49 @@
+:root {
+    /* Main */
+    --menuBackgroundColor: #111111;
+    --mainBackgroundColor: #222222;
+    --textColor: #00bd00;
+    --textColorHover: #00ff00;
+    --textDisabledColor: #615f5f;
+    --hoverColor: #0a0a0a;
+
+    /* Scrollbar */
+    --scrollbarColor: #111111;
+    --scrollbarBackgroundColor: #333333;
+    --scrollbarBorderColor: #f1f1f1;
+
+    /* Panel */
+    --panelBackgroundColor: #1b1b1b;
+    --panel2BackgroundColor: #222222;
+    --panelBorderColor: #000000;
+    --panelShadowColor1: rgba(0, 0, 0, 0.12);
+    --panelShadowColor2: rgba(0, 0, 0, 0.24);
+    --panelComponentBackground: #111111;
+    --panelComponentBackground-Focus: #020202;
+    --panelComponentBorder: #2e6da4;
+    --panelComponentBorder-Focus: #167bff;
+}
+
+.link {
+    color: #00bd00!important
+}
+
+.link:hover {
+    color: #000000!important;
+    background-color: #00bd00!important;
+}
+
+.form-check-input:checked {
+    background-color: #00bd00;
+    border-color: #3b3b3b;
+}
+
+.form-check-input {
+    background-color: #3b3b3b;
+    border-color: #00bd00;
+}
+
+.btn:focus, .btn:active{ 
+    box-shadow: 1px 2px 3px #00ff008e !important;
+    border:1px solid #00bd00 !important;
+}
