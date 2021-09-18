@@ -4,6 +4,8 @@
 
 My Account now includes a dropdown menu for theme selection. No more guessing what the theme names are
 
+![jimi - theme changing](https://user-images.githubusercontent.com/66521110/133906387-bf9f96b8-4221-48ab-a454-623b9f0d379c.gif)
+
 ## Improved - Storage 
 
 Added UI options for file tokens and downloading of already uploaded files
@@ -11,6 +13,8 @@ Added UI options for file tokens and downloading of already uploaded files
 ## Improved - Object Revisions
 
 Object revision UI is no longer in BETA and now is officially released. As part of this release the UI has been updated to include the revision creator as well as a view button that enables you to see the content of the revision without restoring the object
+
+![jimi - Revision History](https://user-images.githubusercontent.com/66521110/133906395-f97b733d-7514-4ffc-953d-d6c04b580a46.gif)
 
 ## Fixed - Worker Killed Exception Message
 
