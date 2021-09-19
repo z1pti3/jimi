@@ -74,8 +74,7 @@ def organisationAdminPage():
 			loginType["enabled"] = True
 			loginTypeSettings = jimi.settings.getSetting(loginType["name"],None)
 			if loginTypeSettings is not None:
-				loginType["settings"] = loginTypeSettings
-	
+				loginType["settings"] = loginTypeSettings	
 	return render_template("organisation.html",CSRF=jimi.api.g.sessionData["CSRF"],organisation=organisation,loginTypes=availableTypes,passwordPolicy=passwordPolicy)
 
 # Should be migrated into plugins.py

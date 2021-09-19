@@ -475,6 +475,10 @@ def systemUpgrade(currentVersion):
             authSettings.values["types"] = ["local"]
             authSettings.update(["values"])
 
+        #Add ldap and oauth settings
+        jimi.settings._settings().new("ldap",{"domains":[]})
+        jimi.settings._settings().new("oauth",{})
+
         #Adding org model
         jimi.model.registerModel("organisation","_organisation","_document","core.organisation")
 

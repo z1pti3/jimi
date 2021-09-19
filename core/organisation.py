@@ -49,7 +49,7 @@ if jimi.api.webServer:
                     response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Could not update the organisation" },403)
                 return response
 
-            @jimi.api.webServer.route("/admin/organisation/ldapConnection/", methods=["POST"])
+            @jimi.api.webServer.route("/admin/organisation/ldapConnection/", methods=["PUT"])
             @jimi.auth.adminEndpoint
             def updateLdapConnection():
                 try:
@@ -63,7 +63,46 @@ if jimi.api.webServer:
                         newDomainList.append(domain)
                     ldapSettings.values["domains"] = newDomainList
                     ldapSettings.update(["values"])
-                    response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "LDAP Connection updated successfully" },200)
+                    #Refreshing cache for settings
+                    jimi.cache._cache().clearCache("settingsCache")
+                    response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "LDAP connection updated successfully" },200)
+                except Exception:
+                    response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Could not update the LDAP connection" },403)
+                return response
+
+            @jimi.api.webServer.route("/admin/organisation/ldapConnection/", methods=["POST"])
+            @jimi.auth.adminEndpoint
+            def newLdapConnection():
+                try:
+                    userData = request.json                 
+                    ldapSettings = jimi.settings._settings().getAsClass(query={"name" : "ldap"})[0]
+                    for domain in ldapSettings.values["domains"]:
+                        if domain["name"] == userData["name"]:
+                            return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "An LDAP connection with that name already exists!" },403)
+                    ldapSettings.values["domains"].append({"name":userData["name"],"ip":userData["ip"],"ssl":userData["ssl"]})
+                    ldapSettings.update(["values"])
+                    #Refreshing cache for settings
+                    jimi.cache._cache().clearCache("settingsCache")
+                    response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "LDAP connection created successfully" },200)
+                except Exception:
+                    response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Could not update the LDAP connection" },403)
+                return response
+
+            @jimi.api.webServer.route("/admin/organisation/ldapConnection/", methods=["DELETE"])
+            @jimi.auth.adminEndpoint
+            def deleteLdapConnection():
+                try:
+                    userData = request.json 
+                    newDomainList = []                
+                    ldapSettings = jimi.settings._settings().getAsClass(query={"name" : "ldap"})[0]
+                    for domain in ldapSettings.values["domains"]:
+                        if domain["name"] != userData["name"]:
+                            newDomainList.append(domain)
+                    ldapSettings.values["domains"] = newDomainList
+                    ldapSettings.update(["values"])
+                    #Refreshing cache for settings
+                    jimi.cache._cache().clearCache("settingsCache")
+                    response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "LDAP connection created successfully" },200)
                 except Exception:
                     response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Could not update the LDAP connection" },403)
                 return response
