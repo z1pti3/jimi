@@ -350,4 +350,4 @@ if jimi.api.webServer:
             @jimi.auth.adminEndpoint
             def distributeCluster():
                 jimi.trigger._trigger().api_update(query={ "startCheck" : 0 },update={ "$set" : { "systemID" : None } })
-                return { "result" : True }, 200
+                return { }, 200

@@ -75,7 +75,8 @@ def conductFlowchartPoll(conductID):
         "linkFalseColor" : "#FF392E",
         "linkRCColor" : "#FBB121",
         "linkLogicColor" : "#D04D8A",
-        "linkAllColor" : "#3DBEFF"
+        "linkAllColor" : "#3DBEFF",
+        "nodeTextColor" : "#adadad"
     }
     try:
         themeFile = "web/build/static/themes/theme-{0}.css".format(jimi.api.g.sessionData["theme"])
@@ -104,7 +105,7 @@ def conductFlowchartPoll(conductID):
         },
         "borderWidth" : 1,
         "font" : { 
-            "color" : "#adadad", 
+            "color" : colors["nodeTextColor"], 
             "multi": True 
         },
         "shadow" : { 

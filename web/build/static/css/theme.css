@@ -397,3 +397,8 @@ div.dts div.dataTables_scrollBody {
     background-color: var(--panelBackgroundColor);
     color: var(--textColor);
 }
+
+
+#whatsNewBody img {
+    width: 100%;
+}

@@ -10,6 +10,7 @@ import math
 import functools
 import onetimepass
 import bson
+import os
 from pathlib import Path
 from Crypto.Cipher import AES, PKCS1_OAEP # pycryptodome
 from Crypto.PublicKey import RSA
@@ -231,8 +232,8 @@ def generateSession(dataDict):
             dataDict[application]["CSRF"] = secrets.token_urlsafe(16)
     return jwt.encode(dataDict, private_key, algorithm="RS256")
 
-def generateSystemSession():
-    data = {"jimi" : { "expiry" : time.time() + 10, "admin" : True, "system" : True, "_id" : 0, "user" : "system", "primaryGroup" : 0, "authenticated" : True, "api" : True }}
+def generateSystemSession(expiry=10):
+    data = {"jimi" : { "expiry" : time.time() + expiry, "admin" : True, "system" : True, "_id" : 0, "user" : "system", "primaryGroup" : 0, "authenticated" : True, "api" : True }}
     return jwt.encode(data, private_key, algorithm="RS256")
 
 def validateSession(sessionToken,application,useCache=True):
@@ -473,7 +474,12 @@ if jimi.api.webServer:
                     user = _user().getAsClass(id=jimi.api.g.sessionData["_id"])
                     if len(user) == 1:
                         user = user[0]
-                        return render_template("myAccount.html",CSRF=jimi.api.g.sessionData["CSRF"],name=user.name,email=user.email,theme=user.theme)
+                        themes = []
+                        themeFiles = os.listdir(Path("web/build/static/themes/"))
+                        for themeFile in themeFiles:
+                            if themeFile.endswith(".css"):
+                                themes.append(themeFile.split("theme-")[1].split(".css")[0])
+                        return render_template("myAccount.html",CSRF=jimi.api.g.sessionData["CSRF"],name=user.name,email=user.email,theme=user.theme,themes=themes)
                 return { }, 403
 
             # Checks that username and password are a match
