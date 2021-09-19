@@ -98,6 +98,7 @@
                     <div class="modal-footer justify-content-start">
                         <button type="button" class="btn btn-primary button bi-save" onclick="createUser()"> Create</button>
                         <button type="button" class="btn btn-primary button" data-bs-dismiss="modal">Close</button>
+                        <button type="reset" class="btn btn-primary button bi-eraser" onclick="clearForm()"> Clear</button>
                     </div>
                 </form>
             </div>
@@ -134,9 +135,5 @@
         $(document).ready(function() {
             doSearch();
         });
-        var userModal = document.getElementById("newUserModal");
-        userModal.addEventListener('hidden.bs.modal',function(event) {
-            document.getElementById("userCreationForm").reset();
-        })
     </script>
 {% endblock %}
