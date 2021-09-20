@@ -1,3 +1,14 @@
+# Version 3.04
+
+## Organisation Settings (Beta)
+
+Working organisation setttings page which allows for control over security policies including passwords and authentication types
+
+## LDAP Support
+
+JIMI now supports LDAP for authentication! In order to get started you'll need to define a connection in the organisation settings page (after enabling LDAP). 
+You'll then need to define a user with "ldap" as their login type.
+
 # Version 3.037
 
 ## Improved - Theme Selection
