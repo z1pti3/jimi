@@ -288,7 +288,7 @@ def conductExport(conductID):
         specifiedFlows = []
         while True:
             for flow in flows:
-                if flow["flowID"] == currentFlowID:
+                if flow["flowID"] == currentFlowID and flow["flowID"] not in specifiedFlows:
                     specifiedFlows.append(flow["flowID"])
                     for nextFlow in flow["next"]:
                         processQueue.append(nextFlow["flowID"])
