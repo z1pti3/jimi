@@ -8,35 +8,245 @@
     <script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
     <div class="container px-4 py-5">
         <div id="alertArea"></div>
-        <h2>General Details</h2>
-        <br>
+        <h2>Organisation Settings</h2>
+        <hr>
         <form>
             <div class="form-group">
-                <label for="name">Organisation Name</label>
-                <input type="text" class="form-control textbox" id="name" value="" aria-describedby="nameHelp">
-                <small id="nameHelp" class="form-text text-muted">The name of the organsation using JIMI</small>
-            </div>
-        </form>
-        <button type="button" class="btn btn-primary button bi-save" onclick="editOrganisation()"> Save</button>
-        <hr>
+                <h3>General</h3>
+                <div class="form-row">
+                    <label for="name">Organisation Name</label>
+                    {% if organisation|length > 0 %}
+                        <input type="text" class="form-control textbox" id="name" value="{{ organisation[0]['name'] }}" aria-describedby="nameHelp">
+                    {% else %}
+                        <input type="text" class="form-control textbox" id="name" value="" aria-describedby="nameHelp">
+                    {% endif %}
+                    <small id="nameHelp" class="form-text text-muted">The name of the organsation using JIMI</small>
+                </div>
+                <hr>
+                <h3>Security</h3>
+                <div class="form-row">
+                    <label>Authentication Types</label>
+                    {% for type in loginTypes %}
+                    <div class="form-switch">
+                    {% if type["enabled"] == true %}
+                        <input class="form-check-input" name="authTypes" type="checkbox" value="{{ type["name"] }}" aria-label="{{ type["name"] }}" checked>
+                        {{ type["name"] }}
+                    {% else %}
+                        <input class="form-check-input" name="authTypes" type="checkbox" value="{{ type["name"] }}" aria-label="{{ type["name"] }}">
+                        {{ type["name"] }}
+                    {% endif %}
+                    </div> 
+                {% endfor %}
+                <small id="authTypeHelp" class="form-text text-muted">The methods of authentication users can use on the system</small>
+                </div>
+                <br>
+                <label>Password Policy (applies to local login only)</label>
+                <div class="form-row">
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1">length</span>
+                        </div>
+                        <input type="number" class="form-control textbox" id="length" value="{{ passwordPolicy["minLength"] }}" aria-describedby="lengthHelp">
+                    </div>
+                </div>
+                <small>Passwords must have a minimum of each type of character specified below</small>
+                <div class="row">
+                    <div class="col-2">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="basic-addon1">lower</span>
+                            </div>
+                            <input type="number" class="form-control textbox" id="lower" value="{{ passwordPolicy["minLower"] }}" aria-describedby="lowerHelp">
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="basic-addon1">upper</span>
+                            </div>
+                            <input type="number" class="form-control textbox" id="upper" value="{{ passwordPolicy["minUpper"] }}" aria-describedby="upperHelp">
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="basic-addon1">special</span>
+                            </div>
+                            <input type="number" class="form-control textbox" id="special" value="{{ passwordPolicy["minSpecial"] }}" aria-describedby="specialHelp">
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="basic-addon1">numbers</span>
+                            </div>
+                            <input type="number" class="form-control textbox" id="numbers" value="{{ passwordPolicy["minNumbers"] }}" aria-describedby="numberHelp">
+                        </div>
+                    </div>    
+                </div>  
+                <button type="button" class="btn btn-primary button bi-save" onclick="editOrganisation()"> Save</button>           
+                </form>
+                <hr>
+                {% for type in loginTypes %}
+                {% if type["name"] == "ldap" and "settings" in type %}
+                <form>
+                    <div class="form-group">
+                        <div class="form-row">
+                            <h3>LDAP Settings</h3>
+                            <label>LDAP Connections</label>
+                            <div class="container px-4 py-5 text-center" id="custom-cards">
+                                <div class="text-start" >
+                                    <a href="#" class="bi-plus-square" style="font-size: 25px; display: inline-block; vertical-align: middle;" title="Create new connection" data-bs-toggle="modal" data-bs-target="#neLdapSettingModal"></a>
+                                </div>
+                                <div class="row row-cols-1 row-cols-lg-3 align-items-stretch g-2 py-4">
+                                    {% for ldapSetting in type["settings"]["domains"]|sort(attribute='name') %}
+                                    <div class="col userContainer" data-name="user[name]">
+                                        <div class="card h-100 panel">
+                                            <div class="card-body">
+                                                <h5 class="card-title">{{ldapSetting["name"]}}</h5>
+                                                <hr>
+                                                <i class="bi-hdd-network" style="font-size: 1.25rem;"></i> {{ldapSetting["ip"]}}<br>
+                                                <i class="bi-shield-lock" style="font-size: 1.25rem;"></i> {{ldapSetting["ssl"]}}
+                                            </div>
+                                            <div class="card-footer">
+                                                <a href="#" class="btn btn-primary btn-block button bi-pencil" title="Edit" data-bs-toggle="modal" data-bs-target="#editLdapModal{{ ldapSetting["name"] }}"></a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="modal fade" id="editLdapModal{{ ldapSetting["name"] }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered" role="document">
+                                            <div class="modal-content panel">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="exampleModalLongTitle">Editing LDAP Connection: {{ ldapSetting["name"] }}</h5>
+                                                    <button type="button" class="close button" data-bs-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="form-floating">
+                                                        <input type="text" class="form-control textbox" id="ldapName{{ ldapSetting["name"] }}" placeholder="Name" value="{{ ldapSetting["name"] }}">
+                                                        <label for="ldapName{{ ldapSetting["name"] }}">Name</label>
+                                                    </div>
+                                                    <br>
+                                                    <div class="form-floating">
+                                                        <input type="text" class="form-control textbox" id="ldapIP{{ ldapSetting["name"] }}" placeholder="Name" value="{{ ldapSetting["ip"] }}">
+                                                        <label for="ldapIP{{ ldapSetting["name"] }}">IP</label>
+                                                    </div>
+                                                    <br>
+                                                    <div class="form-floating">
+                                                        <div class="form-switch" style="text-align: left;">
+                                                            <input id = "ldapSSL{{ ldapSetting["name"] }}" class="form-check-input" type="checkbox" value="{{ type["name"] }}" {% if ldapSetting["ssl"] == true %} checked {% endif %}>
+                                                            <label for="ldapSSL{{ ldapSetting["name"] }}">Use SSL</label>
+                                                        </div>
+                                                    </div>
+                                                    <br>
+                                                </div>
+                                                <div class="modal-footer justify-content-start">
+                                                    <button type="button" class="btn btn-primary button bi-save" onclick="editLdapSetting('{{ ldapSetting["name"] }}')"> Save</button>
+                                                    <button type="button" class="btn btn-primary button bi-trash" onclick="deleteLdapSetting('{{ ldapSetting["name"] }}')"> Delete</button>
+                                                    <button type="button" class="btn btn-primary button" data-bs-dismiss="modal">Close</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div> 
+                    </div>
+                    <!-- <button type="button" class="btn btn-primary button bi-save" onclick="editLdap()"> Save</button>  -->
+                </form>
+                <hr>
+                {% endif %}
+                {% endfor %}
+                <!-- Popup LDAP Connection Creator Panel -->
+                <div class="modal fade" id="neLdapSettingModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content panel">
+                            <form class="needs-validation" id="userCreationForm" novalidate>
+                                <div class="modal-content panel">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLongTitle">Create new LDAP Connection</h5>
+                                        <button type="button" class="close button" data-bs-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control textbox" id="newLdapName" placeholder="Name" value="">
+                                            <label for="newLdapName">Name</label>
+                                        </div>
+                                        <br>
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control textbox" id="newLdapIP" placeholder="Name" value="">
+                                            <label for="newLdapIP">IP</label>
+                                        </div>
+                                        <br>
+                                        <div class="form-floating">
+                                            <div class="form-switch" style="text-align: left;">
+                                                <input id = "newLdapSSL" class="form-check-input" type="checkbox" value="">
+                                                <label for="newLdapSSL">Use SSL</label>
+                                            </div>
+                                        </div>
+                                        <br>
+                                    </div>
+                                </div>
+                                <div class="modal-footer justify-content-start">
+                                    <button type="button" class="btn btn-primary button bi-save" onclick="createLdapSetting()"> Create</button>
+                                    <button type="button" class="btn btn-primary button" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
         <h2>Users and Groups</h2>
-        <br>
         <a type="button" class="btn btn-primary button bi-person" href="/admin/users"> Edit Users</a>
         <a type="button" class="btn btn-primary button bi-people" href="/admin/groups"> Edit Groups</a>
     </div>
     <script>
         function editOrganisation() {
-                var body = JSON.stringify({ CSRF : CSRF, name: $("#name").val()})
+                var authTypes = [];
+                for (var pair of new FormData(document.querySelector("form")).entries())
+                {
+                    authTypes.push(pair[1])
+                }
+                var body = JSON.stringify({ CSRF : CSRF, name: $("#name").val(), authTypes: authTypes, length: $("#length").val(), lower: $("#lower").val(), upper: $("#upper").val(), special: $("#special").val(), numbers: $("#numbers").val(), })
                 $.ajax({ type : "POST",  data:body, contentType:"application/json", 
                     success: function ( result ) 
                     {
-                        window.location.reload();
+                        dropdownAlert($("#alertArea"),"success","Organisation updated successfully",2500);
                     },
                     error: function ( result )
                     {
                         dropdownAlert($("#alertArea"),"error",result.responseJSON.message,2500);
                     }
                 });
+        }
+
+        function editLdapSetting(settingName) {
+            var body = JSON.stringify({ CSRF : CSRF, name: $("#ldapName"+settingName).val(), ip: $("#ldapIP"+settingName).val(), ssl: document.getElementById("ldapSSL"+settingName).checked, originalName: settingName });
+            $.ajax({ url: "ldapConnection/", type : "PUT", data:body, contentType:"application/json", success: function ( result ) {
+                    window.location.reload();
+                }
+            });
+        }
+        function createLdapSetting() {
+            var body = JSON.stringify({ CSRF : CSRF, name: $("#newLdapName").val(), ip: $("#newLdapIP").val(), ssl: document.getElementById("newLdapSSL").checked });
+            $.ajax({ url: "ldapConnection/", type : "POST", data:body, contentType:"application/json", success: function ( result ) {
+                    window.location.reload();
+                }
+            });
+        }
+        function deleteLdapSetting(settingName) {
+            if (confirm("Are you sure you want to delete this connection ("+settingName+")?")) {
+                var body = JSON.stringify({ CSRF : CSRF, name: settingName });
+                $.ajax({ url: "ldapConnection/", type : "DELETE", data:body, contentType:"application/json", success: function ( result ) {
+                        window.location.reload();
+                    }
+                });
+            }
         }
     </script>
 {% endblock %}

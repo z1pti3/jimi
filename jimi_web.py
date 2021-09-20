@@ -49,7 +49,8 @@ def __PUBLIC__getTheme():
 
 @jimi.api.webServer.route("/login/")
 def loginPage():
-	return render_template("login.html")
+	loginTypes = jimi.settings.getSettingValue(None,jimi.api.g.sessionData,"auth","types")
+	return render_template("login.html",loginTypes=loginTypes)
 
 @jimi.api.webServer.route("/debugFlow/")
 def debugFlowPage():
@@ -60,11 +61,6 @@ def debugFlowPage():
 def clusterAdminPage():
 	clusterMembers = jimi.cluster._clusterMember().query()["results"]
 	return render_template("cluster.html",CSRF=jimi.api.g.sessionData["CSRF"],clusterMembers=clusterMembers)
-
-@jimi.api.webServer.route("/admin/organisation/", methods=["GET"])
-@jimi.auth.adminEndpoint
-def organisationAdminPage():
-	return render_template("organisation.html",CSRF=jimi.api.g.sessionData["CSRF"])
 
 # Should be migrated into plugins.py
 @jimi.api.webServer.route(jimi.api.base+"plugins/")
