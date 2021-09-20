@@ -99,17 +99,6 @@
                                 <input type="otp" class="form-control textbox" id="otp" autoComplete="off" placeholder="One Time Password">
                                 <label for="otp" style="margin-top: 15px;" class="bi-calculator"> One Time Password</label>
                             </div>
-                            {% if loginTypes|length > 1 %}
-                            <div class="form-floating">
-                                <select class="form-control textbox" id="loginType">
-                                    <option selected="selected" value={{ loginTypes[0] }}>{{ loginTypes[0] }}</option>
-                                    {% for loginType in loginTypes[1:] %}
-                                    <option value={{ loginType }}>{{ loginType }}</option>
-                                    {% endfor %}
-                                </select>
-                                <label for="loginType" class="bi-door-open"> Login Type</label>
-                            </div>
-                            {% endif %}
                             <button class="w-100 btn btn-primary btn-block button bi-lock" type="submit"> Sign in</button>
 
                         </form>
@@ -122,9 +111,9 @@
         $("#login").submit(function(e) {
             e.preventDefault();
             if ($("#otp").parent().hasClass("hidden")) {
-                var body = JSON.stringify({ username: $("#username").val(), password: $("#password").val(), type: $("#loginType").val() })
+                var body = JSON.stringify({ username: $("#username").val(), password: $("#password").val()})
             } else {
-                var body = JSON.stringify({ username: $("#username").val(), password: $("#password").val(), otp: $("#otp").val(), type: $("#loginType").val() })
+                var body = JSON.stringify({ username: $("#username").val(), password: $("#password").val(), otp: $("#otp").val() })
             }
             var redirect = GetURLParameter("return");
             if (redirect == null) {

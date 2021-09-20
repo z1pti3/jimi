@@ -490,10 +490,6 @@ if jimi.api.webServer:
                     #check if OTP has been passed
                     #if invalid user or user requires OTP, return 200 but request OTP
                     userSession = None
-                    #Check if there's only one login type available
-                    loginTypes = jimi.settings.getSettingValue(None,jimi.api.g.sessionData,"auth","types")
-                    if len(loginTypes) == 1:
-                        data["type"] = loginTypes[0]
                     if "otp" not in data:
                         user = _user().getAsClass(query={ "username" : data["username"] })
                         if len(user) == 1:
@@ -501,10 +497,10 @@ if jimi.api.webServer:
                             if user.totpSecret != "":
                                 return {}, 403
                             else:
-                                if data["type"] == "local":
+                                if user.loginType == "local":
                                     userSession = validateUser(data["username"],data["password"])
                                 else:
-                                    userSession = validateExternalUser(data["username"],data["password"],data["type"],application="jimi",userData=user)
+                                    userSession = validateExternalUser(data["username"],data["password"],user.loginType,application="jimi",userData=user)
                         else:
                             return {}, 403
                     #Only local auth would support OTP

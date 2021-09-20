@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.036
+systemVersion = 3.04
 
 # Initialize 
 dbCollectionName = "system"
@@ -381,6 +381,19 @@ def systemInstall():
     # Adding model for revisions
     jimi.model.registerModel("revision","_revision","_document","core.revision")
 
+    #Adding loginTypes
+    jimi.settings._settings().new("ldap",{"domains":[]})
+    jimi.settings._settings().new("oauth",{})
+
+    #Adding org model
+    jimi.model.registerModel("organisation","_organisation","_document","core.organisation")
+
+    #Adding additional auth settings
+    authSettings = jimi.settings._settings().getAsClass(query={"name" : "auth"})[0]
+    if "types" not in authSettings.values:
+        authSettings.values["types"] = ["local"]
+        authSettings.update(["values"])
+
     # Install system manifest
     loadSystemManifest()
 
@@ -474,6 +487,12 @@ def systemUpgrade(currentVersion):
         if "types" not in authSettings.values:
             authSettings.values["types"] = ["local"]
             authSettings.update(["values"])
+        
+        #Setting all users to local initially
+        users = jimi.auth._user().getAsClass(query={  })
+        for user in users:
+            user.loginType = "local"
+            user.update(["loginType"])
 
         #Add ldap and oauth settings
         jimi.settings._settings().new("ldap",{"domains":[]})
