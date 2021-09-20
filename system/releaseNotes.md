@@ -4,10 +4,15 @@
 
 Working organisation setttings page which allows for control over security policies including passwords and authentication types
 
+![jimi - org settings page](https://user-images.githubusercontent.com/14958920/134075889-d8447793-16e9-410d-8773-ab05127fe8bf.png)
+
 ## LDAP Support
 
 JIMI now supports LDAP for authentication! In order to get started you'll need to define a connection in the organisation settings page (after enabling LDAP). 
 You'll then need to define a user with "ldap" as their login type.
+
+![ldap connection settings](https://user-images.githubusercontent.com/14958920/134075990-8b3dd9c8-01a9-47e6-a16e-2f5cb024c329.png)
+
 
 # Version 3.037
 
