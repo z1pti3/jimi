@@ -99,8 +99,8 @@
                                 <input type="otp" class="form-control textbox" id="otp" autoComplete="off" placeholder="One Time Password">
                                 <label for="otp" style="margin-top: 15px;" class="bi-calculator"> One Time Password</label>
                             </div>
-                        
                             <button class="w-100 btn btn-primary btn-block button bi-lock" type="submit"> Sign in</button>
+
                         </form>
                     </main>
                 </div>
@@ -111,7 +111,7 @@
         $("#login").submit(function(e) {
             e.preventDefault();
             if ($("#otp").parent().hasClass("hidden")) {
-                var body = JSON.stringify({ username: $("#username").val(), password: $("#password").val() })
+                var body = JSON.stringify({ username: $("#username").val(), password: $("#password").val()})
             } else {
                 var body = JSON.stringify({ username: $("#username").val(), password: $("#password").val(), otp: $("#otp").val() })
             }

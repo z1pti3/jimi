@@ -233,6 +233,20 @@ div.dts div.dataTables_scrollBody {
     user-select: none;
 }
 
+.listcontainer {
+    background-color: var(--componentBackground1); 
+    color: var(--textColor);
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--componentBorderColor);
+}
+
+.listitem {
+    background-color: var(--componentBackground1); 
+    color: var(--textColor);
+    border-style: none;
+}
+
 .textbox {
     background-color: var(--componentBackground1); 
     color: var(--textColor);
@@ -382,4 +396,9 @@ div.dts div.dataTables_scrollBody {
 .mainAlert-success .toast-body, .mainAlert-success .toast-body p, .mainAlert-warning .toast-body, .mainAlert-warning .toast-body p {
     background-color: var(--panelBackgroundColor);
     color: var(--textColor);
+}
+
+
+#whatsNewBody img {
+    width: 100%;
 }

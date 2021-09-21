@@ -10,6 +10,7 @@ import math
 import functools
 import onetimepass
 import bson
+import os
 from pathlib import Path
 from Crypto.Cipher import AES, PKCS1_OAEP # pycryptodome
 from Crypto.PublicKey import RSA
@@ -231,8 +232,8 @@ def generateSession(dataDict):
             dataDict[application]["CSRF"] = secrets.token_urlsafe(16)
     return jwt.encode(dataDict, private_key, algorithm="RS256")
 
-def generateSystemSession():
-    data = {"jimi" : { "expiry" : time.time() + 10, "admin" : True, "system" : True, "_id" : 0, "user" : "system", "primaryGroup" : 0, "authenticated" : True, "api" : True }}
+def generateSystemSession(expiry=10):
+    data = {"jimi" : { "expiry" : time.time() + expiry, "admin" : True, "system" : True, "_id" : 0, "user" : "system", "primaryGroup" : 0, "authenticated" : True, "api" : True }}
     return jwt.encode(data, private_key, algorithm="RS256")
 
 def validateSession(sessionToken,application,useCache=True):
@@ -260,17 +261,26 @@ def validateSession(sessionToken,application,useCache=True):
 
 def validateExternalUser(username,password,method,**kwargs):
     if method == "ldap":
-        domains = jimi.settings.getSetting("ldap",None)["domains"]
-        if "domain" in kwargs:
-            domain = [x for x in domains if x["name"] == kwargs["domain"]][0]
+        ldapSettings = jimi.settings.getSetting("ldap",None)
+        if ldapSettings:
+            domains = ldapSettings["domains"]
+            if "domain" in kwargs:
+                domain = [x for x in domains if x["name"] == kwargs["domain"]][0]
+            else:
+                domain = domains[0]
             server = Server(domain["ip"], use_ssl=domain["ssl"], get_info=ALL)
-            conn = Connection(server, "{}\{}".format(kwargs["domain"],username), password, authentication=NTLM)
+            conn = Connection(server, "{}\{}".format(domain["name"],username), password, authentication=NTLM)
             if conn.bind():
                 # Generate new session
                 if authSettings["singleUserSessions"]:
                     _session().api_delete(query={ "user" : username, "application" : kwargs["application"] })
                 sessionID = secrets.token_hex(32)
                 if _session().new(username,sessionID,kwargs["application"]).inserted_id:
+                    #If there's a matching user in jimi's DB
+                    if "userData" in kwargs:
+                        user = kwargs["userData"]
+                        jimi.audit._audit().add("auth","login",{ "action" : "success", "src_ip" : jimi.api.request.remote_addr, "username" : user.username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" :user.primaryGroup, "admin" : isAdmin(user), "sessionID" : sessionID, "api" : False, "application" : kwargs["application"]  })
+                        return generateSession({kwargs["application"] : { "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True, "sessionID" : sessionID, "api" : False, "theme" : user.theme }})
                     jimi.audit._audit().add("auth","login",{ "action" : "success", "src_ip" : jimi.api.request.remote_addr, "username" : username, "sessionID" : sessionID, "api" : False, "application" : kwargs["application"] })
                     return generateSession({kwargs["application"] : { "_id" : kwargs["application"], "user" : username, "authenticated" : True, "sessionID" : sessionID, "api" : False}})
                 else:
@@ -464,7 +474,12 @@ if jimi.api.webServer:
                     user = _user().getAsClass(id=jimi.api.g.sessionData["_id"])
                     if len(user) == 1:
                         user = user[0]
-                        return render_template("myAccount.html",CSRF=jimi.api.g.sessionData["CSRF"],name=user.name,email=user.email,theme=user.theme)
+                        themes = []
+                        themeFiles = os.listdir(Path("web/build/static/themes/"))
+                        for themeFile in themeFiles:
+                            if themeFile.endswith(".css"):
+                                themes.append(themeFile.split("theme-")[1].split(".css")[0])
+                        return render_template("myAccount.html",CSRF=jimi.api.g.sessionData["CSRF"],name=user.name,email=user.email,theme=user.theme,themes=themes)
                 return { }, 403
 
             # Checks that username and password are a match
@@ -474,6 +489,7 @@ if jimi.api.webServer:
                     data = json.loads(jimi.api.request.data)
                     #check if OTP has been passed
                     #if invalid user or user requires OTP, return 200 but request OTP
+                    userSession = None
                     if "otp" not in data:
                         user = _user().getAsClass(query={ "username" : data["username"] })
                         if len(user) == 1:
@@ -481,10 +497,14 @@ if jimi.api.webServer:
                             if user.totpSecret != "":
                                 return {}, 403
                             else:
-                                userSession = validateUser(data["username"],data["password"])
+                                if user.loginType == "local":
+                                    userSession = validateUser(data["username"],data["password"])
+                                else:
+                                    userSession = validateExternalUser(data["username"],data["password"],user.loginType,application="jimi",userData=user)
                         else:
                             return {}, 403
-                    else:
+                    #Only local auth would support OTP
+                    elif data["type"] == "local":
                         userSession = validateUser(data["username"],data["password"],data["otp"])
                     if userSession:
                         sessionData = validateSession(userSession,"jimi")["sessionData"]

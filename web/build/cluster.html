@@ -121,7 +121,13 @@
             var pullFromSystemID = window.prompt("Updated system "+systemID+" from which system i.e. 0?");
             if (pullFromSystemID) {
                 $.ajax({ url: "/api/1.0/system/update/"+systemID+"/"+pullFromSystemID+"/", type : "GET", contentType:"application/json", success: function ( result ) {
-                        alert(JSON.stringify(result));
+                        dropdownAlert(null,"Success","System "+systemID+" updated from "+pullFromSystemID+" triggered",1000);
+                    },
+                    error: function ( result ) {
+                        try {
+                            result = JSON.parse(result.responseText)
+                        } catch { result = { "error" : "Unknown error" } }
+                        dropdownAlert(null,"Error",result["error"],1000);
                     }
                 });
             }
@@ -129,32 +135,62 @@
         function recalculate(systemID) {
             if (window.confirm('Are you sure you want to recalculate the checksum on system '+systemID+'?')) {
                 $.ajax({ url: "/api/1.0/system/checksum/"+systemID+"/", type : "GET", contentType:"application/json", success: function ( result ) {
-                        alert(JSON.stringify(result));
+                        dropdownAlert(null,"Success","Checksum recalculation triggered",1000);
+                    },
+                    error: function ( result ) {
+                        try {
+                            result = JSON.parse(result.responseText)
+                        } catch { result = { "error" : "Unknown error" } }
+                        dropdownAlert(null,"Error",result["error"],1000);
                     }
                 });
             }
         }
         function clearCache() {
             $.ajax({ url: "/api/1.0/clearCache/", type : "GET", contentType:"application/json", success: function ( result ) {
-                    alert(JSON.stringify(result));
+                    dropdownAlert(null,"Success","Cache cleared",1000);
+                },
+                error: function ( result ) {
+                    try {
+                        result = JSON.parse(result.responseText)
+                    } catch { result = { "error" : "Unknown error" } }
+                    dropdownAlert(null,"Error",result["error"],1000);
                 }
             });
         }
         function clearStartChecks() {
             $.ajax({ url: "/api/1.0/clearStartChecks/", type : "GET", contentType:"application/json", success: function ( result ) {
-                    alert(JSON.stringify(result));
+                    dropdownAlert(null,"Success","StartChecks cleared",1000);
+                },
+                error: function ( result ) {
+                    try {
+                        result = JSON.parse(result.responseText)
+                    } catch { result = { "error" : "Unknown error" } }
+                    dropdownAlert(null,"Error",result["error"],1000);
                 }
             });
         }
         function deleteDebugSessions() {
             $.ajax({ url: "/api/1.0/debug/clear/", type : "GET", contentType:"application/json", success: function ( result ) {
-                    alert(JSON.stringify(result));
+                    dropdownAlert(null,"Success","Debug sessions cleared",1000);
+                },
+                error: function ( result ) {
+                    try {
+                        result = JSON.parse(result.responseText)
+                    } catch { result = { "error" : "Unknown error" } }
+                    dropdownAlert(null,"Error",result["error"],1000);
                 }
             });
         }
         function redistributeCluster() {
             $.ajax({ url: "/api/1.0/cluster/distribute/", type : "GET", contentType:"application/json", success: function ( result ) {
-                    alert(JSON.stringify(result));
+                    dropdownAlert(null,"Success","Cluster redistribution triggered",1000);
+                },
+                error: function ( result ) {
+                    try {
+                        result = JSON.parse(result.responseText)
+                    } catch { result = { "error" : "Unknown error" } }
+                    dropdownAlert(null,"Error",result["error"],1000);
                 }
             });
         }
@@ -162,7 +198,13 @@
             var moduleName = window.prompt("Enter the module to reload.");
             if (moduleName) {
                 $.ajax({ url: "/api/1.0/system/reload/module/"+moduleName+"/", type : "GET", contentType:"application/json", success: function ( result ) {
-                        alert(JSON.stringify(result));
+                        dropdownAlert(null,"Success","Reload of "+moduleName+" completed",1000);
+                    },
+                    error: function ( result ) {
+                        try {
+                            result = JSON.parse(result.responseText)
+                        } catch { result = { "error" : "Unknown error" } }
+                        dropdownAlert(null,"Error",result["error"],1000);
                     }
                 });
             }

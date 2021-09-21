@@ -5,7 +5,7 @@
     --textColor: #000000;
     --textColorHover: #000000;
     --textDisabledColor: #615f5f;
-    --hoverColor: #f1f6ff;
+    --hoverColor: #0b5ed7;
 
     /* Scrollbar */
     --scrollbarColor: #ececec;
@@ -37,7 +37,7 @@
     --alertColor: #000000;
 
     /* Conducts */
-    --nodeEnableColor: #0a0a0a;
+    --nodeEnableColor: #0b6dff;
     --nodeDisabledColor: gray;
     --nodeErrorColor: red;
     --nodeRunningColor: green;
@@ -49,4 +49,34 @@
     --linkRCColor: #FBB121;
     --linkLogicColor: #D04D8A;
     --linkAllColor: #3DBEFF;
+    --nodeTextColor: #fff;
+}
+
+.link:hover {
+    color: #ffffff!important;
+}
+
+.button {
+    color: #fff;
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.button:hover, .button:focus, .button:active {
+    color: #212529;
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.textbox {
+    border: 1px solid #ced4da;
+}
+
+.panelHover:hover {
+    color: #fff;
+}
+
+.btn:focus, .btn:active{ 
+    box-shadow: 1px 2px 3px #0000008e !important;
+    border:1px solid #000000 !important;
 }

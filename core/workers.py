@@ -73,7 +73,8 @@ class workerHandler:
                 p.start()
                 try:
                     rc, e = Q.get(timeout=self.maxDuration)
-                    p.join(timeout=self.maxDuration)
+                    p.join(timeout=0)
+                    p.terminate()
                 except:
                     raise SystemExit
 
@@ -154,6 +155,7 @@ class workerHandler:
             self.start()
     
     def start(self):
+        self.stopped = False
         workerThread = self._worker("workerThread",self.handler,None,True,0,False,True,None)
         workerThread.start()
         self.workerList.append(workerThread)

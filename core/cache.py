@@ -48,15 +48,22 @@ class _cache:
 
     def cleanCache(self):
         now = time.time()
-        for cacheItem in self.objects.items():
-            popList = []
-            for cacheObjectItem in cacheItem[1]["objects"].items():
-                if cacheObjectItem[1]["cacheExpiry"] < now:
-                    popList.append(cacheObjectItem[0])
-            for popItem in popList:
-                    del cacheItem[1]["objects"][popItem]
+        index = 0
+        keys = list(self.objects.keys())
+        while index < len(self.objects):
+            try:
+                cacheItem = self.objects[keys[index]]
+                popList = []
+                for cacheObjectItem in cacheItem["objects"].items():
+                    if cacheObjectItem[1]["cacheExpiry"] < now:
+                        popList.append(cacheObjectItem[0])
+                for popItem in popList:
+                        del cacheItem["objects"][popItem]
+            except IndexError:
+                pass
+            index += 1
         
-    # BUG this function does not check for size so it would be possibel to go over the defined max memory size -- Add this at a later date
+    # BUG this function does not check for size so it would be possible to go over the defined max memory size -- Add this at a later date
     def sync(self,objects):
         for cacheKey, cacheValue in objects.items():
                 if cacheKey not in self.objects:

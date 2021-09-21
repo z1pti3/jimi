@@ -23,6 +23,14 @@ class _systemFiles(jimi.db._document):
 		self.fileHash = fileHash
 		return super(_systemFiles, self).new()
 
+	def bulkNew(self,name,systemID,filename,fileHash,bulkClass):
+		self.acl = { "ids":[ { "accessID":"0","delete": True,"read": True,"write": True } ] }
+		self.name = name
+		self.systemID = systemID
+		self.filename = filename
+		self.fileHash = fileHash
+		return super(_systemFiles, self).bulkNew(bulkClass)
+
 systemSettings = jimi.config["system"]
 
 def fileIntegrityRegister():
@@ -37,6 +45,7 @@ def fileIntegrityRegister():
 		if not storageFile.getLocalFilePath():
 			jimi.logging.debug("Error: System integrity register could not find or get storage file. storageID={0}".format(storageFile._id),-1)
 
+	bulkClass = jimi.db._bulk()
 	checksumHash = []
 	registerRoots = ["system","core","web","screens","tools","plugins","data/storage"]
 	for registerRoot in registerRoots:
@@ -49,16 +58,20 @@ def fileIntegrityRegister():
 					try:
 						if knownFilesHash[filename].fileHash != fileHash:
 							knownFilesHash[filename].fileHash = fileHash
-							knownFilesHash[filename].update(["fileHash"])
+							knownFilesHash[filename].bulkUpdate(["fileHash"],bulkClass)
 						del knownFilesHash[filename]
 					except KeyError:
-						_systemFiles().new(_file,systemSettings["systemID"],filename,fileHash)
+						_systemFiles().bulkNew(_file,systemSettings["systemID"],filename,fileHash,bulkClass)
 
 	# Remove old files
 	for knownFile in knownFilesHash:
 		knownFilesHash[knownFile].delete()
 	checksumHash.sort()
 	checksum = jimi.helpers.getStringHash(",".join(checksumHash))
+	system = jimi.cluster.getSystem()
+	system.checksum = checksum
+	system.update(["checksum"])
+
 	jimi.logging.debug("Info: System integrity hash. hash={0}".format(checksum),-1)
 	return checksum
 
@@ -88,7 +101,7 @@ def getSystemFile(url,fileID,filename,fileHash):
 				jimi.logging.debug("Error: File obtained from master failed integrity checks. fileID={0}, filename={1}".format(fileID,filename),-1)
 			os.remove(tempFilename)
 	except:
-		pass
+		jimi.logging.debug("Error: File could not be obtained from master. fileID={0}, filename={1}".format(fileID,filename),-1)
 	return False
 
 def fixChecksum(pullFromSystemID):
@@ -104,11 +117,15 @@ def fixChecksum(pullFromSystemID):
 		try:
 			if ourSystemFilesHash[str(Path(masterSystemFile.filename))].fileHash != masterSystemFile.fileHash:
 				jimi.logging.debug("Info: File integrity mismatch with master - Updating. filename={0}".format(str(Path(masterSystemFile.filename))),-1)
-				getSystemFile(masterURL,masterSystemFile._id,str(Path(masterSystemFile.filename)),masterSystemFile.fileHash)
+				if not getSystemFile(masterURL,masterSystemFile._id,str(Path(masterSystemFile.filename)),masterSystemFile.fileHash):
+					jimi.logging.debug("Error: File could not be obtained from master. filename={0}".format(masterSystemFile.filename),-1)
+					return None
 			del ourSystemFilesHash[str(Path(masterSystemFile.filename))]
 		except KeyError:
 			jimi.logging.debug("Info: File not present but is on master - Downloading. filename={0}".format(str(Path(masterSystemFile.filename))),-1)
-			getSystemFile(masterURL,masterSystemFile._id,str(Path(masterSystemFile.filename)),masterSystemFile.fileHash)
+			if not getSystemFile(masterURL,masterSystemFile._id,str(Path(masterSystemFile.filename)),masterSystemFile.fileHash):
+				jimi.logging.debug("Error: File could not be obtained from master. filename={0}".format(masterSystemFile.filename),-1)
+				return None
 	for ourSystemFile in ourSystemFilesHash:
 		jimi.logging.debug("Info: File does not exist on master - Deleting. filename={0}".format(str(Path(ourSystemFile))),-1)
 		if jimi.helpers.safeFilepath(ourSystemFile):
@@ -136,8 +153,10 @@ if jimi.api.webServer:
 			@jimi.api.webServer.route(jimi.api.base+"system/update/<pullFromSystemID>/", methods=["GET"])
 			@jimi.auth.adminEndpoint
 			def updateSystem(pullFromSystemID):
-				fixChecksum(int(pullFromSystemID))
-				return {}, 200
+				if fixChecksum(int(pullFromSystemID)):
+					return {}, 200
+				else:
+					return { "error" : "An error occurred while pulling files form master." }, 503
 
 			@jimi.api.webServer.route(jimi.api.base+"system/checksum/", methods=["GET"])
 			@jimi.auth.adminEndpoint
@@ -169,7 +188,7 @@ if jimi.api.webServer:
 			@jimi.auth.systemEndpoint
 			def reloadModule(moduleName):
 				jimi.helpers.reloadModulesWithinPath(moduleName)
-				return {}, 200
+				return { }, 200
 		
 		if jimi.api.webServer.name == "jimi_web":
 			@jimi.api.webServer.route(jimi.api.base+"system/update/<systemID>/<pullFromSystemID>/", methods=["GET"])
@@ -179,8 +198,10 @@ if jimi.api.webServer:
 				if not url:
 					return {}, 404
 				apiEndpoint = "system/update/{0}/".format(pullFromSystemID)
-				response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url,timeout=60)
-				return { "url" : url, "response" : response.status_code }, 200
+				response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url,timeout=300)
+				if not response or response.status_code != 200:
+					return { "error" : "Error response from {0}".format(url) }, 503
+				return { }, 200
 
 			@jimi.api.webServer.route(jimi.api.base+"system/checksum/<systemID>/", methods=["GET"])
 			@jimi.auth.adminEndpoint
@@ -189,8 +210,10 @@ if jimi.api.webServer:
 				if not url:
 					return {}, 404
 				apiEndpoint = "system/checksum/"
-				response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url,timeout=60)
-				return { "url" : url, "response" : response.status_code }, 200
+				response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url,timeout=300)
+				if not response or response.status_code != 200:
+					return { "error" : "Error response from {0}".format(url) }, 503
+				return { }, 200
 
 			@jimi.api.webServer.route(jimi.api.base+"system/checksum/<sourceSystemID>/<targetSystemID>/", methods=["GET"])
 			@jimi.auth.adminEndpoint
@@ -219,13 +242,12 @@ if jimi.api.webServer:
 			@jimi.auth.adminEndpoint
 			def reloadModule(moduleName):
 				jimi.helpers.reloadModulesWithinPath(moduleName)
-				results = [{ "web" : jimi.cluster.getSystemId(), "status_code" : 200 }]
 				apiEndpoint = "system/reload/module/{0}/".format(moduleName)
 				servers = jimi.cluster.getAll()
 				for url in servers:
-					response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
-					if response.status_code == 200:
-						results.append({ "server" : url, "results" : json.loads(response.text) })
-				return { "results" : results }, 200
+					response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url,timeout=60)
+					if not response or response.status_code != 200:
+						return { "error" : "Error response from {0}".format(url) }, 503
+				return { }, 200
 
 
