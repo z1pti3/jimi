@@ -304,7 +304,7 @@ def dictToJson(json):
             if type(item) is dict:
                 rebuiltList.append(dictToJson(item))
             elif type(item) is list:
-                rebuiltList += rebuildList(item)
+                rebuiltList.append(rebuildList(item))
             elif type(item) in standardTypes:
                 rebuiltList.append(item)
             else:
