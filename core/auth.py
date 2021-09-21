@@ -494,17 +494,18 @@ if jimi.api.webServer:
                         user = _user().getAsClass(query={ "username" : data["username"] })
                         if len(user) == 1:
                             user = user[0]
-                            if user.totpSecret != "":
-                                return {}, 403
-                            else:
-                                if user.loginType == "local":
-                                    userSession = validateUser(data["username"],data["password"])
+                            if user.loginType in jimi.settings.getSettingValue(None,jimi.api.g.sessionData,"auth","types"):
+                                if user.totpSecret != "":
+                                    return {}, 403
                                 else:
-                                    userSession = validateExternalUser(data["username"],data["password"],user.loginType,application="jimi",userData=user)
+                                    if user.loginType == "local":
+                                        userSession = validateUser(data["username"],data["password"])
+                                    else:
+                                        userSession = validateExternalUser(data["username"],data["password"],user.loginType,application="jimi",userData=user)
                         else:
                             return {}, 403
-                    #Only local auth would support OTP
-                    elif data["type"] == "local":
+                    #Only local auth supports OTP atm
+                    else:
                         userSession = validateUser(data["username"],data["password"],data["otp"])
                     if userSession:
                         sessionData = validateSession(userSession,"jimi")["sessionData"]
