@@ -494,7 +494,7 @@ if jimi.api.webServer:
                         user = _user().getAsClass(query={ "username" : data["username"] })
                         if len(user) == 1:
                             user = user[0]
-                            if user.loginType in jimi.settings.getSettingValue(None,jimi.api.g.sessionData,"auth","types"):
+                            if user.username == "root" or user.loginType in jimi.settings.getSettingValue(None,jimi.api.g.sessionData,"auth","types"):
                                 if user.totpSecret != "":
                                     return {}, 403
                                 else:
@@ -506,7 +506,12 @@ if jimi.api.webServer:
                             return {}, 403
                     #Only local auth supports OTP atm
                     else:
-                        userSession = validateUser(data["username"],data["password"],data["otp"])
+                        #Recheck to avoid bypassing if user provides otp
+                        user = _user().getAsClass(query={ "username" : data["username"] })
+                        if len(user) == 1:
+                            user = user[0]
+                            if user.username == "root" or user.loginType in jimi.settings.getSettingValue(None,jimi.api.g.sessionData,"auth","types"):
+                                userSession = validateUser(data["username"],data["password"],data["otp"])
                     if userSession:
                         sessionData = validateSession(userSession,"jimi")["sessionData"]
                         user = _user().getAsClass(id=sessionData["_id"])[0]
