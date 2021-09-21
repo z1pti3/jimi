@@ -381,9 +381,11 @@ def systemInstall():
     # Adding model for revisions
     jimi.model.registerModel("revision","_revision","_document","core.revision")
 
-    #Adding loginTypes
-    jimi.settings._settings().new("ldap",{"domains":[]})
-    jimi.settings._settings().new("oauth",{})
+    #Adding ldap and oauth settings
+    if len(jimi.settings._settings().getAsClass(query={"name" : "ldap"})) == 0:
+        jimi.settings._settings().new("ldap",{"domains":[]})
+    if len(jimi.settings._settings().getAsClass(query={"name" : "oauth"})) == 0:
+        jimi.settings._settings().new("oauth",{})
 
     #Adding org model
     jimi.model.registerModel("organisation","_organisation","_document","core.organisation")
@@ -495,8 +497,10 @@ def systemUpgrade(currentVersion):
             user.update(["loginType"])
 
         #Add ldap and oauth settings
-        jimi.settings._settings().new("ldap",{"domains":[]})
-        jimi.settings._settings().new("oauth",{})
+        if len(jimi.settings._settings().getAsClass(query={"name" : "ldap"})) == 0:
+            jimi.settings._settings().new("ldap",{"domains":[]})
+        if len(jimi.settings._settings().getAsClass(query={"name" : "oauth"})) == 0:
+            jimi.settings._settings().new("oauth",{})
 
         #Adding org model
         jimi.model.registerModel("organisation","_organisation","_document","core.organisation")
