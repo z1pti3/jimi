@@ -61,8 +61,13 @@ class _forEach(jimi.action._action):
 						tempDataCopy["flowData"]["event"] = {**data["flowData"]["event"],**event}
 						tempDataCopy["flowData"]["eventStats"] = eventStat
 					except:
-						tempDataCopy["flowData"]["event"] = event
-						tempDataCopy["flowData"]["eventStats"] = eventStat
+						try:
+							event = { "value" : event }
+							tempDataCopy["flowData"]["event"] = {**data["flowData"]["event"],**event}
+							tempDataCopy["flowData"]["eventStats"] = eventStat
+						except:
+							tempDataCopy["flowData"]["event"] = event
+							tempDataCopy["flowData"]["eventStats"] = eventStat
 				else:
 					tempDataCopy["flowData"]["event"] = event
 					tempDataCopy["flowData"]["eventStats"] = eventStat
