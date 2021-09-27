@@ -55,7 +55,7 @@ if jimi.api.webServer:
                         return response
 
                     #Updating password policy
-                    authSettings.values["policy"] = {"minLength":userData["length"],"minLower":userData["lower"],"minNumbers":userData["numbers"],"minSpecial":userData["special"],"minUpper":userData["upper"]}
+                    authSettings.values["policy"] = {"minLength":int(userData["length"]),"minLower":int(userData["lower"]),"minNumbers":int(userData["numbers"]),"minSpecial":int(userData["special"]),"minUpper":int(userData["upper"])}
 
                     authSettings.update(["values"])
 

@@ -52,7 +52,7 @@ class _document():
     @mongoConnectionWrapper
     def new(self,sessionData=None):
         result = jimi.cache.globalCache.get("dbModelCache",self.__class__.__name__,getClassByName,sessionData=sessionData,extendCacheTime=True)
-        if len(result) == 1:
+        if result and len(result) == 1:
             result = result[0]
             self.classID = result["_id"]
             self.creationTime = int(time.time())
