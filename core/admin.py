@@ -147,6 +147,10 @@ if jimi.api.webServer:
                             if userData["sandbox"] == "Yes":
                                 #Create a sandbox conduct using the user's name
                                 sandboxConduct = jimi.conduct._conduct().new(f"{userData['name']} - Sandbox")
+                                sandboxConduct = jimi.conduct._conduct().getAsClass(sessionData=jimi.api.g.sessionData,query={"name":f"{userData['name']} - Sandbox"})[0]
+                                sandboxConduct.acl = {"ids":[{"accessID":group._id,"delete":True,"read":True,"write":True}]}
+                                sandboxConduct.comment = f"Sandbox for {userData['name']} (auto-generated)"
+                                sandboxConduct.update(["acl","comment"])
                             return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User created successfully" },201)
                     response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Please provide a password" },403)
                 return response
