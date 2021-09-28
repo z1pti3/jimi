@@ -130,6 +130,13 @@ if jimi.api.webServer:
                                 user.setAttribute("enabled",False,sessionData=jimi.api.g.sessionData)
                             #Define the users primary group
                             user.setAttribute("primaryGroup",userData["group"],sessionData=jimi.api.g.sessionData)
+                            group = jimi.auth._group().getAsClass(sessionData=jimi.api.g.sessionData,id=userData["group"])
+                            if len(group) == 1:
+                                group = group[0]
+                                group.members.append(user._id)
+                                group.update(["members"])
+                            else:
+                                return jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Could not find group!" },403)
                             #Set email if it exists
                             if userData["email"]:
                                 user.setAttribute("email",userData["email"],sessionData=jimi.api.g.sessionData)
