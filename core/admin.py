@@ -160,12 +160,18 @@ if jimi.api.webServer:
             def deleteUser():
                 response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Could not delete user" },403)
                 #Get user details based on username
-                foundUser = jimi.auth._user().getAsClass(sessionData=jimi.api.g.sessionData,query={"_id":jimi.db.ObjectId(request.args.get("id"))})
+                foundUser = jimi.auth._user().getAsClass(sessionData=jimi.api.g.sessionData,id=request.args.get("id"))
                 if foundUser:
                     foundUser = foundUser[0]
                     #Cannot delete the root user
                     if foundUser.username != "root":
-                        if jimi.auth._user().api_delete(query={"_id":jimi.db.ObjectId(request.args.get("id"))}):
+                        if jimi.auth._user().api_delete(id=foundUser._id):
+                            #Remove group membership
+                            group = jimi.auth._group().getAsClass(sessionData=jimi.api.g.sessionData,id=foundUser.primaryGroup)
+                            if len(group) == 1:
+                                group = group[0]
+                                group.members = [x for x in group.members if x != foundUser._id]
+                                group.update(["members"])
                             response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "User deleted successfully" },201)
                     else:
                         response = jimi.api.make_response({ "CSRF" : jimi.api.g.sessionData["CSRF"], "message" : "Cannot delete root user" },403)
