@@ -335,7 +335,6 @@ if jimi.api.webServer:
                 return { }, 200
 
             @jimi.api.webServer.route(jimi.api.base+"debug/clear/<sessionID>/", methods=["GET"])
-            @jimi.auth.adminEndpoint
             def clearFlowDebugSession(sessionID):
                 apiEndpoint = "debug/clear/{0}/".format(sessionID)
                 url = jimi.cluster.getMaster()
@@ -343,7 +342,6 @@ if jimi.api.webServer:
                 return json.loads(response.text), response.status_code
 
             @jimi.api.webServer.route(jimi.api.base+"debug/<sessionID>/", methods=["DELETE"])
-            @jimi.auth.adminEndpoint
             def deleteFlowDebugSession(sessionID):
                 apiEndpoint = "debug/{0}/".format(sessionID)
                 url = jimi.cluster.getMaster()
