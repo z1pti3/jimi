@@ -109,12 +109,12 @@
                                                 <i class="bi-shield-lock" style="font-size: 1.25rem;"></i> {{ldapSetting["ssl"]}}
                                             </div>
                                             <div class="card-footer">
-                                                <a href="#" class="btn btn-primary btn-block button bi-pencil" title="Edit" data-bs-toggle="modal" data-bs-target="#editLdapModal{{ ldapSetting["name"] }}"></a>
+                                                <a href="#" class="btn btn-primary btn-block button bi-pencil" title="Edit" data-bs-toggle="modal" data-bs-target="#editLdapModal{{ ldapSetting["name"] | replace(".","") }}"></a>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="modal fade" id="editLdapModal{{ ldapSetting["name"] }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                                    <div class="modal fade" id="editLdapModal{{ ldapSetting["name"] | replace(".","") }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-centered" role="document">
                                             <div class="modal-content panel">
                                                 <div class="modal-header">
