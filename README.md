@@ -20,7 +20,7 @@ View Help Docs: [jimi Docs](https://z1pti3.github.io/jimiDocs)
 
 Jimi’s power comes from the over 60 open source integrations that extend the functionally to include alerting and monitoring, asset management, software packaging and deployment, security playbooks, SIEM and XDR. – We are always looking to build new integrations so if something is missing let us know.
 
-View Plugins: [Plugins](https://github.com/topics/jimiplugin)
+View Integrations: [Integrations](https://github.com/topics/jimiplugin)
 
 View Sample Flows: [Samples](https://github.com/z1pti3/jimiFlows)
 
