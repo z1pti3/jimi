@@ -30,6 +30,8 @@ Start a discussion, log and issues or join us live on discord.
 
 [discord](https://discord.gg/XWKkbDdJF9)
 
+[jimi Video Introduction](https://www.youtube.com/watch?v=g-Eo6qMQGoE)
+
 # Enterprise Ready
 
 jimi has all of your enterprise needs covered and has been extensively tested for stability and to date has executed more than 10 billion actions.
