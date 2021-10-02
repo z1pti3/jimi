@@ -1,4 +1,4 @@
-# Welcome to jimi
+![image](https://user-images.githubusercontent.com/66521110/135731432-96d7acc4-1c1f-47b1-b81a-6e0f47c9994c.png)
 
 jimi is an orchestration automation tool focusing on multi-team collaboration through an intuitive flow-based interface. Initially developed by Cyber Security Professionals as an Security Automation Orchestration and Response ( SOAR ) platform jimi now offers unlimited flexibility into all areas of automation from IT/Security operations to Development and CI/CD pipelines. 
 
