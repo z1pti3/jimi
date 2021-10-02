@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.04
+systemVersion = 3.1
 
 # Initialize 
 dbCollectionName = "system"
