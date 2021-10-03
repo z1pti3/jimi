@@ -13,7 +13,7 @@ wget https://raw.githubusercontent.com/z1pti3/jimi-setup/main/install.sh
 bash install.sh
 ```
 
-After install access jimi @ https://(YOUR SERVER ADDRESS):5015
+After install access jimi @ http://(YOUR SERVER ADDRESS):5015
 
 More options for other systems can details can be found within our document site.
 
