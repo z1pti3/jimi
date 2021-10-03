@@ -29,6 +29,11 @@
     <script src="{{ url_for('static', filename='includes/monaco-0.26.1/vs/loader.js') }}"></script>
 {% endmacro -%}
 
+{% macro quill() -%}
+    <script src="{{ url_for('static', filename='includes/quill/quill.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='includes/quill/quill.snow.css') }}">
+{% endmacro -%}
+
 {% macro chartPolling(id,pollAPI,autoPoll) -%}
     <script>
         window.addEventListener("load", function(){
