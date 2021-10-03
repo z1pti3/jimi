@@ -6,13 +6,16 @@ jimi is an orchestration automation tool focusing on multi-team collaboration th
 
 # Getting Started
 
-The quickest way to get started is to use our docker deployment script.
+The quickest way to get started is to use our install script on a Ubuntu system
 
-`curl https://raw.githubusercontent.com/z1pti3/jimi-docker/master/jimiSetup.sh | bash`
+```
+wget https://raw.githubusercontent.com/z1pti3/jimi-setup/main/install.sh
+bash install.sh
+```
 
-After install access jimi @ https://(YOUR SERVER ADDRESS):4443
+After install access jimi @ https://(YOUR SERVER ADDRESS):5015
 
-More options can details can be found within our document site.
+More options for other systems can details can be found within our document site.
 
 View Help Docs: [jimi Docs](https://z1pti3.github.io/jimiDocs)
 
