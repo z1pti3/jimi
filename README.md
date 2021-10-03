@@ -8,6 +8,14 @@ jimi is an orchestration automation tool focusing on multi-team collaboration th
 
 The quickest way to get started is to use our install script on a Ubuntu system
 
+## Prerequisites
+
+* mongodb 4.2+
+* python3
+* python3-pip
+
+## Installation
+
 ```
 wget https://raw.githubusercontent.com/z1pti3/jimi-setup/main/install.sh
 bash install.sh
