@@ -6,6 +6,10 @@ Link tags give you the ability to reuse an action but control the paths followed
 
 ![image](https://user-images.githubusercontent.com/66521110/135760726-f27571ee-d68d-4f07-a959-4169ec9c064b.png)
 
+You can assess this new feature by editing a link and adding a tag:
+
+![image](https://user-images.githubusercontent.com/66521110/135760745-5bb9e24a-2a28-4cdc-af52-d43b728f83b1.png)
+
 # Version 3.04
 
 ## Organisation Settings (Beta)
