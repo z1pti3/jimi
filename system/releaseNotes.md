@@ -1,3 +1,11 @@
+# Version 3.112
+
+## Link Tagging
+
+Link tags give you the ability to reuse an action but control the paths followed based on the input and output tags defined. Any path without a tag will take all possible paths even the paths without a tag.
+
+![image](https://user-images.githubusercontent.com/66521110/135760726-f27571ee-d68d-4f07-a959-4169ec9c064b.png)
+
 # Version 3.04
 
 ## Organisation Settings (Beta)
