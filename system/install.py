@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.1
+systemVersion = 3.112
 
 # Initialize 
 dbCollectionName = "system"
@@ -504,5 +504,13 @@ def systemUpgrade(currentVersion):
 
         #Adding org model
         jimi.model.registerModel("organisation","_organisation","_document","core.organisation")
+
+    if currentVersion < 3.112:
+        for conductItem in jimi.conduct._conduct().getAsClass():
+            for flowItem in conductItem.flow:
+                for flowItemNext in flowItem["next"]:
+                    if "tag" not in flowItemNext:
+                        flowItemNext["tag"] = ""
+            conductItem.update(["flow"])
 
     return True

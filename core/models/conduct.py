@@ -122,6 +122,18 @@ class _conduct(jimi.db._document):
                 pass
             
         return False
+    
+    # Eval link tagging
+    def flowLogicTag(self,nextFlow,currentFlowTag):
+        if currentFlowTag != "" and nextFlow["tag"] != "":
+            currentFlowTags = currentFlowTag.split(",")
+            nextFlowTags = nextFlow["tag"].split(",")
+            for currentFlowTag in currentFlowTags:
+                if currentFlowTag in nextFlowTags:
+                    return True
+        else:
+            return True
+        return False
 
     def flowHandler(self,currentFlow,flowDict,data,flowDebugSession=None):
         if flowDebugSession or "flowDebugSession" in data["persistentData"]["system"]:
@@ -131,6 +143,7 @@ class _conduct(jimi.db._document):
                 data["persistentData"]["system"]["flowDebugSession"] = flowDebugSession
             flowDebugSession["eventID"] = jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].startEvent(data["flowData"]["trigger_name"],data["flowData"]["event"],data)
         processQueue = []
+        currentFlowTag = ""
         data["flowData"]["conductID"] = self._id
         data["flowData"]["action"] = { "result" : True, "rc" : 1337 }
         flowObjectsUsed = []
@@ -168,7 +181,8 @@ class _conduct(jimi.db._document):
                             if passData == None:
                                 passData = copyData(data)
                             if self.flowLogicEval(data,nextFlow["logic"]):
-                                processQueue.append({ "flowID" : nextFlow["flowID"], "data" : passData })
+                                if self.flowLogicTag(nextFlow,currentFlowTag):
+                                    processQueue.append({ "flowID" : nextFlow["flowID"], "tag" : nextFlow["tag"], "data" : passData })
                             passData = None
                 elif currentFlow["type"] == "action":
                     if not codifyFlow:
@@ -204,13 +218,15 @@ class _conduct(jimi.db._document):
                             if passData == None:
                                 passData = copyData(data)
                             if self.flowLogicEval(data,nextFlow["logic"]):
-                                processQueue.append({ "flowID" : nextFlow["flowID"], "data" : passData })
+                                if self.flowLogicTag(nextFlow,currentFlowTag):
+                                    processQueue.append({ "flowID" : nextFlow["flowID"], "tag" : nextFlow["tag"], "data" : passData })
                             passData = None
             if len(processQueue) == 0:
                 break
             else:
                 nextFlowID = processQueue[-1]["flowID"]
                 data = processQueue[-1]["data"]
+                currentFlowTag = processQueue[-1]["tag"]
                 processQueue.pop()
                 try:
                     currentFlow = flowDict[nextFlowID]

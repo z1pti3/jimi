@@ -11,6 +11,10 @@ var panelLinkHTML = `
 			<td><input id="propertiesPanelLinkOrder" class="form-control form-control-sm full-width textbox" value="0"/></td>
 		</tr>
 		<tr>
+			<td width="100px"><label class="theme-panelLabel">Link Tag:</label></td>
+			<td><input id="propertiesPanelLinkTag" class="form-control form-control-sm full-width textbox" value="0"/></td>
+		</tr>
+		<tr>
 			<td width="100px"><label class="theme-panelLabel">Link Logic:</label></td>
 			<td><textarea id="propertiesPanelLinkValue" class="form-control form-control-sm full-width textbox"></textarea></td>
 		</tr>
@@ -41,6 +45,7 @@ $(document).ready(function () {
 function saveLinkPropertiesPanel(from,to,panel) {
 	var conductID = GetURLParameter("conductID")
 	var objectJson = {};
+	objectJson["tag"] = panel.find("#propertiesPanelLinkTag").val();
 	objectJson["order"] = panel.find("#propertiesPanelLinkOrder").val();
 	objectJson["logic"] = panel.find("#propertiesPanelLinkValue").val();
 	objectJson["CSRF"] = CSRF
@@ -57,6 +62,7 @@ function loadLinkPropertiesPanel(from,to,panel) {
 	$.ajax({ url: "/conduct/"+conductID+"/flowlogic/"+from+"/"+to+"/", type : "GET", success: function( flowData ) {
 			panel.find("#propertiesPanelLinkValue").val(flowData["result"]["logic"]);
 			panel.find("#propertiesPanelLinkOrder").val(flowData["result"]["order"]);
+			panel.find("#propertiesPanelLinkTag").val(flowData["result"]["tag"]);
 		}
 	});
 }

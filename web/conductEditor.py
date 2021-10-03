@@ -207,6 +207,16 @@ def conductFlowchartPoll(conductID):
                             link["label"] = str(nextFlow["order"])
                     except KeyError:
                         pass
+                    try:
+                        if nextFlow["tag"] != "":
+                            if link["label"] != "":
+                                link["label"] = "{0}:{1}".format(str(nextFlow["order"]),nextFlow["tag"])
+                            else:
+                                link["label"] = "{0}".format(nextFlow["tag"])
+                    except KeyError:
+                        pass
+                    if link["label"] == "":
+                        link["label"] = " "
                     color = colors["linkColor"]
                     if type(nextFlow["logic"]) is bool:
                         if nextFlow["logic"] == True:
@@ -871,7 +881,7 @@ def newFlowLink(conductID,fromFlowID,toFlowID):
         nextFlows = [ x for x in fromFlow["next"] if x["flowID"] ==  toFlowID]
         if len(nextFlows) == 0:
             if toFlow["type"] != "trigger":
-                fromFlow["next"].append({ "flowID" : toFlowID, "logic": True, "order" : 0 })
+                fromFlow["next"].append({ "flowID" : toFlowID, "logic": True, "order" : 0, "tag" : "" })
                 # Sorting the list so we dont need to do this at flow runtime
                 try:
                     fromFlow["next"] = sorted(fromFlow["next"], key=itemgetter("order"), reverse=False) 
