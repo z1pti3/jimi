@@ -1,7 +1,7 @@
 {
     "name" : "system",
     "author" : "system",
-    "version" : 2.10,
+    "version" : 3.115,
     "categories" : ["system"],
     "description" : "System installed triggers and actions.",
     "icon" : null,
@@ -17,7 +17,7 @@
         "failedTriggers" : {
             "display_name" : "failedTriggers",
             "className" : "_failedTriggers",
-            "class_location" : "models.trigger",
+            "class_location" : "system.models.trigger",
             "description" : "Trigger called anytime a flow overruns or errors.",
             "fields" : [
 
@@ -85,7 +85,7 @@
         "failedActions" : {
             "display_name" : "failedActions",
             "className" : "_failedActions",
-            "class_location" : "models.trigger",
+            "class_location" : "system.models.trigger",
             "description" : "Trigger called upon action failure due to exception.",
             "fields" : [
 
@@ -132,13 +132,25 @@
                     }
                 }
             }
+        },
+        "storageTrigger" : {
+            "display_name" : "storageTrigger",
+            "className" : "_storageTrigger",
+            "class_location" : "system.models.storage",
+            "description" : "Trigger which opens an existing storage file and parses based on the selected file type.",
+            "fields" : [
+                { "schema_item" : "storage_id", "schema_value" : "storage_id", "type" : "input", "label" : "storage_id", "description" : "The ID of the jimi storage file to load.", "required" : true, "jimi_syntax" : false },
+                { "schema_item" : "file_type", "schema_value" : "file_type", "type" : "dropdown", "dropdown" : ["csv","json","txt"], "label" : "file_type", "description" : "File type determines how to parse.", "required" : true, "jimi_syntax" : false }
+            ],
+            "data_out" : {
+            }
         }
     },
     "actions" : {
         "sleep" : {
             "display_name" : "sleep",
             "className" : "_sleep",
-            "class_location" : "models.sleep",
+            "class_location" : "system.models.sleep",
             "description" : "Pause for a defined number of seconds and then continue to the next object.",
             "fields" : [
                 { "schema_item" : "sleepFor", "schema_value" : "sleepFor", "type" : "input", "label" : "sleepFor", "description" : "Number of seconds to sleep for.", "required" : true, "jimi_syntax" : false }
@@ -165,7 +177,7 @@
         "resetTrigger" : {
             "display_name" : "resetTrigger",
             "className" : "_resetTrigger",
-            "class_location" : "models.action",
+            "class_location" : "system.models.action",
             "description" : "Action used to reset the startCheck of the trigger contained within event[triggerID].",
             "fields" : [
                 
@@ -194,7 +206,7 @@
         "getTrigger" : {
             "display_name" : "getTrigger",
             "className" : "_getTrigger",
-            "class_location" : "models.action",
+            "class_location" : "system.models.action",
             "description" : "Finds a trigger by ID and outputs it as json.",
             "fields" : [
                 { "schema_item" : "triggerID", "schema_value" : "triggerID", "type" : "input", "label" : "triggerID", "description" : "An ID of a trigger to get.", "required" : true, "jimi_syntax" : true }
@@ -230,7 +242,7 @@
         "setTrigger" : {
             "display_name" : "setTrigger",
             "className" : "_setTrigger",
-            "class_location" : "models.action",
+            "class_location" : "system.models.action",
             "description" : "Sets a value for a field within a given trigger.",
             "fields" : [
                 { "schema_item" : "triggerID", "schema_value" : "triggerID", "type" : "input", "label" : "triggerID", "description" : "ID of the trigger to set the value on.", "required" : true, "jimi_syntax" : true },
@@ -261,7 +273,7 @@
         "enableTrigger" : {
             "display_name" : "enableTrigger",
             "className" : "_enableTrigger",
-            "class_location" : "models.action",
+            "class_location" : "system.models.action",
             "description" : "Enables a given trigger by ID.",
             "fields" : [
                 { "schema_item" : "triggerID", "schema_value" : "triggerID", "type" : "input", "label" : "triggerID", "description" : "ID of the target trigger.", "required" : true, "jimi_syntax" : true }
@@ -290,7 +302,7 @@
         "disableTrigger" : {
             "display_name" : "disableTrigger",
             "className" : "_disableTrigger",
-            "class_location" : "models.action",
+            "class_location" : "system.models.action",
             "description" : "Disables a given trigger by ID.",
             "fields" : [
                 { "schema_item" : "triggerID", "schema_value" : "triggerID", "type" : "input", "label" : "triggerID", "description" : "ID of the target trigger.", "required" : true, "jimi_syntax" : true }
@@ -319,7 +331,7 @@
         "getAction" : {
             "display_name" : "getAction",
             "className" : "_getAction",
-            "class_location" : "models.action",
+            "class_location" : "system.models.action",
             "description" : "Finds a action by ID and outputs it as json.",
             "fields" : [
                 { "schema_item" : "actionID", "schema_value" : "actionID", "type" : "input", "label" : "triggerID", "description" : "An ID of a action to get.", "required" : true, "jimi_syntax" : true }
@@ -355,7 +367,7 @@
         "setAction" : {
             "display_name" : "setAction",
             "className" : "_setAction",
-            "class_location" : "models.action",
+            "class_location" : "system.models.action",
             "description" : "Sets a value for a field within a given action.",
             "fields" : [
                 { "schema_item" : "actionID", "schema_value" : "actionID", "type" : "input", "label" : "actionID", "description" : "ID of the action to set the value on.", "required" : true, "jimi_syntax" : true },
@@ -386,7 +398,7 @@
         "enableAction" : {
             "display_name" : "enableAction",
             "className" : "_enableAction",
-            "class_location" : "models.action",
+            "class_location" : "system.models.action",
             "description" : "Enables a given action by ID.",
             "fields" : [
                 { "schema_item" : "actionID", "schema_value" : "actionID", "type" : "input", "label" : "actionID", "description" : "ID of the target action.", "required" : true, "jimi_syntax" : true }
@@ -415,7 +427,7 @@
         "disableAction" : {
             "display_name" : "disableAction",
             "className" : "_disableAction",
-            "class_location" : "models.action",
+            "class_location" : "system.models.action",
             "description" : "Disables a given action by ID.",
             "fields" : [
                 { "schema_item" : "actionID", "schema_value" : "actionID", "type" : "input", "label" : "actionID", "description" : "ID of the target action.", "required" : true, "jimi_syntax" : true }
@@ -444,7 +456,7 @@
         "collect" : {
             "display_name" : "collect",
             "className" : "_collect",
-            "class_location" : "models.collect",
+            "class_location" : "system.models.collect",
             "description" : "Collects a number of events together into a list and then outputs the given list to the remainder of the flow. When collect is used the flow will run up to the collect object while it collects all of the events into a list. After the list if either at the max limit or no more events are left then the collect objects outputs the list and the flow continues. Useful function for when batch processing is more efferent than singular events.",
             "fields" : [
                 { "schema_item" : "limit", "schema_value" : "limit", "type" : "input", "label" : "limit", "description" : "The maximum number of events to collect before flushing the list. Default 0 ( unlimited ).", "required" : false, "jimi_syntax" : true }
@@ -480,7 +492,7 @@
         "forEach" : {
             "display_name" : "forEach",
             "className" : "_forEach",
-            "class_location" : "models.forEach",
+            "class_location" : "system.models.forEach",
             "description" : "Loops through a provided list value.",
             "fields" : [
                 { "schema_item" : "mergeEvents", "schema_value" : "mergeEvents", "type" : "checkbox", "label" : "mergeEvents", "description" : "Check to preserve the existing json values within data[event]", "required" : false, "jimi_syntax" : false },
@@ -521,7 +533,7 @@
         "globalSet" : {
             "display_name" : "globalSet",
             "className" : "_globalSet",
-            "class_location" : "models.global",
+            "class_location" : "system.models.global",
             "description" : "Define global persistent variables.",
             "fields" : [
                 { "schema_item" : "globalName", "schema_value" : "globalName", "type" : "input", "label" : "globalName", "description" : "Name of the global variable to define. Care should be taken when setting a name so that it is unique and complex on shared systems. ", "required" : true, "jimi_syntax" : true },
@@ -557,7 +569,7 @@
         "globalGet" : {
             "display_name" : "globalGet",
             "className" : "_globalGet",
-            "class_location" : "models.global",
+            "class_location" : "system.models.global",
             "description" : "Gets a global persistent variable by name.",
             "fields" : [
                 { "schema_item" : "globalName", "schema_value" : "globalName", "type" : "input", "label" : "globalName", "description" : "Name of the global variable to get the value of.", "required" : true, "jimi_syntax" : true }
@@ -593,7 +605,7 @@
         "subFlow" : {
             "display_name" : "subFlow",
             "className" : "_subFlow",
-            "class_location" : "models.subFlow",
+            "class_location" : "system.models.subFlow",
             "description" : "Triggers another trigger with the current event or custom event value.",
             "fields" : [
                 { "schema_item" : "triggerID", "schema_value" : "triggerID", "type" : "input", "label" : "triggerID", "description" : "The triggerID for the flow to run.", "required" : true, "jimi_syntax" : true },
@@ -637,7 +649,7 @@
         "generatePassword" : {
             "display_name" : "generatePassword",
             "className" : "_generatePassword",
-            "class_location" : "models.action",
+            "class_location" : "system.models.action",
             "description" : "Generates a random password based on complexity and length criteria",
             "fields" : [
                 { "schema_item" : "length", "schema_value" : "length", "type" : "input", "label" : "length", "description" : "The length of the password to generate", "required" : true, "jimi_syntax" : false },
@@ -678,7 +690,7 @@
         "extract" : {
             "display_name" : "extract",
             "className" : "_extract",
-            "class_location" : "models.extract",
+            "class_location" : "system.models.extract",
             "description" : "Extract using regex data from within a defined string.",
             "fields" : [
                 { "schema_item" : "regex_pattern", "schema_value" : "regex_pattern", "type" : "input", "label" : "regex_pattern", "description" : "Regex with 'named' groups to extract from the defined string. (?P<GROUP_NAME>)", "required" : true, "jimi_syntax" : true },

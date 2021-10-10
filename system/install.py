@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.112
+systemVersion = 3.1151
 
 # Initialize 
 dbCollectionName = "system"
@@ -114,7 +114,7 @@ def processSystemManifest(manifest):
     for objectType in objectTypes:
         for objectName, objectValue in manifest[objectType].items():
             try:
-                model = jimi.model._model().getAsClass(query={"name" : objectName, "location" : "system.{0}".format(objectValue["class_location"]) })[0]
+                model = jimi.model._model().getAsClass(query={"name" : objectName, "location" : "{0}".format(objectValue["class_location"]) })[0]
                 objectValue["class_id"] = model._id
                 model.manifest = objectValue
                 model.update(["manifest"])
@@ -330,6 +330,9 @@ def systemInstall():
     # Extract
     jimi.model.registerModel("extract","_extract","_action","system.models.extract")
 
+    # Storage
+    jimi.model.registerModel("storageTrigger","_storageTrigger","_trigger","system.models.storage")
+
     # Adding model for plugins
     jimi.model.registerModel("plugins","_plugin","_document","core.plugin")
 
@@ -512,5 +515,11 @@ def systemUpgrade(currentVersion):
                     if "tag" not in flowItemNext:
                         flowItemNext["tag"] = ""
             conductItem.update(["flow"])
+
+    if currentVersion < 3.113:
+        jimi.model.registerModel("storageTrigger","_storageTrigger","_trigger","system.models.storage")
+
+    if currentVersion < 3.1151:
+        loadSystemManifest()
 
     return True

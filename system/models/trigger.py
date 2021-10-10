@@ -46,4 +46,3 @@ def failedAction(actionID,actionName,failureType,msg=""):
                 else:
                     triggerClass.notify(events)
 
-                    
