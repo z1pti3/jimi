@@ -2,6 +2,8 @@
 
 jimi is an orchestration automation tool focusing on multi-team collaboration through an intuitive flow-based interface. Initially developed by Cyber Security Professionals as an Security Automation Orchestration and Response ( SOAR ) platform jimi now offers unlimited flexibility into all areas of automation from IT/Security operations to Development and CI/CD pipelines. 
 
+In practice jimi is a cross between a low-code programming language like node red and a no-code SOAR / Automation platform. Built on-top of Python jimi has the power and capability to do just about anything, whats more its easily expandable and event supports raw Python code directly within the flows created.  
+
 ![jimi sample 1](https://user-images.githubusercontent.com/66521110/123510485-cf27b080-d673-11eb-9a41-0a82de0b8115.gif)
 
 # Getting Started
