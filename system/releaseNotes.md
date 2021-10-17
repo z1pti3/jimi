@@ -1,3 +1,12 @@
+# Version 3.1152
+
+## Add New System Actions ( break, exit )
+
+break - Breakout of a current flow, loop or subflow
+exit - End a current trigger or single thread if the trigger is running threaded
+
+![image](https://user-images.githubusercontent.com/66521110/137632718-14692e1b-2e55-4313-b33f-c06d7cd8862a.png)
+
 # Version 3.1151
 
 ## Add New System Trigger ( storageTrigger )
