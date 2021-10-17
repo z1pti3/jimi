@@ -90,6 +90,8 @@ class workerHandler:
                 elif self.raiseException:
                     self.crash = True
                     jimi.exceptions.workerKilled(self.id,self.name)
+            except jimi.exceptions.endWorker:
+                pass
             except Exception as e:
                 self.resultException = e
                 if self.debugSession:
@@ -128,6 +130,8 @@ class workerHandler:
                 elif self.raiseException:
                     self.crash = True
                     jimi.exceptions.workerKilled(self.id,self.name)
+            except jimi.exceptions.endWorker:
+                pass
             except Exception as e:
                 self.resultException = e
                 if self.debugSession:
@@ -332,6 +336,8 @@ def multiprocessingThreadStart(Q,threadCall,args):
     error = None
     try:
         threadCall(*args)
+    except jimi.exceptions.endWorker:
+        rc = 0
     except Exception as e:
         error = e
         rc = 1

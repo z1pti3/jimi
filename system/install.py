@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.1151
+systemVersion = 3.1152
 
 # Initialize 
 dbCollectionName = "system"
@@ -307,6 +307,8 @@ def systemInstall():
     jimi.model.registerModel("setAction","_setAction","_action","system.models.action")
     jimi.model.registerModel("enableAction","_enableAction","_action","system.models.action")
     jimi.model.registerModel("disableAction","_disableAction","_action","system.models.action")
+    jimi.model.registerModel("break","_break","_action","system.models.action")
+    jimi.model.registerModel("exit","_exit","_action","system.models.action")
 
     # forEach
     actions = jimi.action._action(False).query(query={"name" : "forEach"})["results"]
@@ -520,6 +522,11 @@ def systemUpgrade(currentVersion):
         jimi.model.registerModel("storageTrigger","_storageTrigger","_trigger","system.models.storage")
 
     if currentVersion < 3.1151:
+        loadSystemManifest()
+
+    if currentVersion < 3.1152:
+        jimi.model.registerModel("break","_break","_action","system.models.action")
+        jimi.model.registerModel("exit","_exit","_action","system.models.action")
         loadSystemManifest()
 
     return True

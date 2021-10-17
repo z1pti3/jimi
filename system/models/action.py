@@ -213,3 +213,13 @@ class _generatePassword(action._action):
         actionResult["rc"] = 100
         actionResult["msg"] = "Could not generate password"
         return actionResult
+
+class _break(action._action):
+
+    def doAction(self,data):
+        raise jimi.exceptions.endFlow
+
+class _exit(action._action):
+
+    def doAction(self,data):
+        raise jimi.exceptions.endWorker

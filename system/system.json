@@ -1,7 +1,7 @@
 {
     "name" : "system",
     "author" : "system",
-    "version" : 3.115,
+    "version" : 3.1152,
     "categories" : ["system"],
     "description" : "System installed triggers and actions.",
     "icon" : null,
@@ -720,6 +720,26 @@
                     "values" : {
                     }
                 }
+            }
+        },
+        "break" : {
+            "display_name" : "break",
+            "className" : "_break",
+            "class_location" : "system.models.action",
+            "description" : "Breaks from an existing flow, loop or subflow.",
+            "fields" : [
+            ],
+            "data_out" : {
+            }
+        },
+        "exit" : {
+            "display_name" : "exit",
+            "className" : "_exit",
+            "class_location" : "system.models.action",
+            "description" : "Exits a running trigger. If a trigger is running concurrently then it will exit only the thread that calls this action.",
+            "fields" : [
+            ],
+            "data_out" : {
             }
         }
     },
