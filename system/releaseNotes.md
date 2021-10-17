@@ -1,3 +1,9 @@
+# Version 3.1153
+
+## Trigger Snapshots ( BETA )
+
+Triggers now have an option for taking snapshots that allow you to go back and debug / view the exection after it has happened. These snapshots are stored within the database.
+
 # Version 3.1152
 
 ## Add New System Actions ( break, exit )
