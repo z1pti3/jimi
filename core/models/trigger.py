@@ -27,6 +27,7 @@ class _trigger(jimi.db._document):
     autoRestartCount = 3
     executionCount = int()
     scope = int()
+    executionSnapshot = False
 
     _dbCollection = jimi.db.db["triggers"]
 
@@ -77,6 +78,10 @@ class _trigger(jimi.db._document):
 
         data = jimi.conduct.dataTemplate(data=data)
         data["persistentData"]["system"]["trigger"] = self
+        if self.executionSnapshot:
+            if "flowDebugSession" not in data["persistentData"]["system"]:
+                data["persistentData"]["system"]["flowDebugSession"] = { "sessionID" : jimi.debug.newFlowDebugSession(self.acl,self.name) }
+                data["persistentData"]["system"]["flowDebugSnapshot"] = True
         data["flowData"]["trigger_id"] = self._id
         data["flowData"]["trigger_name"] = self.name
         tempData = data
@@ -85,56 +90,77 @@ class _trigger(jimi.db._document):
         maxDuration = 60
         if self.maxDuration > 0:
             maxDuration = self.maxDuration
-        if conducts:
-            cpuSaver = jimi.helpers.cpuSaver()
-            for loadedConduct in conducts:
-                eventHandler = None
-                if self.concurrency > 0:
-                    eventHandler = jimi.workers.workerHandler(self.concurrency)
-                    concurrentEvents = []
+        try:
+            if conducts:
+                cpuSaver = jimi.helpers.cpuSaver()
+                for loadedConduct in conducts:
+                    eventHandler = None
+                    if self.concurrency > 0:
+                        eventHandler = jimi.workers.workerHandler(self.concurrency)
+                        concurrentEvents = []
 
-                dataCopy = jimi.conduct.copyData(tempData,copyConductData=True)
-                dataCopy["flowData"]["conduct_id"] = loadedConduct._id
-                dataCopy["flowData"]["conduct_name"] = loadedConduct.name
+                    dataCopy = jimi.conduct.copyData(tempData,copyConductData=True)
+                    dataCopy["flowData"]["conduct_id"] = loadedConduct._id
+                    dataCopy["flowData"]["conduct_name"] = loadedConduct.name
 
-                eventCount = len(events)
-                for index, event in enumerate(events):
-                    first = True if index == 0 else False
-                    last = True if index == eventCount - 1 else False
-                    eventStats = { "first" : first, "current" : index, "total" : eventCount, "last" : last }
+                    eventCount = len(events)
+                    for index, event in enumerate(events):
+                        first = True if index == 0 else False
+                        last = True if index == eventCount - 1 else False
+                        eventStats = { "first" : first, "current" : index, "total" : eventCount, "last" : last }
 
-                    data = jimi.conduct.copyData(dataCopy,copyEventData=True)
-                    data["flowData"]["event"] = event
-                    data["flowData"]["eventStats"] = eventStats
+                        data = jimi.conduct.copyData(dataCopy,copyEventData=True)
+                        data["flowData"]["event"] = event
+                        data["flowData"]["eventStats"] = eventStats
 
+                        if eventHandler:
+                            concurrentEvents.append(data)
+                        else:
+                            loadedConduct.triggerHandler(self._id,data,False,False)
+
+                        # CPU saver
+                        cpuSaver.tick()
+
+                    # Waiting for all jobs to complete
                     if eventHandler:
-                        concurrentEvents.append(data)
-                    else:
-                        loadedConduct.triggerHandler(self._id,data,False,False)
-
-                    # CPU saver
-                    cpuSaver.tick()
-
-                # Waiting for all jobs to complete
-                if eventHandler:
-                    eventBatches = jimi.helpers.splitList(concurrentEvents,int(len(concurrentEvents)/self.concurrency))
-                    for events in eventBatches:
-                        durationRemaining = ( self.startTime + maxDuration ) - time.time()
-                        eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerBatchHandler,(self._id,events,False,False),maxDuration=durationRemaining)
-                    eventHandler.waitAll()
-                    if eventHandler.failures or eventHandler.failureCount() > 0:
-                        raise jimi.exceptions.triggerConcurrentCrash(self._id,self.name,eventHandler.failures)
-                    eventHandler.stop()
-        else:
-            jimi.audit._audit().add("trigger","auto_disable",{ "trigger_id" : self._id, "trigger_name" : self.name })
-            self.enabled = False
-            self.update(["enabled"])
+                        eventBatches = jimi.helpers.splitList(concurrentEvents,int(len(concurrentEvents)/self.concurrency))
+                        for events in eventBatches:
+                            durationRemaining = ( self.startTime + maxDuration ) - time.time()
+                            eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerBatchHandler,(self._id,events,False,False),maxDuration=durationRemaining)
+                        eventHandler.waitAll()
+                        if eventHandler.failures or eventHandler.failureCount() > 0:
+                            raise jimi.exceptions.triggerConcurrentCrash(self._id,self.name,eventHandler.failures)
+                        eventHandler.stop()
+            else:
+                jimi.audit._audit().add("trigger","auto_disable",{ "trigger_id" : self._id, "trigger_name" : self.name })
+                self.enabled = False
+                self.update(["enabled"])
+        # This is poor as it duplicates the below code that is ran after a flow is executed - NEAT UP!! 
+        except jimi.exceptions.endWorker:
+            self.startCheck = 0
+            self.attemptCount = 0
+            self.lastCheck = time.time()
+            self.nextCheck = jimi.scheduler.getSchedule(self.schedule)
+            self.update(["startCheck","lastCheck","nextCheck","attemptCount"])
+            if self.executionSnapshot:
+                try:
+                    if data["persistentData"]["system"]["flowDebugSnapshot"]:
+                        jimi.debug.deleteFlowDebugSession(data["persistentData"]["system"]["flowDebugSession"]["sessionID"])
+                except KeyError:
+                    pass
+            raise jimi.exceptions.endWorker
 
         self.startCheck = 0
         self.attemptCount = 0
         self.lastCheck = time.time()
         self.nextCheck = jimi.scheduler.getSchedule(self.schedule)
         self.update(["startCheck","lastCheck","nextCheck","attemptCount"])
+        if self.executionSnapshot:
+            try:
+                if data["persistentData"]["system"]["flowDebugSnapshot"]:
+                    jimi.debug.deleteFlowDebugSession(data["persistentData"]["system"]["flowDebugSession"]["sessionID"])
+            except KeyError:
+                pass
 
         # Return the final data value
         return data

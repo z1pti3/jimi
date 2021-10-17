@@ -240,6 +240,35 @@ class _conduct(jimi.db._document):
                         currentFlow = None
                 # CPU saver
                 cpuSaver.tick()
+        # This is poor as it duplicates the below code that is ran after a flow is executed - NEAT UP!! 
+        except jimi.exceptions.endWorker:
+            # Post processing for all event postRun actions
+            if data["flowData"]["eventStats"]["last"]:
+                for flow in flowDict:
+                    if flowDict[flow]["type"] == "action" and flowDict[flow]["flowID"] in flowObjectsUsed:
+                        if not codifyFlow:
+                            class_ = jimi.cache.globalCache.get("actionCache",flowDict[flow]["actionID"]+flowDict[flow]["flowID"],getAction,flowDict[flow],dontCheck=True)
+                        else:
+                            class_ = [flowDict[flow]["classObject"]]
+                        if class_:
+                            if len(class_) > 0:
+                                class_ = class_[0]
+                                class_.postRun()
+            if flowDebugSession:
+                jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].endEvent(flowDebugSession["eventID"])
+                try:
+                    if data["persistentData"]["system"]["flowDebugSnapshot"]:
+                        jimi.audit._audit().add("trigger","snapshot",{ "trigger_id" : self._id, "trigger_name" : self.name, "event_id" : flowDebugSession["eventID"] })
+                        bulkClass = jimi.db._bulk()
+                        eventData = copy.deepcopy(jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].flowList[flowDebugSession["eventID"]])
+                        del eventData["execution"]
+                        jimi.debug._flowDebugSnapshot().bulkNew(bulkClass,self.acl,flowDebugSession["eventID"],flowDebugSession["eventID"],eventData)
+                        for key,value in jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].flowList[flowDebugSession["eventID"]]["execution"].items():
+                            jimi.debug._flowDebugSnapshot().bulkNew(bulkClass,self.acl,flowDebugSession["eventID"],key,value)
+                        bulkClass.bulkOperatonProcessing()
+                except KeyError:
+                    pass
+            raise jimi.exceptions.endWorker
         except jimi.exceptions.endFlow:
             pass
         # Post processing for all event postRun actions
@@ -257,6 +286,19 @@ class _conduct(jimi.db._document):
 
         if flowDebugSession:
             jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].endEvent(flowDebugSession["eventID"])
+            try:
+                if data["persistentData"]["system"]["flowDebugSnapshot"]:
+                    jimi.audit._audit().add("trigger","snapshot",{ "trigger_id" : self._id, "trigger_name" : self.name, "event_id" : flowDebugSession["eventID"] })
+                    bulkClass = jimi.db._bulk()
+                    eventData = copy.deepcopy(jimi.debug.flowDebugSession[flowDebugSession["sessionID"]][flowDebugSession["eventID"]])
+                    del eventData["execution"]
+                    jimi.debug._flowDebugSnapshot().bulkNew(bulkClass,self.acl,flowDebugSession["eventID"],None,eventData)
+                    for key,value in jimi.debug.flowDebugSession[flowDebugSession["sessionID"]][flowDebugSession["eventID"]]["execution"].items():
+                        jimi.debug._flowDebugSnapshot().bulkNew(bulkClass,self.acl,flowDebugSession["eventID"],key,value)
+                    bulkClass.bulkOperatonProcessing()
+            except KeyError:
+                pass
+
 
 def dataTemplate(data=None,keepEvent=False):
     if data != None and type(data) is dict:

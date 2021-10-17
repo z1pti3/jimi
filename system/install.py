@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.1152
+systemVersion = 3.1153
 
 # Initialize 
 dbCollectionName = "system"
@@ -386,6 +386,9 @@ def systemInstall():
     # Adding model for revisions
     jimi.model.registerModel("revision","_revision","_document","core.revision")
 
+    # Adding model for flowDebugSnapshots
+    jimi.model.registerModel("flowDebugSnapshot","_flowDebugSnapshot","_document","core.debug")
+
     #Adding ldap and oauth settings
     if len(jimi.settings._settings().getAsClass(query={"name" : "ldap"})) == 0:
         jimi.settings._settings().new("ldap",{"domains":[]})
@@ -528,5 +531,8 @@ def systemUpgrade(currentVersion):
         jimi.model.registerModel("break","_break","_action","system.models.action")
         jimi.model.registerModel("exit","_exit","_action","system.models.action")
         loadSystemManifest()
+
+    if currentVersion < 3.1153:
+        jimi.model.registerModel("flowDebugSnapshot","_flowDebugSnapshot","_document","core.debug")
 
     return True

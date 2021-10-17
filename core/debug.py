@@ -6,6 +6,39 @@ from functools import wraps
 
 import jimi
 
+flowDebugSession = {}
+
+class _flowDebugSnapshot(jimi.db._document):
+    flowListEventUID = str()
+    flowListExecutionUID = str()
+    flowListExecutionData = dict()
+
+    _dbCollection = jimi.db.db["flowDebugSnapshot"]
+
+    def new(self,acl,flowListEventUID,flowListExecutionUID,flowListExecutionData,sessionData=None):
+        # Force ACL for admin only
+        self.acl = acl
+        self.flowListEventUID = flowListEventUID
+        self.flowListExecutionUID = flowListExecutionUID
+        self.flowListExecutionData = flowListExecutionData
+        super(_flowDebugSnapshot, self).new(sessionData=sessionData)
+
+    def bulkNew(self,bulkClass,acl,flowListEventUID,flowListExecutionUID,flowListExecutionData,sessionData=None):
+        # Force ACL for admin only
+        self.acl = acl
+        self.flowListEventUID = flowListEventUID
+        self.flowListExecutionUID = flowListExecutionUID
+        self.flowListExecutionData = flowListExecutionData
+        super(_flowDebugSnapshot, self).bulkNew(bulkClass,sessionData=sessionData)
+
+    def rebuildDebug(self,sessionData,eventUID):
+        eventData = self.query(sessionData=sessionData,query={ "flowListEventUID" : eventUID, "flowListExecutionUID" : eventUID })["results"][0]["flowListExecutionData"]
+        eventData["execution"] = {}
+        executions = self.query(sessionData=sessionData,query={ "flowListEventUID" : eventUID, "flowListExecutionUID" : { "$ne" : eventUID } })["results"]
+        for execution in executions:
+            eventData["execution"][execution["flowListExecutionUID"]] = execution["flowListExecutionData"]
+        return eventData
+
 class _flowDebug():
 
     def __init__(self,acl,createdBy):
@@ -64,11 +97,6 @@ class _flowDebug():
 
 def newFlowDebugSession(acl={ "ids":[ { "accessID":"0","delete": True,"read": True,"write": True } ] },createdBy=None):
     global flowDebugSession
-    try:
-        if not flowDebugSession:
-            flowDebugSession = {}
-    except NameError:
-        flowDebugSession = {}
     newSession = _flowDebug(acl,createdBy)
     flowDebugSession[newSession.id] = newSession
     return newSession.id
@@ -269,6 +297,14 @@ if jimi.api.webServer:
                     return {}, 200
                 return {}, 403
 
+            @jimi.api.webServer.route(jimi.api.base+"debug/snapshot/<eventUID>/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def createDebugSessionFromSnapshot(eventUID):
+                global flowDebugSession
+                sessionID = newFlowDebugSession( { "ids" : [ { "accessID" : jimi.api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] },jimi.api.g.sessionData["user"])
+                flowDebugSession[sessionID].flowList[eventUID] = _flowDebugSnapshot().rebuildDebug(jimi.api.g.sessionData,eventUID)
+                return { "sessionID" : sessionID }, 200
+
         if jimi.api.webServer.name == "jimi_web":
             @jimi.api.webServer.route(jimi.api.base+"debug/", methods=["GET"])
             def getFlowDebugSessions():
@@ -346,4 +382,11 @@ if jimi.api.webServer:
                 apiEndpoint = "debug/{0}/".format(sessionID)
                 url = jimi.cluster.getMaster()
                 response = jimi.helpers.apiCall("DELETE",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
+                return json.loads(response.text), response.status_code
+
+            @jimi.api.webServer.route(jimi.api.base+"debug/snapshot/<eventUID>/", methods=["GET"])
+            def createDebugSessionFromSnapshot(eventUID):
+                apiEndpoint = "debug/snapshot/{0}/".format(eventUID)
+                url = jimi.cluster.getMaster()
+                response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
                 return json.loads(response.text), response.status_code

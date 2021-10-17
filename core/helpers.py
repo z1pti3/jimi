@@ -342,6 +342,7 @@ def listToJson(listObj):
 
 def unicodeEscapeDict(dictVar):
     resultItem = {}
+    standardTypes = [str,int,bool,float,list,None]
     for key, value in dictVar.items():
         newKey = key.replace(".","\\u002E").replace("$","\\u0024")
         if type(value) is dict:
@@ -351,11 +352,15 @@ def unicodeEscapeDict(dictVar):
             for item in value:
                 if type(item) is dict:
                     newList.append(unicodeEscapeDict(item))
-                else:
+                elif type(item) in standardTypes:
                     newList.append(item)
+                else:
+                    newList.append(str(item))
             resultItem[newKey] = newList
-        else:
+        elif type(value) in standardTypes:
             resultItem[newKey] = value
+        else:
+            resultItem[newKey] = str(value)
     return resultItem
 
 def unicodeUnescapeDict(dictVar):
