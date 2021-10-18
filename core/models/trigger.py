@@ -90,6 +90,7 @@ class _trigger(jimi.db._document):
         maxDuration = 60
         if self.maxDuration > 0:
             maxDuration = self.maxDuration
+        exitType = None
         try:
             if conducts:
                 cpuSaver = jimi.helpers.cpuSaver()
@@ -116,7 +117,10 @@ class _trigger(jimi.db._document):
                         if eventHandler:
                             concurrentEvents.append(data)
                         else:
-                            loadedConduct.triggerHandler(self._id,data,False,False)
+                            try:
+                                loadedConduct.triggerHandler(self._id,data,False,False)
+                            except jimi.exceptions.endFlow:
+                                pass
 
                         # CPU saver
                         cpuSaver.tick()
@@ -137,6 +141,8 @@ class _trigger(jimi.db._document):
                 self.update(["enabled"])
         # This is poor as it duplicates the below code that is ran after a flow is executed - NEAT UP!! 
         except jimi.exceptions.endWorker:
+            raise jimi.exceptions.endWorker
+        finally:
             self.startCheck = 0
             self.attemptCount = 0
             self.lastCheck = time.time()
@@ -148,19 +154,6 @@ class _trigger(jimi.db._document):
                         jimi.debug.deleteFlowDebugSession(data["persistentData"]["system"]["flowDebugSession"]["sessionID"])
                 except KeyError:
                     pass
-            raise jimi.exceptions.endWorker
-
-        self.startCheck = 0
-        self.attemptCount = 0
-        self.lastCheck = time.time()
-        self.nextCheck = jimi.scheduler.getSchedule(self.schedule)
-        self.update(["startCheck","lastCheck","nextCheck","attemptCount"])
-        if self.executionSnapshot:
-            try:
-                if data["persistentData"]["system"]["flowDebugSnapshot"]:
-                    jimi.debug.deleteFlowDebugSession(data["persistentData"]["system"]["flowDebugSession"]["sessionID"])
-            except KeyError:
-                pass
 
         # Return the final data value
         return data
