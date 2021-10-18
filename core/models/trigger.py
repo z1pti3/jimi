@@ -139,7 +139,6 @@ class _trigger(jimi.db._document):
                 jimi.audit._audit().add("trigger","auto_disable",{ "trigger_id" : self._id, "trigger_name" : self.name })
                 self.enabled = False
                 self.update(["enabled"])
-        # This is poor as it duplicates the below code that is ran after a flow is executed - NEAT UP!! 
         except jimi.exceptions.endWorker:
             raise jimi.exceptions.endWorker
         finally:
