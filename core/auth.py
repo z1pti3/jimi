@@ -236,6 +236,9 @@ def generateSystemSession(expiry=10):
     data = {"jimi" : { "expiry" : time.time() + expiry, "admin" : True, "system" : True, "_id" : 0, "user" : "system", "primaryGroup" : 0, "authenticated" : True, "api" : True }}
     return jwt.encode(data, private_key, algorithm="RS256")
 
+def buildApplicationSessionData(application,sessionID,user):
+    return {application : { "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True, "sessionID" : sessionID, "api" : False, "theme" : user.theme, "application" : application }}
+
 def validateSession(sessionToken,application,useCache=True):
     try:
         dataDict = jwt.decode(sessionToken, public_key, algorithms=["RS256"])[application]
@@ -280,7 +283,7 @@ def validateExternalUser(username,password,method,**kwargs):
                     if "userData" in kwargs:
                         user = kwargs["userData"]
                         jimi.audit._audit().add("auth","login",{ "action" : "success", "src_ip" : jimi.api.request.remote_addr, "username" : user.username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" :user.primaryGroup, "admin" : isAdmin(user), "sessionID" : sessionID, "api" : False, "application" : kwargs["application"]  })
-                        return generateSession({kwargs["application"] : { "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True, "sessionID" : sessionID, "api" : False, "theme" : user.theme }})
+                        return generateSession(buildApplicationSessionData(kwargs["application"],sessionID,user))
                     jimi.audit._audit().add("auth","login",{ "action" : "success", "src_ip" : jimi.api.request.remote_addr, "username" : username, "sessionID" : sessionID, "api" : False, "application" : kwargs["application"] })
                     return generateSession({kwargs["application"] : { "_id" : kwargs["application"], "user" : username, "authenticated" : True, "sessionID" : sessionID, "api" : False}})
                 else:
@@ -319,7 +322,7 @@ def validateUser(username,password,otp=None):
             sessionID = secrets.token_hex(32)
             if _session().new(user.username,sessionID,"jimi").inserted_id:
                 jimi.audit._audit().add("auth","login",{ "action" : "success", "src_ip" : jimi.api.request.remote_addr, "username" : user.username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" :user.primaryGroup, "admin" : isAdmin(user), "sessionID" : sessionID, "api" : False })
-                return generateSession({"jimi" : { "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True, "sessionID" : sessionID, "api" : False, "theme" : user.theme }})
+                return generateSession(buildApplicationSessionData("jimi",sessionID,user))
             else:
                 jimi.audit._audit().add("auth","session",{ "action" : "failure", "src_ip" : jimi.api.request.remote_addr, "username" : username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" :user.primaryGroup, "admin" : isAdmin(user), "sessionID" : sessionID, "api" : False, "application" : "jimi" })
         else:
@@ -456,7 +459,11 @@ if jimi.api.webServer:
                 if jimi.api.g.type != "bypass":
                     if jimi.api.g.type == "cookie":
                         if "renew" in jimi.api.g:
-                            response.set_cookie("jimiAuth", value=generateSession({"jimi":jimi.api.g.sessionData}), max_age=authSettings["sessionTimeout"], httponly=True, secure=webSecure)
+                            user = _user().getAsClass(id=jimi.api.g.sessionData["_id"])
+                            if len(user) == 1:
+                                user = user[0]
+                                if user.enabled:
+                                    response.set_cookie("jimiAuth", value=generateSession(buildApplicationSessionData(jimi.api.g.sessionData["application"],jimi.api.g.sessionData["sessionID"],user)), max_age=authSettings["sessionTimeout"], httponly=True, secure=webSecure)
             # Cache Weakness
             if jimi.api.request.endpoint and jimi.api.request.endpoint != "static" and "__STATIC__" not in jimi.api.request.endpoint:
                 response.headers['Cache-Control'] = 'no-cache, no-store'
