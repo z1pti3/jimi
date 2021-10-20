@@ -14,6 +14,15 @@ class _forEach(jimi.action._action):
 	limit = int()
 	concurrency = int()
 
+	def runHandler(self,data=None,debug=False):
+		try:
+			if "skip" in data["flowData"]:
+				actionResult = self.doAction(data)
+				return actionResult
+		except KeyError:
+			pass
+		return super(_forEach, self).runHandler(data=data,debug=debug)
+
 	def doAction(self,data):
 		try:
 			if "skip" in data["flowData"]:
@@ -26,7 +35,7 @@ class _forEach(jimi.action._action):
 		if self.manual:
 			events = self.events
 		else:
-			events = jimi.helpers.evalString(self.eventsField,{"data" : data["flowData"]})
+			events = jimi.helpers.evalString(self.eventsField,{"data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" : data["persistentData"]})
 		if self.skip == 0:
 			skip = 1
 		else:
