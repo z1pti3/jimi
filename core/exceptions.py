@@ -61,7 +61,7 @@ class actionCrash(Exception):
     def __init__(self,actionID,actionName,exception):
         self.actionName = actionName
         self.actionID = actionID
-        self.trace = ''.join(traceback.format_exception(etype=type(exception), value=exception, tb=exception.__traceback__))
+        self.trace = ''.join(traceback.format_exception(type(exception), exception, exception.__traceback__))
         jimi.logging.debug("Error: Action Crashed. actionName='{0}', actionID='{1}', trace='{2}'".format(self.actionName,self.actionID,self.trace),-1)
         jimi.audit._audit().add("action","action_failure",{"type" : "systemEvent", "eventType" : "actionCrashed", "actionID" : actionID, "actionName" : actionName, "msg" : self.trace })
         jimi.systemTrigger.failedAction(self.actionName,self.actionID,"actionCrashed",self.trace)
@@ -72,7 +72,7 @@ class actionCrash(Exception):
 class linkCrash(Exception):
     def __init__(self,flowID,exception):
         self.flowID = flowID
-        self.trace = ''.join(traceback.format_exception(etype=type(exception), value=exception, tb=exception.__traceback__))
+        self.trace = ''.join(traceback.format_exception(type(exception), exception, exception.__traceback__))
         jimi.logging.debug("Error: Link Crashed. flow_id='{0}', trace='{2}'".format(self.flowID,self.trace),-1)
 
     def __str__(self):
@@ -89,7 +89,7 @@ class functionCallFailure(Exception):
 class variableDefineFailure(Exception):
     def __init__(self,varDict,exception):
         self.varDict = varDict
-        self.trace = ''.join(traceback.format_exception(etype=type(exception), value=exception, tb=exception.__traceback__))
+        self.trace = ''.join(traceback.format_exception(type(exception), exception, exception.__traceback__))
         
     def __str__(self):
         return "Error: Exception setting variable. var_dict='{0}', trace='{1}'".format(self.varDict,self.trace)

@@ -144,7 +144,7 @@ def debugEventHandler(sessionID,conduct,trigger,flowID,events,data=None,preserve
         try:
             conduct.triggerHandler(flowID,tempData,flowIDType=True,flowDebugSession={ "sessionID" : sessionID })
         except Exception as e:
-            flowDebugSession[sessionID].startEvent("Exception Raised",''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)),tempData)
+            flowDebugSession[sessionID].startEvent("Exception Raised",''.join(traceback.format_exception(type(e), e, e.__traceback__)),tempData)
     if hasattr(trigger, "startCheck"):
         trigger.startCheck = 0
         trigger.update(["startCheck"])
