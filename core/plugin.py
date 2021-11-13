@@ -183,6 +183,12 @@ if jimi.api.webServer:
                                 return { }, 200
                 return { }, 404
 
+            @jimi.api.webServer.route(jimi.api.base+"plugins/install_dependencies/<pluginName>/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def installPluginDependencies(pluginName):
+                installPluginPythonRequirements(pluginName)
+                return { }, 200
+
             @jimi.api.webServer.route(jimi.api.base+"plugins/<pluginName>/install/", methods=["POST"])
             @jimi.auth.adminEndpoint
             def installPluginFile(pluginName):
@@ -257,8 +263,9 @@ if jimi.api.webServer:
                         module = "plugins.{0}".format(pluginName)
                         clusterMembers = jimi.cluster.getAll()
                         for clusterMember in clusterMembers:
-                            headers = { "x-api-token" : jimi.auth.generateSystemSession() }
+                            headers = { "x-api-token" : jimi.auth.generateSystemSession(expiry=300) }
                             requests.get("{0}{1}system/update/{2}/".format(clusterMember,jimi.api.base,jimi.cluster.getMasterId()),headers=headers, timeout=60)
+                            requests.get("{0}{1}plugins/install_dependencies/{2}/".format(clusterMember,jimi.api.base,module),headers=headers, timeout=60)
                             requests.get("{0}{1}system/reload/module/{2}/".format(clusterMember,jimi.api.base,module),headers=headers, timeout=60)
 
                 return { "message" : "Success" }, 200
@@ -416,7 +423,7 @@ def loadPluginFunctionExtensions():
                             jimi.function.systemFunctions[func] = getattr(mod, func) 
 
 def installPluginPythonRequirements(pluginName=None):
-    if jimi.settings.getSetting("plugin","install_dependencies"):
+    if jimi.settings.getSetting("plugins","install_dependencies"):
         if pluginName:
             if os.path.isfile(Path("plugins/{0}/requirements.txt".format(pluginName))):
                 p = subprocess.run(["pip3","install","-r",Path("plugins/{0}/requirements.txt".format(pluginName))])
