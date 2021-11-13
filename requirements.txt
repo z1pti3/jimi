@@ -1,7 +1,6 @@
 flask
 requests
 netaddr
-bson
 pymongo
 pycryptodome
 pyjwt

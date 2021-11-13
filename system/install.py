@@ -140,9 +140,9 @@ def systemInstall():
 
     # Installing model if that DB is not installed
     if "model" not in jimi.db.list_collection_names():
-        logging.error("DB Collection 'model' Not Found : Creating...")
+        logging.info("DB Collection 'model' Not Found : Creating...")
         # Creating default model required so other models can be registered
-        logging.error("Registering default model class...")
+        logging.info("Registering default model class...")
         m = jimi.model._model()
         m.name = "model"
         m.classID = None
@@ -152,25 +152,25 @@ def systemInstall():
         m.location = "core.model"
         m.insert_one(m.parse())
     if "conducts" not in jimi.db.list_collection_names():
-        logging.error("DB Collection conducts Not Found : Creating...")
+        logging.info("DB Collection conducts Not Found : Creating...")
         jimi.model.registerModel("conduct","_conduct","_document","core.models.conduct")
     if "triggers" not in jimi.db.list_collection_names():
-        logging.error("DB Collection action Not Found : Creating...")
+        logging.info("DB Collection action Not Found : Creating...")
         jimi.model.registerModel("trigger","_trigger","_document","core.models.trigger")
     if "actions" not in jimi.db.list_collection_names():
-        logging.error("DB Collection action Not Found : Creating...")
+        logging.info("DB Collection action Not Found : Creating...")
         jimi.model.registerModel("action","_action","_document","core.models.action")
     if "webui" not in jimi.db.list_collection_names():
-        logging.error("DB Collection webui Not Found : Creating...")
+        logging.info("DB Collection webui Not Found : Creating...")
         jimi.model.registerModel("flowData","_flowData","_document","core.models.webui")
     if "modelUI" not in jimi.db.list_collection_names():
-        logging.error("DB Collection modelUI Not Found : Creating...")
+        logging.info("DB Collection modelUI Not Found : Creating...")
         jimi.model.registerModel("modelUI","_modelUI","_document","core.models.webui")
     if "editorUI" not in jimi.db.list_collection_names():
-        logging.error("DB Collection editorUI Not Found : Creating...")
+        logging.info("DB Collection editorUI Not Found : Creating...")
         jimi.model.registerModel("editorUI","_editorUI","_document","core.models.webui")
     if "clusterMembers" not in jimi.db.list_collection_names():
-        logging.error("DB Collection clusterMembers Not Found : Creating...")
+        logging.info("DB Collection clusterMembers Not Found : Creating...")
         jimi.model.registerModel("clusterMember","_clusterMember","_document","core.cluster")
 
     # Settings
@@ -366,7 +366,7 @@ def systemInstall():
         rootPass = randomString(30)
         rootUser = jimi.auth._user().new("root","root",rootPass)
         rootUser = jimi.auth._user().getAsClass(query={ "username" : "root" })
-        logging.error("Root user created! Password is: {}".format(rootPass))
+        logging.info("Root user created! Password is: {}".format(rootPass))
     rootUser = rootUser[0]
 
     # Adding root to group
