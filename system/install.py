@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.1153
+systemVersion = 3.12
 
 # Initialize 
 dbCollectionName = "system"
@@ -251,6 +251,11 @@ def systemInstall():
         "garbageCollector" : True
     }):
         print("ERROR: Unable to build system cache ")
+        return False
+    if not jimi.settings._settings().new("plugins",{
+        "install_dependencies" : True
+    }):
+        print("ERROR: Unable to build system plugins")
         return False
 
     # System documents
@@ -534,5 +539,12 @@ def systemUpgrade(currentVersion):
 
     if currentVersion < 3.1153:
         jimi.model.registerModel("flowDebugSnapshot","_flowDebugSnapshot","_document","core.debug")
+
+    if currentVersion < 3.12:
+        if not jimi.settings._settings().new("plugins",{
+            "install_dependencies" : True
+        }):
+            print("ERROR: Unable to build system plugins")
+            return False
 
     return True

@@ -2,6 +2,7 @@ from sys import modules
 import time
 import json
 import os
+import subprocess
 from pathlib import Path
 import importlib
 import requests
@@ -75,7 +76,7 @@ class _plugin(jimi.db._document):
             self.update(["enabled","installed"])
 
     def installHeader(self):
-        pass
+        installPluginPythonRequirements(self.name)
 
     def install(self):
         return False
@@ -91,6 +92,7 @@ class _plugin(jimi.db._document):
 
     def upgradeHeader(self,LatestPluginVersion):
         jimi.logging.debug("Starting plugin upgrade, pluginName={0}".format(self.name),-1)
+        installPluginPythonRequirements(self.name)
 
     def upgrade(self,LatestPluginVersion):
         pass
@@ -378,6 +380,7 @@ if jimi.api.webServer:
                 
 def load():
     updatePluginDB()
+    installPluginPythonRequirements()
     loadPluginAPIExtensions()
     loadPluginFunctionExtensions()
 
@@ -411,6 +414,17 @@ def loadPluginFunctionExtensions():
                     for func in dir(mod):
                         if func.startswith("__") == False and func.endswith("__") == False:
                             jimi.function.systemFunctions[func] = getattr(mod, func) 
+
+def installPluginPythonRequirements(pluginName=None):
+    if jimi.settings.getSetting("plugin","install_dependencies"):
+        if pluginName:
+            if os.path.isfile(Path("plugins/{0}/requirements.txt".format(pluginName))):
+                p = subprocess.run(["pip3","install","-r",Path("plugins/{0}/requirements.txt".format(pluginName))])
+        else:
+            plugins = os.listdir("plugins")
+            for plugin in plugins:
+                if os.path.isfile(Path("plugins/{0}/requirements.txt".format(plugin))):
+                    p = subprocess.run(["pip3","install","-r",Path("plugins/{0}/requirements.txt".format(plugin))])
 
 def updatePluginDB():
     classID = jimi.model._model(False).query(query={"className" : "_plugin" })["results"][0]["_id"]
