@@ -11,6 +11,8 @@ import functools
 import onetimepass
 import bson
 import os
+import logging
+import subprocess
 from pathlib import Path
 from Crypto.Cipher import AES, PKCS1_OAEP # pycryptodome
 from Crypto.PublicKey import RSA
@@ -122,11 +124,25 @@ from system import install
 if jimi.settings.getSetting("auth",None):
     authSettings = jimi.settings.getSetting("auth",None)
     jimi.cache.globalCache.newCache("sessions",cacheExpiry=authSettings["cacheSessionTimeout"])
-    # Loading public and private keys for session signing
-    with open(str(Path(authSettings["rsa"]["cert"]))) as f:
-        sessionPublicKey = f.read()
-    with open(str(Path(authSettings["rsa"]["key"]))) as f:
-        sessionPrivateKey = f.read()
+    if authSettings["rsa"]["cert"].startswith("-----BEGIN PUBLIC KEY-----") and authSettings["rsa"]["key"].startswith("-----BEGIN RSA PRIVATE KEY-----"):
+        sessionPublicKey = authSettings["rsa"]["cert"]
+        sessionPrivateKey = authSettings["rsa"]["key"]
+    else:
+        logging.info("Generating new RSA session public and private keys")
+        subprocess.run(["openssl","genrsa","-out",str(Path("data/temp/private.pem")),"2048"])
+        subprocess.run(["openssl","rsa","-in",str(Path("data/temp/private.pem")),"-outform","PEM", "-pubout","-out",str(Path("data/temp/sessionPub.pem"))])
+        subprocess.run(["openssl","rsa","-in",str(Path("data/temp/private.pem")),"-out",str(Path("data/temp/sessionPriv.pem")), "-outform","PEM"])
+        with open(str(Path("data/temp/sessionPub.pem"))) as f:
+            sessionPublicKey = f.read()
+        with open(str(Path("data/temp/sessionPriv.pem"))) as f:
+            sessionPrivateKey = f.read()
+        authSettings = jimi.settings._settings(False).getAsClass(query={ "name" : "auth" })[0]
+        authSettings.values["rsa"]["cert"] = sessionPublicKey
+        authSettings.values["rsa"]["key"] = sessionPrivateKey
+        authSettings.update(["values"])
+        os.remove(Path("data/temp/sessionPub.pem"))
+        os.remove(Path("data/temp/sessionPriv.pem"))
+        os.remove(Path("data/temp/private.pem"))
 
     public_key = serialization.load_pem_public_key( sessionPublicKey.encode(), backend=default_backend() )
     private_key = serialization.load_pem_private_key( sessionPrivateKey.encode(), password=None, backend=default_backend() )
