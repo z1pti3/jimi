@@ -140,7 +140,5 @@ if jimi.api.webServer:
                             with open(idFilePath, 'wb') as f:
                                 for chunk in r.iter_content(chunk_size=8192):
                                     f.write(chunk)
-                        return jimi.api.send_file(idFilePath,attachment_filename=storageFile["_id"])
+                    return jimi.api.send_file(idFilePath,attachment_filename=storageFile["_id"])
                 return {}, 404
-
-  

@@ -19,6 +19,8 @@ api.createServer("jimi_web",template_folder=str(Path("web","build")),static_fold
 
 import jimi
 
+from web import ui
+
 # Other pages
 from web import modelEditor, conductEditor, codify
 
@@ -36,6 +38,7 @@ for plugin in plugins:
 			pass
 		if not hidden:
 			pluginPages.append(plugin)
+jimi.plugin.loadedPluginPages = pluginPages
 
 # Installing
 if "webui" not in jimi.db.list_collection_names():
@@ -43,13 +46,9 @@ if "webui" not in jimi.db.list_collection_names():
 		jimi.logging.debug("DB Collection webui Not Found : Creating...")
 	jimi.model.registerModel("flowData","_flowData","_document","core.models.webui")
 
-@jimi.api.webServer.errorhandler(404)
-def notFound(e):
-	return render_template("index.html")
-
 @jimi.api.webServer.route("/")
 def indexPage():
-	return render_template("index.html")
+	return jimi.api.make_response(redirect("/status/"))
 
 @jimi.api.webServer.route("/login/")
 def loginPage():
@@ -58,6 +57,12 @@ def loginPage():
 @jimi.api.webServer.route("/debugFlow/")
 def debugFlowPage():
 	return render_template("debugFlowEditor.html",CSRF=jimi.api.g.sessionData["CSRF"])
+
+@jimi.api.webServer.route("/administration/", methods=["GET"])
+@jimi.auth.adminEndpoint
+def administrationPage():
+	clusterMembers = jimi.cluster._clusterMember().query()["results"]
+	return render_template("administration.html",CSRF=jimi.api.g.sessionData["CSRF"],clusterMembers=clusterMembers)
 
 # Should be migrated into plugins.py
 @jimi.api.webServer.route(jimi.api.base+"plugins/")
@@ -181,7 +186,7 @@ def getConductFlowProperties(conductID,flowID):
 					triggerObj = triggerObj[0]
 				else:
 					return {}, 404
-				_class = jimi.model._model().getAsClass(jimi.api.g.sessionData,id=triggerObj["classID"])
+				_class = jimi.model._model().getAsClass(id=triggerObj["classID"])
 				if len(_class) == 1:
 					_class = _class[0].classObject()
 				else:
@@ -203,7 +208,7 @@ def getConductFlowProperties(conductID,flowID):
 					actionObj = actionObj[0]
 				else:
 					return {},404
-				_class = jimi.model._model().getAsClass(jimi.api.g.sessionData,id=actionObj["classID"])
+				_class = jimi.model._model().getAsClass(id=actionObj["classID"])
 				if len(_class) == 1:
 					_class = _class[0].classObject()
 				actionObj = _class().getAsClass(jimi.api.g.sessionData,id=actionObj["_id"])
@@ -369,6 +374,66 @@ def cleanupPage():
 		jimi.trigger._trigger().api_delete(query={ "_id" : { "$in" : unusedTriggerObjectsIds } })
 		return { },200
 	return render_template("cleanupObjects.html", unusedActionObjects=unusedActionObjects, unusedTriggerObjects=unusedTriggerObjects, CSRF=api.g.sessionData["CSRF"])
+
+@jimi.api.webServer.route("/status/")
+def statusPage():
+	triggers = jimi.trigger._trigger().query(sessionData=api.g.sessionData,query={})["results"]
+	data = { "running" : [], "pending" : [], "failed" : [] }
+	for trigger in triggers:
+		if ((trigger["startCheck"] > 0 and trigger["startCheck"] + trigger["maxDuration"] > time.time()) or (trigger["lastCheck"] > (time.time() - 1))):
+			data["running"].append(trigger)
+		elif trigger["startCheck"] == 0:
+			data["pending"].append(trigger)
+		else:
+			data["failed"].append(trigger)
+	return render_template("status.html",CSRF=jimi.api.g.sessionData["CSRF"],triggers=data)
+
+@jimi.api.webServer.route("/status/triggerStatus/", methods=["POST"])
+def statusPageTriggerStatusAPI():
+	doughnut = ui.doughnut()
+	triggers = jimi.trigger._trigger().getAsClass(sessionData=api.g.sessionData,query={})
+	doughnut.addLabel("Running")
+	doughnut.addLabel("Pending")
+	doughnut.addLabel("Failed")
+	data = [0,0,0]
+	for trigger in triggers:
+		if ((trigger.startCheck > 0 and trigger.startCheck + trigger.maxDuration > time.time()) or (trigger.lastCheck + 2.5 > (time.time()))):
+			data[0] += 1
+		elif trigger.startCheck == 0:
+			data[1] += 1
+		else:
+			data[2] += 1
+	doughnut.addDataset("Triggers",data)
+	data = json.loads(jimi.api.request.data)
+	return doughnut.generate(data), 200
+
+@jimi.api.webServer.route("/status/conductStatus/", methods=["POST"])
+def statusPageConductStatusAPI():
+	pie = ui.pie()
+	conducts = jimi.conduct._conduct().getAsClass(sessionData=api.g.sessionData,query={})
+	pie.addLabel("Enabled")
+	pie.addLabel("Disabled")
+	data = [0,0]
+	for conduct in conducts:
+		if conduct.enabled:
+			data[0] += 1
+		else:
+			data[1] += 1
+	pie.addDataset("Conducts",data)
+	data = json.loads(jimi.api.request.data)
+	return pie.generate(data), 200
+
+@jimi.api.webServer.route("/status/triggerChart/", methods=["GET"])
+def statusPageTriggerChartAPI():
+	triggers = jimi.trigger._trigger().query(sessionData=api.g.sessionData,query={},fields=["_id","name","enabled","startCheck","maxDuration","lastCheck"])
+	for trigger in triggers["results"]:
+		if ((trigger["startCheck"] > 0 and trigger["startCheck"] + trigger["maxDuration"] > time.time()) or (trigger["lastCheck"] + 2.5 > (time.time()))):
+			trigger["status"] = "Running"
+		elif trigger["startCheck"] == 0:
+			trigger["status"] = "Enabled"
+		else:
+			trigger["status"] = "Failed"
+	return triggers, 200
 
 api.startServer(debug=True, use_reloader=False, host=apiSettings["bind"], port=apiSettings["port"], threaded=True)
 

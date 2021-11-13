@@ -4,7 +4,7 @@
 	border-style: solid;
 	border-width: 1.2px;
 	position: absolute !important;
-	background-color: #FAFAFA;
+	background-color: var(--panelBackgroundColor);
 	min-width: 600px;
 	max-height: 80%;
 	max-width: 90%;
@@ -29,14 +29,14 @@
 	height: 30px;
 	width: 100%;
 	position: relative;
-	background-color: #F0F0F0;
+	background-color: var(--panelBackgroundColor);
 }
 
 .propertiesPanel-footer {
 	height: 40px;
 	width: 100%;
 	position: relative;
-	background-color: #F0F0F0;
+	background-color: var(--panelBackgroundColor);
 }
 
 .propertiesPanelFullWidth {
@@ -110,8 +110,10 @@
 
 .propertiesPanel-help-table-header {
 	font-size: 16px;
-	border: 1px solid #2e6da4;
-	background-color: #111111;
+	border-width: 1px;
+	border-style: solid;
+	border-color: var(--panelComponentBackground);
+	background-color: var(--panelBackgroundColor);
 	padding: 8px;
 }
 
@@ -121,7 +123,9 @@
 }
 
 .propertiesPanel-help-table-content td {
-	border: 1px solid #2e6da4;
+	border-width: 1px;
+	border-style: solid;
+	border-color: var(--panelComponentBackground);
 	padding: 8px;
 }
 
@@ -134,7 +138,7 @@
 }
 
 .propertiesPanel-help-table tr:nth-child(even){
-	background-color: #333333;
+	background-color: var(--panelComponentBackground);
 }
 
 #help {

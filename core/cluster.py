@@ -316,19 +316,6 @@ def start():
 ######### --------- API --------- #########
 if jimi.api.webServer:
     if not jimi.api.webServer.got_first_request:
-        if jimi.api.webServer.name == "jimi_web":
-            @jimi.api.webServer.route(jimi.api.base+"cluster/", methods=["GET"])
-            @jimi.auth.adminEndpoint
-            def getCluster():
-                results = _clusterMember().query()["results"]
-                return { "results" : results }, 200
-
-            @jimi.api.webServer.route(jimi.api.base+"cluster/distribute/", methods=["GET"])
-            @jimi.auth.adminEndpoint
-            def distributeCluster():
-                jimi.trigger._trigger().api_update(query={ "startCheck" : 0 },update={ "$set" : { "systemID" : None } })
-                return { "result" : True }, 200
-
         if jimi.api.webServer.name == "jimi_core":
             @jimi.api.webServer.route(jimi.api.base+"cluster/", methods=["POST"])
             @jimi.auth.systemEndpoint
@@ -339,3 +326,10 @@ if jimi.api.webServer:
                     return { "result" : result }, 200
                 else:
                     return { }, 404
+
+        if jimi.api.webServer.name == "jimi_web":
+            @jimi.api.webServer.route(jimi.api.base+"cluster/distribute/", methods=["GET"])
+            @jimi.auth.adminEndpoint
+            def distributeCluster():
+                jimi.trigger._trigger().api_update(query={ "startCheck" : 0 },update={ "$set" : { "systemID" : None } })
+                return { "result" : True }, 200

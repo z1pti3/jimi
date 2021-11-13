@@ -136,31 +136,31 @@ html, body {
 .newModelObject {
 	position: absolute;
 	z-index: 1;
-	right: 300px;
+	right: 380px;
 }
 
 .codifyConductButton {
 	position: absolute;
 	z-index: 1;
-	right: 75px;
+	right: 95px;
 }
 
 .exportConductButton {
 	position: absolute;
 	z-index: 1;
-	right: 150px;
+	right: 190px;
 }
 
 .importConductButton {
 	position: absolute;
 	z-index: 1;
-	right: 1px;
+	right: 0px;
 }
 
 .debugConductButton {
 	position: absolute;
 	z-index: 1;
-	right: 225px;
+	right: 285px;
 }
 
 .flowchart-operator-trigger {

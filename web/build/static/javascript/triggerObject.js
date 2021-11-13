@@ -6,17 +6,17 @@ var triggerObjectHTML = `
 	</div>
 	<div class="propertiesPanel-body theme-panelBody">
 		Timeout:<br>
-		<input type='text' value="60" class="inputFullWidth theme-panelTextbox" id='codifyTimeout'><br>
+		<input type='text' value="60" class="form-control form-control-sm full-width textbox" id='codifyTimeout'><br>
 		Number of Events to Process:<br>
-		<input type='text' value="0" class="inputFullWidth theme-panelTextbox" id='triggerEventCount'><br>
+		<input type='text' value="0" class="form-control form-control-sm full-width textbox" id='triggerEventCount'><br>
 		Events:<br>
-		<textarea id="triggerValue" type="text" class="inputFullWidth theme-panelTextArea"></textarea><br>
+		<textarea id="triggerValue" type="text" class="form-control form-control-sm full-width textbox"></textarea><br>
 		Output:<br>
-		<textarea id="triggerOutput" readonly="true" type="text" class="inputFullWidth inputExpand theme-panelTextArea"></textarea>
+		<textarea id="triggerOutput" readonly="true" type="text" class="form-control form-control-sm full-width textbox"></textarea>
 	</div>
 	<div class="propertiesPanel-footer theme-panelFooter">
-		<button id="trigger" class="btn btn-primary theme-panelButton">Test</button>
-		<button id="close" class="btn btn-primary theme-panelButton">Close</button>
+		<button id="trigger" class="btn btn-primary button">Test</button>
+		<button id="close" class="btn btn-primary button">Close</button>
 	</div>
 </div>
 `

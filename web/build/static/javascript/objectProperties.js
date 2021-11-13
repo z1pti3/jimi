@@ -11,10 +11,10 @@ var panelPropertiesHTML = `
 		</div>
 	</div>
 	<div class="container-fluid propertiesPanel-footer theme-panelFooter">
-		<button id="save" class="btn btn-primary theme-panelButton">Save</button>
-		<button id="refresh" class="btn btn-primary theme-panelButton">Refresh</button>
-		<button id="close" class="btn btn-primary theme-panelButton">Close</button>
-		<button id="help" class="btn btn-primary theme-panelButton">Show Help</button>
+		<button id="save" class="btn btn-primary button bi-save"> Save</button>
+		<button id="refresh" class="btn btn-primary button bi-recycle"> Refresh</button>
+		<button id="close" class="btn btn-primary button">Close</button>
+		<button id="help" class="btn btn-primary button bi-question-lg"> Show Help</button>
 	</div>
 </div>
 `
@@ -191,6 +191,7 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 			}
 
 			// formData
+			var groups = {}
 			var $table = $('<table width="100%">');
 			for (objectItem in result["formData"]) {
 				var $row = $('<tr>');
@@ -213,18 +214,45 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 						label = label+"*";
 					}
 				}
+
+				// Group
+				var group = 0;
+				if (result["formData"][objectItem].hasOwnProperty("group")) {
+					group = result["formData"][objectItem]["group"]
+				}
 				
-				if (result["formData"][objectItem]["type"] == "input") {
+				if (result["formData"][objectItem]["type"] == "group-checkbox") {
 					var $cell = $('<td width="100px">');
-					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], title : tooltip, class: "theme-panelLabel"}).text(label+":").tooltip());
+					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", title : tooltip, class: "theme-panelLabel"}).text(label+":"));
 					$row.append($cell);
 					var $cell = $('<td>');
-					$cell.append($('<input class="inputFullWidth theme-panelTextbox">').attr({type: 'text', value: result["formData"][objectItem]["textbox"], current: result["formData"][objectItem]["textbox"], required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
+					if (result["formData"][objectItem]["checked"] == true) {
+						$cell.append($('<input class="theme-panelCheckbox">').attr({type: 'checkbox', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: true, checked: true, key: result["formData"][objectItem]["schemaitem"], tag: "formItem", "data-group" : group.toString()}));
+					}
+					else {
+						$cell.append($('<input class="theme-panelCheckbox">').attr({type: 'checkbox', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: false, key: result["formData"][objectItem]["schemaitem"], tag: "formItem", "data-group" : group.toString()}));
+					}
+					$cell.find("#properties_items"+result["formData"][objectItem]["schemaitem"]).on('change', function() {
+						if ($(this)[0].checked) {
+							$(".group_"+$(this).attr("data-group")).removeClass("hide")
+						} else {
+							$(".group_"+$(this).attr("data-group")).addClass("hide")
+						}
+					});
+					groups[group.toString()] = result["formData"][objectItem]["checked"];
+					$row.append($cell);
+				}
+				if (result["formData"][objectItem]["type"] == "input") {
+					var $cell = $('<td width="100px">');
+					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", title : tooltip, class: "theme-panelLabel"}).text(label+":"));
+					$row.append($cell);
+					var $cell = $('<td>');
+					$cell.append($('<input class="form-control form-control-sm full-width textbox">').attr({type: 'text', value: result["formData"][objectItem]["textbox"], current: result["formData"][objectItem]["textbox"], required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
 					$row.append($cell);
 				}
 				if (result["formData"][objectItem]["type"] == "checkbox") {
 					var $cell = $('<td width="100px">');
-					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], title : tooltip, class: "theme-panelLabel"}).text(label+":").tooltip());
+					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", title : tooltip, class: "theme-panelLabel"}).text(label+":"));
 					$row.append($cell);
 					var $cell = $('<td>');
 					if (result["formData"][objectItem]["checked"] == true) {
@@ -239,20 +267,20 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 					// output
 					// <label for="delay" class="theme-panelLabel">delay:</label>					
 					var $cell = $('<td width="100px">');
-					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], title : tooltip, class: "theme-panelLabel"}).text(label+":").tooltip());
+					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", title : tooltip, class: "theme-panelLabel"}).text(label+":"));
 					$row.append($cell);
 
 					// output
 					// <textarea class="inputFullWidth theme-panelTextArea" type="text" id="properties_itemsdelay" current="0" key="delay" tag="formItem"></textarea>
 					var $cell = $('<td>');
-					$cell.append($('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: JSON.stringify(result["formData"][objectItem]["textbox"]), key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
+					$cell.append($('<textarea class="form-control form-control-sm full-width textbox">').attr({type: 'text', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: JSON.stringify(result["formData"][objectItem]["textbox"]), key: result["formData"][objectItem]["schemaitem"], tag: "formItem"}));
 					$cell.find('#properties_items'+result["formData"][objectItem]["schemaitem"]).val(JSON.stringify(result["formData"][objectItem]["textbox"]));
 					$row.append($cell);
 				}
 				if (result["formData"][objectItem]["type"] == "dropdown") {
           
 					var $cell = $('<td width="100px">');
-					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], class: "theme-panelLabel"}).text(label+":").tooltip());
+					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], class: "theme-panelLabel"}).text(label+":"));
 					$row.append($cell);
 
 					var $cell = $('<td>');
@@ -272,7 +300,7 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 				if (result["formData"][objectItem]["type"] == "unit-input") {
           
 					var $cell = $('<td width="100px">');
-					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], class: "theme-panelLabel"}).text(label+":").tooltip());
+					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], class: "theme-panelLabel"}).text(label+":"));
 					$row.append($cell);
 
 					var $cell = $('<td>');
@@ -302,7 +330,7 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 				}
 				if (result["formData"][objectItem]["type"] == "script") {
 					var $cell = $('<td width="100px">');
-					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], title : tooltip, class: "theme-panelBreak"}).text(label+":").tooltip());
+					$cell.append($('<label>').attr({for: result["formData"][objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", title : tooltip, class: "theme-panelBreak"}).text(label+":"));
 					$row.append($cell);
 					var $cell = $('<td>');
 					var $scriptTextArea = $('<textarea class="inputFullWidth theme-panelTextArea">').attr({type: 'text', required: required, id: "properties_items"+result["formData"][objectItem]["schemaitem"], current: result["formData"][objectItem]["textbox"], key: result["formData"][objectItem]["schemaitem"], tag: "formItem"});
@@ -325,6 +353,12 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 					$cell.append($scriptTextArea);
 					$cell.find('#properties_items'+result["formData"][objectItem]["schemaitem"]).val(result["formData"][objectItem]["textbox"]);
 					$row.append($cell);
+				}
+				if (group > 0 && result["formData"][objectItem]["type"] != "group-checkbox") {
+					$row.addClass("group_"+group.toString())
+					if (!groups[group.toString()]) {
+						$row.addClass("hide");
+					}
 				}
 				$table.append($row);
 			}

@@ -15,6 +15,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
+from werkzeug.utils import redirect
 
 import jimi
 
@@ -409,6 +410,12 @@ if jimi.api.webServer:
             return response
 
         if jimi.api.webServer.name == "jimi_web":
+            from flask import Flask, request, render_template
+
+            @jimi.api.webServer.route("/myAccount/")
+            def myAccountPage():
+                return render_template("myAccount.html",CSRF=jimi.api.g.sessionData["CSRF"])
+
             # Checks that username and password are a match
             @jimi.api.webServer.route(jimi.api.base+"auth/", methods=["POST"])
             def api_validateUser():
@@ -433,11 +440,14 @@ if jimi.api.webServer:
                         redirect = jimi.api.request.args.get("return")
                         if redirect:
                             if "." in redirect or ".." in redirect:
-                                redirect = "/"
+                                redirect = "/conducts/"
                             if not redirect.startswith("/"):
                                 redirect = "/" + redirect
                         else:
-                            redirect = "/"
+                            redirect = "/conducts/"
+                        # Default redirect forced update to /conducts/
+                        if redirect == "/?":
+                            redirect = "/conducts/"
                         response = jimi.api.make_response({ "CSRF" : sessionData["CSRF"], "redirect" : redirect },200)
                         response.set_cookie("jimiAuth", value=userSession, max_age=600, httponly=True, secure=True)
                         return response, 200
@@ -468,6 +478,21 @@ if jimi.api.webServer:
                 if authSettings["enabled"]:
                     result = { "CSRF" : jimi.api.g.sessionData["CSRF"] }
                 return result, 200
+
+            @jimi.api.webServer.route("/logout/", methods=["GET"])
+            def logout():
+                # Deleting active session
+                session = jimi.cache.globalCache.delete("sessions",jimi.api.g.sessionData["sessionID"])
+                if authSettings["singleUserSessions"]:
+                    _session().api_delete(query={ "user" : jimi.api.g.sessionData["user"] })
+                else:
+                    session = _session().getAsClass(query={"sessionID" : jimi.api.g.sessionData["sessionID"]})
+                    if len(session) == 1:
+                        session = session[0]
+                        session.delete()
+
+                jimi.audit._audit().add("auth","logout",{ "action" : "success", "_id" : jimi.api.g.sessionData["_id"] })
+                return jimi.api.make_response(redirect("/login/"))
 
             @jimi.api.webServer.route(jimi.api.base+"auth/logout/", methods=["GET"])
             def api_logout():
@@ -501,8 +526,7 @@ if jimi.api.webServer:
                                     return { "msg" : "New password does not meet complexity requirements" }, 400
                             else:
                                 return { "msg" : "Current password does not match" }, 400
-                        user.setAttribute("name",data["name"],sessionData=jimi.api.g.sessionData)
-                        user.update(["name","passwordHash","apiTokens"])
+                        user.update(["passwordHash","apiTokens"])
                         return {}, 200
                 else:
                     return {}, 200

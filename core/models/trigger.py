@@ -200,7 +200,7 @@ class _trigger(jimi.db._document):
 
 
 def getClassObject(classID,sessionData):
-    return jimi.model._model().getAsClass(sessionData,id=classID)
+    return jimi.model._model().getAsClass(id=classID)
 
 def getTriggerConducts(triggerID,sessionData):
     return jimi.conduct._conduct().getAsClass(query={"flow.triggerID" : triggerID, "enabled" : True})
