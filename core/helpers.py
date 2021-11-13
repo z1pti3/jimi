@@ -431,7 +431,7 @@ def reload():
         except:
             pass
 
-apiURL = "http://{0}:{1}/{2}".format(jimi.config["system"]["accessAddress"],jimi.config["system"]["accessPort"],jimi.config["api"]["core"]["base"])
+apiURL = "http://{0}:{1}/{2}".format(jimi.config["system"]["accessAddress"],jimi.config["system"]["accessPort"],jimi.config["api"]["base"])
 def apiCall(methord,apiEndpoint,jsonData=None,token=None,overrideURL=None,timeout=2,overrideAPIBase=None):
     if overrideURL != None:
         if overrideAPIBase != None:

@@ -138,7 +138,10 @@ if __name__ == "__main__":
     jimi.workers.workers = jimi.workers.workerHandler()
 
     # Starting workers
-    cpuCount = os.cpu_count()
+    try:
+        cpuCount = jimi.config["system"]["max_workers"]
+    except KeyError:
+        cpuCount = os.cpu_count()
     jimi.cluster.systemIndexes = []
     logging.debug("Detected %i CPU",cpuCount)
     if cpuCount == 1:
