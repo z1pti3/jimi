@@ -69,24 +69,24 @@ def setup():
             upgrade = True
 
     if install:
-        logging.error("Starting system install")
+        logging.info("Starting system install")
         if systemInstall():
             # Set system version number if install and/or upgrade
             systemAbout.data["version"] = systemVersion
             systemAbout.systemID = systemSettings["systemID"]
             systemAbout.update(["data","systemID"])
-            logging.error("Starting system install completed")
+            logging.info("Starting system install completed")
             sys.exit(0)
         else:
             sys.exit("Unable to complete install")
     elif upgrade:
-        logging.error("Starting system upgrade")
+        logging.info("Starting system upgrade")
         systemUpgrade(systemAbout.data["version"])
         if systemUpgrade(systemAbout.data["version"]):
             # Set system version number if install and/or upgrade
             systemAbout.data["version"] = systemVersion
             systemAbout.update(["data"])
-            logging.error("Starting system upgrade completed")
+            logging.info("Starting system upgrade completed")
         else:
             sys.exit("Unable to complete upgrade")
 
