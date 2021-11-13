@@ -1,6 +1,6 @@
 import jimi
 
-#Will be deprecated in v4.0
+#Used to store startup settings that are needed prior to DB connecton i.e. database conneciton details
 config = jimi.config
 
 class _settings(jimi.db._document):
