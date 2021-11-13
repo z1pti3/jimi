@@ -69,8 +69,9 @@ def fileIntegrityRegister():
 	checksumHash.sort()
 	checksum = jimi.helpers.getStringHash(",".join(checksumHash))
 	system = jimi.cluster.getSystem()
-	system.checksum = checksum
-	system.update(["checksum"])
+	if system is not None:
+		system.checksum = checksum
+		system.update(["checksum"])
 
 	jimi.logging.debug("Info: System integrity hash. hash={0}".format(checksum),-1)
 	return checksum
