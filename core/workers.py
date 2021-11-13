@@ -99,7 +99,7 @@ class workerHandler:
                     jimi.debug.flowDebugSession[self.debugSession].startEvent("Worker Crash",str(e),jimi.conduct.dataTemplate())
                 elif self.raiseException:
                     self.crash = True
-                    jimi.exceptions.workerCrash(self.id,self.name,''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
+                    jimi.exceptions.workerCrash(self.id,self.name,''.join(traceback.format_exception(type(e), e, e.__traceback__)))
             finally:
                 if p.exitcode == None:
                     p.terminate()
@@ -139,7 +139,7 @@ class workerHandler:
                     jimi.debug.flowDebugSession[self.debugSession].startEvent("Worker Crash",str(e),jimi.conduct.dataTemplate())
                 elif self.raiseException:
                     self.crash = True
-                    jimi.exceptions.workerCrash(self.id,self.name,''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
+                    jimi.exceptions.workerCrash(self.id,self.name,''.join(traceback.format_exception(type(e), e, e.__traceback__)))
             if jimi.logging.debugEnabled:
                 jimi.logging.debug("Threaded worker completed, workerID={0}".format(self.id))
             self.running = False

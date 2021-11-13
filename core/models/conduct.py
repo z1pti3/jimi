@@ -115,7 +115,7 @@ class _conduct(jimi.db._document):
                 elif logicVar == "*":
                     return True
         except Exception as e:
-            jimi.logging.debug("Error: Flow Logic Crashed. flowID={0}, error={1}".format(data["flowData"]["flow_id"],''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__))),-1)
+            jimi.logging.debug("Error: Flow Logic Crashed. flowID={0}, error={1}".format(data["flowData"]["flow_id"],''.join(traceback.format_exception(type(e), e, e.__traceback__))),-1)
             try:
                 if data["persistentData"]["system"]["trigger"].failOnActionFailure:
                     raise jimi.exceptions.linkCrash(data["flowData"]["flow_id"],e)
@@ -205,7 +205,7 @@ class _conduct(jimi.db._document):
                             except jimi.exceptions.endFlow:
                                 raise jimi.exceptions.endFlow
                             except Exception as e:
-                                jimi.logging.debug("Error: Action Crashed. actionID={0}, actionName={1}, error={2}".format(class_._id,class_.name,''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__))),-1)
+                                jimi.logging.debug("Error: Action Crashed. actionID={0}, actionName={1}, error={2}".format(class_._id,class_.name,''.join(traceback.format_exception(type(e), e, e.__traceback__))),-1)
                                 if flowDebugSession:
                                     raise
                                 if data["persistentData"]["system"]["trigger"].failOnActionFailure:
@@ -215,7 +215,7 @@ class _conduct(jimi.db._document):
                                     raise jimi.exceptions.actionCrash(class_._id,class_.name,e)
                                 if class_.systemCrashHandler:
                                     jimi.exceptions.actionCrash(class_._id,class_.name,e)
-                                data["flowData"]["action"] = { "result" : False, "rc" : -255, "error" : traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__) }
+                                data["flowData"]["action"] = { "result" : False, "rc" : -255, "error" : traceback.format_exception(type(e), e, e.__traceback__) }
                             data["flowData"]["action"]["action_id"] = class_._id
                             data["flowData"]["action"]["action_name"] = class_.name
                             if flowDebugSession:
