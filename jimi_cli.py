@@ -1,8 +1,6 @@
 import sys
 import os
 
-os.chdir(os.path.dirname(sys.argv[0]))
-
 if len(sys.argv) > 1:
     if sys.argv[1] == "reset":
         if sys.argv[2] == "root":
@@ -14,7 +12,7 @@ if len(sys.argv) > 1:
                 rootPass = install.randomString(30)
                 rootUser.setAttribute("passwordHash",rootPass)
                 rootUser.update(["passwordHash"])
-                print("Password={0}".format(rootPass))
+                print("{0}".format(rootPass))
 else:
     from screens import mainScreen
     screen = mainScreen.mainScreen()
