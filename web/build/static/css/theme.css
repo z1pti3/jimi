@@ -406,7 +406,12 @@ div.dts div.dataTables_scrollBody {
     color: var(--textColor);
 }
 
-
 #whatsNewBody img {
     width: 100%;
+}
+
+.theme-tableRowOdd td, .theme-tableRowEven td {
+    word-break: break-word;
+    vertical-align: top;
+    white-space: normal !important;
 }
