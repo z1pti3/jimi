@@ -12,7 +12,6 @@ import onetimepass
 import bson
 import os
 import logging
-import subprocess
 from pathlib import Path
 from Crypto.Cipher import AES, PKCS1_OAEP # pycryptodome
 from Crypto.PublicKey import RSA
@@ -121,31 +120,64 @@ class _group(jimi.db._document):
 
 from system import install
 
-if jimi.settings.getSetting("auth",None):
-    authSettings = jimi.settings.getSetting("auth",None)
-    jimi.cache.globalCache.newCache("sessions",cacheExpiry=authSettings["cacheSessionTimeout"])
-    if authSettings["rsa"]["cert"].startswith("-----BEGIN PUBLIC KEY-----") and authSettings["rsa"]["key"].startswith("-----BEGIN RSA PRIVATE KEY-----"):
-        sessionPublicKey = authSettings["rsa"]["cert"]
-        sessionPrivateKey = authSettings["rsa"]["key"]
-    else:
-        logging.info("Generating new RSA session public and private keys")
-        subprocess.run(["openssl","genrsa","-out",str(Path("data/temp/private.pem")),"2048"])
-        subprocess.run(["openssl","rsa","-in",str(Path("data/temp/private.pem")),"-outform","PEM", "-pubout","-out",str(Path("data/temp/sessionPub.pem"))])
-        subprocess.run(["openssl","rsa","-in",str(Path("data/temp/private.pem")),"-out",str(Path("data/temp/sessionPriv.pem")), "-outform","PEM"])
-        with open(str(Path("data/temp/sessionPub.pem"))) as f:
-            sessionPublicKey = f.read()
-        with open(str(Path("data/temp/sessionPriv.pem"))) as f:
-            sessionPrivateKey = f.read()
-        authSettings = jimi.settings._settings(False).getAsClass(query={ "name" : "auth" })[0]
-        authSettings.values["rsa"]["cert"] = sessionPublicKey
-        authSettings.values["rsa"]["key"] = sessionPrivateKey
-        authSettings.update(["values"])
-        os.remove(Path("data/temp/sessionPub.pem"))
-        os.remove(Path("data/temp/sessionPriv.pem"))
-        os.remove(Path("data/temp/private.pem"))
+def RSAinitialization():
+    global authSettings
+    global encPublicKey
+    global encPrivateKey
+    global sessionPublicKey
+    global sessionPrivateKey
+    global session_public_key
+    global session_private_key
+    if jimi.settings.getSetting("auth",None):
+        authSettings = jimi.settings.getSetting("auth",None)
+        jimi.cache.globalCache.newCache("sessions",cacheExpiry=authSettings["cacheSessionTimeout"])
 
-    public_key = serialization.load_pem_public_key( sessionPublicKey.encode(), backend=default_backend() )
-    private_key = serialization.load_pem_private_key( sessionPrivateKey.encode(), password=None, backend=default_backend() )
+        # ENC Keys
+        if authSettings["rsa"]["cert"].startswith("-----BEGIN PUBLIC KEY-----") and authSettings["rsa"]["key"].startswith("-----BEGIN RSA PRIVATE KEY-----"):
+            encPublicKey = authSettings["rsa"]["cert"]
+            encPrivateKey = authSettings["rsa"]["key"]
+        elif authSettings["rsa"]["cert"].endswith(".pem") and authSettings["rsa"]["key"].endswith(".pem"):
+            with open(str(Path(authSettings["rsa"]["cert"]))) as f:
+                encPublicKey = f.read()
+            with open(str(Path(authSettings["rsa"]["key"]))) as f:
+                encPrivateKey = f.read()
+            authSettings = jimi.settings._settings(False).getAsClass(query={ "name" : "auth" })[0]
+            authSettings.values["rsa"]["cert"] = encPublicKey
+            authSettings.values["rsa"]["key"] = encPrivateKey
+            authSettings.update(["values"])
+        elif authSettings["auto_generate"]:
+            logging.info("Generating new RSA session public and private keys")
+            encPublicKey, encPrivateKey = jimi.helpers.generateRSAKeys()
+            authSettings = jimi.settings._settings(False).getAsClass(query={ "name" : "auth" })[0]
+            authSettings.values["rsa"]["cert"] = encPublicKey
+            authSettings.values["rsa"]["key"] = encPrivateKey
+            authSettings.update(["values"])
+            os.remove(Path("data/temp/sessionPub.pem"))
+            os.remove(Path("data/temp/sessionPriv.pem"))
+            os.remove(Path("data/temp/private.pem"))
+        
+        # API/Web Session Keys
+        if authSettings["rsa_web"]["cert"].startswith("-----BEGIN PUBLIC KEY-----") and authSettings["rsa_web"]["key"].startswith("-----BEGIN RSA PRIVATE KEY-----"):
+            sessionPublicKey = authSettings["rsa_web"]["cert"]
+            sessionPrivateKey = authSettings["rsa_web"]["key"]
+        elif authSettings["rsa_web"]["cert"].endswith(".pem") and authSettings["rsa_web"]["key"].endswith(".pem"):
+            with open(str(Path(authSettings["rsa_web"]["cert"]))) as f:
+                sessionPublicKey = f.read()
+            with open(str(Path(authSettings["rsa_web"]["key"]))) as f:
+                sessionPrivateKey = f.read()
+            authSettings = jimi.settings._settings(False).getAsClass(query={ "name" : "auth" })[0]
+            authSettings.values["rsa"]["cert"] = sessionPublicKey
+            authSettings.values["rsa"]["key"] = sessionPrivateKey
+            authSettings.update(["values"])
+        elif authSettings["auto_generate"]:
+            sessionPublicKey, sessionPrivateKey = jimi.helpers.generateRSAKeys()
+            authSettings = jimi.settings._settings(False).getAsClass(query={ "name" : "auth" })[0]
+            authSettings.values["rsa_web"]["cert"] = sessionPublicKey
+            authSettings.values["rsa_web"]["key"] = sessionPrivateKey
+            authSettings.update(["values"])
+
+        session_public_key = serialization.load_pem_public_key( sessionPublicKey.encode(), backend=default_backend() )
+        session_private_key = serialization.load_pem_private_key( sessionPrivateKey.encode(), password=None, backend=default_backend() )
 
 requiredType = "j1"
 webSecure = False
@@ -176,7 +208,7 @@ def meetsPasswordPolicy(password):
 
 def getPasswordFromENC(enc,customSecure=None):
     if enc[:6] == "ENC j1":
-        cipher_rsa = PKCS1_OAEP.new(RSA.import_key(sessionPrivateKey))
+        cipher_rsa = PKCS1_OAEP.new(RSA.import_key(encPrivateKey))
         encSecureKey = base64.b64decode(enc[7:].split(" ")[2].encode())
         secureKey = cipher_rsa.decrypt(encSecureKey)
         if customSecure is None:
@@ -210,7 +242,7 @@ def getPasswordFromENC(enc,customSecure=None):
 
 def getENCFromPassword(password,customSecure=None):
     if requiredType == "j1":
-        cipher_rsa = PKCS1_OAEP.new(RSA.import_key(sessionPublicKey))
+        cipher_rsa = PKCS1_OAEP.new(RSA.import_key(encPublicKey))
         secureKey = get_random_bytes(16)
         encSecureKey = cipher_rsa.encrypt(secureKey)
         if customSecure is None:
@@ -246,18 +278,18 @@ def generateSession(dataDict):
             dataDict[application]["expiry"] = time.time() + authSettings["sessionTimeout"]
         if "CSRF" not in dataDict[application]:
             dataDict[application]["CSRF"] = secrets.token_urlsafe(16)
-    return jwt.encode(dataDict, private_key, algorithm="RS256")
+    return jwt.encode(dataDict, session_private_key, algorithm="RS256")
 
 def generateSystemSession(expiry=10):
     data = {"jimi" : { "expiry" : time.time() + expiry, "admin" : True, "system" : True, "_id" : 0, "user" : "system", "primaryGroup" : 0, "authenticated" : True, "api" : True }}
-    return jwt.encode(data, private_key, algorithm="RS256")
+    return jwt.encode(data, session_private_key, algorithm="RS256")
 
 def buildApplicationSessionData(application,sessionID,user):
     return {application : { "_id" : user._id, "user" : user.username, "primaryGroup" : user.primaryGroup, "admin" : isAdmin(user), "accessIDs" : enumerateGroups(user), "authenticated" : True, "sessionID" : sessionID, "api" : False, "theme" : user.theme, "application" : application }}
 
 def validateSession(sessionToken,application,useCache=True):
     try:
-        dataDict = jwt.decode(sessionToken, public_key, algorithms=["RS256"])[application]
+        dataDict = jwt.decode(sessionToken, session_public_key, algorithms=["RS256"])[application]
         if dataDict["authenticated"]:
             if dataDict["expiry"] < time.time():
                 return None

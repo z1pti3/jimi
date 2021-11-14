@@ -28,6 +28,8 @@ def startWorker(systemId,systemIndex):
     from core import api
     api.createServer("jimi_worker")
     import jimi
+    # Load RSA information post jimi import / upgrade ( required for upgraded from 3.0 -> 3.1, should remove in future back to none function )
+    jimi.auth.RSAinitialization()
     workerAPISettings = jimi.config["api"]["worker"]
     jimi.function.load()
     api.startServer(True,{'server.socket_host': workerAPISettings["bind"], 'server.socket_port': workerAPISettings["startPort"]+systemIndex, 'engine.autoreload.on': False, 'server.thread_pool' : 1})
@@ -109,6 +111,9 @@ if __name__ == "__main__":
     from system import install
     install.setup()
 
+    # Load RSA information post jimi import / upgrade ( required for upgraded from 3.0 -> 3.1, should remove in future back to none function )
+    jimi.auth.RSAinitialization()
+
     apiSettings = jimi.config["api"]["core"]
     workerAPISettings = jimi.config["api"]["worker"]
 
@@ -162,5 +167,7 @@ if __name__ == "__main__":
 else:
     if multiprocessing.current_process().name != "jimi_worker":
         import jimi
+        # Load RSA information post jimi import / upgrade ( required for upgraded from 3.0 -> 3.1, should remove in future back to none function )
+        jimi.auth.RSAinitialization()
         jimi.function.load()
         jimi.settings.cpuSaver["enabled"] = False

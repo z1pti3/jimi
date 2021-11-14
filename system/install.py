@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.12
+systemVersion = 3.122
 
 # Initialize 
 dbCollectionName = "system"
@@ -228,13 +228,18 @@ def systemInstall():
     else:
         result = jimi.settings._settings().new("auth",{
             "enabled" : True,
+            "auto_generate" : True,
             "sessionTimeout" : 1800,
             "apiSessionTimeout" : 300,
             "cacheSessionTimeout" : 60,
             "singleUserSessions" : True,
             "rsa" : {
-                "cert" : "data/sessionPub.pem",
-                "key" : "data/sessionPriv.pem"
+                "cert" : None,
+                "key" : None
+            },
+            "rsa_web" : {
+                "cert" : None,
+                "key" : None
             },
             "policy" : {
                 "minLength" : 12,
@@ -546,5 +551,14 @@ def systemUpgrade(currentVersion):
         }):
             print("ERROR: Unable to build system plugins")
             return False
+
+    if currentVersion < 3.122:
+        authSettings = jimi.settings._settings(False).getAsClass(query={ "name" : "auth" })[0]
+        authSettings.values["auto_generate"] = True
+        authSettings.values["rsa_web"] = {
+            "cert" : None,
+            "key" : None
+        }
+        authSettings.update(["values"])
 
     return True

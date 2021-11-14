@@ -17,6 +17,7 @@ import datetime
 from bson.objectid import ObjectId 
 import hashlib
 import inspect
+import subprocess
 
 import jimi
 
@@ -540,3 +541,13 @@ def replaceBackspaces(string):
 def getDateFromTimestamp(timestamp):
     ts = datetime.datetime.fromtimestamp(timestamp)
     return ts.strftime("%d-%m-%Y %H:%M:%S")
+
+def generateRSAKeys():
+    subprocess.run(["openssl","genrsa","-out",str(Path("data/temp/private.pem")),"2048"])
+    subprocess.run(["openssl","rsa","-in",str(Path("data/temp/private.pem")),"-outform","PEM", "-pubout","-out",str(Path("data/temp/sessionPub.pem"))])
+    subprocess.run(["openssl","rsa","-in",str(Path("data/temp/private.pem")),"-out",str(Path("data/temp/sessionPriv.pem")), "-outform","PEM"])
+    with open(str(Path("data/temp/sessionPub.pem"))) as f:
+        sessionPublicKey = f.read()
+    with open(str(Path("data/temp/sessionPriv.pem"))) as f:
+        sessionPrivateKey = f.read()
+    return sessionPublicKey, sessionPrivateKey

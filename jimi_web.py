@@ -21,6 +21,10 @@ from core import api
 api.createServer("jimi_web",template_folder=str(Path("web","build")),static_folder=str(Path("web","build","static")))
 
 import jimi
+
+# Load RSA information post jimi import / upgrade ( required for upgraded from 3.0 -> 3.1, should remove in future back to none function )
+jimi.auth.RSAinitialization()
+
 from web import ui
 from system import install as jimiInstaller
 
