@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -82,9 +84,6 @@ if args.db_password:
 	config["mongodb"]["password"] = args.db_password
 if args.db:
 	config["mongodb"]["db"] = args.db
-
-import json
-from pathlib import Path
 
 from core import function
 from core import helpers
