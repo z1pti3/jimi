@@ -232,6 +232,14 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables-1.10.24/css/dataTables.bootstrap5.min.css') }}">
     <script src="{{ url_for('static', filename='includes/datatables-scroller-2.0.3/js/dataTables.scroller.min.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables-scroller-2.0.3/css/scroller.dataTables.min.css') }}">
+    <script>
+        window.alert = (function() {
+            var nativeAlert = window.alert;
+            return function(message) {
+                message.indexOf("DataTables warning") === 0 ? console.warn(message) : nativeAlert(message);
+            }
+        })();
+    </script>
 {%- endmacro -%}
 
 {% macro table(id,title,pollAPI,autoPoll=0) -%}
