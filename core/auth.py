@@ -141,17 +141,17 @@ def RSAinitialization():
                 encPublicKey = f.read()
             with open(str(Path(authSettings["rsa"]["key"]))) as f:
                 encPrivateKey = f.read()
-            authSettings = jimi.settings._settings(False).getAsClass(query={ "name" : "auth" })[0]
-            authSettings.values["rsa"]["cert"] = encPublicKey
-            authSettings.values["rsa"]["key"] = encPrivateKey
-            authSettings.update(["values"])
+            authSettingsObj = jimi.settings._settings(False).getAsClass(query={ "name" : "auth" })[0]
+            authSettingsObj.values["rsa"]["cert"] = encPublicKey
+            authSettingsObj.values["rsa"]["key"] = encPrivateKey
+            authSettingsObj.update(["values"])
         elif authSettings["auto_generate"]:
             logging.info("Generating new RSA session public and private keys")
             encPublicKey, encPrivateKey = jimi.helpers.generateRSAKeys()
-            authSettings = jimi.settings._settings(False).getAsClass(query={ "name" : "auth" })[0]
-            authSettings.values["rsa"]["cert"] = encPublicKey
-            authSettings.values["rsa"]["key"] = encPrivateKey
-            authSettings.update(["values"])
+            authSettingsObj = jimi.settings._settings(False).getAsClass(query={ "name" : "auth" })[0]
+            authSettingsObj.values["rsa"]["cert"] = encPublicKey
+            authSettingsObj.values["rsa"]["key"] = encPrivateKey
+            authSettingsObj.update(["values"])
             os.remove(Path("data/temp/sessionPub.pem"))
             os.remove(Path("data/temp/sessionPriv.pem"))
             os.remove(Path("data/temp/private.pem"))
@@ -165,16 +165,16 @@ def RSAinitialization():
                 sessionPublicKey = f.read()
             with open(str(Path(authSettings["rsa_web"]["key"]))) as f:
                 sessionPrivateKey = f.read()
-            authSettings = jimi.settings._settings(False).getAsClass(query={ "name" : "auth" })[0]
-            authSettings.values["rsa"]["cert"] = sessionPublicKey
-            authSettings.values["rsa"]["key"] = sessionPrivateKey
-            authSettings.update(["values"])
+            authSettingsObj = jimi.settings._settings(False).getAsClass(query={ "name" : "auth" })[0]
+            authSettingsObj.values["rsa"]["cert"] = sessionPublicKey
+            authSettingsObj.values["rsa"]["key"] = sessionPrivateKey
+            authSettingsObj.update(["values"])
         elif authSettings["auto_generate"]:
             sessionPublicKey, sessionPrivateKey = jimi.helpers.generateRSAKeys()
-            authSettings = jimi.settings._settings(False).getAsClass(query={ "name" : "auth" })[0]
-            authSettings.values["rsa_web"]["cert"] = sessionPublicKey
-            authSettings.values["rsa_web"]["key"] = sessionPrivateKey
-            authSettings.update(["values"])
+            authSettingsObj = jimi.settings._settings(False).getAsClass(query={ "name" : "auth" })[0]
+            authSettingsObj.values["rsa_web"]["cert"] = sessionPublicKey
+            authSettingsObj.values["rsa_web"]["key"] = sessionPrivateKey
+            authSettingsObj.update(["values"])
 
         session_public_key = serialization.load_pem_public_key( sessionPublicKey.encode(), backend=default_backend() )
         session_private_key = serialization.load_pem_private_key( sessionPrivateKey.encode(), password=None, backend=default_backend() )
