@@ -14,8 +14,6 @@ parser.add_argument('--write', action='store_true', help='Set write to true')
 parser.add_argument('--delete', action='store_true', help='Set delete to true')
 args = parser.parse_args()
 
-os.chdir(os.path.dirname(sys.argv[0]))
-
 if args.reset_root:
     from core import auth
     from system import install
