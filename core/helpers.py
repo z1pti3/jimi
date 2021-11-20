@@ -438,7 +438,7 @@ def apiCall(methord,apiEndpoint,jsonData=None,token=None,overrideURL=None,timeou
         if overrideAPIBase != None:
             url = "{0}/{1}/{2}".format(overrideURL,overrideAPIBase,apiEndpoint)
         else:
-            url = "{0}/{1}/{2}".format(overrideURL,jimi.config["api"]["core"]["base"],apiEndpoint)                   
+            url = "{0}/{1}/{2}".format(overrideURL,jimi.config["api"]["base"],apiEndpoint)                   
     else:
         url = "{0}/{1}".format(apiURL,apiEndpoint)
 
