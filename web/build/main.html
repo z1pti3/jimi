@@ -9,12 +9,10 @@
         {% block head %}
         {% endblock %}
         {{ jimi.theme() }}
-        <script src="{{ url_for('static', filename='includes/jquery-3.6.0/js/jquery-3.6.0.min.js') }}"></script>
         <script src="{{ url_for('static', filename='includes/datatables-1.10.24/js/jquery.dataTables.min.js') }}"></script>
         <script src="{{ url_for('static', filename='includes/datatables-1.10.24/js/dataTables.bootstrap5.min.js') }}"></script>
         <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables-1.10.24/css/dataTables.bootstrap5.min.css') }}">
         <script src="{{ url_for('static', filename='includes/datatables-scroller-2.0.3/js/dataTables.scroller.min.js') }}"></script>
-        <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables-scroller-2.0.3/css/scroller.dataTables.min.css') }}">
         <style>
             #topbar {
                 top: 0;
@@ -168,13 +166,14 @@
                         <h5 class="modal-title" id="globalSearchTitle">Search jimi</h5>
                     </div>
                     <div class="modal-body">
-                        <div class="input-group mb-3">
-                            <div class="form-floating" style="min-width: 90%;">
+                        <div class="input-group">
+                            <div class="form-floating" style="min-width: 96%;">
                                 <input type="search" class="form-control textbox" id="searchInput" placeholder="search" value="">
                                 <label for="searchInput">Search</label>
                             </div>
                             <button id="searchButton" type="button" onclick="search()" class="btn btn-primary button bi-search"></button>
                         </div>
+                        <br>
                         <table id="example" class="display" width="100%"></table>
                     </div>
                     <div class="modal-footer justify-content-start">
@@ -204,13 +203,15 @@
                     }
                 })
             });
-            let table = $('#example').DataTable({columns : [{"name" : "name", "title" : "Name"}]});
+
+            let table = $('#example').DataTable({columns : [{}], searching: false});
 
             function search() {
                 var body = {query: $("#searchInput").val()};
                 table.destroy();
                 $('#example').empty();
                 table = $('#example').DataTable({
+                    "searching": false,
                     "processing": true,
                     "serverSide": true,
                     "ajax": {
@@ -219,10 +220,10 @@
                     scrollY: "100%",
                     deferRender: true,
                     stateSave: true,
-                    scroller: true,
+                    // scroller: true,
                     "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
-                    columns : [{"name" : "name", "title" : "Name"}],
-                    dom: '<"pull-left"f><"pull-right"l>tip'
+                    columns : [{"name" : "name", "title" : "Name"},{"name" : "type", "title" : "Type"}],
+                    // dom: '<"pull-left"f><"pull-right"l>tip'
                 });
                 $('#globalSearch').modal('handleUpdate')
             }

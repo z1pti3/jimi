@@ -569,22 +569,34 @@ def whatsNewPopup():
 
 @jimi.api.webServer.route("/search",methods=["GET"])
 def search():
-	fields = ["name"]
+	fields = ["name","type"]
 	query = jimi.api.request.args.get('query')
 	objects = []
 	itemCount = 0
 	start = int(jimi.api.request.args.get('start'))
+
 	#search actions
 	pagedData = jimi.db._paged(jimi.action._action,sessionData=api.g.sessionData,query={ "name" : { "$regex" : ".*{0}.*".format(query), "$options":"i" }},maxResults=200)
-	objects.extend(pagedData.getOffset(start,queryMode=1))
+	data = pagedData.getOffset(start,queryMode=1)
+	for item in data:
+		item["type"] = "action"
+	objects.extend(data)
 	itemCount += pagedData.total
+
 	#search triggers
 	pagedData = jimi.db._paged(jimi.trigger._trigger,sessionData=api.g.sessionData,query={ "name" : { "$regex" : ".*{0}.*".format(query), "$options":"i" }},maxResults=200)
-	objects.extend(pagedData.getOffset(start,queryMode=1))
+	data = pagedData.getOffset(start,queryMode=1)
+	for item in data:
+		item["type"] = "trigger"
+	objects.extend(data)
 	itemCount += pagedData.total
+
 	#search conducts
 	pagedData = jimi.db._paged(jimi.conduct._conduct,sessionData=api.g.sessionData,query={ "name" : { "$regex" : ".*{0}.*".format(query), "$options":"i" }},maxResults=200)
-	objects.extend(pagedData.getOffset(start,queryMode=1))
+	data = pagedData.getOffset(start,queryMode=1)
+	for item in data:
+		item["type"] = "conduct"
+	objects.extend(data)
 	itemCount += pagedData.total
 	table = ui.table(fields,200,pagedData.total)
 	table.setRows(objects,links=[{ "field" : "name", "url" : "#", "fieldValue" : "_id" }])
