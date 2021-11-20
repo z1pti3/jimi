@@ -226,6 +226,9 @@ def getPasswordFromENC(enc,customSecure=None):
             return plaintext
         except ValueError:
             return None
+    if enc[:6] == "ENC j2":
+        enc = jimi.secrets._secret().getAsClass(query={ "token" : enc[7:] })[0].secretValue
+        return getPasswordFromENC(enc,customSecure=customSecure)
     else:
         key = hashlib.sha256(install.getSecure().encode()).digest()
         nonce = base64.b64decode(enc[4:].split(" ")[0].encode())

@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.122
+systemVersion = 3.123
 
 # Initialize 
 dbCollectionName = "system"
@@ -414,6 +414,9 @@ def systemInstall():
         authSettings.values["types"] = ["local"]
         authSettings.update(["values"])
 
+    # Adding secret model
+    jimi.model.registerModel("secret","_secret","_document","core.secrets")
+
     # Install system manifest
     loadSystemManifest()
 
@@ -560,5 +563,8 @@ def systemUpgrade(currentVersion):
             "key" : None
         }
         authSettings.update(["values"])
+
+    if currentVersion < 3.123:
+        jimi.model.registerModel("secret","_secret","_document","core.secrets")
 
     return True
