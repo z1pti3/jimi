@@ -38,6 +38,7 @@ else:
 		},
 		"api": {
 			"base" : "api/1.0",
+			"proxy" : None,
 			"core" : {
 				"bind" : "127.0.0.1",
 				"port" : 5000
@@ -52,7 +53,6 @@ else:
 			}
 		}
 	}
-	config["system"]["accessPort"] = config["api"]["core"]["port"]
 
 if args.id:
 	config["system"]["systemID"] = int(args.id)
@@ -67,6 +67,7 @@ if args.core_bind_address:
 	config["api"]["core"]["bind"] = args.core_bind_address
 if args.core_bind_port:
 	config["api"]["core"]["port"] = int(args.core_bind_port)
+config["system"]["accessPort"] = config["api"]["core"]["port"]
 if args.worker_bind_address:
 	config["api"]["worker"]["bind"] = args.worker_bind_address
 if args.worker_bind_port_start:
