@@ -99,6 +99,11 @@
                 padding-bottom: 5px;
                 text-align: left;
             }
+
+            .modal-dialog-search {
+                max-width: 50%;
+                min-height: 25%;
+            }
         </style>
         {% block head2 %}
         {% endblock %}
@@ -112,6 +117,7 @@
                 <a exact class="link bi-grid" href="/plugins/">Applications</a>
                 <a exact class="link bi-files" href="/storage/">Storage</a>
                 <a exact class="link bi-table" href="/modelEditor">Model Editor</a>
+                <a exact class="link bi-search" href="#" data-bs-toggle="modal" data-bs-target="#globalSearch">Search</a>
                 <div class="container" id="topbar-right">
                     <a class="link linkRight bi-door-open" href="/logout/">Logout</a>
                     <a class="link linkRight bi-person" href="/myAccount/">My Account</a>
@@ -148,5 +154,49 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal fade" id="globalSearch" tabindex="-1" role="dialog" aria-labelledby="Global Search" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-search" role="document">
+                <div class="modal-content panel">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="globalSearchTitle">Search jimi</h5>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group mb-3">
+                            <div class="form-floating" style="min-width: 90%;">
+                                <input type="search" class="form-control textbox" id="searchInput" placeholder="search" value="">
+                                <label for="searchInput">Search</label>
+                            </div>
+                            <button id="searchButton" type="button" onclick="alert('testing!')" class="btn btn-primary button bi-search"></button>
+                        </div>
+                    </div>
+                    <div class="modal-footer justify-content-start">
+                        <button type="button" class="btn btn-primary button" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Handles button event on pressing enter
+            var input = document.getElementById("searchInput");
+            input.addEventListener("keyup", function(event) {
+            // Number 13 is the "Enter" key on the keyboard
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                document.getElementById("searchButton").click();
+            }
+            }); 
+
+            $(document).ready(function () {
+                $(window).bind("keydown", function (event) { 
+                    if (event.ctrlKey || event.metaKey) {
+                        if (event.keyCode == 192) {
+                            $('#globalSearch').modal('show');
+                        }
+                    }
+                })
+            });
+        </script>
     </body>
 </html>
