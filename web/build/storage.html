@@ -39,6 +39,11 @@
                                 <div class="modal-body">
                                     <input type="hidden" name="CSRF" id="CSRF" value="{{ CSRF }}" />
                                     <div class="form-floating">
+                                        <input type="text" class="form-control textbox" id="storageID{{ storageItem["_id"] }}" name="id" placeholder="id" value="{{ storageItem["_id"] }}" disabled />
+                                        <label for="storageID">Storage ID</label>
+                                    </div>
+                                    </br>
+                                    <div class="form-floating">
                                         <input type="text" class="form-control textbox" id="storageName{{ storageItem["_id"] }}" name="name" placeholder="Name" value="{{ storageItem["fileData"] }}" />
                                         <label for="storageName">File Name</label>
                                     </div>
