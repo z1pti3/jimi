@@ -567,6 +567,30 @@ def whatsNewPopup():
 	
 	return result, 200
 
+@jimi.api.webServer.route("/search",methods=["GET"])
+def search():
+	fields = ["name"]
+	query = jimi.api.request.args.get('query')
+	objects = []
+	itemCount = 0
+	start = int(jimi.api.request.args.get('start'))
+	#search actions
+	pagedData = jimi.db._paged(jimi.action._action,sessionData=api.g.sessionData,query={ "name" : { "$regex" : ".*{0}.*".format(query), "$options":"i" }},maxResults=200)
+	objects.extend(pagedData.getOffset(start,queryMode=1))
+	itemCount += pagedData.total
+	#search triggers
+	pagedData = jimi.db._paged(jimi.trigger._trigger,sessionData=api.g.sessionData,query={ "name" : { "$regex" : ".*{0}.*".format(query), "$options":"i" }},maxResults=200)
+	objects.extend(pagedData.getOffset(start,queryMode=1))
+	itemCount += pagedData.total
+	#search conducts
+	pagedData = jimi.db._paged(jimi.conduct._conduct,sessionData=api.g.sessionData,query={ "name" : { "$regex" : ".*{0}.*".format(query), "$options":"i" }},maxResults=200)
+	objects.extend(pagedData.getOffset(start,queryMode=1))
+	itemCount += pagedData.total
+	table = ui.table(fields,200,pagedData.total)
+	table.setRows(objects,links=[{ "field" : "name", "url" : "#", "fieldValue" : "_id" }])
+	return table.generate(int(jimi.api.request.args.get('draw'))) ,200
+	#return {"actions":actions,"triggers":triggers,"conducts":conducts}, 200
+
 try:
 	api.startServer(False,{'server.socket_host': jimi.config["api"]["web"]["bind"], 'server.socket_port': jimi.config["api"]["web"]["port"], 'engine.autoreload.on': False, 'server.thread_pool' : 5, 'server.ssl_certificate' : jimi.config["api"]["web"]["secure"]["cert"],'server.ssl_private_key' : jimi.config["api"]["web"]["secure"]["key"]})
 	jimi.auth.webSecure = True

@@ -9,6 +9,12 @@
         {% block head %}
         {% endblock %}
         {{ jimi.theme() }}
+        <script src="{{ url_for('static', filename='includes/jquery-3.6.0/js/jquery-3.6.0.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='includes/datatables-1.10.24/js/jquery.dataTables.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='includes/datatables-1.10.24/js/dataTables.bootstrap5.min.js') }}"></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables-1.10.24/css/dataTables.bootstrap5.min.css') }}">
+        <script src="{{ url_for('static', filename='includes/datatables-scroller-2.0.3/js/dataTables.scroller.min.js') }}"></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables-scroller-2.0.3/css/scroller.dataTables.min.css') }}">
         <style>
             #topbar {
                 top: 0;
@@ -167,8 +173,9 @@
                                 <input type="search" class="form-control textbox" id="searchInput" placeholder="search" value="">
                                 <label for="searchInput">Search</label>
                             </div>
-                            <button id="searchButton" type="button" onclick="alert('testing!')" class="btn btn-primary button bi-search"></button>
+                            <button id="searchButton" type="button" onclick="search()" class="btn btn-primary button bi-search"></button>
                         </div>
+                        <table id="example" class="display" width="100%"></table>
                     </div>
                     <div class="modal-footer justify-content-start">
                         <button type="button" class="btn btn-primary button" data-bs-dismiss="modal">Close</button>
@@ -197,6 +204,28 @@
                     }
                 })
             });
+            let table = $('#example').DataTable({columns : [{"name" : "name", "title" : "Name"}]});
+
+            function search() {
+                var body = {query: $("#searchInput").val()};
+                table.destroy();
+                $('#example').empty();
+                table = $('#example').DataTable({
+                    "processing": true,
+                    "serverSide": true,
+                    "ajax": {
+                        url: "/search", type : "GET", data:body, contentType:"application/json"
+                    },
+                    scrollY: "100%",
+                    deferRender: true,
+                    stateSave: true,
+                    scroller: true,
+                    "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
+                    columns : [{"name" : "name", "title" : "Name"}],
+                    dom: '<"pull-left"f><"pull-right"l>tip'
+                });
+                $('#globalSearch').modal('handleUpdate')
+            }
         </script>
     </body>
 </html>
