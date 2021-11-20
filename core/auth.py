@@ -166,8 +166,8 @@ def RSAinitialization():
             with open(str(Path(authSettings["rsa_web"]["key"]))) as f:
                 sessionPrivateKey = f.read()
             authSettingsObj = jimi.settings._settings(False).getAsClass(query={ "name" : "auth" })[0]
-            authSettingsObj.values["rsa"]["cert"] = sessionPublicKey
-            authSettingsObj.values["rsa"]["key"] = sessionPrivateKey
+            authSettingsObj.values["web_rsa"]["cert"] = sessionPublicKey
+            authSettingsObj.values["web_rsa"]["key"] = sessionPrivateKey
             authSettingsObj.update(["values"])
         elif authSettings["auto_generate"]:
             sessionPublicKey, sessionPrivateKey = jimi.helpers.generateRSAKeys()
