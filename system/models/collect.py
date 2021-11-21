@@ -1,9 +1,10 @@
 import time
 
-from core.models import action, conduct, webui
-from core import helpers, logging, cache, settings
+import jimi
 
-class _collect(action._action):
+class _collect(jimi.action._action):
+	useCustomData = bool()
+	customData = dict()
 	limit = int()
 
 	def __init__(self):
@@ -16,8 +17,13 @@ class _collect(action._action):
 				return { "result" : True, "rc" : 0 }
 		except KeyError:
 			pass
-		
-		self.events.append(data["flowData"]["event"])
+
+		if self.useCustomData:
+			customData = jimi.helpers.evalDict(self.customData,{"data" : data["flowData"], "eventData" : data["eventData"], "conductData" : data["conductData"], "persistentData" :  data["persistentData"] }) 
+			self.events.append(customData)
+		else:
+			self.events.append(data["flowData"]["event"])
+
 		self.data = data
 		if self.limit != 0 and self.limit < len(self.events):
 			self.continueFlow()
@@ -27,7 +33,7 @@ class _collect(action._action):
 
 	def continueFlow(self):
 		if self.events:
-			tempDataCopy = conduct.copyData(self.data)
+			tempDataCopy = jimi.conduct.copyData(self.data)
 			tempDataCopy["flowData"]["event"] = self.events
 			tempDataCopy["flowData"]["skip"] = 1
 			self.events = []

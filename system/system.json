@@ -459,6 +459,8 @@
             "class_location" : "system.models.collect",
             "description" : "Collects a number of events together into a list and then outputs the given list to the remainder of the flow. When collect is used the flow will run up to the collect object while it collects all of the events into a list. After the list if either at the max limit or no more events are left then the collect objects outputs the list and the flow continues. Useful function for when batch processing is more efferent than singular events.",
             "fields" : [
+                { "schema_item" : "useCustomData", "schema_value" : "useCustomData", "type" : "group-checkbox", "label" : "useCustomData", "description" : "When true the value of customData will be used to build the event list.", "required" : false, "jimi_syntax" : false, "group" : 1 },
+                { "schema_item" : "customData", "schema_value" : "customData", "type" : "json-input", "label" : "customData", "description" : "Data to be used to build the list of events", "required" : false, "jimi_syntax" : true, "group" : 1 },
                 { "schema_item" : "limit", "schema_value" : "limit", "type" : "input", "label" : "limit", "description" : "The maximum number of events to collect before flushing the list. Default 0 ( unlimited ).", "required" : false, "jimi_syntax" : true }
             ],
             "data_out" : {

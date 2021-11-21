@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.123
+systemVersion = 3.124
 
 # Initialize 
 dbCollectionName = "system"
@@ -566,5 +566,8 @@ def systemUpgrade(currentVersion):
 
     if currentVersion < 3.123:
         jimi.model.registerModel("secret","_secret","_document","core.secrets")
+
+    if currentVersion < 3.124:
+        loadSystemManifest()
 
     return True
