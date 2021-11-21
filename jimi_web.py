@@ -332,7 +332,10 @@ def setConductFlowLogic(conductID,flowID,nextflowID):
 									value["order"] = 0
 							flow["next"] = sorted(flow["next"], key=itemgetter("order"), reverse=False)
 						# Link tags
-						flow["next"][key]["tag"] = data["tag"]
+						if data["tag"]:
+							flow["next"][key]["tag"] = data["tag"]
+						else:
+							flow["next"][key]["tag"] = ""
 						
 						if "_id" in api.g.sessionData:
 							jimi.audit._audit().add("flowLogic","update",{ "_id" : jimi.api.g.sessionData["_id"], "user" : jimi.api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID, "nextflowID" : nextflowID, "logic" : data["logic"] })
