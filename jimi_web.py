@@ -321,6 +321,9 @@ def setConductFlowLogic(conductID,flowID,nextflowID):
 								flow["next"][key] = {"flowID" : nextFlow["flowID"], "logic" : int(data["logic"]), "order" : 0}
 							except ValueError:
 								return { }, 403
+						# Link tags
+						flow["next"][key]["tag"] = data["tag"]
+						
 						# Link ordering
 						flow["next"][key]["order"] = int(data["order"])
 						# Sorting the list so we dont need to do this at flow runtime
@@ -331,11 +334,6 @@ def setConductFlowLogic(conductID,flowID,nextflowID):
 								if "order" not in value:
 									value["order"] = 0
 							flow["next"] = sorted(flow["next"], key=itemgetter("order"), reverse=False)
-						# Link tags
-						if data["tag"]:
-							flow["next"][key]["tag"] = data["tag"]
-						else:
-							flow["next"][key]["tag"] = ""
 						
 						if "_id" in api.g.sessionData:
 							jimi.audit._audit().add("flowLogic","update",{ "_id" : jimi.api.g.sessionData["_id"], "user" : jimi.api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID, "nextflowID" : nextflowID, "logic" : data["logic"] })
