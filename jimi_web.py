@@ -324,7 +324,7 @@ def setConductFlowLogic(conductID,flowID,nextflowID):
 						# Link tags
 						flow["next"][key]["tag"] = data["tag"]
 						
-						# Link ordering
+						# Link ordering - this will break key from here on as the orders are now changing
 						flow["next"][key]["order"] = int(data["order"])
 						# Sorting the list so we dont need to do this at flow runtime
 						try:
