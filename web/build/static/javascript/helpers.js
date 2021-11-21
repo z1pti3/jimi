@@ -104,16 +104,16 @@ function buildForm(fromData) {
         }
         
         if (fromData[objectItem]["type"] == "group-checkbox") {
-            var $cell = $('<td width="100px">');
-            $cell.append($('<label>').attr({for: fromData[objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", title : tooltip, class: "theme-panelLabel"}).text(label+":"));
+            var $cell = $('<td>');
             $row.append($cell);
             var $cell = $('<td>');
-            if (fromData[objectItem]["checked"] == true) {
-                $cell.append($('<input class="theme-panelCheckbox">').attr({type: 'checkbox', required: required, id: "properties_items"+fromData[objectItem]["schemaitem"], current: true, checked: true, key: fromData[objectItem]["schemaitem"], tag: "formItem", "data-group" : group.toString()}));
-            }
-            else {
-                $cell.append($('<input class="theme-panelCheckbox">').attr({type: 'checkbox', required: required, id: "properties_items"+fromData[objectItem]["schemaitem"], current: false, key: fromData[objectItem]["schemaitem"], tag: "formItem", "data-group" : group.toString()}));
-            }
+            var $div = $('<div class="form-check form-switch">')
+            var $checkbox = $('<input class="form-check-input" type="checkbox">').attr({required: required, id: "properties_items"+fromData[objectItem]["schemaitem"], current: fromData[objectItem]["checked"], checked: fromData[objectItem]["checked"], key: fromData[objectItem]["schemaitem"], tag: "formItem", "data-group" : group.toString()})
+            var $label = $('<label class="form-check-label theme-panelLabel" for="flexSwitchCheckDefault">').attr({ for : "properties_items"+fromData[objectItem]["schemaitem"], "data-bs-toggle" : "tooltip", "title" : tooltip }).text(label)
+            $div.append($checkbox)
+            $div.append($label)
+            $cell.append($div)
+            $row.append($cell);
             $cell.find("#properties_items"+fromData[objectItem]["schemaitem"]).on('change', function() {
                 if ($(this)[0].checked) {
                     $(".group_"+$(this).attr("data-group")).removeClass("hide")
