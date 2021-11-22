@@ -568,6 +568,53 @@ def whatsNewPopup():
 	
 	return result, 200
 
+@jimi.api.webServer.route("/search",methods=["GET"])
+def search():
+	fields = ["name","type","actions"]
+	buttons = []
+	query = jimi.api.request.args.get('query')
+	objects = []
+	itemCount = 0
+	start = int(jimi.api.request.args.get('start'))
+
+	#search actions
+	pagedData = jimi.db._paged(jimi.action._action,sessionData=api.g.sessionData,query={ "name" : { "$regex" : ".*{0}.*".format(query), "$options":"i" }},maxResults=200)
+	data = pagedData.getOffset(start,queryMode=1)
+	for item in data:
+		item["type"] = "action"
+	objects.extend(data)
+	itemCount += pagedData.total
+
+	#search triggers
+	pagedData = jimi.db._paged(jimi.trigger._trigger,sessionData=api.g.sessionData,query={ "name" : { "$regex" : ".*{0}.*".format(query), "$options":"i" }},maxResults=200)
+	data = pagedData.getOffset(start,queryMode=1)
+	for item in data:
+		item["type"] = "trigger"
+	objects.extend(data)
+	itemCount += pagedData.total
+
+	#search conducts
+	pagedData = jimi.db._paged(jimi.conduct._conduct,sessionData=api.g.sessionData,query={ "name" : { "$regex" : ".*{0}.*".format(query), "$options":"i" }},maxResults=200)
+	data = pagedData.getOffset(start,queryMode=1)
+	for item in data:
+		item["type"] = "conduct"
+	objects.extend(data)
+	itemCount += pagedData.total
+	table = ui.table(fields,200,pagedData.total)
+	# buttons=[{"field":"actions","action":"#","icon":"bi-binoculars","text":"Find in conduct"}]
+	table.setRows(objects,links=[{ "field" : "name", "url" : "#", "fieldValue" : "_id" }],buttons=buttons)
+	return table.generate(int(jimi.api.request.args.get('draw'))) ,200
+	
+@jimi.api.webServer.route("/searchConduct",methods=["GET"])
+def searchConduct():
+	query = jimi.api.request.args.get('query')
+	conductID = jimi.api.request.args.get('conductID')
+	activeObjects = [x["flowID"] for x in jimi.conduct._conduct().query(id=conductID)["results"][0]["flow"]]
+	webObjects = jimi.webui._modelUI().query(query={"conductID" : conductID, "title" : { "$regex" : ".*{0}.*".format(query), "$options":"i" }})["results"]
+	if len(webObjects) > 0:
+		return {"objects":[x["flowID"] for x in webObjects if x["flowID"] in activeObjects]}, 200
+	return {}, 404
+
 try:
 	api.startServer(False,{'server.socket_host': jimi.config["api"]["web"]["bind"], 'server.socket_port': jimi.config["api"]["web"]["port"], 'engine.autoreload.on': False, 'server.thread_pool' : 5, 'server.ssl_certificate' : jimi.config["api"]["web"]["secure"]["cert"],'server.ssl_private_key' : jimi.config["api"]["web"]["secure"]["key"]})
 	jimi.auth.webSecure = True

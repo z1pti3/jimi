@@ -9,6 +9,10 @@
         {% block head %}
         {% endblock %}
         {{ jimi.theme() }}
+        <script src="{{ url_for('static', filename='includes/datatables-1.10.24/js/jquery.dataTables.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='includes/datatables-1.10.24/js/dataTables.bootstrap5.min.js') }}"></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables-1.10.24/css/dataTables.bootstrap5.min.css') }}">
+        <script src="{{ url_for('static', filename='includes/datatables-scroller-2.0.3/js/dataTables.scroller.min.js') }}"></script>
         <style>
             #topbar {
                 top: 0;
@@ -99,6 +103,11 @@
                 padding-bottom: 5px;
                 text-align: left;
             }
+
+            .modal-dialog-search {
+                max-width: 50%;
+                min-height: 25%;
+            }
         </style>
         {% block head2 %}
         {% endblock %}
@@ -113,6 +122,7 @@
                 <a exact class="link bi-files" href="/storage/">Storage</a>
                 <a exact class="link bi-key" href="/secrets/">Secrets</a>
                 <a exact class="link bi-table" href="/modelEditor">Model Editor</a>
+                <!-- <a exact class="link bi-search" href="#" data-bs-toggle="modal" data-bs-target="#globalSearch">Search</a> -->
                 <div class="container" id="topbar-right">
                     <a class="link linkRight bi-door-open" href="/logout/">Logout</a>
                     <a class="link linkRight bi-person" href="/myAccount/">My Account</a>
@@ -149,5 +159,75 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal fade" id="globalSearch" tabindex="-1" role="dialog" aria-labelledby="Global Search" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-search" role="document">
+                <div class="modal-content panel">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="globalSearchTitle">Search jimi</h5>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group">
+                            <div class="form-floating" style="min-width: 96%;">
+                                <input type="search" class="form-control textbox" id="searchInput" placeholder="search" value="">
+                                <label for="searchInput">Search</label>
+                            </div>
+                            <button id="searchButton" type="button" onclick="search()" class="btn btn-primary button bi-search"></button>
+                        </div>
+                        <br>
+                        <table id="example" class="display" width="100%"></table>
+                    </div>
+                    <div class="modal-footer justify-content-start">
+                        <button type="button" class="btn btn-primary button" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Handles button event on pressing enter
+            var input = document.getElementById("searchInput");
+            input.addEventListener("keyup", function(event) {
+            // Number 13 is the "Enter" key on the keyboard
+            if (event.keyCode === 13) {
+                event.preventDefault();
+                document.getElementById("searchButton").click();
+            }
+            }); 
+
+            $(document).ready(function () {
+                $(window).bind("keydown", function (event) { 
+                    if (event.ctrlKey || event.metaKey) {
+                        if (event.keyCode == 192) {
+                            $('#globalSearch').modal('show');
+                        }
+                    }
+                })
+            });
+
+            let table = $('#example').DataTable({columns : [{}], searching: false});
+
+            function search() {
+                var body = {query: $("#searchInput").val()};
+                table.destroy();
+                $('#example').empty();
+                table = $('#example').DataTable({
+                    "searching": false,
+                    "processing": true,
+                    "serverSide": true,
+                    "ajax": {
+                        url: "/search", type : "GET", data:body, contentType:"application/json"
+                    },
+                    scrollY: "100%",
+                    deferRender: true,
+                    stateSave: true,
+                    // scroller: true,
+                    "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
+                    columns : [{"name" : "name", "title" : "Name"},{"name" : "type", "title" : "Type"},{"name" : "actions", "title" : "Actions"}],
+                    // dom: '<"pull-left"f><"pull-right"l>tip'
+                });
+                $('#globalSearch').modal('handleUpdate')
+            }
+        </script>
     </body>
 </html>

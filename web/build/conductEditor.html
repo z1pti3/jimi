@@ -36,11 +36,12 @@
 				<h2 style="right: 0; display: inline; position: relative;">{{ conductName }}</h2>
 				<br><i style="right: 0; display: inline; position: relative;">Users in this conduct: <span id="activeUsers"></span></i>
 			</div>
-			<div style="display: table-cell; vertical-align: middle; width: 335px; height: 100%;">
+			<div style="display: table-cell; vertical-align: middle; height: 100%;" class="d-flex justify-content-end">
 				<button onclick="createNewObjectPanel()" class="btn btn-primary topBarButton button">+</button>
 				<button onclick="debugConduct()" class="btn btn-primary topBarButton button bi-bug"> Debug</button>
 				<button onclick="exportConduct()" class="btn btn-primary topBarButton button bi-box-arrow-in-down-right"> Export</button>
 				<button onclick="importConduct()" class="btn btn-primary topBarButton button bi-box-arrow-in-up-left"> Import</button>
+				<button class="btn btn-primary topBarButton button bi-binoculars" data-bs-toggle="modal" data-bs-target="#conductSearch"> Find</button>
 			</div>
 		</div>
 		<div class="ui-main">
@@ -78,6 +79,20 @@
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="deleteFlowObject()">Delete</a></li>
 			</ul>
 			<div class="flowchart theme-content" id="flowchart"></div>
+			<div class="modal fade" id="conductSearch" tabindex="-1" role="dialog" aria-labelledby="Conduct Search" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered modal-dialog-search" role="document">
+					<div class="modal-content panel">
+						<div class="modal-body">
+							<div class="input-group">
+								<div class="form-floating" style="min-width: 100%;">
+									<input type="search" class="form-control textbox" id="searchInputConduct" autofocus placeholder="search" value="">
+									<label for="searchInput">Search</label>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 
@@ -102,5 +117,42 @@
 		};
 		})(jQuery, window);
 		$("#flowchart").contextMenu({menuSelector: "#contextMenu" });
+
+		$(document).ready(function () {
+                $(window).bind("keydown", function (event) { 
+                    if (event.ctrlKey || event.metaKey) {
+                        if (event.keyCode == 70) {
+							event.preventDefault();
+                            $('#conductSearch').modal('show');
+							document.getElementById("searchInputConduct").focus();
+							document.getElementById("searchInputConduct").select();
+                        }
+                    }
+                })
+            });
+
+		// Handles searching on enter
+		var input = document.getElementById("searchInputConduct");
+		input.addEventListener("keyup", function(event) {
+		// Number 13 is the "Enter" key on the keyboard
+		if (event.keyCode === 13) {
+			event.preventDefault();
+			findConductObject();
+			$("#conductSearch").modal("hide");
+			document.getElementById("searchInputConduct").value="";
+		}
+		}); 
+
+		function findConductObject() {
+			$.ajax({ url: "/searchConduct", type : "GET",  data:{query: $("#searchInputConduct").val(),conductID: GetURLParameter("conductID")}, contentType:"application/json", 
+                success: function ( result ) 
+                {
+					console.log(result["objects"]);
+					network.selectNodes(result["objects"]);
+					network.focus(result["objects"][0],{scale:2});
+                }
+            });
+			
+		}
 	</script>
 {% endblock %}
