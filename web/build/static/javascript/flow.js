@@ -28,6 +28,14 @@ $(document).ready(function () {
 				cKeyState = true;
 				break;
 		}
+		if (event.ctrlKey || event.metaKey) {
+			if (event.keyCode == 67 & typeof(document.activeElement["attributes"]["tag"]) == "undefined" & network.getSelectedNodes().length > 0) {
+				$.ajax({url:"/conductEditor/"+GetURLParameter("conductID")+"/copyObjects", data: JSON.stringify({ CSRF: CSRF, "nodes": nodes.get(network.getSelectedNodes()), "edges": edges.get(network.getSelectedEdges()) }), type:"POST", contentType:"application/json", success: function ( responseData ) {
+					console.log("copied!" + result);
+				}
+			});
+			}
+		}
 	});
 	$(document).keyup(function( event ) {
 		// Really it needs to detect the object its on e.g. operator or link not just anything but the few listed

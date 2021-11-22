@@ -1088,3 +1088,9 @@ def editObjectSystemSettings(conductID,flowID):
                 modelFlowObject.update(["scope"])
                 return { }, 200
     return { }, 404
+
+@jimi.api.webServer.route("/conductEditor/<conductID>/copyObjects/", methods=["POST"])
+def copyConductObjects(conductID):
+    data = json.loads(jimi.api.request.data)
+    activeObjects = jimi.conduct._conduct().query(id=conductID)["results"][0]
+    return {}, 200
