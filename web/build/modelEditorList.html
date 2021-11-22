@@ -100,7 +100,7 @@
                     { "data": "name", "name": "name", "title": "Name", "autoWidth": true, render: $.fn.dataTable.render.text() },
                     { 
                         "data": "options", "name": "options", "title": "Options", "autoWidth": true, render: function (data, type, row) {
-                            return '<button class="btn btn-primary button" onclick="editObject(\''+data+'\')">Edit</button> <button class="btn btn-primary button" onclick="deleteObject(\''+data+'\')">Del</button>';
+                            return '<button class="btn btn-primary button" onclick="editObject(\''+data+'\')">Edit</button> <button class="btn btn-primary button" id="rowid' + data + '" onclick="deleteObject(\''+data+'\')">Del</button>';
                         }
                     },
                     { "data": "whereUsed", "name": "whereUsed", "title": "whereUsed", "autoWidth": true, render: $.fn.dataTable.render.text() },
@@ -210,6 +210,7 @@
                 var pathname = window.location.pathname;
                 $.ajax({url:"/api/1.0/models/"+GetURLParameter("modelName")+"/"+objectID+"/", data: JSON.stringify({CSRF: CSRF}), type:"DELETE", success: function ( result ) {
                         dropdownAlert(null,"Success","Object deleted",1000);
+                        $("#rowid" + objectID).closest("tr").remove();
                     },
                     error: function ( result ) {
                         dropdownAlert(null,"Error","Unknown error occurred",1000);
