@@ -614,7 +614,6 @@ def searchConduct():
 		return {"objects":[x["flowID"] for x in webObjects if x["flowID"] in activeObjects]}, 200
 	return {}, 404
 
-
 try:
 	api.startServer(False,{'server.socket_host': jimi.config["api"]["web"]["bind"], 'server.socket_port': jimi.config["api"]["web"]["port"], 'engine.autoreload.on': False, 'server.thread_pool' : 5, 'server.ssl_certificate' : jimi.config["api"]["web"]["secure"]["cert"],'server.ssl_private_key' : jimi.config["api"]["web"]["secure"]["key"]})
 	jimi.auth.webSecure = True
