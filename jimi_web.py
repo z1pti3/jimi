@@ -44,14 +44,18 @@ if "webui" not in jimi.db.list_collection_names():
 @jimi.api.webServer.context_processor
 def getUserMenuItems():
 	if len(jimi.api.g.sessionToken) > 0:
-		blackList = ["secrets","storage"]
-		allowList = ["status","conducts","plugins","modelEditor"]
-		for item in blackList:
-			class_ = jimi.model.loadModel(item)
-			if class_:
-				if jimi.db.ACLAccess(jimi.api.g.sessionData,class_.acl,"read"):
-					allowList.append(item)
-		return {"isAdmin":jimi.api.g.sessionData["admin"], "menuItems":allowList}
+		isAdmin = jimi.api.g.sessionData["admin"]
+		if isAdmin:
+			allowList = ["status","conducts","plugins","modelEditor","secret","storage"]
+		else:
+			blackList = ["secret","storage"]
+			allowList = ["status","conducts","plugins","modelEditor"]
+			for item in blackList:
+				class_ = jimi.model.loadModel(item)
+				if class_:
+					if jimi.db.ACLAccess(jimi.api.g.sessionData,class_.acl,"read"):
+						allowList.append(item)
+		return {"isAdmin":isAdmin, "menuItems":allowList}
 	return {}
 
 @jimi.api.webServer.route("/")
