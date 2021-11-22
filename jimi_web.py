@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template, make_response, redirect, send_file, flash, send_from_directory
+from flask.globals import session
 from werkzeug.utils import secure_filename
 import _thread
 import time
@@ -39,6 +40,23 @@ if "webui" not in jimi.db.list_collection_names():
 	if jimi.logging.debugEnabled:
 		jimi.logging.debug("DB Collection webui Not Found : Creating...")
 	jimi.model.registerModel("flowData","_flowData","_document","core.models.webui")
+
+@jimi.api.webServer.context_processor
+def getUserMenuItems():
+	if len(jimi.api.g.sessionToken) > 0:
+		isAdmin = jimi.api.g.sessionData["admin"]
+		if isAdmin:
+			allowList = ["status","conducts","plugins","modelEditor","secret","storage"]
+		else:
+			blackList = ["secret","storage"]
+			allowList = ["status","conducts","plugins","modelEditor"]
+			for item in blackList:
+				class_ = jimi.model.loadModel(item)
+				if class_:
+					if jimi.db.ACLAccess(jimi.api.g.sessionData,class_.acl,"read"):
+						allowList.append(item)
+		return {"isAdmin":isAdmin, "menuItems":allowList}
+	return {}
 
 @jimi.api.webServer.route("/")
 def indexPage():
