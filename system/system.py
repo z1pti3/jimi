@@ -53,7 +53,10 @@ def fileIntegrityRegister():
 			for _file in files:
 				if "__pycache__" not in root and ".git" not in root:
 					filename = os.path.join(root, _file)
-					fileHash = jimi.helpers.getFileHash(filename)
+					if registerRoot == "data/storage":
+						fileHash = jimi.helpers.getFileHash(filename,insecure=True)
+					else:
+						fileHash = jimi.helpers.getFileHash(filename)
 					checksumHash.append(fileHash)
 					try:
 						if knownFilesHash[filename].fileHash != fileHash:

@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.124
+systemVersion = 3.1241
 
 # Initialize 
 dbCollectionName = "system"
@@ -565,5 +565,8 @@ def systemUpgrade(currentVersion):
 
     if currentVersion < 3.124:
         loadSystemManifest()
+    
+    if currentVersion < 3.1241:
+        jimi.settings._settings().new("storage",{ "maxBytesChecked" : 26214400})
 
     return True

@@ -502,11 +502,22 @@ def roundTime(dt=None, roundTo=60):
    rounding = (seconds+roundTo/2) // roundTo * roundTo
    return dt + datetime.timedelta(0,rounding-seconds,-dt.microsecond)
 
-def getFileHash(filename):
+def getFileHash(filename,insecure=False):
     sha256_hash = hashlib.sha256()
-    with open(filename, "rb") as f:
-        for byte_block in iter(lambda: f.read(4096),b""):
-            sha256_hash.update(byte_block)
+    if insecure:
+        maxBytes = jimi.settings.getSetting("storage","maxBytesChecked")
+        counter = 0
+        with open(filename, "rb") as f:
+            for byte_block in iter(lambda: f.read(4096),b""):
+                sha256_hash.update(byte_block)
+                counter += 4096
+                if counter > maxBytes:
+                    sha256_hash.update(f"{filename}-{os.path.getsize(filename)}".encode("utf-8"))
+                    break
+    else:
+        with open(filename, "rb") as f:
+            for byte_block in iter(lambda: f.read(4096),b""):
+                sha256_hash.update(byte_block)
     return sha256_hash.hexdigest()
 
 def getStringHash(string):
