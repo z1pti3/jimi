@@ -569,7 +569,8 @@ def whatsNewPopup():
 
 @jimi.api.webServer.route("/search",methods=["GET"])
 def search():
-	fields = ["name","type"]
+	fields = ["name","type","actions"]
+	buttons = []
 	query = jimi.api.request.args.get('query')
 	objects = []
 	itemCount = 0
@@ -599,9 +600,19 @@ def search():
 	objects.extend(data)
 	itemCount += pagedData.total
 	table = ui.table(fields,200,pagedData.total)
-	table.setRows(objects,links=[{ "field" : "name", "url" : "#", "fieldValue" : "_id" }])
+	# buttons=[{"field":"actions","action":"#","icon":"bi-binoculars","text":"Find in conduct"}]
+	table.setRows(objects,links=[{ "field" : "name", "url" : "#", "fieldValue" : "_id" }],buttons=buttons)
 	return table.generate(int(jimi.api.request.args.get('draw'))) ,200
-	#return {"actions":actions,"triggers":triggers,"conducts":conducts}, 200
+	
+@jimi.api.webServer.route("/searchConduct",methods=["GET"])
+def searchConduct():
+	query = jimi.api.request.args.get('query')
+	conductID = jimi.api.request.args.get('conductID')
+	webObjects = jimi.webui._modelUI().query(query={"conductID" : conductID, "title" : { "$regex" : ".*{0}.*".format(query), "$options":"i" }})["results"]
+	if len(webObjects) > 0:
+		return {"objects":[x["flowID"] for x in webObjects]}, 200
+	return {}, 404
+
 
 try:
 	api.startServer(False,{'server.socket_host': jimi.config["api"]["web"]["bind"], 'server.socket_port': jimi.config["api"]["web"]["port"], 'engine.autoreload.on': False, 'server.thread_pool' : 5, 'server.ssl_certificate' : jimi.config["api"]["web"]["secure"]["cert"],'server.ssl_private_key' : jimi.config["api"]["web"]["secure"]["key"]})
