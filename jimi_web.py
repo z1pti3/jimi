@@ -608,9 +608,10 @@ def search():
 def searchConduct():
 	query = jimi.api.request.args.get('query')
 	conductID = jimi.api.request.args.get('conductID')
+	activeObjects = [x["flowID"] for x in jimi.conduct._conduct().query(id=conductID)["results"][0]["flow"]]
 	webObjects = jimi.webui._modelUI().query(query={"conductID" : conductID, "title" : { "$regex" : ".*{0}.*".format(query), "$options":"i" }})["results"]
 	if len(webObjects) > 0:
-		return {"objects":[x["flowID"] for x in webObjects]}, 200
+		return {"objects":[x["flowID"] for x in webObjects if x["flowID"] in activeObjects]}, 200
 	return {}, 404
 
 
