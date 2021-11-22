@@ -121,7 +121,7 @@
 		$(document).ready(function () {
                 $(window).bind("keydown", function (event) { 
                     if (event.ctrlKey || event.metaKey) {
-                        if (event.keyCode == 70) {
+                        if (event.keyCode == 70 & typeof(document.activeElement["attributes"]["tag"]) == "undefined") {
 							event.preventDefault();
                             $('#conductSearch').modal('show');
 							document.getElementById("searchInputConduct").focus();
