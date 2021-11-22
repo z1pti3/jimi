@@ -549,11 +549,7 @@ def systemUpgrade(currentVersion):
         jimi.model.registerModel("flowDebugSnapshot","_flowDebugSnapshot","_document","core.debug")
 
     if currentVersion < 3.12:
-        if not jimi.settings._settings().new("plugins",{
-            "install_dependencies" : True
-        }):
-            print("ERROR: Unable to build system plugins")
-            return False
+        jimi.settings._settings().new("plugins",{ "install_dependencies" : True })
 
     if currentVersion < 3.122:
         authSettings = jimi.settings._settings(False).getAsClass(query={ "name" : "auth" })[0]

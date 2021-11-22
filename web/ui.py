@@ -1,8 +1,6 @@
 import html
-import copy
 import random
 from json2html import *
-import urllib.parse
 
 class chartjs():
 
@@ -121,12 +119,13 @@ class table():
     def getColumns(self):
         return { "columns" : self.columns }
 
-    def setRows(self,rows,links=[]):
+    def setRows(self,rows,links=[],buttons=[]):
         self.data = []
         for row in rows:
             rowData = []
             for column in self.columns:
                 hyperLink = None
+                buttonData = None
                 for link in links:
                     if link["field"] == column["name"]:
                         hyperLink = link["url"]
@@ -134,6 +133,9 @@ class table():
                             hyperLinkValue = row[link["fieldValue"]]
                         else:
                             hyperLinkValue = ""
+                for button in buttons:
+                    if button["field"] == column["name"]:
+                        buttonData = {"action": button["action"], "icon": button["icon"], "text": button["text"]}
                 try:
                     value = safe(row[column["name"]])
                 except KeyError:
@@ -142,12 +144,13 @@ class table():
                     value = json2html.convert(json=value)
                 if hyperLink:
                     value = "<a href=\"{0}{1}/\">{2}</a>".format(hyperLink,hyperLinkValue,value)
+                if buttonData:
+                    value = "<button class=\"btn btn-primary button {0}\" onClick=\"{1}\"> {2}</button>".format(buttonData["icon"],buttonData["action"],buttonData["text"])
                 rowData.append(value)
             self.data.append(rowData)
 
     def generate(self,draw):
         return { "draw" : draw, "recordsTable" : self.pageSize, "recordsFiltered" : self.totalRows, "recordsTotal" : self.totalRows, "data" : self.data }
-
 
 def randomColor():
     r = random.randint(0,255)
