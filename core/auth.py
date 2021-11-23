@@ -60,6 +60,7 @@ class _user(jimi.db._document):
     whatsNew = False
     theme = "dark"
     loginType = "local"
+    clipboard = {}
 
     _dbCollection = jimi.db.db["users"]
 
