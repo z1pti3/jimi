@@ -1137,71 +1137,22 @@ def pasteConductObjects(conductID):
             clipboard["nodes"] = jimi.helpers.getCentreOffset(clipboard["nodes"],data["centre"])
 
             for node in clipboard["nodes"]:
-                modelFlowObject = None
-                # Check if the modelType and object are unchanged
-                if "flowType" in node:
-                    if node["flowType"] == "trigger":
-                        modelFlowObject = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,id=node["objID"])
-                        if len(modelFlowObject) == 1:
-                            modelFlowObject = modelFlowObject[0]
-                        modelFlowObjectType = "trigger"
-                    if node["flowType"] == "action":
-                        modelFlowObject = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,id=node["objID"])
-                        if len(modelFlowObject) == 1:
-                            modelFlowObject = modelFlowObject[0]
-                        modelFlowObjectType = "action"
-
-                    # Was it possible to load an existing object
-                    if modelFlowObject:
-                        # Create new flowItem
-                        newFlowID = newNodeDict[node["id"]]
-                        flow = {
-                            "flowID" : newFlowID, 
-                            "type" : node["flowType"],
-                            "next" : node["links"]
-                        }
-                        for edge in flow["next"]:
-                            edge["flowID"] = newNodeDict[edge["flowID"]]
-                        # New object required
-                        _class = jimi.model._model().getAsClass(jimi.api.g.sessionData,id=modelFlowObject.classID)
-                        if _class:
-                            _class = _class[0].classObject()
-                            # Bug exists as name value is not requried by db class but is for core models - this could result in an error if new model is added that does not accept name within new function override
-                            acl = { "ids" : [ { "accessID" : jimi.api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
-                            newFlowObjectID = _class().new(flow["flowID"],acl=acl).inserted_id
-
-                            # Working out by bruteforce which type this is ( try and load it by parent class and check for error) - get on trigger if it does not exist will return None
-                            modelFlowObjectClone = _class().getAsClass(jimi.api.g.sessionData,id=newFlowObjectID)
-                            if len(modelFlowObjectClone) == 1:
-                                modelFlowObjectClone = modelFlowObjectClone[0]
-                            else:
-                                return { }, 404
-
-                            # Setting values in cloned object
-                            members = [attr for attr in dir(modelFlowObject) if not callable(getattr(modelFlowObject, attr)) and not "__" in attr and attr ]
-                            dontCopy=["_id","name"]
-                            validTypes = [str,int,bool,float,list,dict]
-                            updateList = []
-                            for member in members:
-                                if member not in dontCopy:
-                                    if type(getattr(modelFlowObject,member)) in validTypes:
-                                        setattr(modelFlowObjectClone,member,getattr(modelFlowObject,member))
-                                        updateList.append(member)
-                            modelFlowObjectClone.update(updateList,sessionData=jimi.api.g.sessionData)
-
-                            # Set conduct flow to correct type and objectID
-                            flow["{0}{1}".format(node["flowType"],"ID")] = str(newFlowObjectID)
-                            conductObj.flow.append(flow)
-
-                            # Adding UI position for cloned object
-                            flowUI = jimi.webui._modelUI().getAsClass(jimi.api.g.sessionData,query={ "flowID" : node["id"], "conductID" : clipboard["originalConductID"] })[0]
-                            jimi.webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],node["x"],node["y"],"Copy - {0}".format(flowUI.title))
-                            if "_id" in jimi.api.g.sessionData:
-                                jimi.audit._audit().add("flow","duplicate",{ "_id" : jimi.api.g.sessionData["_id"], "user" : jimi.api.g.sessionData["user"], "conductID" : conductID, "flowID" : node["id"], "newFlowID" : newFlowID })
-                            else:
-                                jimi.audit._audit().add("flow","duplicate",{ "user" : "system", "conductID" : conductID, "flowID" : node["id"], "newFlowID" : newFlowID })
-                        
-                
+                newFlowID = newNodeDict[node["id"]]
+                flow = {
+                    "flowID" : newFlowID, 
+                    "type" : node["flowType"],
+                    "next" : node["links"],
+                    "{0}{1}".format(node["flowType"],"ID") : node["objID"]
+                }
+                for edge in flow["next"]:
+                    edge["flowID"] = newNodeDict[edge["flowID"]]
+                if "_id" in jimi.api.g.sessionData:
+                    jimi.audit._audit().add("flow","copy",{ "_id" : jimi.api.g.sessionData["_id"], "user" : jimi.api.g.sessionData["user"], "conductID" : conductID, "flowID" : node["id"] })
+                else:
+                    jimi.audit._audit().add("flow","copy",{ "user" : "system", "conductID" : conductID, "flowID" : node["id"] })
+                flowUI = jimi.webui._modelUI().getAsClass(jimi.api.g.sessionData,query={ "flowID" : node["id"], "conductID" : clipboard["originalConductID"] })[0]
+                jimi.webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],node["x"],node["y"],flowUI.title)
+                conductObj.flow.append(flow)                      
             conductObj.update(["flow"],sessionData=jimi.api.g.sessionData)
             return { "result" : True}, 201 
         return { }, 404
