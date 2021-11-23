@@ -1095,18 +1095,20 @@ def copyConductObjects(conductID):
     data = json.loads(jimi.api.request.data)
     webObjects = jimi.webui._modelUI().getAsClass(query={"conductID" : conductID})
     nodes = []
-    edges = []
     for node in data["nodes"]:
         nodeData = [x for x in webObjects if x.flowID == node["id"]][0]
         if jimi.db.ACLAccess(jimi.api.g.sessionData,nodeData.acl,"write"):
+            node["links"] = []
             nodes.append(node)
     nodeIDList = [x["id"] for x in nodes]
     for edge in data["edges"]:
         if edge["from"] in nodeIDList and edge["to"] in nodeIDList:
-            edges.append(edge)
+            for node in nodes:
+                if node["id"] == edge["from"]:
+                    node["links"].append({"flowID":edge["to"],"logic":True,"order":0,"tag":""})
     if len(nodes) > 0:
         user = jimi.auth._user().getAsClass(id=jimi.api.g.sessionData["_id"])[0]
-        user.clipboard = {"nodes":nodes,"edges":edges}
+        user.clipboard = {"nodes":nodes}
         user.update(["clipboard"])
         return {}, 200
     return {}, 403
@@ -1118,8 +1120,13 @@ def pasteConductObjects(conductID):
     if access:
         data = json.loads(jimi.api.request.data)
         user = jimi.auth._user().getAsClass(id=jimi.api.g.sessionData["_id"])[0]
-        if len(user.clipboard) > 0:
-            for node in user.clipboard["nodes"]:
+        clipboard = user.clipboard
+        if len(clipboard) > 0:
+            #Generate new node IDs so we can link later
+            newNodeDict = {}
+            for node in clipboard["nodes"]:
+                newNodeDict[node["id"]] = str(uuid.uuid4())
+            for node in clipboard["nodes"]:
                 modelFlowObject = None
                 # Check if the modelType and object are unchanged
                 if "flowType" in node:
@@ -1137,12 +1144,14 @@ def pasteConductObjects(conductID):
                     # Was it possible to load an existing object
                     if modelFlowObject:
                         # Create new flowItem
-                        newFlowID = str(uuid.uuid4())
+                        newFlowID = newNodeDict[node["id"]]
                         flow = {
                             "flowID" : newFlowID, 
                             "type" : node["flowType"],
-                            "next" : []
+                            "next" : node["links"]
                         }
+                        for edge in flow["next"]:
+                            edge["flowID"] = newNodeDict[edge["flowID"]]
                         # New object required
                         _class = jimi.model._model().getAsClass(jimi.api.g.sessionData,id=modelFlowObject.classID)
                         if _class:
@@ -1177,11 +1186,13 @@ def pasteConductObjects(conductID):
                             # Adding UI position for cloned object
                             flowUI = jimi.webui._modelUI().getAsClass(jimi.api.g.sessionData,query={ "flowID" : node["id"], "conductID" : conductID })[0]
                             jimi.webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],data["centre"]["x"],data["centre"]["y"],"Copy - {0}".format(flowUI.title))
-                            conductObj.update(["flow"],sessionData=jimi.api.g.sessionData)
                             if "_id" in jimi.api.g.sessionData:
                                 jimi.audit._audit().add("flow","duplicate",{ "_id" : jimi.api.g.sessionData["_id"], "user" : jimi.api.g.sessionData["user"], "conductID" : conductID, "flowID" : node["id"], "newFlowID" : newFlowID })
                             else:
                                 jimi.audit._audit().add("flow","duplicate",{ "user" : "system", "conductID" : conductID, "flowID" : node["id"], "newFlowID" : newFlowID })
+                        
+                
+            conductObj.update(["flow"],sessionData=jimi.api.g.sessionData)
             return { "result" : True}, 201 
         return { }, 404
     return { }, 401
