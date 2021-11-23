@@ -285,7 +285,7 @@ def generateSession(dataDict):
     return jwt.encode(dataDict, session_private_key, algorithm="RS256")
 
 def generateSystemSession(expiry=10):
-    data = {"jimi" : { "expiry" : time.time() + expiry, "admin" : True, "system" : True, "_id" : 0, "user" : "system", "primaryGroup" : 0, "authenticated" : True, "api" : True, "clipboard": None }}
+    data = {"jimi" : { "expiry" : time.time() + expiry, "admin" : True, "system" : True, "_id" : 0, "user" : "system", "primaryGroup" : 0, "authenticated" : True, "api" : True }}
     return jwt.encode(data, session_private_key, algorithm="RS256")
 
 def buildApplicationSessionData(application,sessionID,user):
