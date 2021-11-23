@@ -562,3 +562,12 @@ def generateRSAKeys():
     with open(str(Path("data/temp/sessionPriv.pem"))) as f:
         sessionPrivateKey = f.read()
     return sessionPublicKey, sessionPrivateKey
+
+def getCentreOffset(flowData,newCentre):
+    x = [x["x"] for x in flowData]
+    y = [x["y"] for x in flowData]
+    centroid = (sum(x) / len(flowData), sum(y) / len(flowData))
+    for node in flowData:
+        node["x"] -= centroid[0] - newCentre["x"]
+        node["y"] -= centroid[1] - newCentre["y"]
+    return flowData
