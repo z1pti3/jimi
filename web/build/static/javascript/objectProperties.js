@@ -10,6 +10,9 @@ var panelPropertiesHTML = `
 		<div class="propertiesPanel-help">
 		</div>
 	</div>
+	<div id="unlinkDiv" class="container-fluid propertiesPanel-footer theme-panelFooter pb-5 hide">
+		<button id="unlink" class="btn btn-primary button bi-exclude"> Unlink</button>
+	</div>
 	<div class="container-fluid propertiesPanel-footer theme-panelFooter">
 		<button id="save" class="btn btn-primary button bi-save"> Save</button>
 		<button id="refresh" class="btn btn-primary button bi-recycle"> Refresh</button>
@@ -168,7 +171,11 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 			panel.find(".propertiesPanel-body").append(buildForm(result["formData"]));
 
 			if (result["whereUsed"].length > 1 && panel.find("#save").html() === " Save") {
+				panel.find("#unlinkDiv").removeClass("hide");
 				panel.find("#save").html(panel.find("#save").html() + " ("+result["whereUsed"].length+")");
+			} else {
+				panel.find("#unlinkDiv").addClass("hide");
+				panel.find("#save").html("Save");
 			}
 
 			// Added to fix a bug whereby the property table scroll bar does not appear
@@ -190,7 +197,18 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 			}
 		}
 	});
+}
 
+function unlinkObject(flowID,panel) { 
+	var conductID = GetURLParameter("conductID")
+	jsonData = { action: "unlink", operatorId: flowID, CSRF: CSRF }
+	$.ajax({url:"/conductEditor/"+conductID+"/flow/"+flowID+"/", type:"POST", data: JSON.stringify(jsonData), contentType:"application/json", success: function ( result ) {
+		    console.log(result["objectID"])
+			nodes.get(flowID)["objID"] = result["objectID"]
+			loadPropertiesPanel(flowID,panel,false);
+			console.log(nodes.get(flowID)["objID"])
+		}
+	});
 }
 
 function createPropertiesPanel(flowID) {
@@ -299,6 +317,10 @@ function createPropertiesPanel(flowID) {
 				left = parseInt(panel.css("left"));
 				panel.css({left: left - 450});
 			}
+		})
+
+		panel.find("#unlink").click(function () { 
+			unlinkObject(flowID,panel);
 		})
 
 		// Loading properties form

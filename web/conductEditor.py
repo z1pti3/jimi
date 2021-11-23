@@ -774,6 +774,62 @@ def updateFlow(conductID,flowID):
                 else:
                     jimi.webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],x,y)
                     return { }, 201
+        elif data["action"] == "unlink":
+            access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
+            if access:
+                flow = [ x for x in conductObj.flow if x["flowID"] ==  data["operatorId"]]
+                if len(flow) == 1:
+                    flow = flow[0]
+                    data = json.loads(jimi.api.request.data)
+                    modelFlowObject = None
+                    # Check if the modelType and object are unchanged
+                    if "type" in flow:
+                        if flow["type"] == "trigger":
+                            modelFlowObject = jimi.trigger._trigger(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                            if len(modelFlowObject) == 1:
+                                modelFlowObject = modelFlowObject[0]
+                            modelFlowObjectType = "trigger"
+                        if flow["type"] == "action":
+                            modelFlowObject = jimi.action._action(False).getAsClass(jimi.api.g.sessionData,id=flow["{0}{1}".format(flow["type"],"ID")])
+                            if len(modelFlowObject) == 1:
+                                modelFlowObject = modelFlowObject[0]
+                            modelFlowObjectType = "action"
+                        # Was it possible to load an existing object
+                        if modelFlowObject:
+                            # New object required
+                            _class = jimi.model._model().getAsClass(jimi.api.g.sessionData,id=modelFlowObject.classID)
+                            if _class:
+                                _class = _class[0].classObject()
+                                # All class models used as objects within a flow must have a name field
+                                acl = { "ids" : [ { "accessID" : jimi.api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] }
+                                newFlowObjectID = str(_class().new(modelFlowObject.name,acl=acl).inserted_id)
+
+                                modelFlowObjectClone = _class().getAsClass(jimi.api.g.sessionData,id=newFlowObjectID)
+                                if len(modelFlowObjectClone) == 1:
+                                    modelFlowObjectClone = modelFlowObjectClone[0]
+                                else:
+                                    return { }, 404
+
+                                # Setting values in cloned object
+                                members = [attr for attr in dir(modelFlowObject) if not callable(getattr(modelFlowObject, attr)) and not "__" in attr and attr ]
+                                dontCopy=["_id"]
+                                validTypes = [str,int,bool,float,list,dict]
+                                updateList = []
+                                for member in members:
+                                    if member not in dontCopy:
+                                        if type(getattr(modelFlowObject,member)) in validTypes:
+                                            setattr(modelFlowObjectClone,member,getattr(modelFlowObject,member))
+                                            updateList.append(member)
+                                modelFlowObjectClone.update(updateList,sessionData=jimi.api.g.sessionData)
+
+                                # Set conduct flow to correct type and objectID
+                                flow["{0}{1}".format(flow["type"],"ID")] = str(newFlowObjectID)
+                                conductObj.update(["flow"],sessionData=jimi.api.g.sessionData)
+                                if "_id" in jimi.api.g.sessionData:
+                                    jimi.audit._audit().add("flow","unlink",{ "_id" : jimi.api.g.sessionData["_id"], "user" : jimi.api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID, "oldFlowObjectID" : modelFlowObject._id, "newFlowObjectID" : newFlowObjectID })
+                                else:
+                                    jimi.audit._audit().add("flow","unlink",{ "user" : "system", "conductID" : conductID, "flowID" : flowID, "oldFlowObjectID" : modelFlowObject._id, "newFlowObjectID" : newFlowObjectID })
+                                return { "objectID" : newFlowObjectID }, 200
         elif data["action"] == "copy":
             access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
             if access:
@@ -1114,13 +1170,13 @@ def copyConductObjects(conductID):
         nodes.append(nodeDict[node])
     if len(nodes) > 0:
         user = jimi.auth._user().getAsClass(id=jimi.api.g.sessionData["_id"])[0]
-        user.clipboard = {"nodes":nodes,"originalConductID":conductID}
+        user.clipboard = {"nodes":nodes,"originalConductID":conductID,"copyTime":time.time()}
         user.update(["clipboard"])
         return {}, 200
     return {}, 403
 
 @jimi.api.webServer.route("/conductEditor/<conductID>/pasteObjects/", methods=["POST"])
-def pasteConductObjects(conductID):
+def pasteConductObjects(conductID,forcePaste=False):
     conductObj = jimi.conduct._conduct().getAsClass(id=conductID)[0]
     access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
     if access:
