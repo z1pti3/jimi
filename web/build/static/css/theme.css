@@ -221,7 +221,7 @@ div.dts div.dataTables_scrollBody {
 }
 
 .hide {
-    display: none;
+    display: none!important;
 }
 
 .unselectable {
