@@ -1094,18 +1094,24 @@ def editObjectSystemSettings(conductID,flowID):
 def copyConductObjects(conductID):
     data = json.loads(jimi.api.request.data)
     webObjects = jimi.webui._modelUI().getAsClass(query={"conductID" : conductID})
+    conductObj = jimi.conduct._conduct().getAsClass(id=conductID)[0]
     nodes = []
+    nodeDict = {}
     for node in data["nodes"]:
         nodeData = [x for x in webObjects if x.flowID == node["id"]][0]
         if jimi.db.ACLAccess(jimi.api.g.sessionData,nodeData.acl,"write"):
             node["links"] = []
-            nodes.append(node)
-    nodeIDList = [x["id"] for x in nodes]
+            nodeDict[node["id"]] = node
+        nodeIDList = [x["id"] for x in nodes]
     for edge in data["edges"]:
-        if edge["from"] in nodeIDList and edge["to"] in nodeIDList:
-            for node in nodes:
-                if node["id"] == edge["from"]:
-                    node["links"].append({"flowID":edge["to"],"logic":True,"order":0,"tag":""})
+        if edge["from"] in nodeDict and edge["to"] in nodeDict:
+            for flow in conductObj.flow:
+                if edge["from"] == flow["flowID"] and flow["type"] == nodeDict[edge["from"]]["flowType"] and flow["{0}ID".format(flow["type"])] == nodeDict[edge["from"]]["objID"]:
+                    for link in flow["next"]:
+                        if link["flowID"] == edge["to"]:
+                            nodeDict[edge["from"]]["links"].append(link)
+    for node in nodeDict:
+        nodes.append(nodeDict[node])
     if len(nodes) > 0:
         user = jimi.auth._user().getAsClass(id=jimi.api.g.sessionData["_id"])[0]
         user.clipboard = {"nodes":nodes}
