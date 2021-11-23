@@ -31,13 +31,13 @@ $(document).ready(function () {
 		if (event.ctrlKey || event.metaKey) {
 			if (event.keyCode == 67 & typeof(document.activeElement["attributes"]["tag"]) == "undefined" & network.getSelectedNodes().length > 0) {
 				$.ajax({url:"/conductEditor/"+GetURLParameter("conductID")+"/copyObjects", data: JSON.stringify({ CSRF: CSRF, "nodes": nodes.get(network.getSelectedNodes()), "edges": edges.get(network.getSelectedEdges()) }), type:"POST", contentType:"application/json", success: function ( result ) {
-					console.log("copied");
+					dropdownAlert(null,"success","Flow Objects Copied!",1000);
 				}
 			});
 			}
 			if (event.keyCode == 86 & typeof(document.activeElement["attributes"]["tag"]) == "undefined" & network.getSelectedNodes().length == 0) {
 				$.ajax({url:"/conductEditor/"+GetURLParameter("conductID")+"/pasteObjects", data: JSON.stringify({ CSRF: CSRF, "centre" : network.getViewPosition() }), type:"POST", contentType:"application/json", success: function ( result ) {
-					console.log("pasted!")
+					dropdownAlert(null,"success","Flow Objects Pasted!",1000);
 				}
 				});
 			}
