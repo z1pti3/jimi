@@ -12,7 +12,7 @@ function dropdownAlert(parent,type,message,timeout) {
         alert.addClass("mainAlert-warning")
     }
     if (type.toLowerCase() == "info") {
-        alert.addClass("mainAlert-warning")
+        alert.addClass("mainAlert-info")
     }
     alert.find("#alert-header").text(type);
     alert.find("#alert-message").text(message);

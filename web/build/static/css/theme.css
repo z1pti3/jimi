@@ -36,6 +36,8 @@
     --errorColor: #adadad;
     --alertBackgroundColor: #009b22;
     --alertColor: #000000;
+    --infoBackgroundColour: #fff;
+    --infoColor: #000000;
 }
 
 *::-webkit-scrollbar {
@@ -397,7 +399,16 @@ div.dts div.dataTables_scrollBody {
     color: var(--errorColor);
 }
 
+.mainAlert-info, .mainAlert-info .toast-header {
+    background-color: var(--infoBackgroundColor);
+    color: var(--infoColor);
+}
+
 .mainAlert-warning {
+    padding: 0;
+}
+
+.mainAlert-info {
     padding: 0;
 }
 

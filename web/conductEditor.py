@@ -1176,13 +1176,15 @@ def copyConductObjects(conductID):
     return {}, 403
 
 @jimi.api.webServer.route("/conductEditor/<conductID>/pasteObjects/", methods=["POST"])
-def pasteConductObjects(conductID,forcePaste=False):
+def pasteConductObjects(conductID):
     conductObj = jimi.conduct._conduct().getAsClass(id=conductID)[0]
     access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
     if access:
         data = json.loads(jimi.api.request.data)
         user = jimi.auth._user().getAsClass(id=jimi.api.g.sessionData["_id"])[0]
         clipboard = user.clipboard
+        if clipboard["copyTime"] < time.time() - 900 and not data["forcePaste"]:
+            return "Your last copy was over 15 minutes ago, are you sure you want to paste?", 302
         if len(clipboard) > 0:
             #Generate new node IDs so we can link later
             newNodeDict = {}
@@ -1210,6 +1212,6 @@ def pasteConductObjects(conductID,forcePaste=False):
                 jimi.webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],node["x"],node["y"],flowUI.title)
                 conductObj.flow.append(flow)                      
             conductObj.update(["flow"],sessionData=jimi.api.g.sessionData)
-            return { "result" : True}, 201 
-        return { }, 404
-    return { }, 401
+            return "Pasted", 201 
+        return "Could not find some of the objects to be pasted", 404
+    return "You don't have write permissions to this conduct and can't paste here!", 401

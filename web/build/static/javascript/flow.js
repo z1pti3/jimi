@@ -31,13 +31,29 @@ $(document).ready(function () {
 		if (event.ctrlKey || event.metaKey) {
 			if (event.keyCode == 67 & typeof(document.activeElement["attributes"]["tag"]) == "undefined" & network.getSelectedNodes().length > 0) {
 				$.ajax({url:"/conductEditor/"+GetURLParameter("conductID")+"/copyObjects", data: JSON.stringify({ CSRF: CSRF, "nodes": nodes.get(network.getSelectedNodes()), "edges": edges.get(network.getSelectedEdges()) }), type:"POST", contentType:"application/json", success: function ( result ) {
-					dropdownAlert(null,"success","Flow Objects Copied!",1000);
+					dropdownAlert(null,"Success","Flow Objects Copied!",1000);
 				}
 			});
 			}
 			if (event.keyCode == 86 & typeof(document.activeElement["attributes"]["tag"]) == "undefined" & network.getSelectedNodes().length == 0) {
-				$.ajax({url:"/conductEditor/"+GetURLParameter("conductID")+"/pasteObjects", data: JSON.stringify({ CSRF: CSRF, "centre" : network.getViewPosition() }), type:"POST", contentType:"application/json", success: function ( result ) {
-					dropdownAlert(null,"success","Flow Objects Pasted!",1000);
+				$.ajax({url:"/conductEditor/"+GetURLParameter("conductID")+"/pasteObjects", data: JSON.stringify({ CSRF: CSRF, "centre" : network.getViewPosition(), "forcePaste" : false }), type:"POST", contentType:"application/json", success: function ( result ) {
+					dropdownAlert(null,"Success","Flow Objects Pasted!",1000);
+				},
+				error: function ( result ){
+					if (result["status"] === 302){
+						if (confirm(result["responseText"])) {
+							$.ajax({url:"/conductEditor/"+GetURLParameter("conductID")+"/pasteObjects", data: JSON.stringify({ CSRF: CSRF, "centre" : network.getViewPosition(), "forcePaste" : true }), type:"POST", contentType:"application/json", success: function ( result ) {
+								dropdownAlert(null,"Success","Flow Objects Pasted!",1000);
+							},
+							error: function ( result ){ dropdownAlert(null,"Error","Couldn't Paste Flow Objects!",1000); }});
+						}
+						else {
+							dropdownAlert(null,"Info","Did not paste objects",1000);
+						}
+					}
+					else {
+						dropdownAlert(null,"Error",result["responseText"],1000);
+					}
 				}
 				});
 			}
