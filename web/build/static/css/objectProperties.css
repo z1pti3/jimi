@@ -141,7 +141,7 @@
 	background-color: var(--panelComponentBackground);
 }
 
-#help {
+#help, #unlink {
 	text-align: right;
 	float: right;
 }
