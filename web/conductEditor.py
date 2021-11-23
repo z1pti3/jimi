@@ -1114,7 +1114,7 @@ def copyConductObjects(conductID):
         nodes.append(nodeDict[node])
     if len(nodes) > 0:
         user = jimi.auth._user().getAsClass(id=jimi.api.g.sessionData["_id"])[0]
-        user.clipboard = {"nodes":nodes}
+        user.clipboard = {"nodes":nodes,"originalConductID":conductID}
         user.update(["clipboard"])
         return {}, 200
     return {}, 403
@@ -1194,7 +1194,7 @@ def pasteConductObjects(conductID):
                             conductObj.flow.append(flow)
 
                             # Adding UI position for cloned object
-                            flowUI = jimi.webui._modelUI().getAsClass(jimi.api.g.sessionData,query={ "flowID" : node["id"], "conductID" : conductID })[0]
+                            flowUI = jimi.webui._modelUI().getAsClass(jimi.api.g.sessionData,query={ "flowID" : node["id"], "conductID" : clipboard["originalConductID"] })[0]
                             jimi.webui._modelUI().new(conductID,conductObj.acl,flow["flowID"],node["x"],node["y"],"Copy - {0}".format(flowUI.title))
                             if "_id" in jimi.api.g.sessionData:
                                 jimi.audit._audit().add("flow","duplicate",{ "_id" : jimi.api.g.sessionData["_id"], "user" : jimi.api.g.sessionData["user"], "conductID" : conductID, "flowID" : node["id"], "newFlowID" : newFlowID })
