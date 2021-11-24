@@ -427,6 +427,7 @@ class _document():
         docs = self._dbCollection.aggregate(aggregate)              
         for item in docs:
             result.append(item)
+        # Result is inconsistent with the rest of the non getAsClass functions as the result is not within ["results"] this is in use in a number of plugins which would have to be updated if we change this
         return result
 
     @mongoConnectionWrapper
