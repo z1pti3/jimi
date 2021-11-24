@@ -407,7 +407,7 @@ class _document():
 
     @mongoConnectionWrapper
     def aggregate(self,sessionData=None,aggregateStatement=None,limit=None):
-        result = { }
+        result = []
         # Builds list of permitted ACL
         adminBypass = False
         aggregate = []
