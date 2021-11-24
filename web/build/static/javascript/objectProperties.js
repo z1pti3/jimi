@@ -170,9 +170,9 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 			// formData
 			panel.find(".propertiesPanel-body").append(buildForm(result["formData"]));
 
-			if (result["whereUsed"].length > 1 && panel.find("#save").html() === " Save") {
+			if (result["whereUsed"].length > 1) {
 				panel.find("#unlinkDiv").removeClass("hide");
-				panel.find("#save").html(panel.find("#save").html() + " ("+result["whereUsed"].length+")");
+				panel.find("#save").html("Save ("+result["whereUsed"].length+")");
 			} else {
 				panel.find("#unlinkDiv").addClass("hide");
 				panel.find("#save").html("Save");
@@ -203,10 +203,8 @@ function unlinkObject(flowID,panel) {
 	var conductID = GetURLParameter("conductID")
 	jsonData = { action: "unlink", operatorId: flowID, CSRF: CSRF }
 	$.ajax({url:"/conductEditor/"+conductID+"/flow/"+flowID+"/", type:"POST", data: JSON.stringify(jsonData), contentType:"application/json", success: function ( result ) {
-		    console.log(result["objectID"])
 			nodes.get(flowID)["objID"] = result["objectID"]
-			loadPropertiesPanel(flowID,panel,false);
-			console.log(nodes.get(flowID)["objID"])
+			loadPropertiesPanel(flowID,panel);
 		}
 	});
 }
