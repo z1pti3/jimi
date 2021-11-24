@@ -84,6 +84,16 @@ function deleteSelected() {
 			});
 		}
 	}
+	else if (selectedNodes.length > 1){
+		nodeList = nodes.get(selectedNodes)
+		if (confirm("Are you sure you want to remove multiple objects from this conduct?")) {
+			var conductID = GetURLParameter("conductID");
+			$.ajax({url:"/conductEditor/"+conductID+"/flow/multiple/", data: JSON.stringify({ CSRF: CSRF, "nodes": nodeList }), type:"DELETE", contentType:"application/json", success: function ( responseData ) {
+					nodes.remove(responseData["flowIDs"]);
+				}
+			});
+		}
+	}
 
 	links = network.getSelectedEdges()
 	if (links.length == 1) {

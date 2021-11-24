@@ -622,20 +622,26 @@ def deleteFlow(conductID,flowID):
     access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
     if access:
         if jimi.db.fieldACLAccess(jimi.api.g.sessionData,conductObj.acl,"flow","delete"):
-            flow = [ x for x in conductObj.flow if x["flowID"] ==  flowID]
-            if len(flow) == 1:
-                flow = flow[0]
-                for flowItemsValue in conductObj.flow:
-                    for nextflowValue in flowItemsValue["next"]:
-                        if nextflowValue["flowID"] == flowID:
-                            conductObj.flow[conductObj.flow.index(flowItemsValue)]["next"].remove(nextflowValue)
-                conductObj.flow.remove(flow)
-                if "_id" in jimi.api.g.sessionData:
-                    jimi.audit._audit().add("flow","delete",{ "_id" : jimi.api.g.sessionData["_id"], "user" : jimi.api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID })
-                else:
-                    jimi.audit._audit().add("flow","delete",{ "user" : "system", "conductID" : conductID, "flowID" : flowID })
-                conductObj.update(["flow"],sessionData=jimi.api.g.sessionData)
-            return { }, 200
+            if flowID == "multiple":
+                data = json.loads(jimi.api.request.data)
+                flows = [{"id":x["id"]} for x in data["nodes"]]
+            else:
+                flows = [{"id":flowID}]
+            for flowID in flows:
+                flow = [ x for x in conductObj.flow if x["flowID"] == flowID["id"]]
+                if len(flow) == 1:
+                    flow = flow[0]
+                    for flowItemsValue in conductObj.flow:
+                        for nextflowValue in flowItemsValue["next"]:
+                            if nextflowValue["flowID"] == flowID["id"]:
+                                conductObj.flow[conductObj.flow.index(flowItemsValue)]["next"].remove(nextflowValue)
+                    conductObj.flow.remove(flow)
+                    if "_id" in jimi.api.g.sessionData:
+                        jimi.audit._audit().add("flow","delete",{ "_id" : jimi.api.g.sessionData["_id"], "user" : jimi.api.g.sessionData["user"], "conductID" : conductID, "flowID" : flowID["id"] })
+                    else:
+                        jimi.audit._audit().add("flow","delete",{ "user" : "system", "conductID" : conductID, "flowID" : flowID["id"] })
+            conductObj.update(["flow"],sessionData=jimi.api.g.sessionData)
+            return { "flowIDs" : flows }, 200
         else:
             return { }, 404
     else:
@@ -968,7 +974,7 @@ def deleteFlowLink(conductID,fromFlowID,toFlowID):
         return { }, 404
     access = jimi.db.ACLAccess(jimi.api.g.sessionData,conductObj.acl,"write")
     if access:
-        fromFlow = [ x for x in conductObj.flow if x["flowID"] ==  fromFlowID]
+        fromFlow = [ x for x in conductObj.flow if x["flowID"] == fromFlowID]
         if len(fromFlow) > 0:
             fromFlow = fromFlow[0]
             for nextflow in fromFlow["next"]:
