@@ -406,9 +406,8 @@ class _document():
         return result
 
     @mongoConnectionWrapper
-    def aggregate(self,sessionData=None,aggregateStatement=None):
-        result = { "results" : [] }
-        query = {}
+    def aggregate(self,sessionData=None,aggregateStatement=None,limit=None):
+        result = { }
         # Builds list of permitted ACL
         adminBypass = False
         aggregate = []
@@ -423,9 +422,10 @@ class _document():
                 aggregate.insert({"$match" : aclQuery},0)
                 aggregate.insert({ "$project" : { "acl" : 1 }},0)
         aggregate += aggregateStatement
-        aggregateResult = self._dbCollection.aggregate(aggregate)
-        result = []
-        for item in aggregateResult:
+        if limit:
+            aggregate.append({"$limit" : limit})
+        docs = self._dbCollection.aggregate(aggregate)              
+        for item in docs:
             result.append(item)
         return result
 
