@@ -416,7 +416,7 @@ def systemInstall():
     # Creating indexes
     logging.info("Creating indexes...")
     jimi.revision._revision()._dbCollection.create_index([("objectID", 1),("classID", 1)])
-    jimi.audit._audit()._dbCollection.create_index([("systemID", 1),("eventSource", 1),("eventType", 1)])
+    jimi.audit._audit()._dbCollection.create_index([("eventSource", 1),("eventType", 1)])
 
     # Install system manifest
     loadSystemManifest()
@@ -573,6 +573,6 @@ def systemUpgrade(currentVersion):
     if currentVersion < 3.1246:
         logging.info("Creating indexes...")
         jimi.revision._revision()._dbCollection.create_index([("objectID", 1),("classID", 1)])
-        jimi.audit._audit()._dbCollection.create_index([("systemID", 1),("eventSource", 1),("eventType", 1)])
+        jimi.audit._audit()._dbCollection.create_index([("eventSource", 1),("eventType", 1)])
 
     return True
