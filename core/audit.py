@@ -9,7 +9,7 @@ import jimi
 class _audit(jimi.db._document):
     _dbCollection = jimi.db.db["audit"]
 
-    def add(self,eventSource, eventType, eventData):
+    def add(self, eventSource, eventType, eventData):
         auditData = { "time" : time.time(), "systemID" : systemSettings["systemID"], "source" : eventSource, "type" : eventType, "data" : eventData }
         try:
             if auditSettings["db"]["enabled"]:

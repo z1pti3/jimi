@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.1242
+systemVersion = 3.1246
 
 # Initialize 
 dbCollectionName = "system"
@@ -78,7 +78,6 @@ def setup():
             sys.exit("Unable to complete install")
     elif upgrade:
         logging.info("Starting system upgrade")
-        systemUpgrade(systemAbout.data["version"])
         if systemUpgrade(systemAbout.data["version"]):
             # Set system version number if install and/or upgrade
             systemAbout.data["version"] = systemVersion
@@ -414,6 +413,11 @@ def systemInstall():
     # Adding secret model
     jimi.model.registerModel("secret","_secret","_document","core.secrets")
 
+    # Creating indexes
+    logging.info("Creating indexes...")
+    jimi.revision._revision()._dbCollection.create_index([("objectID", 1),("classID", 1)])
+    jimi.audit._audit()._dbCollection.create_index([("systemID", 1),("eventSource", 1),("eventType", 1)])
+
     # Install system manifest
     loadSystemManifest()
 
@@ -565,5 +569,10 @@ def systemUpgrade(currentVersion):
     
     if currentVersion < 3.1241:
         jimi.settings._settings().new("storage",{ "maxBytesChecked" : 26214400})
+
+    if currentVersion < 3.1246:
+        logging.info("Creating indexes...")
+        jimi.revision._revision()._dbCollection.create_index([("objectID", 1),("classID", 1)])
+        jimi.audit._audit()._dbCollection.create_index([("systemID", 1),("eventSource", 1),("eventType", 1)])
 
     return True
