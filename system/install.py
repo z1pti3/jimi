@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.1241
+systemVersion = 3.1242
 
 # Initialize 
 dbCollectionName = "system"
@@ -32,7 +32,7 @@ class _system(jimi.db._document):
 systemSettings = jimi.config["system"]
 
 def installedVersion():
-    systemAbout = _system().query(query={ "name" : "about", "systemID" : systemSettings["systemID"] })["results"]
+    systemAbout = _system().query(query={ "name" : "about" })["results"]
     systemAbout = systemAbout[0]["_id"]
     systemAbout = _system().get(systemAbout)
     return systemAbout.data["version"]
@@ -51,12 +51,10 @@ def getSecure():
     return None
 
 def setup():
-    systemAbout = _system().query(query={ "name" : "about", "systemID" : systemSettings["systemID"] })["results"]
+    systemAbout = _system().query(query={ "name" : "about" })["results"]
     if len(systemAbout) < 1:
         systemAbout = _system().new("about").inserted_id
         systemAbout = _system().get(systemAbout)
-        systemAbout.systemID = systemSettings["systemID"]
-        systemAbout.update(["systemID"])
     else:
         systemAbout = systemAbout[0]["_id"]
         systemAbout = _system().get(systemAbout)
@@ -73,8 +71,7 @@ def setup():
         if systemInstall():
             # Set system version number if install and/or upgrade
             systemAbout.data["version"] = systemVersion
-            systemAbout.systemID = systemSettings["systemID"]
-            systemAbout.update(["data","systemID"])
+            systemAbout.update(["data"])
             logging.info("Starting system install completed")
             sys.exit(0)
         else:
