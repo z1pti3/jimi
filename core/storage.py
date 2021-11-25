@@ -101,7 +101,7 @@ if jimi.api.webServer:
             @jimi.api.webServer.route(jimi.api.base+"storage/file/<storageID>/", methods=["POST"])
             def updateStorageFile(storageID):
                 storageItem = jimi.storage._storage().getAsClass(sessionData=jimi.api.g.sessionData,id=storageID)[0]
-                if jimi.db.ACLAccess(jimi.api.g.sessionData,storageItem.acl,"edit"):
+                if jimi.db.ACLAccess(jimi.api.g.sessionData,storageItem.acl,"write"):
                     fullFilename = str(Path("data/storage/{0}".format(storageID)))
                     if not jimi.helpers.safeFilepath(fullFilename,"data/storage"):
                         return {}, 403
@@ -143,7 +143,7 @@ if jimi.api.webServer:
             @jimi.api.webServer.route(jimi.api.base+"storage/file/<storageID>/", methods=["POST"])
             def updateStorageFile(storageID):
                 storageItem = jimi.storage._storage().getAsClass(sessionData=jimi.api.g.sessionData,id=storageID)[0]
-                if jimi.db.ACLAccess(jimi.api.g.sessionData,storageItem.acl,"edit"):
+                if jimi.db.ACLAccess(jimi.api.g.sessionData,storageItem.acl,"write"):
                     formData = jimi.api.request.form.to_dict()
                     update = False
                     if formData["name"] != storageItem.fileData:
