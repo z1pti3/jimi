@@ -19,7 +19,6 @@ dbCollectionName = "system"
 # system Class
 class _system(jimi.db._document):
     name = str()
-    systemID = int()
     data = dict()
 
     _dbCollection = jimi.db.db[dbCollectionName]
