@@ -644,6 +644,16 @@ def ACLAccess(sessionData,acl,accessType="read"):
                                 access = aclItem[accessType]
     return access
 
+# Checks for access based on the object's inherited ACLs
+def objectACLAccess(objectACLs,acl,accessType="read"):
+    if not jimi.settings.getSetting("auth","enabled"):
+        return True
+    for objectACL in objectACLs["ids"]:
+        for aclDict in acl["ids"]:
+            if objectACL["accessID"] == aclDict["accessID"]:
+                if aclDict[accessType]:
+                    return True
+    return False
 
 # Update DB item within giben collection by ID
 def updateDocumentByID(dbCollection,id,update):
