@@ -72,6 +72,64 @@ class _trigger(jimi.db._document):
         setattr(self,attr,value)
         return True
 
+    # yeld capabiltiy trigger
+    def checkAndNotify(self,data=None):
+        notifyStartTime = time.time()
+        self.startTime = notifyStartTime
+
+        cpuSaver = jimi.helpers.cpuSaver()
+        maxDuration = 60
+        if self.maxDuration > 0:
+            maxDuration = self.maxDuration
+
+        data = jimi.conduct.dataTemplate(data=data)
+        data["persistentData"]["system"]["trigger"] = self
+        if self.executionSnapshot:
+            if "flowDebugSession" not in data["persistentData"]["system"]:
+                data["persistentData"]["system"]["flowDebugSession"] = { "sessionID" : jimi.debug.newFlowDebugSession(self.acl,self.name) }
+                data["persistentData"]["system"]["flowDebugSnapshot"] = True
+        data["flowData"]["trigger_id"] = self._id
+        data["flowData"]["trigger_name"] = self.name
+
+        conducts = jimi.cache.globalCache.get("conductCache",self._id,getTriggerConducts)
+        try:
+            if conducts:
+                conductData = {}
+                for loadedConduct in conducts:
+                    conductData[loadedConduct._id] = jimi.conduct.copyData(data,copyConductData=True)
+
+                eventIndex = 0
+                for event in self.doCheck():
+                    for loadedConduct in conducts: 
+                        conductData[loadedConduct._id]["flowData"]["conduct_id"] = loadedConduct._id
+                        conductData[loadedConduct._id]["flowData"]["conduct_name"] = loadedConduct.name
+                        first = True if eventIndex == 0 else False
+                        last = True if eventIndex > 0 else False
+                        eventStats = { "first" : first, "current" : eventIndex, "total" : eventIndex + 1, "last" : last }
+                        data = jimi.conduct.copyData(conductData[loadedConduct._id],copyEventData=True)
+                        data["flowData"]["event"] = event
+                        data["flowData"]["eventStats"] = eventStats
+                        loadedConduct.triggerHandler(self._id,data,False,False)
+
+                    cpuSaver.tick()
+                    eventIndex+=1
+        except jimi.exceptions.endWorker:
+            raise jimi.exceptions.endWorker
+        finally:
+            self.startCheck = 0
+            self.attemptCount = 0
+            self.lastCheck = time.time()
+            self.nextCheck = jimi.scheduler.getSchedule(self.schedule)
+            self.update(["startCheck","lastCheck","nextCheck","attemptCount"])
+            if self.executionSnapshot:
+                try:
+                    if data["persistentData"]["system"]["flowDebugSnapshot"]:
+                        jimi.debug.deleteFlowDebugSession(data["persistentData"]["system"]["flowDebugSession"]["sessionID"])
+                except KeyError:
+                    pass
+        # Return the final data value
+        return data
+
     def notify(self,events=[],data=None):
         notifyStartTime = time.time()
         self.startTime = notifyStartTime
@@ -90,7 +148,6 @@ class _trigger(jimi.db._document):
         maxDuration = 60
         if self.maxDuration > 0:
             maxDuration = self.maxDuration
-        exitType = None
         try:
             if conducts:
                 cpuSaver = jimi.helpers.cpuSaver()
@@ -166,12 +223,15 @@ class _trigger(jimi.db._document):
         ####################################
 
         self.data = { "flowData" : { "var" : {}, "plugin" : {} } }
-        events = self.doCheck()
         data = None
         if self.data["flowData"]["var"] or self.data["flowData"]["plugin"]:
             data = self.data
 
-        self.notify(events=self.result["events"],data=data)
+        if self.partialResults:
+            pass
+        else:
+            events = self.doCheck()
+            self.notify(events=events,data=data)
         ####################################
         #              Footer              #
         ####################################
