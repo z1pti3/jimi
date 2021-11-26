@@ -99,20 +99,45 @@ class _trigger(jimi.db._document):
                     conductData[loadedConduct._id] = jimi.conduct.copyData(data,copyConductData=True)
 
                 eventIndex = 0
-                for event in self.doCheck():
+                for events in self.doCheck():
+                    if type(events) is not list:
+                        events = [events]
                     for loadedConduct in conducts: 
-                        conductData[loadedConduct._id]["flowData"]["conduct_id"] = loadedConduct._id
-                        conductData[loadedConduct._id]["flowData"]["conduct_name"] = loadedConduct.name
-                        first = True if eventIndex == 0 else False
-                        last = True if eventIndex > 0 else False
-                        eventStats = { "first" : first, "current" : eventIndex, "total" : eventIndex + 1, "last" : last }
-                        data = jimi.conduct.copyData(conductData[loadedConduct._id],copyEventData=True)
-                        data["flowData"]["event"] = event
-                        data["flowData"]["eventStats"] = eventStats
-                        loadedConduct.triggerHandler(self._id,data,False,False)
-
+                        eventHandler = None
+                        if self.concurrency > 0:
+                            eventHandler = jimi.workers.workerHandler(self.concurrency)
+                            concurrentEvents = []
+                        for event in events:
+                            conductData[loadedConduct._id]["flowData"]["conduct_id"] = loadedConduct._id
+                            conductData[loadedConduct._id]["flowData"]["conduct_name"] = loadedConduct.name
+                            first = True if eventIndex == 0 else False
+                            last = True if eventIndex > 0 else False
+                            eventStats = { "first" : first, "current" : eventIndex, "total" : eventIndex + 1, "last" : last }
+                            data = jimi.conduct.copyData(conductData[loadedConduct._id],copyEventData=True)
+                            data["flowData"]["event"] = event
+                            data["flowData"]["eventStats"] = eventStats
+                            if eventHandler:
+                                concurrentEvents.append(data)
+                            else:
+                                try:
+                                    loadedConduct.triggerHandler(self._id,data,False,False)
+                                except jimi.exceptions.endFlow:
+                                    pass
+                        if eventHandler:
+                            eventBatches = jimi.helpers.splitList(concurrentEvents,int(len(concurrentEvents)/self.concurrency))
+                            for events in eventBatches:
+                                durationRemaining = ( self.startTime + maxDuration ) - time.time()
+                                eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerBatchHandler,(self._id,events,False,False),maxDuration=durationRemaining)
+                            eventHandler.waitAll()
+                            if eventHandler.failures or eventHandler.failureCount() > 0:
+                                raise jimi.exceptions.triggerConcurrentCrash(self._id,self.name,eventHandler.failures)
+                            eventHandler.stop()
                     cpuSaver.tick()
                     eventIndex+=1
+            else:
+                jimi.audit._audit().add("trigger","auto_disable",{ "trigger_id" : self._id, "trigger_name" : self.name })
+                self.enabled = False
+                self.update(["enabled"])
         except jimi.exceptions.endWorker:
             raise jimi.exceptions.endWorker
         finally:
@@ -228,7 +253,7 @@ class _trigger(jimi.db._document):
             data = self.data
 
         if self.partialResults:
-            pass
+            self.checkAndNotify(data=data)
         else:
             events = self.doCheck()
             self.notify(events=events,data=data)
