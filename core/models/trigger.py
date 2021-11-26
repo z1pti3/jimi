@@ -98,7 +98,7 @@ class _trigger(jimi.db._document):
                 for loadedConduct in conducts:
                     conductData[loadedConduct._id] = jimi.conduct.copyData(data,copyConductData=True)
 
-                eventIndex = 0
+                eventIndex = 1
                 for events in self.doCheck():
                     if type(events) is not list:
                         events = [events]
