@@ -191,7 +191,12 @@ if jimi.api.webServer:
                                     data = jimi.conduct.dataTemplate()
                         else:
                             t.data = { "flowData" : { "var" : {}, "plugin" : {} } }
-                            events = t.doCheck()
+                            if t.partialResults:
+                                events = []
+                                for event in t.doCheck():
+                                    events.append(event)
+                            else:
+                                events = t.doCheck()
                         maxDuration = t.maxDuration
                     else:
                         t = jimi.action._action(False).getAsClass(sessionData=jimi.api.g.sessionData,id=flow["actionID"])[0]

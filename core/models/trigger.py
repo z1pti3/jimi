@@ -239,7 +239,7 @@ class _trigger(jimi.db._document):
         # Return the final data value
         return data
 
-    def checkHandler(self):
+    def checkHandler(self,data=None):
         ####################################
         #              Header              #
         ####################################
@@ -247,15 +247,19 @@ class _trigger(jimi.db._document):
         jimi.audit._audit().add("trigger","start",{ "trigger_id" : self._id, "trigger_name" : self.name })
         ####################################
 
-        self.data = { "flowData" : { "var" : {}, "plugin" : {} } }
-        data = None
-        if self.data["flowData"]["var"] or self.data["flowData"]["plugin"]:
-            data = self.data
+        if not data:
+            data = { "flowData" : { "var" : {}, "plugin" : {} } }
+        elif "flowData" not in data:
+            data["flowData"] = { "flowData" : { "var" : {}, "plugin" : {} } }
+        self.data = data
 
         if self.partialResults:
             self.checkAndNotify(data=data)
         else:
             events = self.doCheck()
+            if self.data["flowData"]["var"] or self.data["flowData"]["plugin"]:
+                data["flowData"]["var"] = self.data["flowData"]["var"]
+                data["flowData"]["plugin"] = self.data["flowData"]["plugin"]
             self.notify(events=events,data=data)
         ####################################
         #              Footer              #
