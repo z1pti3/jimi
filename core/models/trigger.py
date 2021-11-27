@@ -78,7 +78,7 @@ class _trigger(jimi.db._document):
 
         data = jimi.conduct.dataTemplate(data=data)
         data["persistentData"]["system"]["trigger"] = self
-        if self.executionSnapshot:
+        if self.executionSnapshot and len(events) > 0:
             if "flowDebugSession" not in data["persistentData"]["system"]:
                 data["persistentData"]["system"]["flowDebugSession"] = { "sessionID" : jimi.debug.newFlowDebugSession(self.acl,self.name) }
                 data["persistentData"]["system"]["flowDebugSnapshot"] = True
@@ -172,8 +172,7 @@ class _trigger(jimi.db._document):
         if self.data["flowData"]["var"] or self.data["flowData"]["plugin"]:
             data = self.data
 
-        if self.result["events"]:
-            self.notify(events=self.result["events"],data=data)
+        self.notify(events=self.result["events"],data=data)
         ####################################
         #              Footer              #
         ####################################
