@@ -261,7 +261,7 @@ class _conduct(jimi.db._document):
                     if data["persistentData"]["system"]["flowDebugSnapshot"]:
                         jimi.audit._audit().add("trigger","snapshot",{ "trigger_id" : self._id, "trigger_name" : self.name, "event_id" : flowDebugSession["eventID"] })
                         bulkClass = jimi.db._bulk()
-                        eventData = copy.deepcopy(jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].flowList[flowDebugSession["eventID"]])
+                        eventData = copy.deepcopy(jimi.helpers.dictToJson(jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].flowList[flowDebugSession["eventID"]]))
                         eventData["executionIDs"] = list(eventData["execution"].keys())
                         del eventData["execution"]
                         jimi.debug._flowDebugSnapshot().bulkNew(bulkClass,self.acl,flowDebugSession["sessionID"],flowDebugSession["eventID"],eventData)
