@@ -82,7 +82,6 @@ class _trigger(jimi.db._document):
             if "flowDebugSession" not in data["persistentData"]["system"]:
                 data["persistentData"]["system"]["flowDebugSession"] = { "sessionID" : jimi.debug.newFlowDebugSession(self.acl,self.name) }
                 data["persistentData"]["system"]["flowDebugSnapshot"] = True
-                jimi.audit._audit().add("trigger","snapshot_created",{ "trigger_id" : self._id, "trigger_name" : self.name, "sessionID" : data["persistentData"]["system"]["flowDebugSession"]["sessionID"] })
         data["flowData"]["trigger_id"] = self._id
         data["flowData"]["trigger_name"] = self.name
         tempData = data
@@ -152,6 +151,8 @@ class _trigger(jimi.db._document):
                 try:
                     if data["persistentData"]["system"]["flowDebugSnapshot"]:
                         jimi.debug.deleteFlowDebugSession(data["persistentData"]["system"]["flowDebugSession"]["sessionID"])
+                        if len(jimi.debug.flowDebugSession[data["persistentData"]["system"]["flowDebugSession"]["sessionID"]].flowList) > 0:
+                            jimi.audit._audit().add("trigger","snapshot_created",{ "trigger_id" : self._id, "trigger_name" : self.name, "sessionID" : data["persistentData"]["system"]["flowDebugSession"]["sessionID"] })
                 except KeyError:
                     pass
 
