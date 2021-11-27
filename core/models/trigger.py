@@ -147,14 +147,14 @@ class _trigger(jimi.db._document):
             self.lastCheck = time.time()
             self.nextCheck = jimi.scheduler.getSchedule(self.schedule)
             self.update(["startCheck","lastCheck","nextCheck","attemptCount"])
-            if self.executionSnapshot:
-                try:
+            try:
+                if "flowDebugSnapshot" in data["persistentData"]["system"]:
                     if data["persistentData"]["system"]["flowDebugSnapshot"]:
                         if len(jimi.debug.flowDebugSession[data["persistentData"]["system"]["flowDebugSession"]["sessionID"]].flowList) > 0:
                             jimi.audit._audit().add("trigger","snapshot_created",{ "trigger_id" : self._id, "trigger_name" : self.name, "sessionID" : data["persistentData"]["system"]["flowDebugSession"]["sessionID"] })
                         jimi.debug.deleteFlowDebugSession(data["persistentData"]["system"]["flowDebugSession"]["sessionID"])
-                except KeyError:
-                    pass
+            except KeyError:
+                pass
 
         # Return the final data value
         return data
