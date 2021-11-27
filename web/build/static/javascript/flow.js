@@ -337,6 +337,13 @@ function objectRevisionHistory() {
 	}
 }
 
+function triggerSanpshotHistory() {
+	selectedNodes = network.getSelectedNodes()
+	if (selectedNodes.length == 1) {
+		createTriggerSnapshotHistoryPanel(nodes.get(selectedNodes[0])["objID"]);
+	}
+}
+
 function deleteFlowObject() {
 	deleteSelected()
 }
