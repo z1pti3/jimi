@@ -58,7 +58,7 @@ class _properties():
         formData = []
         if classObject.manifest__:
             if len(classObject.manifest__["fields"]) > 0:
-                systemFields = ["_id","name","enabled","log","partialResults","concurrency","threaded","failOnActionFailure","systemCrashHandler","systemID","startTime","nextCheck","schedule","maxDuration","logicString","varDefinitions","comment"]
+                systemFields = ["_id","name","enabled","log","partialResults","concurrency","threaded","failOnActionFailure","systemCrashHandler","executionSnapshot","systemID","startTime","nextCheck","schedule","maxDuration","logicString","varDefinitions","comment"]
                 formData.append({"type" : "break", "schemaitem" : "break", "start" : True, "label" : "System"})
                 for field in systemFields:
                     try:

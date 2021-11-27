@@ -16,7 +16,6 @@ class _flowDebugSnapshot(jimi.db._document):
     _dbCollection = jimi.db.db["flowDebugSnapshot"]
 
     def new(self,acl,flowListEventUID,flowListExecutionUID,flowListExecutionData,sessionData=None):
-        # Force ACL for admin only
         self.acl = acl
         self.flowListEventUID = flowListEventUID
         self.flowListExecutionUID = flowListExecutionUID
@@ -24,20 +23,20 @@ class _flowDebugSnapshot(jimi.db._document):
         super(_flowDebugSnapshot, self).new(sessionData=sessionData)
 
     def bulkNew(self,bulkClass,acl,flowListEventUID,flowListExecutionUID,flowListExecutionData,sessionData=None):
-        # Force ACL for admin only
         self.acl = acl
         self.flowListEventUID = flowListEventUID
         self.flowListExecutionUID = flowListExecutionUID
         self.flowListExecutionData = flowListExecutionData
         super(_flowDebugSnapshot, self).bulkNew(bulkClass,sessionData=sessionData)
 
-    def rebuildDebug(self,sessionData,eventUID):
-        eventData = self.query(sessionData=sessionData,query={ "flowListEventUID" : eventUID, "flowListExecutionUID" : eventUID })["results"][0]["flowListExecutionData"]
-        eventData["execution"] = {}
-        executions = self.query(sessionData=sessionData,query={ "flowListEventUID" : eventUID, "flowListExecutionUID" : { "$ne" : eventUID } })["results"]
-        for execution in executions:
-            eventData["execution"][execution["flowListExecutionUID"]] = execution["flowListExecutionData"]
-        return eventData
+    def rebuildDebug(self,sessionData,debugSession,sessionID):
+        events = self.query(sessionData=sessionData,query={ "flowListEventUID" : sessionID })["results"]
+        for event in events:
+            event["flowListExecutionData"]["execution"] = {}
+            executions = self.query(sessionData=sessionData,query={ "flowListEventUID" : event["flowListExecutionUID"], "flowListExecutionUID" : { "$in" : event["flowListExecutionData"]["executionIDs"] } })["results"]
+            for execution in executions:
+                event["flowListExecutionData"]["execution"][execution["flowListExecutionUID"]] = execution["flowListExecutionData"]
+            debugSession.flowList[event["flowListExecutionUID"]] = event["flowListExecutionData"]
 
 class _flowDebug():
 
@@ -302,13 +301,12 @@ if jimi.api.webServer:
                     return {}, 200
                 return {}, 403
 
-            @jimi.api.webServer.route(jimi.api.base+"debug/snapshot/<eventUID>/", methods=["GET"])
-            @jimi.auth.adminEndpoint
-            def createDebugSessionFromSnapshot(eventUID):
+            @jimi.api.webServer.route(jimi.api.base+"debug/snapshot/<sessionID>/", methods=["PUT"])
+            def createDebugSessionFromSnapshot(sessionID):
                 global flowDebugSession
-                sessionID = newFlowDebugSession( { "ids" : [ { "accessID" : jimi.api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] },jimi.api.g.sessionData["user"])
-                flowDebugSession[sessionID].flowList[eventUID] = _flowDebugSnapshot().rebuildDebug(jimi.api.g.sessionData,eventUID)
-                return { "sessionID" : sessionID }, 200
+                debugSessionID = newFlowDebugSession( { "ids" : [ { "accessID" : jimi.api.g.sessionData["primaryGroup"], "read" : True, "write" : True, "delete" : True } ] },jimi.api.g.sessionData["user"])
+                _flowDebugSnapshot().rebuildDebug(jimi.api.g.sessionData,flowDebugSession[debugSessionID],sessionID)
+                return { "sessionID" : debugSessionID }, 200
 
         if jimi.api.webServer.name == "jimi_web":
             @jimi.api.webServer.route(jimi.api.base+"debug/", methods=["GET"])
@@ -389,9 +387,17 @@ if jimi.api.webServer:
                 response = jimi.helpers.apiCall("DELETE",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
                 return json.loads(response.text), response.status_code
 
-            @jimi.api.webServer.route(jimi.api.base+"debug/snapshot/<eventUID>/", methods=["GET"])
+            @jimi.api.webServer.route(jimi.api.base+"debug/snapshot/<eventUID>/", methods=["PUT"])
             def createDebugSessionFromSnapshot(eventUID):
                 apiEndpoint = "debug/snapshot/{0}/".format(eventUID)
                 url = jimi.cluster.getMaster()
-                response = jimi.helpers.apiCall("GET",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
+                response = jimi.helpers.apiCall("PUT",apiEndpoint,token=jimi.api.g.sessionToken,overrideURL=url)
                 return json.loads(response.text), response.status_code
+
+            @jimi.api.webServer.route(jimi.api.base+"debug/snapshot/<triggerID>/", methods=["GET"])
+            def listDebugSessionSnapshots(triggerID):
+                results = []
+                snapshots = jimi.audit._audit().query(query={ "source" : "trigger", "type" : "snapshot_created", "data.trigger_id" : triggerID },limit=100,sort=[("_id",-1)])["results"]
+                for snapshot in snapshots:
+                    results.append({ "time" : snapshot["time"], "eventUID" : snapshot["data"]["sessionID"] })
+                return { "results" : results }, 200

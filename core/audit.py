@@ -9,8 +9,8 @@ import jimi
 class _audit(jimi.db._document):
     _dbCollection = jimi.db.db["audit"]
 
-    def add(self, eventSource, eventType, eventData):
-        auditData = { "time" : time.time(), "systemID" : systemSettings["systemID"], "source" : eventSource, "type" : eventType, "data" : eventData }
+    def add(self, eventSource, eventType, data):
+        auditData = { "time" : time.time(), "systemID" : systemSettings["systemID"], "source" : eventSource, "type" : eventType, "data" : data }
         try:
             if auditSettings["db"]["enabled"]:
                 self._dbCollection.insert_one(jimi.helpers.unicodeEscapeDict(auditData))
