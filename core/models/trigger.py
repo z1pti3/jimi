@@ -150,9 +150,9 @@ class _trigger(jimi.db._document):
             if self.executionSnapshot:
                 try:
                     if data["persistentData"]["system"]["flowDebugSnapshot"]:
-                        jimi.debug.deleteFlowDebugSession(data["persistentData"]["system"]["flowDebugSession"]["sessionID"])
                         if len(jimi.debug.flowDebugSession[data["persistentData"]["system"]["flowDebugSession"]["sessionID"]].flowList) > 0:
                             jimi.audit._audit().add("trigger","snapshot_created",{ "trigger_id" : self._id, "trigger_name" : self.name, "sessionID" : data["persistentData"]["system"]["flowDebugSession"]["sessionID"] })
+                        jimi.debug.deleteFlowDebugSession(data["persistentData"]["system"]["flowDebugSession"]["sessionID"])
                 except KeyError:
                     pass
 
