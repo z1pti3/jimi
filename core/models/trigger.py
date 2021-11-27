@@ -172,7 +172,8 @@ class _trigger(jimi.db._document):
         if self.data["flowData"]["var"] or self.data["flowData"]["plugin"]:
             data = self.data
 
-        self.notify(events=self.result["events"],data=data)
+        if self.result["events"]:
+            self.notify(events=self.result["events"],data=data)
         ####################################
         #              Footer              #
         ####################################
