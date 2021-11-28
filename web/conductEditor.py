@@ -428,7 +428,7 @@ def conductImportData(conductID):
                         # Checking that the found object is the same as the imported object
                         for existingTriggerItem in existingTriggers:
                             members = [attr for attr in dir(existingTriggerItem) if not callable(getattr(existingTriggerItem, attr)) and not "__" in attr and attr ]
-                            blacklist = ["_id","classID","className","acl","lastCheck"]
+                            blacklist = ["_id","classID","className","acl","lastCheck","executionCount"]
                             same = True
                             for member in members:
                                 if member in importData["trigger"][flow["triggerID"]] and member not in blacklist:
@@ -446,7 +446,7 @@ def conductImportData(conductID):
                         newObjectID = _class().new(importData["trigger"][flow["triggerID"]]["name"],acl=acl).inserted_id
                         existingTrigger = _class().getAsClass(jimi.api.g.sessionData,id=newObjectID)[0]
                     members = [attr for attr in dir(existingTrigger) if not callable(getattr(existingTrigger, attr)) and not "__" in attr and attr ]
-                    blacklist = ["_id","classID","className","acl","lastCheck"]
+                    blacklist = ["_id","classID","className","acl","lastCheck","executionCount"]
                     updateList = []
                     for member in members:
                         if member in importData["trigger"][flow["triggerID"]]:
