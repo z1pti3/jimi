@@ -28,6 +28,7 @@ class _trigger(jimi.db._document):
     executionCount = int()
     scope = int()
     executionSnapshot = False
+    partialResults = False
 
     _dbCollection = jimi.db.db["triggers"]
 
