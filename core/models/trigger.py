@@ -72,6 +72,89 @@ class _trigger(jimi.db._document):
         setattr(self,attr,value)
         return True
 
+    # yeld capabiltiy trigger
+    def checkAndNotify(self,data=None):
+        notifyStartTime = time.time()
+        self.startTime = notifyStartTime
+
+        cpuSaver = jimi.helpers.cpuSaver()
+        maxDuration = 60
+        if self.maxDuration > 0:
+            maxDuration = self.maxDuration
+
+        data = jimi.conduct.dataTemplate(data=data)
+        data["persistentData"]["system"]["trigger"] = self
+        if self.executionSnapshot:
+            if "flowDebugSession" not in data["persistentData"]["system"]:
+                data["persistentData"]["system"]["flowDebugSession"] = { "sessionID" : jimi.debug.newFlowDebugSession(self.acl,self.name) }
+                data["persistentData"]["system"]["flowDebugSnapshot"] = True
+        data["flowData"]["trigger_id"] = self._id
+        data["flowData"]["trigger_name"] = self.name
+
+        conducts = jimi.cache.globalCache.get("conductCache",self._id,getTriggerConducts)
+        try:
+            if conducts:
+                conductData = {}
+                for loadedConduct in conducts:
+                    conductData[loadedConduct._id] = jimi.conduct.copyData(data,copyConductData=True)
+
+                eventIndex = 1
+                for events in self.doCheck():
+                    if type(events) is not list:
+                        events = [events]
+                    for loadedConduct in conducts: 
+                        eventHandler = None
+                        if self.concurrency > 0:
+                            eventHandler = jimi.workers.workerHandler(self.concurrency)
+                            concurrentEvents = []
+                        for event in events:
+                            conductData[loadedConduct._id]["flowData"]["conduct_id"] = loadedConduct._id
+                            conductData[loadedConduct._id]["flowData"]["conduct_name"] = loadedConduct.name
+                            first = True if eventIndex == 0 else False
+                            last = True if eventIndex > 0 else False
+                            eventStats = { "first" : first, "current" : eventIndex, "total" : eventIndex + 1, "last" : last }
+                            data = jimi.conduct.copyData(conductData[loadedConduct._id],copyEventData=True)
+                            data["flowData"]["event"] = event
+                            data["flowData"]["eventStats"] = eventStats
+                            if eventHandler:
+                                concurrentEvents.append(data)
+                            else:
+                                try:
+                                    loadedConduct.triggerHandler(self._id,data,False,False)
+                                except jimi.exceptions.endFlow:
+                                    pass
+                        if eventHandler:
+                            eventBatches = jimi.helpers.splitList(concurrentEvents,int(len(concurrentEvents)/self.concurrency))
+                            for events in eventBatches:
+                                durationRemaining = ( self.startTime + maxDuration ) - time.time()
+                                eventHandler.new("trigger:{0}".format(self._id),loadedConduct.triggerBatchHandler,(self._id,events,False,False),maxDuration=durationRemaining)
+                            eventHandler.waitAll()
+                            if eventHandler.failures or eventHandler.failureCount() > 0:
+                                raise jimi.exceptions.triggerConcurrentCrash(self._id,self.name,eventHandler.failures)
+                            eventHandler.stop()
+                    cpuSaver.tick()
+                    eventIndex+=1
+            else:
+                jimi.audit._audit().add("trigger","auto_disable",{ "trigger_id" : self._id, "trigger_name" : self.name })
+                self.enabled = False
+                self.update(["enabled"])
+        except jimi.exceptions.endWorker:
+            raise jimi.exceptions.endWorker
+        finally:
+            self.startCheck = 0
+            self.attemptCount = 0
+            self.lastCheck = time.time()
+            self.nextCheck = jimi.scheduler.getSchedule(self.schedule)
+            self.update(["startCheck","lastCheck","nextCheck","attemptCount"])
+            if self.executionSnapshot:
+                try:
+                    if data["persistentData"]["system"]["flowDebugSnapshot"]:
+                        jimi.debug.deleteFlowDebugSession(data["persistentData"]["system"]["flowDebugSession"]["sessionID"])
+                except KeyError:
+                    pass
+        # Return the final data value
+        return data
+
     def notify(self,events=[],data=None):
         notifyStartTime = time.time()
         self.startTime = notifyStartTime
@@ -90,7 +173,6 @@ class _trigger(jimi.db._document):
         maxDuration = 60
         if self.maxDuration > 0:
             maxDuration = self.maxDuration
-        exitType = None
         try:
             if conducts:
                 cpuSaver = jimi.helpers.cpuSaver()
@@ -159,7 +241,7 @@ class _trigger(jimi.db._document):
         # Return the final data value
         return data
 
-    def checkHandler(self):
+    def checkHandler(self,data=None):
         ####################################
         #              Header              #
         ####################################
@@ -167,13 +249,20 @@ class _trigger(jimi.db._document):
         jimi.audit._audit().add("trigger","start",{ "trigger_id" : self._id, "trigger_name" : self.name })
         ####################################
 
-        self.data = { "flowData" : { "var" : {}, "plugin" : {} } }
-        events = self.doCheck()
-        data = None
-        if self.data["flowData"]["var"] or self.data["flowData"]["plugin"]:
-            data = self.data
+        if not data:
+            data = { "flowData" : { "var" : {}, "plugin" : {} } }
+        elif "flowData" not in data:
+            data["flowData"] = { "flowData" : { "var" : {}, "plugin" : {} } }
+        self.data = data
 
-        self.notify(events=self.result["events"],data=data)
+        if self.partialResults:
+            self.checkAndNotify(data=data)
+        else:
+            events = self.doCheck()
+            if self.data["flowData"]["var"] or self.data["flowData"]["plugin"]:
+                data["flowData"]["var"] = self.data["flowData"]["var"]
+                data["flowData"]["plugin"] = self.data["flowData"]["plugin"]
+            self.notify(events=events,data=data)
         ####################################
         #              Footer              #
         ####################################
