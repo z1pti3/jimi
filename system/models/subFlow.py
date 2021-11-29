@@ -27,8 +27,12 @@ class _subFlow(jimi.action._action):
 
 		trigger = jimi.trigger._trigger().getAsClass(id=triggerID)
 		if len(trigger) == 1:
+			subflowResult = True
 			trigger = trigger[0]
 			finalData = trigger.notify(events,tempData)
+			for scope in ["persistentData","conductData","flowData","eventData"]:
+				if "subflowResult" in finalData[scope]["var"]:
+					subflowResult = finalData[scope]["var"]["subflowResult"]
 			if self.mergeFinalDataValue:
 				data["flowData"]["action"] = finalData["flowData"]["action"]
 				data["flowData"]["var"] = finalData["flowData"]["var"]
@@ -42,4 +46,4 @@ class _subFlow(jimi.action._action):
 		else:
 			return { "result" : False, "rc" : 5, "msg" : "Unable to find the specified triggerID={0}".format(triggerID) }
 
-		return { "result" : True, "rc" : 0 }
+		return { "result" : subflowResult, "rc" : 0 }
