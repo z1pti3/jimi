@@ -9,6 +9,8 @@ class _subFlow(jimi.action._action):
 	mergeFinalDataValue = False 
 	mergeFinalEventValue = False
 	mergeFinalConductValue = False
+	maxRetries = 0
+	retryDelay = 0
 
 	def doAction(self,data):
 		triggerID = jimi.helpers.evalString(self.triggerID,{"data" : data["flowData"]})

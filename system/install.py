@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.1246
+systemVersion = 3.1247
 
 # Initialize 
 dbCollectionName = "system"
@@ -573,5 +573,8 @@ def systemUpgrade(currentVersion):
         logging.info("Creating indexes...")
         jimi.revision._revision()._dbCollection.create_index([("objectID", 1),("classID", 1)])
         jimi.audit._audit()._dbCollection.create_index([("eventSource", 1),("eventType", 1)])
+
+    if currentVersion < 3.1247:
+        loadSystemManifest()
 
     return True
