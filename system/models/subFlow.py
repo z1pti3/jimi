@@ -28,12 +28,16 @@ class _subFlow(jimi.action._action):
 		if self.customEventsList:
 			events = jimi.helpers.evalList(self.eventsList,{"data" : data["flowData"]})
 
+		maxRetries = self.maxRetries
 		while True:
 			trigger = jimi.trigger._trigger().getAsClass(id=triggerID)
 			if len(trigger) == 1:
 				subflowResult = True
 				trigger = trigger[0]
-				finalData = trigger.notify(events,tempData)
+				try:
+					finalData = trigger.notify(events,tempData)
+				except jimi.exceptions.endWorker as e:
+					finalData = e.data
 				if "subflowResult" in finalData["flowData"]["var"]:
 					subflowResult = finalData["flowData"]["var"]["subflowResult"]
 				if subflowResult:
@@ -47,8 +51,9 @@ class _subFlow(jimi.action._action):
 					if self.mergeFinalConductValue:
 						data["conductData"]["var"] = finalData["conductData"]["var"]
 						data["conductData"]["plugin"] = finalData["conductData"]["plugin"]
-				elif self.maxRetries > 0:
-					self.maxRetries -= 1
+					break
+				elif maxRetries > 0:
+					maxRetries -= 1
 					time.sleep(self.retryDelay)
 				else:
 					break
@@ -56,3 +61,10 @@ class _subFlow(jimi.action._action):
 				return { "result" : False, "rc" : 5, "msg" : "Unable to find the specified triggerID={0}".format(triggerID) }
 
 		return { "result" : subflowResult, "rc" : 0 }
+
+class _subFlowReturn(jimi.action._action):
+	subFlowResult = True
+
+	def doAction(self,data):
+		data["flowData"]["var"]["subflowResult"] = self.subFlowResult
+		raise jimi.exceptions.endWorker(data)

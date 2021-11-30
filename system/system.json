@@ -1,7 +1,7 @@
 {
     "name" : "system",
     "author" : "system",
-    "version" : 3.1247,
+    "version" : 3.13,
     "categories" : ["system"],
     "description" : "System installed triggers and actions.",
     "icon" : null,
@@ -648,6 +648,17 @@
                         "(string)" : { "description" : "A message that outlines additional information about the result." }
                     }
                 }
+            }
+        },
+        "subFlowReturn" : {
+            "display_name" : "subFlowReturn",
+            "className" : "_subFlowReturn",
+            "class_location" : "system.models.subFlow",
+            "description" : "Returns True|False from a running subFlow. ",
+            "fields" : [
+                { "schema_item" : "subFlowResult", "schema_value" : "subFlowResult", "type" : "checkbox", "label" : "subFlowResult", "description" : "The True|False result to return from the subFlow.", "required" : true, "jimi_syntax" : false }
+            ],
+            "data_out" : {
             }
         },
         "generatePassword" : {
