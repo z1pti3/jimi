@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.1246
+systemVersion = 3.13
 
 # Initialize 
 dbCollectionName = "system"
@@ -322,6 +322,7 @@ def systemInstall():
 
     # subFlow
     jimi.model.registerModel("subFlow","_subFlow","_action","system.models.subFlow")
+    jimi.model.registerModel("subFlowReturn","_subFlowReturn","_action","system.models.subFlow")
 
     # global
     jimi.model.registerModel("global","_global","_document","system.models.global")
@@ -573,5 +574,9 @@ def systemUpgrade(currentVersion):
         logging.info("Creating indexes...")
         jimi.revision._revision()._dbCollection.create_index([("objectID", 1),("classID", 1)])
         jimi.audit._audit()._dbCollection.create_index([("eventSource", 1),("eventType", 1)])
+
+    if currentVersion < 3.13:
+        jimi.model.registerModel("subFlowReturn","_subFlowReturn","_action","system.models.subFlow")
+        loadSystemManifest()
 
     return True

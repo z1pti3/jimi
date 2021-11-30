@@ -95,15 +95,15 @@ class variableDefineFailure(Exception):
         return "Error: Exception setting variable. var_dict='{0}', trace='{1}'".format(self.varDict,self.trace)
 
 class endWorker(Exception):
-    def __init__(self):
-        pass
+    def __init__(self,data={}):
+        self.data = data
         
     def __str__(self):
         return "Worker end exception raised"
 
 class endFlow(Exception):
-    def __init__(self):
-        pass
+    def __init__(self,data={}):
+        self.data = data
         
     def __str__(self):
         return "Flow end exception raised"

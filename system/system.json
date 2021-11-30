@@ -1,7 +1,7 @@
 {
     "name" : "system",
     "author" : "system",
-    "version" : 3.1152,
+    "version" : 3.13,
     "categories" : ["system"],
     "description" : "System installed triggers and actions.",
     "icon" : null,
@@ -617,7 +617,9 @@
                 { "schema_item" : "customEventsList", "schema_value" : "customEventsList", "type" : "checkbox", "label" : "customEventsList", "description" : "When True and customEventsValue is also False then it overrides the existing event with the list provided within eventsList.", "required" : false, "jimi_syntax" : false },
                 { "schema_item" : "eventsList", "schema_value" : "eventsList", "type" : "json-input", "label" : "eventsList", "description" : "When customEventsList is True and customEventsValue is also False this list overrides the existing event value.", "required" : false, "jimi_syntax" : true },
                 { "schema_item" : "mergeFinalEventValue", "schema_value" : "mergeFinalEventValue", "type" : "checkbox", "label" : "mergeFinalEventValue", "description" : "When True the last data value from the triggered flow will be merged with the current data value on this flow.", "required" : false, "jimi_syntax" : true },
-                { "schema_item" : "mergeFinalConductValue", "schema_value" : "mergeFinalConductValue", "type" : "checkbox", "label" : "mergeFinalConductValue", "description" : "When True the last data value from the triggered flow will be merged with the current data value on this flow.", "required" : false, "jimi_syntax" : true }
+                { "schema_item" : "mergeFinalConductValue", "schema_value" : "mergeFinalConductValue", "type" : "checkbox", "label" : "mergeFinalConductValue", "description" : "When True the last data value from the triggered flow will be merged with the current data value on this flow.", "required" : false, "jimi_syntax" : true },
+                { "schema_item" : "maxRetries", "schema_value" : "maxRetries", "type" : "input", "label" : "maxRetries", "description" : "If the subflow fails, how many times to retry the flow", "required" : false, "jimi_syntax" : true },
+                { "schema_item" : "retryDelay", "schema_value" : "retryDelay", "type" : "input", "label" : "retryDelay", "description" : "The time to wait between retrying a flow", "required" : false, "jimi_syntax" : true }
             ],
             "data_out" : {
                 "result" : { 
@@ -646,6 +648,17 @@
                         "(string)" : { "description" : "A message that outlines additional information about the result." }
                     }
                 }
+            }
+        },
+        "subFlowReturn" : {
+            "display_name" : "subFlowReturn",
+            "className" : "_subFlowReturn",
+            "class_location" : "system.models.subFlow",
+            "description" : "Returns True|False from a running subFlow. ",
+            "fields" : [
+                { "schema_item" : "subFlowResult", "schema_value" : "subFlowResult", "type" : "checkbox", "label" : "subFlowResult", "description" : "The True|False result to return from the subFlow.", "required" : true, "jimi_syntax" : false }
+            ],
+            "data_out" : {
             }
         },
         "generatePassword" : {
