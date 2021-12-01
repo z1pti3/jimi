@@ -142,11 +142,6 @@ class _trigger(jimi.db._document):
         except jimi.exceptions.endWorker as e:
             raise jimi.exceptions.endWorker(e.data)
         finally:
-            self.startCheck = 0
-            self.attemptCount = 0
-            self.lastCheck = time.time()
-            self.nextCheck = jimi.scheduler.getSchedule(self.schedule)
-            self.update(["startCheck","lastCheck","nextCheck","attemptCount"])
             try:
                 if "flowDebugSnapshot" in data["persistentData"]["system"]:
                     if data["persistentData"]["system"]["flowDebugSnapshot"]:
@@ -155,6 +150,11 @@ class _trigger(jimi.db._document):
                         jimi.debug.deleteFlowDebugSession(data["persistentData"]["system"]["flowDebugSession"]["sessionID"])
             except KeyError:
                 pass
+        self.startCheck = 0
+        self.attemptCount = 0
+        self.lastCheck = time.time()
+        self.nextCheck = jimi.scheduler.getSchedule(self.schedule)
+        self.update(["startCheck","lastCheck","nextCheck","attemptCount"])
         # Return the final data value
         return data
 
@@ -227,11 +227,6 @@ class _trigger(jimi.db._document):
         except jimi.exceptions.endWorker as e:
             raise jimi.exceptions.endWorker(e.data)
         finally:
-            self.startCheck = 0
-            self.attemptCount = 0
-            self.lastCheck = time.time()
-            self.nextCheck = jimi.scheduler.getSchedule(self.schedule)
-            self.update(["startCheck","lastCheck","nextCheck","attemptCount"])
             try:
                 if "flowDebugSnapshot" in data["persistentData"]["system"]:
                     if data["persistentData"]["system"]["flowDebugSnapshot"]:
@@ -240,6 +235,11 @@ class _trigger(jimi.db._document):
                         jimi.debug.deleteFlowDebugSession(data["persistentData"]["system"]["flowDebugSession"]["sessionID"])
             except KeyError:
                 pass
+        self.startCheck = 0
+        self.attemptCount = 0
+        self.lastCheck = time.time()
+        self.nextCheck = jimi.scheduler.getSchedule(self.schedule)
+        self.update(["startCheck","lastCheck","nextCheck","attemptCount"])
 
         # Return the final data value
         return data
