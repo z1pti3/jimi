@@ -387,7 +387,6 @@ if jimi.api.webServer:
                 
 def load():
     updatePluginDB()
-    installPluginPythonRequirements()
     loadPluginAPIExtensions()
     loadPluginFunctionExtensions()
 
