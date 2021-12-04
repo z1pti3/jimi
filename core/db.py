@@ -547,10 +547,10 @@ class _bulk():
                 bulkOperatonMethod["insert"] = []
             # Update
             if len(bulkOperatonMethod["update"]) > 0:
-                bulkUpdate = db[bulkOperatonCollection].initialize_unordered_bulk_op()
+                upsertArray = []
                 for update in bulkOperatonMethod["update"]:
-                    bulkUpdate.find(update["query"]).update_one(update["update"])
-                bulkUpdate.execute()
+                    upsertArray.append(pymongo.UpdateOne(update["query"],update["update"]))
+                bulkUpdate = db[bulkOperatonCollection].bulk_write(upsertArray)
                 bulkOperatonMethod["update"] = []
             # Upsert
             if len(bulkOperatonMethod["upsert"]) > 0:
