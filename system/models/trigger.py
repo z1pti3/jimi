@@ -23,6 +23,9 @@ def failedTrigger(workerName,workerID,failureType,msg=""):
             if len(triggerClass) == 1:
                 triggerClass = triggerClass[0]
             if triggerClass:
+                # Force the cluster system to identify that a trigger has crashed or failed
+                triggerClass.startCheck = triggerClass.startCheck - triggerClass.maxDuration
+                triggerClass.update(["startCheck"])
                 events = [{"type" : "systemEvent", "eventType" : failureType, "workerName" : workerName, "workerID" : workerID, "msg" : msg }]
                 # Excludes threaded triggers as this will be triggered by the thread crashing on the system index not the thread itself
                 if workers.workers != None:          

@@ -350,18 +350,21 @@ def getTriggerUsedModels(triggerID):
         for triggeredFlow in triggeredFlows:
             currentFlow = triggeredFlow
             processQueue = []
+            loopProtection = []
             while True:
                 if currentFlow:
-                    if currentFlow["type"] == "trigger":
-                        if currentFlow["triggerID"] not in models:
-                            t = jimi.trigger._trigger().getAsClass(id=currentFlow["triggerID"])[0]
-                            models.append(t.classID)
-                    elif currentFlow["type"] == "action":
-                        if currentFlow["actionID"] not in models:
-                            a = jimi.action._action().getAsClass(id=currentFlow["actionID"])[0]
-                            models.append(a.classID)
-                    for nextFlow in currentFlow["next"]:
-                        processQueue.append({ "flowID" : nextFlow["flowID"] })
+                    if currentFlow["flowID"] not in loopProtection:
+                        loopProtection.append(currentFlow["flowID"])
+                        if currentFlow["type"] == "trigger":
+                            if currentFlow["triggerID"] not in models:
+                                t = jimi.trigger._trigger().getAsClass(id=currentFlow["triggerID"])[0]
+                                models.append(t.classID)
+                        elif currentFlow["type"] == "action":
+                            if currentFlow["actionID"] not in models:
+                                a = jimi.action._action().getAsClass(id=currentFlow["actionID"])[0]
+                                models.append(a.classID)
+                        for nextFlow in currentFlow["next"]:
+                            processQueue.append({ "flowID" : nextFlow["flowID"] })
                 if len(processQueue) == 0:
                     break
                 else:

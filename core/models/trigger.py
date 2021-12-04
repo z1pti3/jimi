@@ -25,6 +25,7 @@ class _trigger(jimi.db._document):
     failOnActionFailure = True
     attemptCount = int()
     autoRestartCount = 3
+    autoRestartDelay = 0
     executionCount = int()
     scope = int()
     executionSnapshot = False
@@ -140,6 +141,11 @@ class _trigger(jimi.db._document):
                 self.enabled = False
                 self.update(["enabled"])
         except jimi.exceptions.endWorker as e:
+            self.startCheck = 0
+            self.attemptCount = 0
+            self.lastCheck = time.time()
+            self.nextCheck = jimi.scheduler.getSchedule(self.schedule)
+            self.update(["startCheck","lastCheck","nextCheck","attemptCount"])
             raise jimi.exceptions.endWorker(e.data)
         finally:
             try:
@@ -225,6 +231,11 @@ class _trigger(jimi.db._document):
                 self.enabled = False
                 self.update(["enabled"])
         except jimi.exceptions.endWorker as e:
+            self.startCheck = 0
+            self.attemptCount = 0
+            self.lastCheck = time.time()
+            self.nextCheck = jimi.scheduler.getSchedule(self.schedule)
+            self.update(["startCheck","lastCheck","nextCheck","attemptCount"])
             raise jimi.exceptions.endWorker(e.data)
         finally:
             try:

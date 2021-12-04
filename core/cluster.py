@@ -127,10 +127,10 @@ class _clusterMember(jimi.db._document):
                 {
                     "$project": 
                     { 
-                        "maxEndTime" : { "$add" : ["$maxDuration", "$startCheck", 60] },
+                        "maxEndTime" : { "$add" : ["$startCheck","$maxDuration",clusterSettings["recoveryTime"]] },
                         "startCheck" : 1,
                         "maxDuration" : 1,
-                        "nextCheckMaxWait" : { "$add" : [ "$nextCheck", 60 ] },
+                        "nextCheckMaxWait" : { "$add" : [ "$nextCheck", clusterSettings["recoveryTime"] ] },
                         "nextCheck" : 1,
                         "enabled" : 1,
                         "schedule" : 1,
@@ -143,14 +143,15 @@ class _clusterMember(jimi.db._document):
                     {
                         "$or" : [
                             {
-                                "startCheck" : { "$gt" : 0 }
+                                "startCheck" : { "$gt" : 0 },
+                                "maxEndTime" : { "$lt" :  time.time() }
                             },
                             {
                                "nextCheckMaxWait" : { "$lt" : time.time() },
-                               "nextCheck" : { "$gt" : 0 }
+                               "nextCheck" : { "$gt" : 0 },
+                               "startCheck" : 0
                             }
                         ],
-                        "maxEndTime" : { "$lt" :  time.time() },
                         "enabled" : True
                     }
                 }
@@ -173,22 +174,23 @@ class _clusterMember(jimi.db._document):
                     failedTriggerClass = jimi.trigger._trigger().getAsClass(id=failedTrigger["_id"])
                     if len(failedTriggerClass) == 1:
                         failedTriggerClass = failedTriggerClass[0]
-                        availableSystems = getSupportedSystems(failedTriggerClass._id,active)
-                        availableSystems.sort()
-                        if len(availableSystems) == 0:
-                            jimi.audit._audit().add("cluster","restart trigger",{ "triggerID" : failedTriggerClass._id, "triggerName" : failedTriggerClass.name, "triggerAttemptCount" : failedTriggerClass.attemptCount, "triggerSystemID" : failedTriggerClass.systemID, "masterID" : self.systemID, "masterUID" : self.systemUID, "msg" : "No available systems that support the attached flows.", "success" : False })
-                        else:
-                            try:
-                                index = availableSystems.index(failedTriggerClass.systemID)
-                                failedTriggerClass.systemID = availableSystems[index+1]
-                            except:
-                                failedTriggerClass.systemID = availableSystems[0]
-                            failedTriggerClass.startCheck = 0
-                            failedTriggerClass.systemIndex = 0
-                            failedTriggerClass.nextCheck = time.time()
-                            failedTriggerClass.update(["systemID","systemIndex","startCheck","nextCheck"])
-                            jimi.audit._audit().add("cluster","restart trigger",{ "triggerID" : failedTriggerClass._id, "triggerName" : failedTriggerClass.name, "triggerAttemptCount" : failedTriggerClass.attemptCount, "triggerSystemID" : failedTriggerClass.systemID, "masterID" : self.systemID, "masterUID" : self.systemUID, "success" : True })
-                            jimi.exceptions.triggerCrash(failedTriggerClass._id,failedTriggerClass.name,'Restarting failed trigger. triggerSystemID={0}, masterID={1}, attempts={2}'.format(failedTriggerClass.systemID,self.systemID,failedTriggerClass.attemptCount))
+                        if failedTriggerClass.startCheck + failedTriggerClass.maxDuration + failedTriggerClass.autoRestartDelay < time.time():
+                            availableSystems = getSupportedSystems(failedTriggerClass._id,active)
+                            availableSystems.sort()
+                            if len(availableSystems) == 0:
+                                jimi.audit._audit().add("cluster","restart trigger",{ "triggerID" : failedTriggerClass._id, "triggerName" : failedTriggerClass.name, "triggerAttemptCount" : failedTriggerClass.attemptCount, "triggerSystemID" : failedTriggerClass.systemID, "masterID" : self.systemID, "masterUID" : self.systemUID, "msg" : "No available systems that support the attached flows.", "success" : False })
+                            else:
+                                try:
+                                    index = availableSystems.index(failedTriggerClass.systemID)
+                                    failedTriggerClass.systemID = availableSystems[index+1]
+                                except:
+                                    failedTriggerClass.systemID = availableSystems[0]
+                                failedTriggerClass.startCheck = 0
+                                failedTriggerClass.systemIndex = 0
+                                failedTriggerClass.nextCheck = time.time()
+                                failedTriggerClass.update(["systemID","systemIndex","startCheck","nextCheck"])
+                                jimi.audit._audit().add("cluster","restart trigger",{ "triggerID" : failedTriggerClass._id, "triggerName" : failedTriggerClass.name, "triggerAttemptCount" : failedTriggerClass.attemptCount, "triggerSystemID" : failedTriggerClass.systemID, "masterID" : self.systemID, "masterUID" : self.systemUID, "success" : True })
+                                jimi.exceptions.triggerCrash(failedTriggerClass._id,failedTriggerClass.name,'Restarting failed trigger. triggerSystemID={0}, masterID={1}, attempt={2}'.format(failedTriggerClass.systemID,self.systemID,failedTriggerClass.attemptCount))
                     else:
                         if jimi.logging.debugEnabled:
                             jimi.logging.debug("Unable to load trigger {0} for restarting".format(failedTrigger["_id"]),3)
@@ -226,30 +228,31 @@ class _clusterMember(jimi.db._document):
                                     groupIndex = 0
 
                     for inactiveTrigger in inactiveTriggers:
-                        lowestMember = [active[-1],clusterMembersDetails[str(active[-1])]["count"]]
-                        availableSystems = getSupportedSystems(inactiveTrigger._id,active)
-                        if len(availableSystems) == 0:
-                            jimi.audit._audit().add("cluster","set trigger",{ "triggerID" : inactiveTrigger._id, "triggerName" : inactiveTrigger.name, "clusterSet" : inactiveTrigger.clusterSet, "masterID" : self.systemID, "masterUID" : self.systemUID, "msg" : "No available systems that support the attached flows.", "success" : False })
-                        else:
-                            for activeMember in availableSystems:
-                                if clusterMembersDetails[str(activeMember)]["count"] < lowestMember[1]:
-                                    lowestMember[0] = activeMember
-                                    lowestMember[1] = clusterMembersDetails[str(activeMember)]["count"]
-                            member = lowestMember[0]
-                            if inactiveTrigger.clusterSet != 0:
-                                if str(inactiveTrigger.clusterSet) not in groups:
-                                    # Should check others within the group to ensure we put them back on the same member
-                                    groups[str(inactiveTrigger.clusterSet)] = lowestMember[0]
-                                else:
-                                    member = groups[str(inactiveTrigger.clusterSet)]
-                            inactiveTrigger.systemID = member
-                            inactiveTrigger.startCheck = 0
-                            inactiveTrigger.systemIndex = 0
-                            inactiveTrigger.update(["systemID","startCheck","systemIndex"])
-                            clusterMembersDetails[str(member)]["count"]+=1
-                            if jimi.logging.debugEnabled:
-                                jimi.logging.debug("Set triggerID='{0}' triggers to systemID='{1}', new trigger count='{2}'".format(inactiveTrigger._id,member,clusterMembersDetails[str(member)]["count"]),6)
-                            jimi.audit._audit().add("cluster","set trigger",{ "triggerID" : inactiveTrigger._id, "triggerName" : inactiveTrigger.name, "systemID" : member, "clusterSet" : inactiveTrigger.clusterSet, "masterID" : self.systemID, "masterUID" : self.systemUID, "msg" : "Moving trigger from dead node" })
+                        if inactiveTrigger.startCheck + inactiveTrigger.maxDuration + inactiveTrigger.autoRestartDelay < time.time():
+                            lowestMember = [active[-1],clusterMembersDetails[str(active[-1])]["count"]]
+                            availableSystems = getSupportedSystems(inactiveTrigger._id,active)
+                            if len(availableSystems) == 0:
+                                jimi.audit._audit().add("cluster","set trigger",{ "triggerID" : inactiveTrigger._id, "triggerName" : inactiveTrigger.name, "clusterSet" : inactiveTrigger.clusterSet, "masterID" : self.systemID, "masterUID" : self.systemUID, "msg" : "No available systems that support the attached flows.", "success" : False })
+                            else:
+                                for activeMember in availableSystems:
+                                    if clusterMembersDetails[str(activeMember)]["count"] < lowestMember[1]:
+                                        lowestMember[0] = activeMember
+                                        lowestMember[1] = clusterMembersDetails[str(activeMember)]["count"]
+                                member = lowestMember[0]
+                                if inactiveTrigger.clusterSet != 0:
+                                    if str(inactiveTrigger.clusterSet) not in groups:
+                                        # Should check others within the group to ensure we put them back on the same member
+                                        groups[str(inactiveTrigger.clusterSet)] = lowestMember[0]
+                                    else:
+                                        member = groups[str(inactiveTrigger.clusterSet)]
+                                inactiveTrigger.systemID = member
+                                inactiveTrigger.startCheck = 0
+                                inactiveTrigger.systemIndex = 0
+                                inactiveTrigger.update(["systemID","startCheck","systemIndex"])
+                                clusterMembersDetails[str(member)]["count"]+=1
+                                if jimi.logging.debugEnabled:
+                                    jimi.logging.debug("Set triggerID='{0}' triggers to systemID='{1}', new trigger count='{2}'".format(inactiveTrigger._id,member,clusterMembersDetails[str(member)]["count"]),6)
+                                jimi.audit._audit().add("cluster","set trigger",{ "triggerID" : inactiveTrigger._id, "triggerName" : inactiveTrigger.name, "systemID" : member, "clusterSet" : inactiveTrigger.clusterSet, "masterID" : self.systemID, "masterUID" : self.systemUID, "msg" : "Moving trigger from dead node" })
         return True
 
 class _cluster:
