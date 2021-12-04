@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.13
+systemVersion = 3.131
 
 # Initialize 
 dbCollectionName = "system"
@@ -578,5 +578,8 @@ def systemUpgrade(currentVersion):
     if currentVersion < 3.13:
         jimi.model.registerModel("subFlowReturn","_subFlowReturn","_action","system.models.subFlow")
         loadSystemManifest()
+
+    if currentVersion < 3.131:
+        jimi.model.registerModel("role","_role","_document","core.auth")
 
     return True
