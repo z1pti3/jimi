@@ -362,9 +362,6 @@ venv/
 
 # jimi
 data
-plugins
-plugins-available
-
 
 # Docker
 .docker
