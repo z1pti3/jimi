@@ -339,6 +339,40 @@ def copyData(data,copyEventData=False,copyConductData=False,copyPersistentData=F
 
     return copyOfData
 
+def getTriggerUsedModels(triggerID):
+    failedTriggerConducts = jimi.conduct._conduct().getAsClass(query={"flow.triggerID" : triggerID, "enabled" : True})
+    models = []
+    for failedTriggerConduct in failedTriggerConducts:
+        conductFlowData = {}
+        for flowItem in failedTriggerConduct.flow:
+            conductFlowData[flowItem["flowID"]] = flowItem
+        triggeredFlows = [ x for x in failedTriggerConduct.flow if "triggerID" in x and x["triggerID"] == triggerID and x["type"] == "trigger" ]
+        for triggeredFlow in triggeredFlows:
+            currentFlow = triggeredFlow
+            processQueue = []
+            while True:
+                if currentFlow:
+                    if currentFlow["type"] == "trigger":
+                        if currentFlow["triggerID"] not in models:
+                            t = jimi.trigger._trigger().getAsClass(id=currentFlow["triggerID"])[0]
+                            models.append(t.classID)
+                    elif currentFlow["type"] == "action":
+                        if currentFlow["actionID"] not in models:
+                            a = jimi.action._action().getAsClass(id=currentFlow["actionID"])[0]
+                            models.append(a.classID)
+                    for nextFlow in currentFlow["next"]:
+                        processQueue.append({ "flowID" : nextFlow["flowID"] })
+                if len(processQueue) == 0:
+                    break
+                else:
+                    nextFlowID = processQueue[-1]["flowID"]
+                    processQueue.pop()
+                    try:
+                        currentFlow = conductFlowData[nextFlowID]
+                    except KeyError:
+                        currentFlow = None
+    return models
+
 def getAction(match,sessionData,currentflow):
     return jimi.action._action(False).getAsClass(id=currentflow["actionID"])
 
