@@ -67,6 +67,19 @@ def deregisterModel(name,className,classType,location):
     if jimi.logging.debugEnabled:
         jimi.logging.debug("deregister model failed modelName='{0}', className='{1}', classType='{2}', location='{3}'".format(name,className,classType,location),4)
 
+def getLoadableModels():
+    loadableModels = []
+    models = _model(False).getAsClass(query={})
+    for modelObject in models:
+        try:
+            mod = __import__("{0}".format(modelObject.location), fromlist=["{0}".format(modelObject.className)])
+            class_ = getattr(mod, "{0}".format(modelObject.className))
+            if class_:
+                loadableModels.append(modelObject._id)
+        except:
+            pass
+    return loadableModels
+
 def getClassID(name):
     loadModels = _model(False).query(query={ "name" : name})["results"]
     if loadModels:

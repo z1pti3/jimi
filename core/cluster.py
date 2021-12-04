@@ -20,6 +20,7 @@ class _clusterMember(jimi.db._document):
     syncCount = int()
     lastSyncTime = int()
     checksum = str()
+    supportedModels = list()
 
     _dbCollection = jimi.db.db["clusterMembers"]
 

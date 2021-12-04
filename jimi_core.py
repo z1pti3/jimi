@@ -131,8 +131,9 @@ if __name__ == "__main__":
     if masterMember and masterId != systemId and checksum != masterMember.checksum:
         logging.error("Checksum mismatch between system %i and master %i",systemId,masterId)
     if clusterMember:
+        clusterMember.supportedModels = jimi.model.getLoadableModels()
         clusterMember.checksum = checksum
-        clusterMember.update(["checksum"])
+        clusterMember.update(["checksum","supportedModels"])
 
     # Starting API
     logging.info("Starting API interface")
