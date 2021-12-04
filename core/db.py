@@ -343,7 +343,7 @@ class _document():
                 else: 
                     query["$or"] = [ aclQuery ]
         # Base query
-        count = self._dbCollection.count(query)    
+        count = self._dbCollection.count_documents(query)    
         #return count           
         result["results"].append({"count" : count})
         return result
