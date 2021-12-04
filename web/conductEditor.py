@@ -377,6 +377,12 @@ def conductImportData(conductID):
         data = json.loads(jimi.api.request.data)
         importData = json.loads(data["importData"])
 
+        #Legacy support remove in 5.0 - old imports dont have tag
+        for flow in importData["flow"]:
+            for nextFlow in flow["next"]:
+                if "tag" not in nextFlow:
+                    nextFlow["tag"] = ""
+
         if data["appendObjects"]:
             conductObj.flow = conductObj.flow + importData["flow"]
         else:
