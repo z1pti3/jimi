@@ -9,42 +9,25 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='includes/datatables/css/fixedHeader.dataTables.min.css') }}">
     <script src="{{ url_for('static', filename='includes/datatables/js/dataTables.fixedHeader.min.js') }}"></script>
 
-    <script src="{{ url_for('static', filename='includes/visjs/js/moment.js') }}"></script>
-    <script src="{{ url_for('static', filename='includes/datatables/js/datetime.moment.js') }}"></script>
 
     <script src="{{ url_for('static', filename='javascript/helpers.js') }}"></script>
     <script src="{{ url_for('static', filename='javascript/alert.js') }}"></script>
 {% endblock %}
 
 {% block main %}
-    <div class="container">
-        <div class="alert-container alert alert-success hide" role="alert">
-            <div class="alert">
-                <p id="alertMessage"></p>
-            </div>
-        </div>
+    <div class="container-fluid">
         <div id="createObjectContainer" class="hide">
             <button class="btn btn-primary createObject button" onclick="createObject()">Create Object</button>
         </div>
-        <table id="table" class="display theme-table" cellspacing="0" width="100%">
-            <thead class="theme-tableHeader">
-            </thead>
-            <tbody class="theme-tableBody">
-            </tbody>
-        </table>
+        <table id="table" class="display theme-table" style="width:100%;"></table>
     </div>
 
     <script>
-        var CSRF = "{{CSRF}}"
-    </script>
-
-    <script>
-        $(document).ready(function () {
-            $.fn.dataTable.moment('DD-MMM-YY HH:mm:ss');
-        });
-
+        var modelEditorTable = null;
+        // Horrible hack to ensure that you go to the top of the page if you open a differnet model ( this is because modelEditor refreshes between page calls )
+        var currentModelName = sessionStorage.getItem("modelEditor_currentModelName");
         function buildTable_ListModels() {
-            $('#table').DataTable({
+            modelEditorTable = $('#table').DataTable({
                 "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
                 "paging" : false,
                 "order" : [[ 0, "asc" ]],
@@ -63,49 +46,58 @@
                 ]
             });
 
-            var table = $('#table').DataTable();
-
             $('.dataTables_length').addClass('bs-select');
             $('.dataTables_filter input[type="search"]').css({'width':'200px'});
             $('.dataTables_filter input[type="search"]').addClass("textbox")
 
             $('#table tbody').on('click', 'tr', function () {
-                var data = table.row( this ).data();
-                table.destroy();
+                var data = modelEditorTable.row( this ).data();
+                modelEditorTable.destroy();
                 $('#table').empty();
                 window.location.search += '?modelName='+data[0];
             } );
 
             $.ajax({url:"/api/1.0/models/", type:"GET", success: function ( result ) {
                     for ( resultItem in result["models"] ) {
-                        table.row.add([result["models"][resultItem]]);
+                        modelEditorTable.row.add([result["models"][resultItem]]);
                     }
-                    table.draw();
+                    modelEditorTable.draw();
                 }
             })
         }
 
         function buildTable_ListModel( modelName ) {
             $('#createObjectContainer').toggleClass("hide");
-            $('#table').DataTable({
+            // Horrible hack to ensure that you go to the top of the page if you open a differnet model ( this is because modelEditor refreshes between page calls )
+            // Basicly it turns on and off stateSave as the table has to be rendered with the state cleared when openning a new model to ensure your at the tope
+            loadState = true;
+            if (currentModelName != modelName) {
+                currentModelName = modelName;
+                loadState = false;
+                sessionStorage.setItem("modelEditor_currentModelName", currentModelName);
+            }
+            modelEditorTable = $('#table').DataTable({
+                ajax: 'pollTableListModel/'+modelName+"/poll/",
+                processing: false,
+                serverSide: true,
+                sScrollY: "calc(100% - 100px)",
+                deferRender: true,
+                stateSave: loadState,
+                scroller: true,
+                bLengthChange: false,
+                bInfo: false,
                 "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
-                fixedHeader: {
-                    header: true,
-                    footer: true
-                },
-                "paging" : false,
-                "order" : [[ 0, "asc" ]],
                 columns : [
-                    { "data": "_id", "name": "_id", "title": "_id", "autoWidth": true, render: $.fn.dataTable.render.text() },
-                    { "data": "name", "name": "name", "title": "Name", "autoWidth": true, render: $.fn.dataTable.render.text() },
+                    { "name": "_id", "title": "_id", "autoWidth": true, render: $.fn.dataTable.render.text() },
+                    { "name": "name", "title": "Name", "autoWidth": true, render: $.fn.dataTable.render.text() },
                     { 
-                        "data": "options", "name": "options", "title": "Options", "autoWidth": true, render: function (data, type, row) {
+                        "name": "options", "title": "Options", "autoWidth": true, render: function (data, type, row) {
                             return '<button class="btn btn-primary button" onclick="editObject(\''+data+'\')">Edit</button> <button class="btn btn-primary button" id="rowid' + data + '" onclick="deleteObject(\''+data+'\')">Del</button>';
                         }
                     },
-                    { "data": "whereUsed", "name": "whereUsed", "title": "whereUsed", "autoWidth": true, render: $.fn.dataTable.render.text() },
-                    { "data": "lastUpdateTime", "name": "lastUpdateTime", "title": "lastUpdateTime", "autoWidth": true, render: $.fn.dataTable.render.text() }
+                    { "name": "lastUpdateTime", "title": "lastUpdateTime", "autoWidth": true, render: $.fn.dataTable.render.text() }
                 ],
+                dom: '<"pull-left"f><"pull-right"l>tip',
                 columnDefs: [
                     {
                         orderable: true
@@ -113,31 +105,15 @@
                 ]
             });
 
-            var table = $('#table').DataTable();
-
             $('.dataTables_length').addClass('bs-select');
             $('.dataTables_filter input[type="search"]').css({'width':'200px'});
-            $('.dataTables_filter input[type="search"]').addClass("textbox")
-
-            $.ajax({url:"/api/1.0/models/"+modelName+"/extra/", type:"GET", success: function ( result ) {
-                    for ( resultItem in result["results"] ) {
-                        if (!result["results"][resultItem].hasOwnProperty("name"))
-                        {
-                            result["results"][resultItem]["name"] = "";
-                        }
-                        if (!result["results"][resultItem].hasOwnProperty("lastUpdateTime"))
-                        {
-                            result["results"][resultItem]["lastUpdateTime"] = "";
-                        }
-                        table.row.add({ "_id" : result["results"][resultItem]["_id"], "name" : result["results"][resultItem]["name"], "options" : result["results"][resultItem]["_id"], "whereUsed" : JSON.stringify(result["results"][resultItem]["whereUsed"]), "lastUpdateTime" : result["results"][resultItem]["lastUpdateTime"] });
-                    }
-                    table.draw();
-                }
-            })
+            $('.dataTables_filter input[type="search"]').addClass("textbox");
+            $('.div.dataTables_paginate').hide();
+            $('#table_paginate').hide();
         } 
 
         function EditModel(modelName,id) {
-            $('#table').DataTable({
+            modelEditorTable = $('#table').DataTable({
                 "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
                 fixedHeader: {
                     header: true,
@@ -160,8 +136,6 @@
                 ]
             });
 
-            var table = $('#table').DataTable();
-
             $('.dataTables_length').addClass('bs-select');
             $('.dataTables_filter input[type="search"]').css({'width':'200px'});
             $('.dataTables_filter input[type="search"]').addClass("textbox")
@@ -169,12 +143,12 @@
             $.ajax({url:"/api/1.0/models/"+modelName+"/"+id+"/", type:"GET", success: function ( result ) {
                     for ( resultItem in result ) {
                         if (typeof result[resultItem] == "object") {
-                            table.row.add({ "property" : resultItem, "value" : [ resultItem, JSON.stringify(result[resultItem]) ], "initalValue" : JSON.stringify(result[resultItem]) });
+                            modelEditorTable.row.add({ "property" : resultItem, "value" : [ resultItem, JSON.stringify(result[resultItem]) ], "initalValue" : JSON.stringify(result[resultItem]) });
                         } else {
-                            table.row.add({ "property" : resultItem, "value" : [ resultItem, result[resultItem] ], "initalValue" : String(result[resultItem]) });
+                            modelEditorTable.row.add({ "property" : resultItem, "value" : [ resultItem, result[resultItem] ], "initalValue" : String(result[resultItem]) });
                         }
                     }
-                    table.draw();
+                    modelEditorTable.draw();
                 }
             })
 
@@ -184,7 +158,7 @@
                     case 's':
                         event.preventDefault();
                         var jsonData = {}
-                        table.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
+                        modelEditorTable.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
                             var data = this.data();
                             if (data["initalValue"] != $("#property_"+data["value"][0]).val())
                             {
