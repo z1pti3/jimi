@@ -11,7 +11,7 @@ import logging
 import jimi
 
 # Current System Version
-systemVersion = 3.132
+systemVersion = 3.133
 
 # Initialize 
 dbCollectionName = "system"
@@ -581,5 +581,10 @@ def systemUpgrade(currentVersion):
 
     if currentVersion < 3.132:
         loadSystemManifest()
+
+    if currentVersion < 3.133:
+        for plugin in jimi.plugin._plugin().getAsClass(query={ "acl.ids.accessID" : { "$ne" : 0 } }):
+            plugin.acl ={ "ids":[ { "accessID":"0","delete": True,"read": True,"write": True } ] }
+            plugin.update(["acl"])
 
     return True

@@ -250,6 +250,7 @@ if jimi.api.webServer:
                     newPlugin = pluginClass()
                     newPlugin.name = pluginName
                     newPlugin.classID = classID
+                    newPlugin.acl = { "ids":[ { "accessID":"0","delete": True,"read": True,"write": True } ] }
                     newPluginID = newPlugin._dbCollection.insert_one(newPlugin.parse()).inserted_id
                     newPlugin = pluginClass().get(newPluginID)
                     if newPlugin.installed != True:
@@ -444,6 +445,7 @@ def updatePluginDB():
                 newPlugin = pluginClass()
                 newPlugin.name = plugin
                 newPlugin.classID = classID
+                newPlugin.acl = { "ids":[ { "accessID":"0","delete": True,"read": True,"write": True } ] }
                 newPluginID = newPlugin._dbCollection.insert_one(newPlugin.parse()).inserted_id
                 newPlugin = pluginClass().get(newPluginID)
                 if newPlugin.installed != True:
