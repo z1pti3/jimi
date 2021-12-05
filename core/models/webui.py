@@ -58,7 +58,7 @@ class _properties():
         formData = []
         if classObject.manifest__:
             if len(classObject.manifest__["fields"]) > 0:
-                systemFields = ["_id","name","enabled","log","concurrency","threaded","failOnActionFailure","systemCrashHandler","executionSnapshot","systemID","startTime","nextCheck","schedule","maxDuration","logicString","varDefinitions","comment"]
+                systemFields = ["_id","name","enabled","log","concurrency","threaded","executionSnapshot","startTime","schedule","maxDuration","logicString","varDefinitions","comment"]
                 formData.append({"type" : "break", "schemaitem" : "break", "start" : True, "label" : "System"})
                 for field in systemFields:
                     try:
@@ -95,7 +95,7 @@ class _properties():
                 return formData
         
         # Old method
-        blacklist = ["classID","workerID","acl","lastUpdateTime","creationTime","createdBy","attemptCount","autoRestartCount","startCheck","scope","clusterSet","lastCheck","startTime","systemIndex"]
+        blacklist = ["classID","workerID","acl","lastUpdateTime","creationTime","createdBy","attemptCount","autoRestartCount","startCheck","scope","clusterSet","lastCheck","startTime","systemIndex","systemID","nextCheck","failOnActionFailure","autoRestartDelay","systemCrashHandler","partialResults"]
         members = [attr for attr in dir(classObject) if not callable(getattr(classObject, attr)) and not "__" in attr and attr ]
         for member in members:
             if member not in blacklist:

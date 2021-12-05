@@ -8,7 +8,6 @@ class _action(jimi.db._document):
     name = str()
     enabled = bool()
     log = bool()
-    errorContinue = bool()
     comment = str()
     logicString = str()
     varDefinitions = dict()
