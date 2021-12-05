@@ -10,6 +10,7 @@ class _subFlow(jimi.action._action):
 	mergeFinalDataValue = False 
 	mergeFinalEventValue = False
 	mergeFinalConductValue = False
+	useNewDataTemplate = False
 	maxRetries = int()
 	retryDelay = int()
 
@@ -18,7 +19,10 @@ class _subFlow(jimi.action._action):
 
 		events = [data["flowData"]["event"]]
 
-		tempData = jimi.conduct.copyData(jimi.conduct.dataTemplate(data,keepEvent=True))
+		if self.newDataTemplate:
+			tempData = jimi.conduct.dataTemplate(data=data)
+		else:
+			tempData = jimi.conduct.copyData(jimi.conduct.dataTemplate(data,keepEvent=True))
 		tempData["flowData"]["callingTriggerID"] = data["flowData"]["trigger_id"]
 
 		if self.customEventsValue:

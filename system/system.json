@@ -1,7 +1,7 @@
 {
     "name" : "system",
     "author" : "system",
-    "version" : 3.13,
+    "version" : 3.132,
     "categories" : ["system"],
     "description" : "System installed triggers and actions.",
     "icon" : null,
@@ -611,15 +611,16 @@
             "description" : "Triggers another trigger with the current event or custom event value.",
             "fields" : [
                 { "schema_item" : "triggerID", "schema_value" : "triggerID", "type" : "input", "label" : "triggerID", "description" : "The triggerID for the flow to run.", "required" : true, "jimi_syntax" : true },
+                { "schema_item" : "maxRetries", "schema_value" : "maxRetries", "type" : "input", "label" : "maxRetries", "description" : "If the subflow fails, how many times to retry the flow", "required" : false, "jimi_syntax" : true },
+                { "schema_item" : "retryDelay", "schema_value" : "retryDelay", "type" : "input", "label" : "retryDelay", "description" : "The time to wait between retrying a flow", "required" : false, "jimi_syntax" : true },
+                { "schema_item" : "customEventsValue", "schema_value" : "customEventsValue", "type" : "group-checkbox", "label" : "customEventsValue", "description" : "When True you must populate eventsValue to override the current flows event value when triggering the subFlow.", "required" : false, "jimi_syntax" : false, "group" : 1 },
+                { "schema_item" : "eventsValue", "schema_value" : "eventsValue", "type" : "input", "label" : "eventsValue", "description" : "Only used when customEventsValue is True and overrides the existing events with the value provided.", "required" : false, "jimi_syntax" : true, "group" : 1 },
+                { "schema_item" : "customEventsList", "schema_value" : "customEventsList", "type" : "group-checkbox", "label" : "customEventsList", "description" : "When True and customEventsValue is also False then it overrides the existing event with the list provided within eventsList.", "required" : false, "jimi_syntax" : false, "group" : 2 },
+                { "schema_item" : "eventsList", "schema_value" : "eventsList", "type" : "json-input", "label" : "eventsList", "description" : "When customEventsList is True and customEventsValue is also False this list overrides the existing event value.", "required" : false, "jimi_syntax" : true, "group" : 2 },
                 { "schema_item" : "mergeFinalDataValue", "schema_value" : "mergeFinalDataValue", "type" : "checkbox", "label" : "mergeFinalDataValue", "description" : "When True the last data value from the triggered flow will be merged with the current data value on this flow.", "required" : false, "jimi_syntax" : false },
-                { "schema_item" : "customEventsValue", "schema_value" : "customEventsValue", "type" : "checkbox", "label" : "customEventsValue", "description" : "When True you must populate eventsValue to override the current flows event value when triggering the subFlow.", "required" : false, "jimi_syntax" : false },
-                { "schema_item" : "eventsValue", "schema_value" : "eventsValue", "type" : "input", "label" : "eventsValue", "description" : "Only used when customEventsValue is True and overrides the existing events with the value provided.", "required" : false, "jimi_syntax" : true },
-                { "schema_item" : "customEventsList", "schema_value" : "customEventsList", "type" : "checkbox", "label" : "customEventsList", "description" : "When True and customEventsValue is also False then it overrides the existing event with the list provided within eventsList.", "required" : false, "jimi_syntax" : false },
-                { "schema_item" : "eventsList", "schema_value" : "eventsList", "type" : "json-input", "label" : "eventsList", "description" : "When customEventsList is True and customEventsValue is also False this list overrides the existing event value.", "required" : false, "jimi_syntax" : true },
                 { "schema_item" : "mergeFinalEventValue", "schema_value" : "mergeFinalEventValue", "type" : "checkbox", "label" : "mergeFinalEventValue", "description" : "When True the last data value from the triggered flow will be merged with the current data value on this flow.", "required" : false, "jimi_syntax" : true },
                 { "schema_item" : "mergeFinalConductValue", "schema_value" : "mergeFinalConductValue", "type" : "checkbox", "label" : "mergeFinalConductValue", "description" : "When True the last data value from the triggered flow will be merged with the current data value on this flow.", "required" : false, "jimi_syntax" : true },
-                { "schema_item" : "maxRetries", "schema_value" : "maxRetries", "type" : "input", "label" : "maxRetries", "description" : "If the subflow fails, how many times to retry the flow", "required" : false, "jimi_syntax" : true },
-                { "schema_item" : "retryDelay", "schema_value" : "retryDelay", "type" : "input", "label" : "retryDelay", "description" : "The time to wait between retrying a flow", "required" : false, "jimi_syntax" : true }
+                { "schema_item" : "useNewDataTemplate", "schema_value" : "useNewDataTemplate", "type" : "checkbox", "label" : "useNewDataTemplate", "description" : "When True the current flow data is not passed onto the subFlow object.", "required" : false, "jimi_syntax" : false }
             ],
             "data_out" : {
                 "result" : { 
