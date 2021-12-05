@@ -362,6 +362,14 @@ function exportFlowObject() {
 	}
 }
 
+function editWithinModelEditor() {
+	selectedNodes = network.getSelectedNodes()
+	if (selectedNodes.length == 1) {
+		node = nodes.get(selectedNodes[0])
+		window.open("/modelEditor/?modelName="+node["flowType"]+"&_id="+node["objID"], "_blank");
+	}
+}
+
 function CodifyFlowObject() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {
