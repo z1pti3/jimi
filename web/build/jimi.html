@@ -246,6 +246,8 @@
     <label class="unselectable panelHeader">{{ title }}</label>
     <table id="table_{{ id }}" class="display theme-table" style="width:100%;"></table>
     <script>
+        var table__{{ id }};
+        var table__{{ id }}_rowIndex;
         window.addEventListener("load", function(){
             var requestOptions = {
                 method: 'GET',
@@ -254,7 +256,7 @@
             fetch('{{ pollAPI }}build/',requestOptions,2000).then(result => {
                 return result.json()
             }).then(resultJson => {
-                var table = $('#table_{{ id }}').DataTable( { 
+                var table_{{ id }} = $('#table_{{ id }}').DataTable( { 
                     ajax: '{{ pollAPI }}poll/',
                     processing: true,
                     serverSide: true,
@@ -266,12 +268,22 @@
                     columns : resultJson["columns"],
                     language: {
                         search: ""
+                    }{% if autoPoll > 0 %},
+                    dom: '<"pull-left"f><"pull-right"l>tip',
+                    "preDrawCallback": function( settings ) {
+                        scrollPosition = $(".dataTables_scrollBody").scrollTop();
                     },
-                    dom: '<"pull-left"f><"pull-right"l>tip'
+                    "drawCallback": function( settings ) {
+                        $(".dataTables_scrollBody").scrollTop(scrollPosition);
+                        if(typeof table__{{ id }}_rowIndex != 'undefined') {
+                            table__{{ id }}.row(table__{{ id }}_rowIndex).nodes().to$().addClass('row_selected');                       
+                        }
+                    }
+                    {% endif %}
                 });
                 $('#table_{{ id }}_filter input').hide();
                 {% if autoPoll > 0 %}
-                    setInterval( function () { table.ajax.reload(null, false); }, {{ autoPoll }} );
+                    setInterval( function () { table_{{ id }}.ajax.reload(null, false); }, {{ autoPoll }} );
                 {% endif %}
             });
         });
