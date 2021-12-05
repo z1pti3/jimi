@@ -579,7 +579,4 @@ def systemUpgrade(currentVersion):
         jimi.model.registerModel("subFlowReturn","_subFlowReturn","_action","system.models.subFlow")
         loadSystemManifest()
 
-    if currentVersion < 3.131:
-        jimi.model.registerModel("role","_role","_document","core.auth")
-
     return True

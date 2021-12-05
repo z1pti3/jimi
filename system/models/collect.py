@@ -7,8 +7,9 @@ class _collect(jimi.action._action):
 	customData = dict()
 	limit = int()
 
-	def __init__(self):
+	def __init__(self,restrictClass=True):
 		self.events = []
+		return super(_collect, self).__init__(restrictClass)
 
 	def doAction(self,data):
 		try:

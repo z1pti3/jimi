@@ -119,23 +119,6 @@ class _group(jimi.db._document):
         else:
             return None
 
-class _role(jimi.db._document):
-    name = str()
-    enabled = True
-    members = list()
-    description = str()
-
-    _dbCollection = jimi.db.db["roles"]
-
-    # Override parent new to include name var, parent class new run after class var update
-    def new(self,name):
-        existingRoles = _group().query(query={ "name" : name })["results"]
-        if len(existingRoles) == 0:
-            self.name = name
-            return super(_group, self).new() 
-        else:
-            return None
-
 from system import install
 
 def RSAinitialization():
