@@ -9,7 +9,7 @@ def modelEditorMainPage():
 
 @jimi.api.webServer.route("/modelEditor/pollTableListModel/<modelType>/<action>/",methods=["GET"])
 def tableListModel(modelType,action):
-    fields = [ "_id", "name", "_id", "lastUpdateTime" ]
+    fields = [ "_id", "name", "lastUpdateTime", "_id" ]
     searchValue = jimi.api.request.args.get('search[value]')
     orderBy = int(jimi.api.request.args.get('order[0][column]'))
     orderDir = jimi.api.request.args.get('order[0][dir]')

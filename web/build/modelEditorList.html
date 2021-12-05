@@ -20,6 +20,9 @@
             <button class="btn btn-primary createObject button" onclick="createObject()">Create Object</button>
         </div>
         <table id="table" class="display theme-table" style="width:100%;"></table>
+        <div id="saveObjectContainer" class="hide">
+            <button class="btn btn-primary button" onclick="saveObject()">Save</button>
+        </div>
     </div>
 
     <script>
@@ -32,12 +35,10 @@
                 "paging" : false,
                 "order" : [[ 0, "asc" ]],
                 columns : [
-                    { "data": null, "name": "name", "title": "Name", "autoWidth": true, render: $.fn.dataTable.render.text() },
-                    { 
-                        "data": "options", "name": "options", "title": "Options", "autoWidth": true, render: function (data, type, row) {
-                            return '<button class="btn btn-primary button">Edit</button>';
+                    { "data": null, "name": "name", "title": "Name", "autoWidth": true, render: function (data, type, row) {
+                            return '<a href="?modelName='+data+'">'+data+'</a>';
                         }
-                    },
+                    }
                 ],
                 columnDefs: [
                     {
@@ -88,14 +89,20 @@
                 bInfo: false,
                 "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
                 columns : [
-                    { "name": "_id", "title": "_id", "autoWidth": true, render: $.fn.dataTable.render.text() },
-                    { "name": "name", "title": "Name", "autoWidth": true, render: $.fn.dataTable.render.text() },
-                    { 
-                        "name": "options", "title": "Options", "autoWidth": true, render: function (data, type, row) {
-                            return '<button class="btn btn-primary button" onclick="editObject(\''+data+'\')">Edit</button> <button class="btn btn-primary button" id="rowid' + data + '" onclick="deleteObject(\''+data+'\')">Del</button>';
+                    { "name": "_id", "title": "_id", "autoWidth": true, render: function (data, type, row) {
+                            return '<a href="?modelName='+modelName+'&_id='+data+'">'+data+'</a>';
                         }
                     },
-                    { "name": "lastUpdateTime", "title": "lastUpdateTime", "autoWidth": true, render: $.fn.dataTable.render.text() }
+                    { "name": "name", "title": "Name", "autoWidth": true, render: $.fn.dataTable.render.text() },
+                    { "name": "lastUpdateTime", "title": "lastUpdateTime", "autoWidth": true, render: function (data, type, row) {
+                            return localTime(data);
+                        }
+                    },
+                    { 
+                        "name": "options", "title": "Options", "autoWidth": true, render: function (data, type, row) {
+                            return '<button class="btn btn-primary button" id="rowid' + data + '" onclick="deleteObject(\''+data+'\')">Del</button>';
+                        }
+                    },
                 ],
                 dom: '<"pull-left"f><"pull-right"l>tip',
                 columnDefs: [
@@ -113,6 +120,7 @@
         } 
 
         function EditModel(modelName,id) {
+            $('#saveObjectContainer').toggleClass("hide");
             modelEditorTable = $('#table').DataTable({
                 "stripeClasses" : [ 'theme-tableRowOdd', 'theme-tableRowEven' ],
                 fixedHeader: {
@@ -157,26 +165,32 @@
                     switch (String.fromCharCode(event.which).toLowerCase()) {
                     case 's':
                         event.preventDefault();
-                        var jsonData = {}
-                        modelEditorTable.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
-                            var data = this.data();
-                            if (data["initalValue"] != $("#property_"+data["value"][0]).val())
-                            {
-                                jsonData[data["value"][0]] = $("#property_"+data["value"][0]).val()
-                            }
-                        } );
-                        jsonData["CSRF"] = CSRF
-                        $.ajax({url:"/api/1.0/models/"+modelName+"/"+id+"/", type:"POST", data: JSON.stringify(jsonData), contentType:"application/json", success: function ( result ) {
-                                dropdownAlert(null,"Success","Save Successful",1000);
-                            },
-                            error: function ( result ) {
-                                dropdownAlert(null,"Error","Unknown error occurred",1000);
-                            }
-                        });
+                        saveObject();
                         break;
                     }
                 }
             })
+        }
+
+        function saveObject() {
+            var modelName = GetURLParameter("modelName")
+            var id = GetURLParameter("_id")
+            var jsonData = {}
+            modelEditorTable.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
+                var data = this.data();
+                if (data["initalValue"] != $("#property_"+data["value"][0]).val())
+                {
+                    jsonData[data["value"][0]] = $("#property_"+data["value"][0]).val()
+                }
+            } );
+            jsonData["CSRF"] = CSRF
+            $.ajax({url:"/api/1.0/models/"+modelName+"/"+id+"/", type:"POST", data: JSON.stringify(jsonData), contentType:"application/json", success: function ( result ) {
+                    dropdownAlert(null,"Success","Save Successful",1000);
+                },
+                error: function ( result ) {
+                    dropdownAlert(null,"Error","Unknown error occurred",1000);
+                }
+            });
         }
 
         function deleteObject(objectID) {
