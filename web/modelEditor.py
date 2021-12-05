@@ -28,13 +28,16 @@ def tableListModel(modelType,action):
                 ] }
     else:
         searchFilter = {}
-    modelClass = jimi.model._model().getAsClass(sessionData=jimi.api.g.sessionData,query={ "name" : modelType })[0].classObject()
-    pagedData = jimi.db._paged(modelClass,sessionData=jimi.api.g.sessionData,fields=fields,query=searchFilter,maxResults=200,sort=[(fields[orderBy],orderDir)])
-    table = ui.table(fields,pagedData.total,pagedData.total)
-    if action == "build":
-        return table.getColumns() ,200
-    elif action == "poll":
-        start = int(jimi.api.request.args.get('start'))
-        data = pagedData.getOffset(start,queryMode=1)
-        table.setRows(data)
-        return table.generate(int(jimi.api.request.args.get('draw'))) ,200
+    class_ = jimi.model.loadModel(modelType).classObject()
+    if class_:
+        access = jimi.db.ACLAccess(jimi.api.g.sessionData,class_.acl,"read")
+        if access:
+            pagedData = jimi.db._paged(class_,sessionData=jimi.api.g.sessionData,fields=fields,query=searchFilter,maxResults=200,sort=[(fields[orderBy],orderDir)])
+            table = ui.table(fields,pagedData.total,pagedData.total)
+            if action == "build":
+                return table.getColumns() ,200
+            elif action == "poll":
+                start = int(jimi.api.request.args.get('start'))
+                data = pagedData.getOffset(start,queryMode=1)
+                table.setRows(data)
+                return table.generate(int(jimi.api.request.args.get('draw'))) ,200
