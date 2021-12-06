@@ -268,8 +268,8 @@
                     columns : resultJson["columns"],
                     language: {
                         search: ""
-                    }{% if autoPoll > 0 %},
-                    dom: '<"pull-left"f><"pull-right"l>tip',
+                    },
+                    dom: '<"pull-left"f><"pull-right"l>tip',{% if autoPoll > 0 %},
                     "preDrawCallback": function( settings ) {
                         scrollPosition = $(".dataTables_scrollBody").scrollTop();
                     },
