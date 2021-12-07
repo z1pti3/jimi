@@ -28,11 +28,11 @@ def tableListModel(modelType,action):
                 ] }
     else:
         searchFilter = {}
-    class_ = jimi.model.loadModel(modelType).classObject()
+    class_ = jimi.model.loadModel(modelType)
     if class_:
         access = jimi.db.ACLAccess(jimi.api.g.sessionData,class_.acl,"read")
         if access:
-            pagedData = jimi.db._paged(class_,sessionData=jimi.api.g.sessionData,fields=fields,query=searchFilter,maxResults=200,sort=[(fields[orderBy],orderDir)])
+            pagedData = jimi.db._paged(class_.classObject(),sessionData=jimi.api.g.sessionData,fields=fields,query=searchFilter,maxResults=200,sort=[(fields[orderBy],orderDir)])
             table = ui.table(fields,pagedData.total,pagedData.total)
             if action == "build":
                 return table.getColumns() ,200
