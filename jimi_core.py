@@ -70,6 +70,7 @@ if __name__ == "__main__":
                 logging.error("Workers on systemID %i has failed restarting",systemId)
                 jimi.audit._audit().add("system","health_checker",{ "systemID" : systemId, "msg" : "Worker service has failed restarting." })
                 jimi.workers.workers.stop()
+                time.sleep(15)
                 jimi.workers.workers.start()
                 workerRestartSuccessful = False
                 now = time.time() + 30
