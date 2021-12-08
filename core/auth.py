@@ -328,7 +328,7 @@ def validateExternalUser(username,password,method,**kwargs):
                     _session().api_delete(query={ "user" : username, "application" : kwargs["application"] })
                 sessionID = secrets.token_hex(32)
                 if _session().new(username,sessionID,kwargs["application"]).inserted_id:
-                    #If there's a matching user in jimi's DB
+                    # If there's a matching user in jimi's DB
                     if "userData" in kwargs:
                         user = kwargs["userData"]
                         jimi.audit._audit().add("auth","login",{ "action" : "success", "src_ip" : jimi.api.request.remote_addr, "username" : user.username, "_id" : user._id, "accessIDs" : enumerateGroups(user), "primaryGroup" :user.primaryGroup, "admin" : isAdmin(user), "sessionID" : sessionID, "api" : False, "application" : kwargs["application"]  })
