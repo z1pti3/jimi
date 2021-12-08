@@ -153,9 +153,6 @@ def RSAinitialization():
             authSettingsObj.values["rsa"]["cert"] = encPublicKey
             authSettingsObj.values["rsa"]["key"] = encPrivateKey
             authSettingsObj.update(["values"])
-            os.remove(Path("data/temp/sessionPub.pem"))
-            os.remove(Path("data/temp/sessionPriv.pem"))
-            os.remove(Path("data/temp/private.pem"))
         
         # API/Web Session Keys
         if authSettings["rsa_web"]["cert"].startswith("-----BEGIN PUBLIC KEY-----") and authSettings["rsa_web"]["key"].startswith("-----BEGIN RSA PRIVATE KEY-----"):

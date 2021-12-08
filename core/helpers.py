@@ -561,6 +561,9 @@ def generateRSAKeys():
         sessionPublicKey = f.read()
     with open(str(Path("data/temp/sessionPriv.pem"))) as f:
         sessionPrivateKey = f.read()
+    os.remove(Path("data/temp/sessionPub.pem"))
+    os.remove(Path("data/temp/sessionPriv.pem"))
+    os.remove(Path("data/temp/private.pem"))
     return sessionPublicKey, sessionPrivateKey
 
 def getCentreOffset(flowData,newCentre):
