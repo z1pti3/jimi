@@ -137,7 +137,7 @@ if __name__ == "__main__":
 
     # Starting API
     logging.info("Starting API interface")
-    api.startServer(True,{'server.socket_host': apiSettings["bind"], 'server.socket_port': apiSettings["port"], 'engine.autoreload.on': False, 'server.thread_pool' : 1})
+    api.startServer(True,{'server.socket_host': apiSettings["bind"], 'server.socket_port': apiSettings["port"], 'engine.autoreload.on': False, 'server.thread_pool' : 10, 'server.max_request_body_size' : jimi.config["api"]["maxFileSize"], 'server.socket_timeout' : jimi.config["api"]["maxRequestTime"]})
 
     # Starting workers for API based calls - i.e. debug and triggering flows that are run on the master node
     logging.info("Starting cluster worker handler for API based calls")

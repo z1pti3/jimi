@@ -14,6 +14,8 @@ parser.add_argument('--worker_bind_address', help='Bind address for jimi_core wo
 parser.add_argument('--worker_bind_port_start', help='Bind port start for jimi_core workers')
 parser.add_argument('--web_bind_address', help='Bind address for jimi_web')
 parser.add_argument('--web_bind_port', help='Bind port for jimi_core')
+parser.add_argument('--max_file_size', help='Override the default 100MB file upload limit')
+parser.add_argument('--max_request_time', help='Override the max server socket timeout of 10 seconds')
 parser.add_argument('--db_host', help='Database connection details i.e. 127.0.0.1:27017')
 parser.add_argument('--db_username', help='Database username')
 parser.add_argument('--db_password', help='Database password')
@@ -39,6 +41,8 @@ else:
 		"api": {
 			"base" : "api/1.0",
 			"proxy" : None,
+			"maxFileSize" : 100000000,
+			"maxRequestTime" : 10,
 			"core" : {
 				"bind" : "127.0.0.1",
 				"port" : 5000
@@ -76,6 +80,10 @@ if args.web_bind_address:
 	config["api"]["web"]["bind"] = args.web_bind_address
 if args.web_bind_port:
 	config["api"]["web"]["port"] = int(args.web_bind_port)
+if args.max_file_size:
+	config["api"]["maxFileSize"] = int(args.max_file_size)
+if args.max_request_time:
+	config["api"]["maxRequestTime"] = int(args.max_request_time)
 
 if args.db_host:
 	config["mongodb"]["hosts"] = [args.db_host]
