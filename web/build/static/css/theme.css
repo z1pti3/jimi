@@ -426,3 +426,9 @@ div.dts div.dataTables_scrollBody {
     vertical-align: top;
     white-space: normal !important;
 }
+
+.flowchart {        
+    background: var(--mainBackgroundColor);
+    background-image: linear-gradient(#ffffff0c 1px, transparent 0), linear-gradient(90deg, #ffffff0c 1px, transparent 0);
+    background-size: 10px 10px, 10px 10px, 10px 10px, 10px 10px;
+}
