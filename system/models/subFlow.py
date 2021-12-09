@@ -19,7 +19,7 @@ class _subFlow(jimi.action._action):
 
 		events = [data["flowData"]["event"]]
 
-		if self.newDataTemplate:
+		if self.useNewDataTemplate:
 			tempData = jimi.conduct.dataTemplate(data=data)
 		else:
 			tempData = jimi.conduct.copyData(jimi.conduct.dataTemplate(data,keepEvent=True))
