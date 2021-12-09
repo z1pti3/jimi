@@ -5,6 +5,7 @@ import  uuid
 import copy
 from operator import itemgetter
 from pathlib import Path
+from urllib.parse import quote
 
 from flask import Flask, request, render_template, make_response, redirect, send_file
 from werkzeug.utils import send_from_directory
@@ -90,12 +91,26 @@ def conductFlowchartPoll(conductID):
     except:
         pass
 
+    nodeShapeTemplate = """<svg xmlns="http://www.w3.org/2000/svg" width="390" height="65">
+        <rect x="0" y="0" width="100%" height="100%" fill="#7890A7" stroke-width="20" stroke="#ffffff" >
+        </rect>
+        <foreignObject x="15" y="10" width="100%" height="100%">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:40px">
+                <em>I</em> am
+                <span style="color:white; text-shadow:0 0 20px #000000;">
+                HTML in SVG!</span>
+            </div>
+        </foreignObject>
+    </svg>
+    """
+    nodeShapeTemplate = "data:image/svg+xml;charset=utf-8,{0}".format(quote(nodeShapeTemplate))
     nodeTemplate = {
         "id" : "",
         "x" : 0,
         "y" : 0,
         "label" : "",
-        "shape" : "dot",
+        "shape" : "image",
+        "image" : nodeShapeTemplate,
         "widthConstraint" : { 
             "minimum": 75, 
             "maximum": 275
@@ -157,7 +172,7 @@ def conductFlowchartPoll(conductID):
                     node["id"] = flowID
                     node["x"] = flowUI.x
                     node["y"] = flowUI.y
-                    node["shape"] = "box"
+                    # node["shape"] = "box"
                     if flow["type"] == "trigger":
                         node["flowType"] = "trigger"
                         obj = triggersByID[flow["triggerID"]]
