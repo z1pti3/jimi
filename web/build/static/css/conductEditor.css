@@ -163,3 +163,20 @@ html, body {
 	background: #ffa6008c;
 	border-radius: 15px;
 }
+
+.flowchart-sidebar-header {
+	background-color: var(--panel2BackgroundColor);
+	text-align: right;
+	margin-right: 5px;
+}
+
+.flowchart-sidebar {
+	position: fixed;
+	z-index: 1;
+	width: 25%;
+	background-color: white;
+	height: calc(100% - 64px - 50px);
+	top: calc( 64px + 50px );
+	background-color: var(--panel2BackgroundColor);
+	box-shadow: 0 1px 6px var(--panelShadowColor1), 0 1px 4px var(--panelShadowColor2);
+}

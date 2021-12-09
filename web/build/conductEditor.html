@@ -38,7 +38,7 @@
 				<br><i style="right: 0; display: inline; position: relative;">Users in this conduct: <span id="activeUsers"></span></i>
 			</div>
 			<div style="display: table-cell; vertical-align: middle; height: 100%;" class="d-flex justify-content-end">
-				<button onclick="createNewObjectPanel()" class="btn btn-primary topBarButton button">+</button>
+				<button onclick="openSidebar()" class="btn btn-primary topBarButton button">+</button>
 				<button onclick="debugConduct()" class="btn btn-primary topBarButton button bi-bug"> Debug</button>
 				<button onclick="exportConduct()" class="btn btn-primary topBarButton button bi-box-arrow-in-down-right"> Export</button>
 				<button onclick="importConduct()" class="btn btn-primary topBarButton button bi-box-arrow-in-up-left"> Import</button>
@@ -80,6 +80,43 @@
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="deleteFlowObject()">Delete</a></li>
 			</ul>
 			<div class="flowchart theme-content" id="flowchart"></div>
+			<div class="flowchart-sidebar hide">
+				<div class="flowchart-sidebar-header">
+					<a class="noHover hoverHand" onclick="closeSidebar()" >X</a>
+				</div>
+				<div class="form-floating">
+					<input type="input" class="form-control textbox" id="search" autoComplete="off" placeholder="Theme" value="{{ search }}">
+					<label for="search" class="bi-chat-text"> Search</label>
+				</div>
+				<ul class="nav nav-tabs">
+					<li class="nav-item">
+						<a class="nav-link active" id="all-tab" href="#" data-bs-toggle="tab" data-bs-target="#all" role="tab" aria-controls="access" aria-selected="false">All</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" id="triggers-tab" href="#" data-bs-toggle="tab" data-bs-target="#triggers" role="tab" aria-controls="access" aria-selected="false">Triggers</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" id="actions-tab" href="#" data-bs-toggle="tab" data-bs-target="#actions" role="tab" aria-controls="access" aria-selected="false">Actions</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" id="existing-tab" href="#" data-bs-toggle="tab" data-bs-target="#existing" role="tab" aria-controls="access" aria-selected="false">Existing</a>
+					</li>
+				</ul>
+				<div class="tab-content text-left" id="myTabContent">
+					<div class="tab-pane show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+						All
+					</div>
+					<div class="tab-pane" id="triggers" role="tabpanel" aria-labelledby="triggers-tab">
+						Triggers
+					</div>
+					<div class="tab-pane" id="actions" role="tabpanel" aria-labelledby="actions-tab">
+						Actions
+					</div>
+					<div class="tab-pane" id="existing" role="tabpanel" aria-labelledby="existing-tab">
+						Existing
+					</div>
+				</div>
+			</div>
 			<div class="modal fade" id="conductSearch" tabindex="-1" role="dialog" aria-labelledby="Conduct Search" aria-hidden="true">
 				<div class="modal-dialog modal-dialog-centered modal-dialog-search" role="document">
 					<div class="modal-content panel">
@@ -142,7 +179,15 @@
 			$("#conductSearch").modal("hide");
 			document.getElementById("searchInputConduct").value="";
 		}
-		}); 
+		});
+
+		function closeSidebar() {
+			$('.flowchart-sidebar').addClass('hide')
+		}
+
+		function openSidebar() {
+			$('.flowchart-sidebar').removeClass('hide')
+		}
 
 		function findConductObject() {
 			$.ajax({ url: "/searchConduct", type : "GET",  data:{query: $("#searchInputConduct").val(),conductID: GetURLParameter("conductID")}, contentType:"application/json", 
