@@ -17,6 +17,24 @@ var panelTriggerSnapshotHistoryHTML = `
 
 var openTriggerSnapshotHistoryPanels = {}
 
+$(document).ready(function () {
+	$(window).bind("keydown", function (event) { 
+		if (event.ctrlKey || event.metaKey) {
+			switch (String.fromCharCode(event.which).toLowerCase()) {
+			case 's':
+				event.preventDefault();
+				break;
+			}
+		} else if (event.keyCode == 27) {
+			if (selectedObject != null) {
+				if (selectedObject[0] == "triggerSnapshotHistory") {
+					selectedObject[1]["panel"].find("#close").click();
+				}
+			}
+		}
+	})
+});
+
 function loadTriggerSnapshotHistoryPanel(panel,triggerID,init=false) {
 	panel.find("#title").text("Trigger Snapshots");
 	$.ajax({ url: "/api/1.0/debug/snapshot/"+triggerID+"/", type : "GET", success: function( result ) {
@@ -73,10 +91,17 @@ function createTriggerSnapshotHistoryPanel(triggerID) {
 
 		panel.attr("id",panelID);
 
+		$('.ui-main').find(".propertiesPanel").css("z-index", 1);
+		panel.find(".propertiesPanel-header").addClass("theme-panelHeader-Active");
+		selectedObject = ["triggerSnapshotHistory",{"panel" : panel, "flowID" : null, "deselect" :function(){ panel.find(".propertiesPanel-header").removeClass("theme-panelHeader-Active"); }}]
+
 		// Events
 		panel.click(function () {
 			$('.ui-main').find(".propertiesPanel").css("z-index", 1);
 			$(this).css("z-index", 2);
+			panel.find(".propertiesPanel-header").addClass("theme-panelHeader-Active");
+			panel.css("z-index", 2);
+			selectedObject = ["triggerSnapshotHistory",{"panel" : panel, "flowID" : null, "deselect" : function(){ panel.find(".propertiesPanel-header").removeClass("theme-panelHeader-Active"); }}]
 		})
 
 		panel.find("#close").click(function () { 

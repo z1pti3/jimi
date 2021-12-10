@@ -39,8 +39,7 @@ $(document).ready(function () {
 				break;
 			}
 		} else if (event.keyCode == 27) {
-			if (selectedObject != null)
-			{
+			if (selectedObject != null) {
 				if (selectedObject[0] == "objectProperties") {
 					delete openPanels[selectedObject[1]["flowID"]];
 					selectedObject[1]["panel"].remove();

@@ -38,6 +38,12 @@ $(document).ready(function () {
 				event.preventDefault();
 				break;
 			}
+		} else if (event.keyCode == 27) {
+			if (selectedObject != null) {
+				if (selectedObject[0] == "linkProperties") {
+					selectedObject[1]["panel"].find("#close").click();
+				}
+			}
 		}
 	})
 });
@@ -77,10 +83,17 @@ function createLinkPropertiesPanel(from,to) {
 			grid: 20
 		});
 
+		$('.ui-main').find(".propertiesPanel").css("z-index", 1);
+		panel.find(".propertiesPanel-header").addClass("theme-panelHeader-Active");
+		selectedObject = ["linkProperties",{"panel" : panel, "flowID" : null, "deselect" :function(){ panel.find(".propertiesPanel-header").removeClass("theme-panelHeader-Active"); }}]
+
 		// Events
 		panel.click(function () {
 			$('.ui-main').find(".propertiesPanel").css("z-index", 1);
 			$(this).css("z-index", 2);
+			panel.find(".propertiesPanel-header").addClass("theme-panelHeader-Active");
+			panel.css("z-index", 2);
+			selectedObject = ["linkProperties",{"panel" : panel, "flowID" : null, "deselect" : function(){ panel.find(".propertiesPanel-header").removeClass("theme-panelHeader-Active"); }}]
 		})
 
 		panel.find("#close").click(function () { 

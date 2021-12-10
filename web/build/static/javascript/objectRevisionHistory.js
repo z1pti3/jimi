@@ -34,6 +34,24 @@ var panelViewObjectRevisionHistoryHTML = `
 var openObjectRevisionHistoryPanels = {}
 var openViewObjectRevisionHistoryPanels = {}
 
+$(document).ready(function () {
+	$(window).bind("keydown", function (event) { 
+		if (event.ctrlKey || event.metaKey) {
+			switch (String.fromCharCode(event.which).toLowerCase()) {
+			case 's':
+				event.preventDefault();
+				break;
+			}
+		} else if (event.keyCode == 27) {
+			if (selectedObject != null) {
+				if (selectedObject[0] == "objectRevisionHistory" || selectedObject[0] == "viewObjectRevisionHistory") {
+					selectedObject[1]["panel"].find("#close").click();
+				}
+			}
+		}
+	})
+});
+
 function loadObjectRevisionHistoryPanel(panel,objectType,objectID,init=false) {
 	panel.find("#title").text("Object Revisions");
 	$.ajax({ url: "/api/1.0/models/"+objectType+"/"+objectID+"/", type : "GET", success: function( result ) {
@@ -103,10 +121,17 @@ function createObjectRevisionHistoryPanel(objectType,objectID) {
 
 		panel.attr("id",panelID);
 
+		panel.find(".propertiesPanel-header").addClass("theme-panelHeader-Active");
+		panel.css("z-index", 2);
+		selectedObject = ["objectRevisionHistory",{"panel" : panel, "flowID" : null, "deselect" : function(){ panel.find(".propertiesPanel-header").removeClass("theme-panelHeader-Active"); }}]
+
 		// Events
 		panel.click(function () {
 			$('.ui-main').find(".propertiesPanel").css("z-index", 1);
 			$(this).css("z-index", 2);
+			panel.find(".propertiesPanel-header").addClass("theme-panelHeader-Active");
+			panel.css("z-index", 2);
+			selectedObject = ["objectRevisionHistory",{"panel" : panel, "flowID" : null, "deselect" : function(){ panel.find(".propertiesPanel-header").removeClass("theme-panelHeader-Active"); }}]
 		})
 
 		panel.find("#close").click(function () { 
@@ -137,10 +162,17 @@ function createViewObjectRevisionHistoryPanel(classID,objectID,revisionID,object
 			grid: 20
 		});
 
+		panel.find(".propertiesPanel-header").addClass("theme-panelHeader-Active");
+		panel.css("z-index", 2);
+		selectedObject = ["viewObjectRevisionHistory",{"panel" : panel, "flowID" : null, "deselect" : function(){ panel.find(".propertiesPanel-header").removeClass("theme-panelHeader-Active"); }}]
+
 		// Events
 		panel.click(function () {
 			$('.ui-main').find(".propertiesPanel").css("z-index", 1);
 			$(this).css("z-index", 2);
+			panel.find(".propertiesPanel-header").addClass("theme-panelHeader-Active");
+			panel.css("z-index", 2);
+			selectedObject = ["viewObjectRevisionHistory",{"panel" : panel, "flowID" : null, "deselect" : function(){ panel.find(".propertiesPanel-header").removeClass("theme-panelHeader-Active"); }}]
 		})
 
 		panel.find("#close").click(function () { 
