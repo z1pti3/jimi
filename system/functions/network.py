@@ -14,3 +14,7 @@ def cidr(address, addressRange):
 def reverseDNS(IPv4Address):
     return socket.gethostbyaddr(IPv4Address)
 
+def maskTocidr(netmask):
+    from netaddr import IPAddress
+    return IPAddress(netmask).netmask_bits()
+
