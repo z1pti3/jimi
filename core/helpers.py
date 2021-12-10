@@ -543,11 +543,9 @@ def splitList(list,amount=1):
     except:
         return list
 
+# To be removed in a future release after plugins stop using it
 def replaceBackspaces(string):
-    while "\b" in string:
-        string = "{}{}".format(string[:string.index("\b")-1],string[string.index("\b")+1:])
-    return string
-
+    return string.replace("\b","")
 
 def getDateFromTimestamp(timestamp):
     ts = datetime.datetime.fromtimestamp(timestamp)
