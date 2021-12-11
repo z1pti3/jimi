@@ -5,7 +5,23 @@ var panelPropertiesHTML = `
 		<label id="title"></label>
 	</div>
 	<div class="propertiesPanel-main">
-		<div class="container-fluid propertiesPanel-body theme-panelBody">
+		<ul class="nav nav-tabs">
+			<li class="nav-item">
+				<a class="nav-link active" id="properties-tab" href="#" data-bs-toggle="tab" data-bs-target="#properties" role="tab" aria-controls="access" aria-selected="false">Properties</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" id="help-tab" href="#" data-bs-toggle="tab" data-bs-target="#help" role="tab" aria-controls="access" aria-selected="false">Help</a>
+			</li>
+		</ul>
+		<div class="tab-content text-left" id="myTabContent">
+			<div class="tab-pane show active" id="properties" role="tabpanel" aria-labelledby="properties-tab">
+				<div class="container-fluid propertiesPanel-body theme-panelBody">
+				</div>
+			</div>
+			<div class="tab-pane" id="help" role="tabpanel" aria-labelledby="help-tab">
+				<div class="propertiesPanel-help">
+				</div>
+			</div>
 		</div>
 	</div>
 	<div id="unlinkDiv" class="container-fluid propertiesPanel-footer theme-panelFooter pb-5 hide">
@@ -15,7 +31,6 @@ var panelPropertiesHTML = `
 		<button id="save" class="btn btn-primary button bi-save"> Save</button>
 		<button id="refresh" class="btn btn-primary button bi-recycle"> Refresh</button>
 		<button id="close" class="btn btn-primary button">Close</button>
-		<button id="help" class="btn btn-primary button bi-question-lg"> Show Help</button>
 	</div>
 </div>
 `
@@ -97,6 +112,74 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 	panel.find(".propertiesPanel-help").empty();
 	panel.find("#title").text(nodes.get(flowID)["name"]);
 	$.ajax({ url: "/conduct/"+conductID+"/flowProperties/"+flowID+"/", type:"GET", success: function ( result ) {
+			// help
+			if (Object.keys(result["manifest"]).length > 0)
+			{
+				var help = panel.find(".propertiesPanel-help");
+				var title = $('<label id="propertiesPanel-help-title">').text(result["manifest"]["display_name"]);
+				help.append(title).append($('<hr>'));
+				var description = $('<label id="propertiesPanel-help-description">').text(result["manifest"]["description"]);
+				help.append(description).append($('<br>'));
+				help.append($('<label id="propertiesPanel-help-Input">').text("Input:")).append($('<br>'));
+				var $table = $('<table class="propertiesPanel-help-table">');
+				$table.append($('<tr class="propertiesPanel-help-table-header">').append('<td><label>Name</label></td><td><label>Description</label></td><td><label>Type</label></td><td><label>Required</label></td><td><label>Syntax</label></td>'))
+				for (field in  result["manifest"]["fields"]) {
+					var $row = $('<tr class="propertiesPanel-help-table-content">');
+					var $cell = $('<td>');
+					$cell.append($('<label>').text(result["manifest"]["fields"][field]["label"]))
+					$row.append($cell);
+					var $cell = $('<td>');
+					$cell.append($('<label>').text(result["manifest"]["fields"][field]["description"]))
+					$row.append($cell);
+					var $cell = $('<td class="center">');
+					$cell.append($('<label>').text(result["manifest"]["fields"][field]["type"]))
+					$row.append($cell);
+					var $cell = $('<td class="center">');
+					$cell.append($('<label>').text(result["manifest"]["fields"][field]["required"]))
+					$row.append($cell);
+					var $cell = $('<td class="center">');
+					$cell.append($('<label>').text(result["manifest"]["fields"][field]["jimi_syntax"]))
+					$row.append($cell);
+					$table.append($row);
+				}
+				help.append($table).append($('<br>'));
+				help.append($('<label id="propertiesPanel-help-Output">').text("Output:")).append($('<br>'));
+				var $table = $('<table class="propertiesPanel-help-table">');
+				$table.append($('<tr class="propertiesPanel-help-table-header">').append('<td><label>Name</label></td><td><label>Description</label></td><td><label>Type</label></td><td><label>Always Present</label></td><td><label>values</label></td>'))
+				for (field in  result["manifest"]["data_out"]) {
+					var $row = $('<tr class="propertiesPanel-help-table-content">');
+					var $cell = $('<td>');
+					$cell.append($('<label>').text(field))
+					$row.append($cell);
+					var $cell = $('<td>');
+					$cell.append($('<label>').text(result["manifest"]["data_out"][field]["description"]))
+					$row.append($cell);
+					var $cell = $('<td class="center">');
+					$cell.append($('<label>').text(result["manifest"]["data_out"][field]["type"]))
+					$row.append($cell);
+					var $cell = $('<td class="center">');
+					$cell.append($('<label>').text(result["manifest"]["data_out"][field]["always_present"]))
+					$row.append($cell);
+					var $cell = $('<td>');
+					var $valuesTable = $('<table class="propertiesPanel-help-table">');
+					$valuesTable.append($('<tr class="propertiesPanel-help-table-header">').append('<td><label>Value</label></td><td><label>Description</label></td>'))
+					for (value in  result["manifest"]["data_out"][field]["values"]) {
+						var $valuesTableRow = $('<tr class="propertiesPanel-help-table-content">');
+						var $valuesTableCell = $('<td>');
+						$valuesTableCell.append($('<label>').text(value))
+						$valuesTableRow.append($valuesTableCell);
+						var $valuesTableCell = $('<td>');
+						$valuesTableCell.append($('<label>').text(result["manifest"]["data_out"][field]["values"][value]["description"]))
+						$valuesTableRow.append($valuesTableCell);
+						$valuesTable.append($valuesTableRow)
+					}
+					$cell.append($valuesTable)
+					$row.append($cell);
+					$table.append($row);
+				}
+				help.append($table).append($('<br>'));
+			}
+		
 			// formData
 			panel.find(".propertiesPanel-body").append(buildForm(result["formData"]));
 

@@ -149,6 +149,15 @@ html, body {
 	position: relative;
 }
 
+.objectPanelButton {
+	z-index: 1;
+	position: fixed;
+	top: calc( 64px + 90px );
+	right: -31px;
+	transform: rotate(90deg);
+	display: inline-block;
+}
+
 .flowchart-operator-trigger {
 	background: #225f888c;
 	border-radius: 15px;
@@ -166,13 +175,12 @@ html, body {
 
 .flowchart-sidebar-header {
 	background-color: var(--panel2BackgroundColor);
-	text-align: right;
-	margin-right: 5px;
 }
 
 .flowchart-sidebar {
 	position: fixed;
-	z-index: 1;
+	right: 0;
+	z-index: 5;
 	width: 25%;
 	background-color: white;
 	height: calc(100% - 64px - 50px);

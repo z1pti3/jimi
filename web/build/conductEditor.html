@@ -38,7 +38,6 @@
 				<br><i style="right: 0; display: inline; position: relative;">Users in this conduct: <span id="activeUsers"></span></i>
 			</div>
 			<div style="display: table-cell; vertical-align: middle; height: 100%;" class="d-flex justify-content-end">
-				<button onclick="openSidebar()" class="btn btn-primary topBarButton button">+</button>
 				<button onclick="debugConduct()" class="btn btn-primary topBarButton button bi-bug"> Debug</button>
 				<button onclick="exportConduct()" class="btn btn-primary topBarButton button bi-box-arrow-in-down-right"> Export</button>
 				<button onclick="importConduct()" class="btn btn-primary topBarButton button bi-box-arrow-in-up-left"> Import</button>
@@ -46,6 +45,7 @@
 			</div>
 		</div>
 		<div class="ui-main">
+			<button onclick="openSidebar()" class="btn btn-primary objectPanelButton button bi-box"> Objects</button>
 			<!-- Right Click Menus -->
 			<ul id="contextMenu" class="dropdown-menu contextMenuTrigger" role="menu" style="display:none;" >
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="editFlowObject()">Edit</a></li>
@@ -82,7 +82,7 @@
 			<div class="flowchart theme-content" id="flowchart"></div>
 			<div class="flowchart-sidebar hide">
 				<div class="flowchart-sidebar-header">
-					<a class="noHover hoverHand" onclick="closeSidebar()" >X</a>
+					<a class="noHover hoverHand bi-box-arrow-in-right" onclick="closeSidebar()" > Hide</a>
 				</div>
 				<div class="form-floating">
 					<input type="input" class="form-control textbox" id="search" autoComplete="off" placeholder="Theme" value="{{ search }}">
@@ -101,6 +101,9 @@
 					<li class="nav-item">
 						<a class="nav-link" id="existing-tab" href="#" data-bs-toggle="tab" data-bs-target="#existing" role="tab" aria-controls="access" aria-selected="false">Existing</a>
 					</li>
+					<li class="nav-item">
+						<a class="nav-link" id="intergrations-tab" href="#" data-bs-toggle="tab" data-bs-target="#intergrations" role="tab" aria-controls="access" aria-selected="false">Intergrations</a>
+					</li>
 				</ul>
 				<div class="tab-content text-left" id="myTabContent">
 					<div class="tab-pane show active" id="all" role="tabpanel" aria-labelledby="all-tab">
@@ -114,6 +117,9 @@
 					</div>
 					<div class="tab-pane" id="existing" role="tabpanel" aria-labelledby="existing-tab">
 						Existing
+					</div>
+					<div class="tab-pane" id="intergrations" role="tabpanel" aria-labelledby="intergrations-tab">
+						Intergrations
 					</div>
 				</div>
 			</div>
