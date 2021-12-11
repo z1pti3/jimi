@@ -24,6 +24,8 @@ def editConduct():
             "$and" : [ 
                 { 
                     "$or" : [ 
+                        { "name" : "action" }, 
+                        { "name" : "trigger" }, 
                         { "classType" : "_action" }, 
                         { "classType" : "_trigger" }
                     ]
@@ -37,6 +39,11 @@ def editConduct():
             ]
         },sort=[( "name", 1 )])["results"]
         for model in models:
+            # trigger and action are part of _document class for UI purpose make them _trigger and _action
+            if model["name"] == "trigger":
+                model["classType"] = "_trigger"
+            elif model["name"] == "action":
+                model["classType"] = "_action"
             try:
                 objects.append({ "type" : model["classType"], "classID" : model["_id"], "name" : model["name"], "description" : model["manifest"]["description"] })
             except KeyError:
