@@ -149,6 +149,15 @@ html, body {
 	position: relative;
 }
 
+.objectPanelButton {
+	z-index: 1;
+	position: fixed;
+	top: calc( 64px + 90px );
+	right: -31px;
+	transform: rotate(90deg);
+	display: inline-block;
+}
+
 .flowchart-operator-trigger {
 	background: #225f888c;
 	border-radius: 15px;
@@ -162,4 +171,32 @@ html, body {
 .flowchart-operator-trigger-awsAlerts {
 	background: #ffa6008c;
 	border-radius: 15px;
+}
+
+.flowchart-sidebar-header {
+	background-color: var(--panel2BackgroundColor);
+}
+
+.flowchart-sidebar {
+	position: fixed;
+	right: 0;
+	z-index: 5;
+	width: 25%;
+	background-color: white;
+	height: calc(100% - 64px - 50px);
+	top: calc( 64px + 50px );
+	background-color: var(--panel2BackgroundColor);
+	box-shadow: 0 1px 6px var(--panelShadowColor1), 0 1px 4px var(--panelShadowColor2);
+	transform: translateX(0);
+	transition: transform 0.25s ease-in-out;
+}
+
+.flowchart-sidebar-hidden {
+	transform: translateX(100%);
+}
+
+.objectsTabPanel {
+    overflow-y: scroll;
+	overflow-x: hidden;
+    height: calc(100% - 64px - 50px);
 }

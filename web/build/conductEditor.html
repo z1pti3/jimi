@@ -38,7 +38,6 @@
 				<br><i style="right: 0; display: inline; position: relative;">Users in this conduct: <span id="activeUsers"></span></i>
 			</div>
 			<div style="display: table-cell; vertical-align: middle; height: 100%;" class="d-flex justify-content-end">
-				<button onclick="createNewObjectPanel()" class="btn btn-primary topBarButton button">+</button>
 				<button onclick="debugConduct()" class="btn btn-primary topBarButton button bi-bug"> Debug</button>
 				<button onclick="exportConduct()" class="btn btn-primary topBarButton button bi-box-arrow-in-down-right"> Export</button>
 				<button onclick="importConduct()" class="btn btn-primary topBarButton button bi-box-arrow-in-up-left"> Import</button>
@@ -46,6 +45,7 @@
 			</div>
 		</div>
 		<div class="ui-main">
+			<button onclick="openSidebar()" class="btn btn-primary objectPanelButton button bi-box"> Objects</button>
 			<!-- Right Click Menus -->
 			<ul id="contextMenu" class="dropdown-menu contextMenuTrigger" role="menu" style="display:none;" >
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="editFlowObject()">Edit</a></li>
@@ -80,6 +80,144 @@
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="deleteFlowObject()">Delete</a></li>
 			</ul>
 			<div class="flowchart theme-content" id="flowchart"></div>
+			<div class="flowchart-sidebar flowchart-sidebar-hidden">
+				<div class="flowchart-sidebar-header">
+					<a class="noHover hoverHand bi-box-arrow-in-right" onclick="closeSidebar()" > Hide</a>
+				</div>
+				<div class="form-floating">
+					<input type="input" class="form-control textbox" id="objectSearch" onkeyup="doObjectSearch()" autoComplete="off" placeholder="Theme">
+					<label for="search" class="bi-chat-text"> Search</label>
+				</div>
+				<ul class="nav nav-tabs">
+					<li class="nav-item">
+						<a class="nav-link active" id="all-tab" href="#" data-bs-toggle="tab" data-bs-target="#all" role="tab" aria-controls="access" aria-selected="false">All</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" id="triggers-tab" href="#" data-bs-toggle="tab" data-bs-target="#triggers" role="tab" aria-controls="access" aria-selected="false">Triggers</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" id="actions-tab" href="#" data-bs-toggle="tab" data-bs-target="#actions" role="tab" aria-controls="access" aria-selected="false">Actions</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" id="existing-tab" href="#" data-bs-toggle="tab" data-bs-target="#existing" role="tab" aria-controls="access" aria-selected="false">Existing</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" id="intergrations-tab" href="#" data-bs-toggle="tab" data-bs-target="#intergrations" role="tab" aria-controls="access" aria-selected="false">Intergrations</a>
+					</li>
+				</ul>
+				<!-- Tab loading currently done on page load may need to move into API in future -->
+				<div class="tab-content text-left objectsTabPanel" id="myTabContent">
+					<div class="tab-pane show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+						<ul class="list-group list-group-flush mt-3">
+							{% for object in objects|sort(attribute='name') %}
+								<li class="list-group-item text-start objectContainer" data-name="{{ object["name"] }}" style="background-color: var(--mainBackgroundColor); border-color: var(--panelComponentBorder); color: var(--textColor);">
+									<div class="d-flex" style="justify-content: space-between;">
+										<div>
+											<span class="fs-4 mb-2" style="width: 300px; white-space: normal; word-break: break-all;">{{ object["name"] }}</span>
+										</div>
+										<div>
+											{% if object["type"] == "_trigger" %}
+												<button class="btn btn-primary button bi-plus-square" onclick="addNewObject('{{ object["classID"] }}')"> Add</button>
+											{% elif object["type"] == "_action" %}
+												<button class="btn btn-primary button bi-plus-square" onclick="addNewObject('{{ object["classID"] }}')"> Add</button>
+											{% elif object["type"] == "existingTrigger" %}
+												<button class="btn btn-primary button bi-plus-square" onclick="addExistingObject('{{ object["_id"] }}','trigger')"> Add</button>
+											{% elif object["type"] == "existingAction" %}
+												<button class="btn btn-primary button bi-plus-square" onclick="addExistingObject('{{ object["_id"] }}','action')"> Add</button>
+											{% endif %}
+										</div>
+									</div>
+									<p class="mb-3 noHover" style="white-space: normal;">{{ object["description"] }}</p>
+								</li>
+							{% endfor %}
+						</ul>
+					</div>
+					<div class="tab-pane" id="triggers" role="tabpanel" aria-labelledby="triggers-tab">
+						<ul class="list-group list-group-flush mt-3">
+							{% for object in objects|sort(attribute='name') %}
+								{% if object["type"] == "_trigger" %}
+									<li class="list-group-item text-start objectContainer" data-name="{{ object["name"] }}" style="background-color: var(--mainBackgroundColor); border-color: var(--panelComponentBorder); color: var(--textColor);">
+										<div class="d-flex" style="justify-content: space-between;">
+											<div>
+												<span class="fs-4 mb-2" style="width: 300px; white-space: normal; word-break: break-all;">{{ object["name"] }}</span>
+											</div>
+											<div>
+												{% if object["type"] == "_trigger" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addNewObject('{{ object["classID"] }}')"> Add</button>
+												{% elif object["type"] == "_action" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addNewObject('{{ object["classID"] }}')"> Add</button>
+												{% elif object["type"] == "existingTrigger" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addExistingObject('{{ object["_id"] }}','trigger')"> Add</button>
+												{% elif object["type"] == "existingAction" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addExistingObject('{{ object["_id"] }}','action')"> Add</button>
+												{% endif %}
+											</div>
+										</div>
+										<p class="mb-3 noHover" style="white-space: normal;">{{ object["description"] }}</p>
+									</li>
+								{% endif %}
+							{% endfor %}
+						</ul>
+					</div>
+					<div class="tab-pane" id="actions" role="tabpanel" aria-labelledby="actions-tab">
+						<ul class="list-group list-group-flush mt-3">
+							{% for object in objects|sort(attribute='name') %}
+								{% if object["type"] == "_action" %}
+									<li class="list-group-item text-start objectContainer" data-name="{{ object["name"] }}" style="background-color: var(--mainBackgroundColor); border-color: var(--panelComponentBorder); color: var(--textColor);">
+										<div class="d-flex" style="justify-content: space-between;">
+											<div>
+												<span class="fs-4 mb-2" style="width: 300px; white-space: normal; word-break: break-all;">{{ object["name"] }}</span>
+											</div>
+											<div>
+												{% if object["type"] == "_trigger" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addNewObject('{{ object["classID"] }}')"> Add</button>
+												{% elif object["type"] == "_action" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addNewObject('{{ object["classID"] }}')"> Add</button>
+												{% elif object["type"] == "existingTrigger" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addExistingObject('{{ object["_id"] }}','trigger')"> Add</button>
+												{% elif object["type"] == "existingAction" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addExistingObject('{{ object["_id"] }}','action')"> Add</button>
+												{% endif %}
+											</div>
+										</div>
+										<p class="mb-3 noHover" style="white-space: normal;">{{ object["description"] }}</p>
+									</li>
+								{% endif %}
+							{% endfor %}
+						</ul>
+					</div>
+					<div class="tab-pane" id="existing" role="tabpanel" aria-labelledby="existing-tab">
+						<ul class="list-group list-group-flush mt-3">
+							{% for object in objects|sort(attribute='name') %}
+								{% if object["type"] == "existingTrigger" or object["type"] == "existingAction" %}
+									<li class="list-group-item text-start objectContainer" data-name="{{ object["name"] }}" style="background-color: var(--mainBackgroundColor); border-color: var(--panelComponentBorder); color: var(--textColor);">
+										<div class="d-flex" style="justify-content: space-between;">
+											<div>
+												<span class="fs-4 mb-2" style="width: 300px; white-space: normal; word-break: break-all;">{{ object["name"] }}</span>
+											</div>
+											<div>
+												{% if object["type"] == "_trigger" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addNewObject('{{ object["classID"] }}')"> Add</button>
+												{% elif object["type"] == "_action" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addNewObject('{{ object["classID"] }}')"> Add</button>
+												{% elif object["type"] == "existingTrigger" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addExistingObject('{{ object["_id"] }}','trigger')"> Add</button>
+												{% elif object["type"] == "existingAction" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addExistingObject('{{ object["_id"] }}','action')"> Add</button>
+												{% endif %}
+											</div>
+										</div>
+										<p class="mb-3 noHover" style="white-space: normal;">{{ object["description"] }}</p>
+									</li>
+								{% endif %}
+							{% endfor %}
+						</ul>
+					</div>
+					<div class="tab-pane" id="intergrations" role="tabpanel" aria-labelledby="intergrations-tab">
+						View by Intergration Coming Soon!
+					</div>
+				</div>
+			</div>
 			<div class="modal fade" id="conductSearch" tabindex="-1" role="dialog" aria-labelledby="Conduct Search" aria-hidden="true">
 				<div class="modal-dialog modal-dialog-centered modal-dialog-search" role="document">
 					<div class="modal-content panel">
@@ -142,7 +280,30 @@
 			$("#conductSearch").modal("hide");
 			document.getElementById("searchInputConduct").value="";
 		}
-		}); 
+		});
+
+		function doObjectSearch() {
+            var input = document.getElementById("objectSearch");
+            var searchFilter = input.value.toUpperCase();
+            var regex = new RegExp('\\b\\w*' + searchFilter + '\\w*\\b');
+            $('.objectContainer').hide().filter(function () {
+                var nr = regex.test($(this).data('name').toUpperCase());
+                if (nr) {
+                    return true;
+                }
+                return false;
+            }).show();
+        }
+
+		function closeSidebar() {
+			selectedObject = null;
+			$('.flowchart-sidebar').toggleClass('flowchart-sidebar-hidden');
+		}
+
+		function openSidebar() {
+			selectedObject = ["flowchart-sideba",{"deselect" : function(){ closeSidebar() }}];
+			$('.flowchart-sidebar').toggleClass('flowchart-sidebar-hidden');
+		}
 
 		function findConductObject() {
 			$.ajax({ url: "/searchConduct", type : "GET",  data:{query: $("#searchInputConduct").val(),conductID: GetURLParameter("conductID")}, contentType:"application/json", 

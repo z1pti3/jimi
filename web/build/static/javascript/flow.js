@@ -408,6 +408,29 @@ function copyFlowObject() {
 	}
 }
 
+function addExistingObject(objectID,flowType) {
+	pos = network.getViewPosition()
+	var x = pos["x"]
+	var y = pos["y"]
+	var conductID = GetURLParameter("conductID")
+	var $this = $(this);
+	$.ajax({url:"/conductEditor/"+conductID+"/flow/", type:"POST", data:JSON.stringify({action: "drop", flowType: flowType, _id: objectID, x: x, y: y, CSRF: CSRF}), contentType:"application/json", success: function ( result ) {
+		// Drop sucessfull
+		}
+	});
+}
+
+function addNewObject(classID) {
+	var conductID = GetURLParameter("conductID")
+	pos = network.getViewPosition()
+	var x = pos["x"]
+	var y = pos["y"]
+	$.ajax({url:"/conductEditor/"+conductID+"/flow/", type:"PUT", data:JSON.stringify({classID: classID, x: x, y: y, CSRF: CSRF}), contentType:"application/json", success: function ( responseData ) {
+			// Created new object
+		}
+	});
+}
+
 function duplicateFlowObject() {
 	selectedNodes = network.getSelectedNodes()
 	if (selectedNodes.length == 1) {

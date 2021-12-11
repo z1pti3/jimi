@@ -5,9 +5,23 @@ var panelPropertiesHTML = `
 		<label id="title"></label>
 	</div>
 	<div class="propertiesPanel-main">
-		<div class="container-fluid propertiesPanel-body theme-panelBody">
-		</div>
-		<div class="propertiesPanel-help">
+		<ul class="nav nav-tabs">
+			<li class="nav-item">
+				<a class="nav-link active" id="properties-tab" href="#" data-bs-toggle="tab" data-bs-target="#properties" role="tab" aria-controls="access" aria-selected="false">Properties</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" id="help-tab" href="#" data-bs-toggle="tab" data-bs-target="#help" role="tab" aria-controls="access" aria-selected="false">Help</a>
+			</li>
+		</ul>
+		<div class="tab-content text-left" id="myTabContent">
+			<div class="tab-pane show active" id="properties" role="tabpanel" aria-labelledby="properties-tab">
+				<div class="container-fluid propertiesPanel-body theme-panelBody">
+				</div>
+			</div>
+			<div class="tab-pane" id="help" role="tabpanel" aria-labelledby="help-tab">
+				<div class="propertiesPanel-help">
+				</div>
+			</div>
 		</div>
 	</div>
 	<div id="unlinkDiv" class="container-fluid propertiesPanel-footer theme-panelFooter pb-5 hide">
@@ -17,7 +31,6 @@ var panelPropertiesHTML = `
 		<button id="save" class="btn btn-primary button bi-save"> Save</button>
 		<button id="refresh" class="btn btn-primary button bi-recycle"> Refresh</button>
 		<button id="close" class="btn btn-primary button">Close</button>
-		<button id="help" class="btn btn-primary button bi-question-lg"> Show Help</button>
 	</div>
 </div>
 `
@@ -165,7 +178,7 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 				}
 				help.append($table).append($('<br>'));
 			}
-
+		
 			// formData
 			panel.find(".propertiesPanel-body").append(buildForm(result["formData"]));
 
@@ -294,26 +307,6 @@ function createPropertiesPanel(flowID) {
 
 		panel.find("#refresh").click(function () { 
 			loadPropertiesPanel(flowID,panel);
-		})
-
-		panel.find("#help").click(function () { 
-			if (panel.find(".propertiesPanel-main").css("display") == "flex") {
-				panel.find(".propertiesPanel-main").css("display","unset");
-				panel.find(".propertiesPanel-help").css("display","none");
-				panel.find("#help").text("Show Help");
-				panel.width(panel.width());
-				panel.height(panel.height());
-				left = parseInt(panel.css("left"));
-				panel.css({left: left + 450});
-			} else {
-				panel.find(".propertiesPanel-main").css("display","flex");
-				panel.find(".propertiesPanel-help").css("display","unset");
-				panel.find("#help").text("Hide Help");
-				panel.width(panel.width());
-				panel.height(panel.height());
-				left = parseInt(panel.css("left"));
-				panel.css({left: left - 450});
-			}
 		})
 
 		panel.find("#unlink").click(function () { 

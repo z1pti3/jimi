@@ -5,6 +5,7 @@ import  uuid
 import copy
 from operator import itemgetter
 from pathlib import Path
+from urllib.parse import quote
 
 from flask import Flask, request, render_template, make_response, redirect, send_file
 from werkzeug.utils import send_from_directory
@@ -17,7 +18,43 @@ def editConduct():
     conductObj = jimi.conduct._conduct().query(jimi.api.g.sessionData,id=conductID)["results"]
     if len(conductObj) == 1:
         conductObj = conductObj[0]
-        return render_template("conductEditor.html", CSRF=jimi.api.g.sessionData["CSRF"],conductName=conductObj["name"])
+        # Load objects that the user can use
+        objects = []
+        models = jimi.model._model(False).query(jimi.api.g.sessionData,query={ 
+            "$and" : [ 
+                { 
+                    "$or" : [ 
+                        { "name" : "action" }, 
+                        { "name" : "trigger" }, 
+                        { "classType" : "_action" }, 
+                        { "classType" : "_trigger" }
+                    ]
+                },
+                { 
+                    "$or" : [ 
+                        { "hidden" : False }, 
+                        { "hidden" : { "$exists" : False } }
+                    ]
+                }
+            ]
+        },sort=[( "name", 1 )])["results"]
+        for model in models:
+            # trigger and action are part of _document class for UI purpose make them _trigger and _action
+            if model["name"] == "trigger":
+                model["classType"] = "_trigger"
+            elif model["name"] == "action":
+                model["classType"] = "_action"
+            try:
+                objects.append({ "type" : model["classType"], "classID" : model["_id"], "name" : model["name"], "description" : model["manifest"]["description"] })
+            except KeyError:
+                objects.append({ "type" : model["classType"], "classID" : model["_id"], "name" : model["name"], "description" : "" })
+        triggers = jimi.trigger._trigger(False).query(sessionData=jimi.api.g.sessionData,query={ "scope" : { "$gt" : 0 } })["results"]
+        for trigger in triggers:
+            objects.append({ "type" : "existingTrigger", "_id" : trigger["_id"], "name" : trigger["name"], "description" : trigger["comment"] })
+        actions = jimi.action._action(False).query(sessionData=jimi.api.g.sessionData,query={ "scope" : { "$gt" : 0 } })["results"]
+        for action in actions:
+            objects.append({ "type" : "existingAction", "_id" : action["_id"], "name" : action["name"], "description" : action["comment"] })
+        return render_template("conductEditor.html", CSRF=jimi.api.g.sessionData["CSRF"],conductName=conductObj["name"],objects=objects)
     else:
         return { }, 404
 
@@ -90,12 +127,25 @@ def conductFlowchartPoll(conductID):
     except:
         pass
 
+    # nodeShapeTemplate = """<svg xmlns="http://www.w3.org/2000/svg" width="390" height="65">
+    #     <rect x="0" y="0" width="100%" height="100%" fill="#7890A7" stroke-width="20" stroke="#ffffff" >
+    #     </rect>
+    #     <foreignObject x="15" y="10" width="100%" height="100%">
+    #         <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:40px">
+    #             <em>I</em> am
+    #             <span style="color:white; text-shadow:0 0 20px #000000;">
+    #             HTML in SVG!</span>
+    #         </div>
+    #     </foreignObject>
+    # </svg>
+    # """
+    # nodeShapeTemplate = "data:image/svg+xml;charset=utf-8,{0}".format(quote(nodeShapeTemplate))
     nodeTemplate = {
         "id" : "",
         "x" : 0,
         "y" : 0,
         "label" : "",
-        "shape" : "dot",
+        "shape" : "box",
         "widthConstraint" : { 
             "minimum": 75, 
             "maximum": 275
@@ -157,7 +207,7 @@ def conductFlowchartPoll(conductID):
                     node["id"] = flowID
                     node["x"] = flowUI.x
                     node["y"] = flowUI.y
-                    node["shape"] = "box"
+                    # node["shape"] = "box"
                     if flow["type"] == "trigger":
                         node["flowType"] = "trigger"
                         obj = triggersByID[flow["triggerID"]]
