@@ -80,12 +80,12 @@
 				<li><a tabindex="-1" class="noHover hoverHand" style="display: block;" onclick="deleteFlowObject()">Delete</a></li>
 			</ul>
 			<div class="flowchart theme-content" id="flowchart"></div>
-			<div class="flowchart-sidebar hide">
+			<div class="flowchart-sidebar flowchart-sidebar-hidden">
 				<div class="flowchart-sidebar-header">
 					<a class="noHover hoverHand bi-box-arrow-in-right" onclick="closeSidebar()" > Hide</a>
 				</div>
 				<div class="form-floating">
-					<input type="input" class="form-control textbox" id="search" autoComplete="off" placeholder="Theme" value="{{ search }}">
+					<input type="input" class="form-control textbox" id="objectSearch" onkeyup="doObjectSearch()" autoComplete="off" placeholder="Theme">
 					<label for="search" class="bi-chat-text"> Search</label>
 				</div>
 				<ul class="nav nav-tabs">
@@ -105,21 +105,115 @@
 						<a class="nav-link" id="intergrations-tab" href="#" data-bs-toggle="tab" data-bs-target="#intergrations" role="tab" aria-controls="access" aria-selected="false">Intergrations</a>
 					</li>
 				</ul>
-				<div class="tab-content text-left" id="myTabContent">
+				<div class="tab-content text-left objectsTabPanel" id="myTabContent">
 					<div class="tab-pane show active" id="all" role="tabpanel" aria-labelledby="all-tab">
-						All
+						<ul class="list-group list-group-flush mt-3">
+							{% for object in objects|sort(attribute='name') %}
+								<li class="list-group-item text-start objectContainer" data-name="{{ object["name"] }}" style="background-color: var(--mainBackgroundColor); border-color: var(--panelComponentBorder); color: var(--textColor);">
+									<div class="d-flex" style="justify-content: space-between;">
+										<div>
+											<span class="fs-4 mb-2">{{ object["name"] }}</span>
+										</div>
+										<div>
+											{% if object["type"] == "_trigger" %}
+												<button class="btn btn-primary button bi-plus-square" onclick="addNewObject('{{ object["classID"] }}')"> Add</button>
+											{% elif object["type"] == "_action" %}
+												<button class="btn btn-primary button bi-plus-square" onclick="addNewObject('{{ object["classID"] }}')"> Add</button>
+											{% elif object["type"] == "existingTrigger" %}
+												<button class="btn btn-primary button bi-plus-square" onclick="addExistingObject('{{ object["_id"] }}','trigger')"> Add</button>
+											{% elif object["type"] == "existingAction" %}
+												<button class="btn btn-primary button bi-plus-square" onclick="addExistingObject('{{ object["_id"] }}','action')"> Add</button>
+											{% endif %}
+										</div>
+									</div>
+									<p class="mb-3 noHover" style="white-space: normal;">{{ object["description"] }}</p>
+								</li>
+							{% endfor %}
+						</ul>
 					</div>
 					<div class="tab-pane" id="triggers" role="tabpanel" aria-labelledby="triggers-tab">
-						Triggers
+						<ul class="list-group list-group-flush mt-3">
+							{% for object in objects|sort(attribute='name') %}
+								{% if object["type"] == "_trigger" %}
+									<li class="list-group-item text-start objectContainer" data-name="{{ object["name"] }}" style="background-color: var(--mainBackgroundColor); border-color: var(--panelComponentBorder); color: var(--textColor);">
+										<div class="d-flex" style="justify-content: space-between;">
+											<div>
+												<span class="fs-4 mb-2">{{ object["name"] }}</span>
+											</div>
+											<div>
+												{% if object["type"] == "_trigger" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addNewObject('{{ object["classID"] }}')"> Add</button>
+												{% elif object["type"] == "_action" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addNewObject('{{ object["classID"] }}')"> Add</button>
+												{% elif object["type"] == "existingTrigger" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addExistingObject('{{ object["_id"] }}','trigger')"> Add</button>
+												{% elif object["type"] == "existingAction" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addExistingObject('{{ object["_id"] }}','action')"> Add</button>
+												{% endif %}
+											</div>
+										</div>
+										<p class="mb-3 noHover" style="white-space: normal;">{{ object["description"] }}</p>
+									</li>
+								{% endif %}
+							{% endfor %}
+						</ul>
 					</div>
 					<div class="tab-pane" id="actions" role="tabpanel" aria-labelledby="actions-tab">
-						Actions
+						<ul class="list-group list-group-flush mt-3">
+							{% for object in objects|sort(attribute='name') %}
+								{% if object["type"] == "_action" %}
+									<li class="list-group-item text-start objectContainer" data-name="{{ object["name"] }}" style="background-color: var(--mainBackgroundColor); border-color: var(--panelComponentBorder); color: var(--textColor);">
+										<div class="d-flex" style="justify-content: space-between;">
+											<div>
+												<span class="fs-4 mb-2" style="width: 300px; white-space: normal; word-break: break-all;">{{ object["name"] }}</span>
+											</div>
+											<div>
+												{% if object["type"] == "_trigger" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addNewObject('{{ object["classID"] }}')"> Add</button>
+												{% elif object["type"] == "_action" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addNewObject('{{ object["classID"] }}')"> Add</button>
+												{% elif object["type"] == "existingTrigger" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addExistingObject('{{ object["_id"] }}','trigger')"> Add</button>
+												{% elif object["type"] == "existingAction" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addExistingObject('{{ object["_id"] }}','action')"> Add</button>
+												{% endif %}
+											</div>
+										</div>
+										<p class="mb-3 noHover" style="white-space: normal;">{{ object["description"] }}</p>
+									</li>
+								{% endif %}
+							{% endfor %}
+						</ul>
 					</div>
 					<div class="tab-pane" id="existing" role="tabpanel" aria-labelledby="existing-tab">
-						Existing
+						<ul class="list-group list-group-flush mt-3">
+							{% for object in objects|sort(attribute='name') %}
+								{% if object["type"] == "existingTrigger" or object["type"] == "existingAction" %}
+									<li class="list-group-item text-start objectContainer" data-name="{{ object["name"] }}" style="background-color: var(--mainBackgroundColor); border-color: var(--panelComponentBorder); color: var(--textColor);">
+										<div class="d-flex" style="justify-content: space-between;">
+											<div>
+												<span class="fs-4 mb-2">{{ object["name"] }}</span>
+											</div>
+											<div>
+												{% if object["type"] == "_trigger" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addNewObject('{{ object["classID"] }}')"> Add</button>
+												{% elif object["type"] == "_action" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addNewObject('{{ object["classID"] }}')"> Add</button>
+												{% elif object["type"] == "existingTrigger" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addExistingObject('{{ object["_id"] }}','trigger')"> Add</button>
+												{% elif object["type"] == "existingAction" %}
+													<button class="btn btn-primary button bi-plus-square" onclick="addExistingObject('{{ object["_id"] }}','action')"> Add</button>
+												{% endif %}
+											</div>
+										</div>
+										<p class="mb-3 noHover" style="white-space: normal;">{{ object["description"] }}</p>
+									</li>
+								{% endif %}
+							{% endfor %}
+						</ul>
 					</div>
 					<div class="tab-pane" id="intergrations" role="tabpanel" aria-labelledby="intergrations-tab">
-						Intergrations
+						View by Intergration Coming Soon!
 					</div>
 				</div>
 			</div>
@@ -187,12 +281,27 @@
 		}
 		});
 
+		function doObjectSearch() {
+            var input = document.getElementById("objectSearch");
+            var searchFilter = input.value.toUpperCase();
+            var regex = new RegExp('\\b\\w*' + searchFilter + '\\w*\\b');
+            $('.objectContainer').hide().filter(function () {
+                var nr = regex.test($(this).data('name').toUpperCase());
+                if (nr) {
+                    return true;
+                }
+                return false;
+            }).show();
+        }
+
 		function closeSidebar() {
-			$('.flowchart-sidebar').addClass('hide')
+			selectedObject = null;
+			$('.flowchart-sidebar').toggleClass('flowchart-sidebar-hidden');
 		}
 
 		function openSidebar() {
-			$('.flowchart-sidebar').removeClass('hide')
+			selectedObject = ["flowchart-sideba",{"deselect" : function(){ closeSidebar() }}];
+			$('.flowchart-sidebar').toggleClass('flowchart-sidebar-hidden');
 		}
 
 		function findConductObject() {

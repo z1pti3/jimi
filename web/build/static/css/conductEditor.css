@@ -187,4 +187,16 @@ html, body {
 	top: calc( 64px + 50px );
 	background-color: var(--panel2BackgroundColor);
 	box-shadow: 0 1px 6px var(--panelShadowColor1), 0 1px 4px var(--panelShadowColor2);
+	transform: translateX(0);
+	transition: transform 0.25s ease-in-out;
+}
+
+.flowchart-sidebar-hidden {
+	transform: translateX(100%);
+}
+
+.objectsTabPanel {
+    overflow-y: scroll;
+	overflow-x: hidden;
+    height: calc(100% - 64px - 50px);
 }

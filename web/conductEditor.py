@@ -18,7 +18,36 @@ def editConduct():
     conductObj = jimi.conduct._conduct().query(jimi.api.g.sessionData,id=conductID)["results"]
     if len(conductObj) == 1:
         conductObj = conductObj[0]
-        return render_template("conductEditor.html", CSRF=jimi.api.g.sessionData["CSRF"],conductName=conductObj["name"])
+        # Load objects that the user can use
+        objects = []
+        models = jimi.model._model(False).query(jimi.api.g.sessionData,query={ 
+            "$and" : [ 
+                { 
+                    "$or" : [ 
+                        { "classType" : "_action" }, 
+                        { "classType" : "_trigger" }
+                    ]
+                },
+                { 
+                    "$or" : [ 
+                        { "hidden" : False }, 
+                        { "hidden" : { "$exists" : False } }
+                    ]
+                }
+            ]
+        },sort=[( "name", 1 )])["results"]
+        for model in models:
+            try:
+                objects.append({ "type" : model["classType"], "classID" : model["_id"], "name" : model["name"], "description" : model["manifest"]["description"] })
+            except KeyError:
+                objects.append({ "type" : model["classType"], "classID" : model["_id"], "name" : model["name"], "description" : "" })
+        triggers = jimi.trigger._trigger(False).query(sessionData=jimi.api.g.sessionData,query={ "scope" : { "$gt" : 0 } })["results"]
+        for trigger in triggers:
+            objects.append({ "type" : "existingTrigger", "_id" : trigger["_id"], "name" : trigger["name"], "description" : trigger["comment"] })
+        actions = jimi.action._action(False).query(sessionData=jimi.api.g.sessionData,query={ "scope" : { "$gt" : 0 } })["results"]
+        for action in actions:
+            objects.append({ "type" : "existingAction", "_id" : action["_id"], "name" : action["name"], "description" : action["comment"] })
+        return render_template("conductEditor.html", CSRF=jimi.api.g.sessionData["CSRF"],conductName=conductObj["name"],objects=objects)
     else:
         return { }, 404
 
