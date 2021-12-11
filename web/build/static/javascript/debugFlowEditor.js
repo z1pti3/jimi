@@ -433,7 +433,7 @@ function addExecutedFlowEvent(uid,eventName,event,preserveDataID) {
 		clearSelection();
 		$(".eventItemInner").addClass("hide");
 		uid = $(this).attr("eventID")
-		$("#debugFlowEditor-in").val($(this).attr("event"), null, 5);
+		$("#debugFlowEditor-in-event").val($(this).attr("event"), null, 5);
 		$("#debug_continue_button").prop('disabled', false);
 		$.ajax({url:"/api/1.0/debug/"+debugSession+"/"+uid+"/executionList/", type:"GET", timeout: 2000, contentType:"application/json", success: function ( executionList ) {
 				for (index in executionList["executionList"]) {
@@ -490,14 +490,26 @@ function nodeSelectionChange(flowID) {
 function setSelection(execution) {
 	$("#debug_continue_button").prop('disabled', false);
 	$("#debugFlowEditor-in").val(JSON.stringify(execution["dataIn"], null, 5));
+	$("#debugFlowEditor-in-event").val(JSON.stringify(execution["dataIn"]["flowData"]["event"], null, 5));
+	$("#debugFlowEditor-in-action").val(JSON.stringify(execution["dataIn"]["flowData"]["action"], null, 5));
+	$("#debugFlowEditor-in-var").val(JSON.stringify(execution["dataIn"]["flowData"]["var"], null, 5));
 	$("#debugFlowEditor-out").val(JSON.stringify(execution["dataOut"], null, 5));
+	$("#debugFlowEditor-out-event").val(JSON.stringify(execution["dataOut"]["flowData"]["event"], null, 5));
+	$("#debugFlowEditor-out-action").val(JSON.stringify(execution["dataOut"]["flowData"]["action"], null, 5));
+	$("#debugFlowEditor-out-var").val(JSON.stringify(execution["dataOut"]["flowData"]["var"], null, 5));
 }
 
 function clearSelection() {
 	$('.eventItemInner').removeClass('click')
 	$("#debug_continue_button").prop('disabled', true)
 	$("#debugFlowEditor-in").val("");
+	$("#debugFlowEditor-in-event").val("");
+	$("#debugFlowEditor-in-action").val("");
+	$("#debugFlowEditor-in-var").val("");
 	$("#debugFlowEditor-out").val("");
+	$("#debugFlowEditor-out-event").val("");
+	$("#debugFlowEditor-out-action").val("");
+	$("#debugFlowEditor-out-var").val("");
 }
 
 function getDebugSessions() {
