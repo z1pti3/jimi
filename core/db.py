@@ -569,15 +569,26 @@ class _bulk():
         self.lock.release()
 
 mongodbSettings = jimi.config["mongodb"]
+readOptions = {"nearest":pymongo.ReadPreference.NEAREST,"primary":pymongo.ReadPreference.PRIMARY,"primaryPreferred":pymongo.ReadPreference.PRIMARY_PREFERRED,"secondary":pymongo.ReadPreference.SECONDARY,"secondaryPreferred":pymongo.ReadPreference.SECONDARY_PREFERRED}
 
 # Try / Except - v3.0 added ssl and ssl_ca_certs but setting may not always be present
 if "connectString" in mongodbSettings:
     dbClient = pymongo.MongoClient(mongodbSettings["connectString"])
 else:
     try:
-        dbClient = pymongo.MongoClient(mongodbSettings["hosts"],username=mongodbSettings["username"],password=mongodbSettings["password"],ssl=mongodbSettings["ssl"],ssl_ca_certs=mongodbSettings["ca"])
+        if "replicaSet" in mongodbSettings:
+            dbClient = pymongo.MongoReplicaSetClient(mongodbSettings["hosts"],read_preference=readOptions[mongodbSettings["replicaSet"]["readPreference"]],username=mongodbSettings["username"],password=mongodbSettings["password"],ssl=mongodbSettings["ssl"],ssl_ca_certs=mongodbSettings["ca"])
+            if "name" in mongodbSettings["replicaSet"]:
+                dbClient.replicaSet = mongodbSettings["replicaSet"]["name"]
+        else:
+            dbClient = pymongo.MongoClient(mongodbSettings["hosts"],username=mongodbSettings["username"],password=mongodbSettings["password"],ssl=mongodbSettings["ssl"],ssl_ca_certs=mongodbSettings["ca"])
     except:
-        dbClient = pymongo.MongoClient(mongodbSettings["hosts"],username=mongodbSettings["username"],password=mongodbSettings["password"])
+        if "replicaSet" in mongodbSettings:
+            dbClient = pymongo.MongoReplicaSetClient(mongodbSettings["hosts"],read_preference=readOptions[mongodbSettings["replicaSet"]["readPreference"]],username=mongodbSettings["username"],password=mongodbSettings["password"])
+            if "name" in mongodbSettings["replicaSet"]:
+                dbClient.replicaSet = mongodbSettings["replicaSet"]["name"]
+        else:
+            dbClient = pymongo.MongoClient(mongodbSettings["hosts"],username=mongodbSettings["username"],password=mongodbSettings["password"])
 
 db = dbClient[mongodbSettings["db"]]
 
