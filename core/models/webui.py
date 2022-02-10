@@ -89,6 +89,8 @@ class _properties():
                             field["textbox"] = field["value"]
                         elif field["type"] == "dropdown":
                             field["current"] = field["value"]
+                        if field["type"] == "unit-input":
+                            field["currentunit"] = getattr(classObject,field["unitschema"])
                         field["tooltip"] = field["description"]
                         formData.append(field)
                 formData.append({"type" : "break", "schemaitem" : "break", "start" : False, "label" : classObject.name})
