@@ -18,6 +18,7 @@ from bson.objectid import ObjectId
 import hashlib
 import inspect
 import subprocess
+from dateutil import relativedelta
 
 import jimi
 
@@ -572,3 +573,46 @@ def getCentreOffset(flowData,newCentre):
         node["x"] -= centroid[0] - newCentre["x"]
         node["y"] -= centroid[1] - newCentre["y"]
     return flowData
+
+def getSearchPeriodTimestamp(searchStart,searchEnd):
+    searchStartMatch = re.match(r"([0-9]+)([A-z]+)",searchStart)
+    if searchStartMatch:
+        if searchStartMatch.groups()[1] in ["millisecond", "milliseconds", "millis", "ms"]:
+            startTime = datetime.datetime.now() - datetime.timedelta(milliseconds=int(searchStartMatch.groups()[0]))
+        elif searchStartMatch.groups()[1] in ["second", "seconds", "s", "sec", "secs"]:
+            startTime = datetime.datetime.now() - datetime.timedelta(seconds=int(searchStartMatch.groups()[0]))
+        elif searchStartMatch.groups()[1] in ["minute", "minutes", "m", "min"]:
+            startTime = datetime.datetime.now() - datetime.timedelta(minutes=int(searchStartMatch.groups()[0]))
+        elif searchStartMatch.groups()[1] in ["hour", "hours", "h", "hr", "hrs"]:
+            startTime = datetime.datetime.now() - datetime.timedelta(hours=int(searchStartMatch.groups()[0]))
+        elif searchStartMatch.groups()[1] in ["day", "days", "d"]:
+            startTime = datetime.datetime.now() - datetime.timedelta(days=int(searchStartMatch.groups()[0]))
+        elif searchStartMatch.groups()[1] in ["week", "weeks", "w"]:
+            startTime = datetime.datetime.now() - datetime.timedelta(weeks=int(searchStartMatch.groups()[0]))
+        elif searchStartMatch.groups()[1] in ["month", "months", "mon"]:
+            startTime = datetime.datetime.now() - relativedelta.relativedelta(months=int(searchStartMatch.groups()[0]))
+        elif searchStartMatch.groups()[1] in ["year", "years", "y", "yr", "yrs"]:
+            startTime = datetime.datetime.now() - relativedelta.relativedelta(years=int(searchStartMatch.groups()[0]))
+
+    if searchEnd:
+        searchEndMatch = re.match(r"([0-9]+)([A-z]+)",searchEnd)
+        if searchEndMatch:
+            if searchEndMatch.groups()[1] in ["millisecond", "milliseconds", "millis", "ms"]:
+                endTime = datetime.datetime.now() - datetime.timedelta(milliseconds=int(searchEndMatch.groups()[0]))
+            elif searchEndMatch.groups()[1] in ["second", "seconds", "s", "sec", "secs"]:
+                endTime = datetime.datetime.now() - datetime.timedelta(seconds=int(searchEndMatch.groups()[0]))
+            elif searchEndMatch.groups()[1] in ["minute", "minutes", "m", "min"]:
+                endTime = datetime.datetime.now() - datetime.timedelta(minutes=int(searchEndMatch.groups()[0]))
+            elif searchEndMatch.groups()[1] in ["hour", "hours", "h", "hr", "hrs"]:
+                endTime = datetime.datetime.now() - datetime.timedelta(hours=int(searchEndMatch.groups()[0]))
+            elif searchEndMatch.groups()[1] in ["day", "days", "d"]:
+                endTime = datetime.datetime.now() - datetime.timedelta(days=int(searchEndMatch.groups()[0]))
+            elif searchEndMatch.groups()[1] in ["week", "weeks", "w"]:
+                endTime = datetime.datetime.now() - datetime.timedelta(weeks=int(searchEndMatch.groups()[0]))
+            elif searchEndMatch.groups()[1] in ["month", "months", "mon"]:
+                endTime = datetime.datetime.now() - relativedelta.relativedelta(months=int(searchEndMatch.groups()[0]))
+            elif searchEndMatch.groups()[1] in ["year", "years", "y", "yr", "yrs"]:
+                endTime = datetime.datetime.now() - relativedelta.relativedelta(years=int(searchEndMatch.groups()[0]))
+
+        return startTime, endTime
+    return startTime, datetime.datetime.now()
