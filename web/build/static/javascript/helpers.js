@@ -192,8 +192,7 @@ function buildForm(fromData) {
 
             var $cell = $('<td>');
             $cell.append($('<input class="inputFullWidth theme-panelTextbox-34">').attr({type: 'text', value: fromData[objectItem]["textbox"], current: fromData[objectItem]["textbox"], required: required, id: "properties_items"+fromData[objectItem]["schemaitem"], key: fromData[objectItem]["schemaitem"], tag: "formItem"}));
-            var $select =$('<select class="inputFullWidth theme-panelTextArea-14">').attr({type: 'dropdown', required: required, id: "properties_items"+fromData[objectItem]["selectedunit"], key: fromData[objectItem]["unitschema"], tag: "formItem"});
-
+            var $select =$('<select class="inputFullWidth theme-panelTextArea-14">').attr({type: 'dropdown', required: required, id: "properties_items"+fromData[objectItem]["unitschema"], key: fromData[objectItem]["unitschema"], tag: "formItem"});
             for (var i=0; i< fromData[objectItem]["units"].length;i++){
                 $select.append($('<option>').attr({value: fromData[objectItem]["units"][i]}).text(fromData[objectItem]["units"][i]));
             }
