@@ -145,7 +145,7 @@ class _conduct(jimi.db._document):
             flowDebugSession["eventID"] = jimi.debug.flowDebugSession[flowDebugSession["sessionID"]].startEvent(data["flowData"]["trigger_name"],data["flowData"]["event"],data)
         processQueue = []
         currentFlowTag = ""
-        data["flowData"]["conductID"] = self._id
+        data["flowData"]["conduct_id"] = self._id
         data["flowData"]["action"] = { "result" : True, "rc" : 1337 }
         flowObjectsUsed = []
         exitType = None
