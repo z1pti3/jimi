@@ -24,6 +24,7 @@ class _subFlow(jimi.action._action):
 		else:
 			tempData = jimi.conduct.copyData(jimi.conduct.dataTemplate(data,keepEvent=True))
 		tempData["flowData"]["callingTriggerID"] = data["flowData"]["trigger_id"]
+		currentConduct = data["persistentData"]["system"]["conduct"]
 
 		if self.customEventsValue:
 			events = jimi.helpers.evalString(self.eventsValue,{"data" : data["flowData"]})
@@ -62,8 +63,10 @@ class _subFlow(jimi.action._action):
 				else:
 					break
 			else:
+				data["persistentData"]["system"]["conduct"] = currentConduct
 				return { "result" : False, "rc" : 5, "msg" : "Unable to find the specified triggerID={0}".format(triggerID) }
 
+		data["persistentData"]["system"]["conduct"] = currentConduct
 		return { "result" : subflowResult, "rc" : 0 }
 
 class _subFlowReturn(jimi.action._action):
