@@ -170,7 +170,49 @@ function buildForm(fromData) {
               for (var i=0; i< fromData[objectItem]["dropdown"].length;i++){
                 $select.append($('<option>').attr({value: fromData[objectItem]["dropdown"][i]}).text(fromData[objectItem]["dropdown"][i]));
             }
-            console.log(fromData[objectItem]["dropdown"]);
+            // Fixes legacy issues for dropdowns
+            if (fromData[objectItem]["value"] == null)
+            {
+                $select.val(fromData[objectItem]["current"])
+            }
+            else 
+            {
+                $select.val(fromData[objectItem]["value"])
+            }
+            $cell.append($select);
+            $row.append($cell);
+            
+        }
+        if (fromData[objectItem]["type"] == "dynamic-dropdown") {
+  
+            var $cell = $('<td width="100px">');
+            $cell.append($('<label>').attr({for: fromData[objectItem]["schemaitem"], class: "theme-panelLabel"}).text(label+":"));
+            $row.append($cell);
+
+            var $cell = $('<td>');
+            var $select =$('<select class="inputFullWidth theme-panelText searchSelect">').attr({type: 'dropdown', required: required, id: "properties_items"+fromData[objectItem]["schemaitem"], current: JSON.stringify(fromData[objectItem]["dropdown"]), key: fromData[objectItem]["schemaitem"], tag: "formItem"});
+            
+            var dropdownData = [];
+            var matches = false;
+
+            $.ajax({url:fromData[objectItem]["source"]+"/", type:"GET", async: false, success: function ( result ) {
+                dropdownData = result["data"];
+            }});
+
+            // Add blank option
+            $select.append($('<option>').attr({value: ""}).text("---"));
+
+            for (var i=0; i< dropdownData.length;i++){
+                $select.append($('<option>').attr({value: dropdownData[i]["id"]}).text(dropdownData[i]["name"]));
+                if (dropdownData[i]["id"] == fromData[objectItem]["value"]) { matches = true; }
+            }
+
+            // Allows for custom options to be visible, not the nicest...
+            if (matches == false && fromData[objectItem]["value"] != "None"){
+                $select.append($('<option>').attr({value: fromData[objectItem]["value"]}).text(fromData[objectItem]["value"]));
+            }
+
+
             // Fixes legacy issues for dropdowns
             if (fromData[objectItem]["value"] == null)
             {
@@ -302,6 +344,7 @@ function getForm(container) {
 		}
 		if (formItem.attr("type") == "dropdown")
 		{
+            console.log(formItem.val());
 			jsonData[resultItem] = formItem.val();
 		}
 		if (formItem.attr("type") == "script")

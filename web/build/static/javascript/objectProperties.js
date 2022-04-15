@@ -207,6 +207,8 @@ function loadPropertiesPanel(flowID,panel,init=false) {
 				var posY = (height/2) - (panel.height()/2) + offsetTop;
 				panel.css({top : posY, left : posX});
 			}
+
+			$(".searchSelect").select2({tags:true});
 		}
 	});
 }

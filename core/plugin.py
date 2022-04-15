@@ -404,11 +404,15 @@ def loadPluginClass(pluginName):
 
 # Dont like these, they need to be merged into the plugin class or somthing?
 def loadPluginAPIExtensions():
+    global loadedPluginPages
+    pluginPages = []
     plugins = os.listdir("plugins")
     for plugin in plugins:
         if os.path.isfile(Path("plugins/{0}/api/{0}.py".format(plugin))):
             mod = __import__("plugins.{0}.api.{0}".format(plugin), fromlist=["pluginPages"])
             jimi.api.webServer.register_blueprint(mod.pluginPages,url_prefix='/plugin/{0}'.format(plugin))
+            pluginPages.append(plugin)
+    loadedPluginPages = pluginPages
 
 def loadPluginFunctionExtensions():
     plugins = os.listdir("plugins")
