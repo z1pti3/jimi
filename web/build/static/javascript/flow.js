@@ -29,13 +29,13 @@ $(document).ready(function () {
 				break;
 		}
 		if (event.ctrlKey || event.metaKey) {
-			if (event.keyCode == 67 & typeof(document.activeElement["attributes"]["tag"]) == "undefined" & network.getSelectedNodes().length > 0) {
+			if (event.keyCode == 67 & document.activeElement["className"] == "vis-network" & network.getSelectedNodes().length > 0) {
 				$.ajax({url:"/conductEditor/"+GetURLParameter("conductID")+"/copyObjects", data: JSON.stringify({ CSRF: CSRF, "nodes": nodes.get(network.getSelectedNodes()), "edges": edges.get(network.getSelectedEdges()) }), type:"POST", contentType:"application/json", success: function ( result ) {
 					dropdownAlert(null,"Success","Flow Objects Copied!",1000);
 				}
 			});
 			}
-			if (event.keyCode == 86 & typeof(document.activeElement["attributes"]["tag"]) == "undefined" & network.getSelectedNodes().length == 0) {
+			if (event.keyCode == 86 & document.activeElement["className"] == "vis-network" & network.getSelectedNodes().length == 0) {
 				$.ajax({url:"/conductEditor/"+GetURLParameter("conductID")+"/pasteObjects", data: JSON.stringify({ CSRF: CSRF, "centre" : network.getViewPosition(), "forcePaste" : false }), type:"POST", contentType:"application/json", success: function ( result ) {
 					dropdownAlert(null,"Success","Flow Objects Pasted!",1000);
 				},
@@ -571,5 +571,3 @@ function setupFlowchart() {
 
 	updateFlowchart();
 }
-
-
